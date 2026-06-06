@@ -33,12 +33,19 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                const docRef = doc(db, "users", user.uid);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    document.getElementById("userName").innerText = docSnap.data().name;
-                } else {
-                    document.getElementById("userName").innerText = "Vendor";
+                try {
+                    const docRef = doc(db, "users", user.uid);
+                    const docSnap = await getDoc(docRef);
+                    
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        document.getElementById("userName").innerText = data.name || "No Name Found";
+                    } else {
+                        document.getElementById("userName").innerText = "Profile not found";
+                    }
+                } catch (error) {
+                    console.error("Error:", error);
+                    document.getElementById("userName").innerText = "Error loading";
                 }
             } else {
                 window.location.href = "index.html";
