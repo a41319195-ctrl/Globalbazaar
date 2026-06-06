@@ -25,11 +25,24 @@
     <button id="logoutBtn">Logout</button>
 
     <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-        const auth = getAuth();
-        const db = getFirestore();
+        // यहाँ अपनी डिटेल्स भरें
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "globalbazaar-xxxx.firebaseapp.com",
+            projectId: "globalbazaar-xxxx",
+            storageBucket: "globalbazaar-xxxx.appspot.com",
+            messagingSenderId: "734113870757",
+            appId: "1:734113870757:web:xxxx",
+            measurementId: "G-NSM7xxxx"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
