@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Global Bazaar Dashboard</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .card { border: 1px solid #ccc; padding: 20px; border-radius: 10px; width: 300px; }
+        img { border-radius: 50%; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Welcome to Your Shop</h1>
+
+    <div class="card">
+        <h3>Vendor Profile</h3>
+        <img id="profilePic" src="https://via.placeholder.com/100" alt="Profile">
+        <input type="file" id="uploadPic">
+        <p><strong>Business Name:</strong> <span id="userName">Loading...</span></p>
+    </div>
+
+    <br>
+    <label>Select Category:</label>
+    <select id="categorySelect">
+        <option value="textiles">Textiles</option>
+        <option value="electronics">Electronics</option>
+        <option value="cosmetics">Cosmetics</option>
+    </select>
+
+    <br><br>
+    <button id="payBtn">Proceed to Payment Setup</button>
+    <br><br>
+    <button id="logoutBtn">Logout</button>
+
+    <script type="module">
+        // Firebase Auth code yahan aayega baad mein
+        document.getElementById("logoutBtn").addEventListener("click", () => {
+            alert("Logging out...");
+            window.location.href = "index.html";
+        });
+    </script>
+</body>
+</html>
