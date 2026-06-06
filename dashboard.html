@@ -41,11 +41,11 @@
                         const data = docSnap.data();
                         document.getElementById("userName").innerText = data.name || "No Name Found";
                     } else {
-                        document.getElementById("userName").innerText = "Profile not found";
+                        document.getElementById("userName").innerText = "Vendor";
                     }
                 } catch (error) {
                     console.error("Error:", error);
-                    document.getElementById("userName").innerText = "Error loading";
+                    document.getElementById("userName").innerText = "Error";
                 }
             } else {
                 window.location.href = "index.html";
