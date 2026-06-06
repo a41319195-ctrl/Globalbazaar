@@ -3,10 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Global Bazaar Dashboard</title>
-    <style>
-        body { font-family: sans-serif; padding: 20px; }
-        .card { border: 1px solid #ccc; padding: 20px; border-radius: 10px; width: 300px; }
-    </style>
 </head>
 <body>
     <h1>Welcome to Your Shop</h1>
@@ -14,14 +10,6 @@
         <h3>Vendor Profile</h3>
         <p><strong>Business Name:</strong> <span id="userName">Loading...</span></p>
     </div>
-    <br>
-    <label>Select Category:</label>
-    <select id="categorySelect">
-        <option value="textiles">Textiles</option>
-        <option value="electronics">Electronics</option>
-        <option value="cosmetics">Cosmetics</option>
-    </select>
-    <br><br>
     <button id="logoutBtn">Logout</button>
 
     <script type="module">
@@ -29,15 +17,15 @@
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-        // यहाँ अपनी डिटेल्स भरें
+        // यहाँ आपकी सही Firebase Config है
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "globalbazaar-xxxx.firebaseapp.com",
-            projectId: "globalbazaar-xxxx",
-            storageBucket: "globalbazaar-xxxx.appspot.com",
-            messagingSenderId: "734113870757",
-            appId: "1:734113870757:web:xxxx",
-            measurementId: "G-NSM7xxxx"
+          apiKey: "AIzaSyAvbSJkEH3NDNy_SIaf0bJk0hkhknTRhno",
+          authDomain: "globalbazaar-2c6cb.firebaseapp.com",
+          projectId: "globalbazaar-2c6cb",
+          storageBucket: "globalbazaar-2c6cb.firebasestorage.app",
+          messagingSenderId: "734113870757",
+          appId: "1:734113870757:web:653ac103c064685cbaee4c",
+          measurementId: "G-NSM7YP4GZG"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -52,19 +40,24 @@
                     if (docSnap.exists()) {
                         document.getElementById("userName").innerText = docSnap.data().name || "No Name Found";
                     } else {
-                        document.getElementById("userName").innerText = "Profile not set";
+                        document.getElementById("userName").innerText = "No Data Found";
                     }
                 } catch (error) {
-                    console.error("Error:", error);
+                    console.error("Error loading data:", error);
                     document.getElementById("userName").innerText = "Error loading";
                 }
             } else {
+                // अगर लॉग-इन नहीं है, तो लॉगिन पेज पर भेजें
                 window.location.href = "index.html";
             }
         });
 
         document.getElementById("logoutBtn").addEventListener("click", () => {
-            signOut(auth).then(() => { window.location.href = "index.html"; });
+            signOut(auth).then(() => { 
+                window.location.href = "index.html"; 
+            }).catch((error) => {
+                console.error("Logout Error:", error);
+            });
         });
     </script>
 </body>
