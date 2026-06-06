@@ -6,7 +6,6 @@
     <style>
         body { font-family: sans-serif; padding: 20px; }
         .card { border: 1px solid #ccc; padding: 20px; border-radius: 10px; width: 300px; }
-        img { border-radius: 50%; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -14,8 +13,6 @@
 
     <div class="card">
         <h3>Vendor Profile</h3>
-        <img id="profilePic" src="https://via.placeholder.com/100" alt="Profile">
-        <input type="file" id="uploadPic">
         <p><strong>Business Name:</strong> <span id="userName">Loading...</span></p>
     </div>
 
@@ -28,15 +25,29 @@
     </select>
 
     <br><br>
-    <button id="payBtn">Proceed to Payment Setup</button>
-    <br><br>
     <button id="logoutBtn">Logout</button>
 
     <script type="module">
-        // Firebase Auth code yahan aayega baad mein
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+        const auth = getAuth();
+        const db = getFirestore();
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const docRef = doc(db, "users", user.uid);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    document.getElementById("userName").innerText = docSnap.data().name;
+                }
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
         document.getElementById("logoutBtn").addEventListener("click", () => {
-            alert("Logging out...");
-            window.location.href = "index.html";
+            signOut(auth).then(() => { window.location.href = "index.html"; });
         });
     </script>
 </body>
