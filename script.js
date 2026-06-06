@@ -19,8 +19,6 @@ document.getElementById("vendorForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const name = document.getElementById("name").value;
   const email = document.getElementById("email").value;
-  
-  // अभी के लिए एक अस्थायी पासवर्ड (आगे हम इसे फॉर्म में जोड़ेंगे)
   const password = "UserPassword123"; 
 
   try {
@@ -35,3 +33,4 @@ document.getElementById("vendorForm").addEventListener("submit", async (e) => {
     alert("Error: " + error.message);
   }
 });
+
