@@ -1,0 +1,20 @@
+<!DOCTYPE html><html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Global Bazaar</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header><h1>Global Bazaar</h1></header>
+    <main>
+        <form id="vendorForm">
+            <input type="text" id="name" placeholder="Business Name" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <button type="submit">Register</button>
+        </form>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>
