@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -35,5 +35,16 @@ document.getElementById("vendorForm").addEventListener("submit", async (e) => {
   }
 });
 
+document.getElementById("loginBtn").addEventListener("click", async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("email").value;
+  const password = "UserPassword123"; 
 
-
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    alert("स्वागत है! आप सफलतापूर्वक लॉगिन हो गए हैं।");
+    window.location.href = "dashboard.html"; 
+  } catch (error) {
+    alert("Login Error: " + error.message);
+  }
+});
