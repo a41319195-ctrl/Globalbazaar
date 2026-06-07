@@ -3,65 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalBazaar | Secure Hub</title>
+    <title>GlobalBazaar | Shopping Made Easy</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #1e3a8a; --bg: #f8fafc; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; }
         
-        /* Header & Menu */
         header { background: #fff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; }
-        .menu-btn { font-size: 24px; cursor: pointer; border: none; background: none; }
-        
-        /* Container */
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         .card { background: white; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
         .app-input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 15px; }
-        .btn { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+        .btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
         .hidden { display: none; }
     </style>
 </head>
 <body>
 
 <header>
-    <button class="menu-btn" onclick="toggleMenu()">☰</button>
     <h1 style="font-size: 20px; color: var(--primary);">GlobalBazaar 🌍</h1>
-    <select id="currencySelect" class="app-input" style="width: auto; margin: 0;">
-        <option>SAR</option><option>AED</option><option>KWD</option><option>USD</option><option>INR</option>
-    </select>
+    <select id="currencySelect" class="app-input" style="width: auto; margin: 0;"><option>SAR</option><option>USD</option><option>INR</option></select>
 </header>
-
-<div id="sideMenu" class="card hidden" style="position:absolute; top:70px; left:20px; z-index:100; width: 200px;">
-    <p>👤 My Profile</p><hr style="margin:10px 0;">
-    <p>⚙️ Settings</p><hr style="margin:10px 0;">
-    <p style="color:red;">🚪 Logout</p>
-</div>
 
 <div class="container">
     <div style="display: flex; gap: 10px; margin-bottom: 20px;">
         <button class="btn" onclick="show('buyer')">🛒 Buyer</button>
-        <button class="btn" onclick="show('seller')">🏪 Seller</button>
+        <button class="btn" onclick="show('seller')">🏪 Seller Login</button>
     </div>
 
-    <div id="authSection" class="card">
-        <h2>🔑 Login / Sign Up</h2>
-        <input type="email" class="app-input" placeholder="Email Address">
+    <div id="buyerSection">
+        <div class="card">
+            <h3>Luxury Smart Watch</h3>
+            <p>Price: SAR 187.50</p>
+            <button class="btn" style="background:#10b981; margin-top:10px;" onclick="document.getElementById('paymentModal').style.display='block'">Buy Now</button>
+        </div>
+    </div>
+
+    <div id="sellerSection" class="hidden card">
+        <h2>🏪 Seller Login</h2>
+        <input type="email" class="app-input" placeholder="Email">
         <input type="password" class="app-input" placeholder="Password">
-        <button class="btn">Access Dashboard</button>
+        <button class="btn">Sign In</button>
     </div>
+</div>
 
-    <div id="dashboardSection" class="hidden">
-        <div class="card" style="background: #1e3a8a; color: white;">
-            <h3>Merchant Dashboard</h3>
-            <p>Balance: SAR 0.00</p>
-            <button class="btn" style="background:#10b981;">Withdraw Funds</button>
+<div id="paymentModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); padding:20px;">
+    <div class="card" style="margin-top: 50px;">
+        <h2>💳 Secure Payment</h2>
+        <input type="text" class="app-input" placeholder="Card Holder Name">
+        <input type="text" class="app-input" placeholder="Card Number">
+        <div style="display:flex; gap:10px;">
+            <input type="text" class="app-input" placeholder="MM/YY">
+            <input type="text" class="app-input" placeholder="CVV">
         </div>
-        </div>
+        <button class="btn" onclick="alert('Payment Successful!'); document.getElementById('paymentModal').style.display='none'">Pay Now</button>
+        <button class="btn" style="background:#ef4444; margin-top:10px;" onclick="document.getElementById('paymentModal').style.display='none'">Cancel</button>
+    </div>
 </div>
 
 <script>
-    function toggleMenu() { document.getElementById('sideMenu').classList.toggle('hidden'); }
-    function show(tab) { /* logic to switch between sections */ }
+    function show(tab) {
+        document.getElementById('buyerSection').style.display = tab === 'buyer' ? 'block' : 'none';
+        document.getElementById('sellerSection').style.display = tab === 'seller' ? 'block' : 'none';
+    }
 </script>
 
 </body>
