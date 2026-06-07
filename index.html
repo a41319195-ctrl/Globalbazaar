@@ -2,43 +2,40 @@
 <html lang="en">
 <head>
     <style>
-        body { font-family: sans-serif; background: #f8fafc; margin: 0; padding: 10px; }
-        .brand { font-size: 28px; font-weight: 900; color: #1e3a8a; text-align: center; display: block; }
-        .section { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background: #1e3a8a; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        body { font-family: sans-serif; background: #f4f4f4; margin: 0; padding: 10px; }
+        .header { background: white; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 10px; }
+        .brand { font-size: 24px; font-weight: 900; color: #1e3a8a; }
+        .top-nav { display: flex; justify-content: space-around; margin: 10px 0; }
+        .section { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; }
+        input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #1e3a8a; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<header>
-    <span class="brand">GLOBALBAZAAR</span>
-    <select id="currency">
-        <option>SAR (Saudi)</option><option>USD ($)</option><option>INR (₹)</option><option>AED (UAE)</option>
-    </select>
-</header>
-
-<div class="section">
-    <input type="text" placeholder="🔍 Search products...">
-    <select>
-        <option>All Categories</option><option>Electronics</option><option>Fashion</option><option>Home Decor</option>
-    </select>
-</div>
-
-<div class="section">
-    <h3>🛒 Products</h3>
-    <div class="grid">
-        <div><b>Smart Watch</b><br>SAR 187.50<br><button onclick="alert('Checkout Form Opened')">Buy Now</button></div>
-        <div><b>Headphones</b><br>SAR 450.00<br><button onclick="alert('Checkout Form Opened')">Buy Now</button></div>
+<div class="header">
+    <div class="brand">GLOBALBAZAAR</div>
+    <div class="top-nav">
+        <span>☰ Menu</span>
+        <select><option>SAR (Saudi)</option></select>
+        <span><button>Buyer</button> <button>Seller</button></span>
     </div>
 </div>
 
 <div class="section">
-    <h3>🏪 Seller Portal</h3>
-    <div style="background:#f1f5f9; padding:10px; border-radius:6px; margin-bottom:10px;">
+    <input type="text" placeholder="Search products...">
+    <select><option>All Categories</option></select>
+    <div>
+        <p>Smart Watch - SAR 187.50</p>
+        <button>Buy Now</button>
+    </div>
+</div>
+
+<div class="section">
+    <h3>Seller Portal</h3>
+    <div style="background:#e0f2f1; padding:10px; border-radius:5px;">
         <p>Wallet Balance: <b>SAR 1,250.00</b></p>
-        <button style="background:#059669;">Withdraw Funds</button>
+        <button style="background:green;">Withdraw Funds</button>
     </div>
     <input placeholder="KYC: ID/License">
     <input placeholder="Bank IBAN">
