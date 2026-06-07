@@ -3,12 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalBazaar | Master Edition</title>
+    <title>GlobalBazaar | Secure Hub</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #1e3a8a; --bg: #f8fafc; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); padding-bottom: 50px; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; }
+        
+        /* Header & Menu */
         header { background: #fff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; }
+        .menu-btn { font-size: 24px; cursor: pointer; border: none; background: none; }
+        
+        /* Container */
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         .card { background: white; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
         .app-input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 15px; }
@@ -19,21 +24,18 @@
 <body>
 
 <header>
+    <button class="menu-btn" onclick="toggleMenu()">☰</button>
     <h1 style="font-size: 20px; color: var(--primary);">GlobalBazaar 🌍</h1>
     <select id="currencySelect" class="app-input" style="width: auto; margin: 0;">
-        <option value="SAR">Saudi Arabia (SAR)</option>
-        <option value="AED">UAE (AED)</option>
-        <option value="KWD">Kuwait (KWD)</option>
-        <option value="QAR">Qatar (QAR)</option>
-        <option value="OMR">Oman (OMR)</option>
-        <option value="BHD">Bahrain (BHD)</option>
-        <option value="USD">United States (USD)</option>
-        <option value="EUR">Eurozone (EUR)</option>
-        <option value="GBP">UK (GBP)</option>
-        <option value="INR">India (INR)</option>
-        <option value="PKR">Pakistan (PKR)</option>
+        <option>SAR</option><option>AED</option><option>KWD</option><option>USD</option><option>INR</option>
     </select>
 </header>
+
+<div id="sideMenu" class="card hidden" style="position:absolute; top:70px; left:20px; z-index:100; width: 200px;">
+    <p>👤 My Profile</p><hr style="margin:10px 0;">
+    <p>⚙️ Settings</p><hr style="margin:10px 0;">
+    <p style="color:red;">🚪 Logout</p>
+</div>
 
 <div class="container">
     <div style="display: flex; gap: 10px; margin-bottom: 20px;">
@@ -41,38 +43,25 @@
         <button class="btn" onclick="show('seller')">🏪 Seller</button>
     </div>
 
-    <div id="buyerSection">
-        <input type="text" class="app-input" placeholder="Search products...">
+    <div id="authSection" class="card">
+        <h2>🔑 Login / Sign Up</h2>
+        <input type="email" class="app-input" placeholder="Email Address">
+        <input type="password" class="app-input" placeholder="Password">
+        <button class="btn">Access Dashboard</button>
     </div>
 
-    <div id="sellerSection" class="hidden">
+    <div id="dashboardSection" class="hidden">
         <div class="card" style="background: #1e3a8a; color: white;">
-            <div style="display:flex; align-items:center; gap:15px;">
-                <img src="https://via.placeholder.com/60" style="border-radius:50%; border:2px solid #fff;">
-                <div><h3>Merchant Name</h3><p>Balance: SAR 0.00</p></div>
-            </div>
-            <button class="btn" style="background:#10b981; margin-top:15px;">Withdraw Funds</button>
+            <h3>Merchant Dashboard</h3>
+            <p>Balance: SAR 0.00</p>
+            <button class="btn" style="background:#10b981;">Withdraw Funds</button>
         </div>
-        <div class="card">
-            <h2>📦 Add Product</h2>
-            <input type="text" class="app-input" placeholder="Product Name">
-            <input type="url" class="app-input" placeholder="Image URL">
-            <button class="btn">Publish</button>
         </div>
-        <div class="card">
-            <h2>🔒 Secure KYC</h2>
-            <select class="app-input"><option>Select ID Type</option><option>Passport</option><option>National ID</option></select>
-            <input type="file" class="app-input">
-            <button class="btn" style="background: #64748b;">Submit</button>
-        </div>
-    </div>
 </div>
 
 <script>
-    function show(id) {
-        document.getElementById('buyerSection').style.display = id === 'buyer' ? 'block' : 'none';
-        document.getElementById('sellerSection').style.display = id === 'seller' ? 'block' : 'none';
-    }
+    function toggleMenu() { document.getElementById('sideMenu').classList.toggle('hidden'); }
+    function show(tab) { /* logic to switch between sections */ }
 </script>
 
 </body>
