@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalBazaar - Multi-Currency Premium Network</title>
+    <title>GlobalBazaar - Professional Multi-Currency Network</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -39,8 +39,8 @@
         }
 
         .live-node-badge {
-            background: #dcfce7;
-            color: #15803d;
+            background: #e0f2fe;
+            color: #0369a1;
             font-size: 11px;
             padding: 4px 8px;
             border-radius: 20px;
@@ -100,6 +100,15 @@
             cursor: pointer;
         }
 
+        .badge-verified {
+            background: #dcfce7;
+            color: #15803d;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -152,13 +161,31 @@
         .catalog-card h4 { font-size: 13px; font-weight: 600; color: #1e293b; }
         .catalog-card .price { color: #2563eb; font-weight: 700; font-size: 14px; margin: 4px 0; }
         .route-badge { font-size: 10px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #64748b; }
+        
+        /* Seller mini-profile card */
+        .seller-profile-banner {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .seller-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #34d399;
+            background: #475569;
+        }
     </style>
 </head>
 <body>
 
     <header>
         <h1>GlobalBazaar 🌍</h1>
-        <div class="live-node-badge">FX Converter Active</div>
+        <div class="live-node-badge" id="globalStatusNode">Compliance Layer Secure</div>
     </header>
 
     <div class="container">
@@ -175,13 +202,13 @@
                     <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500" alt="Product">
                     <h4>Luxury Smart Watch</h4>
                     <div class="price">$50.00 USD</div>
-                    <span class="route-badge">Origin: India Node</span>
+                    <span class="route-badge">Origin: Global Depot</span>
                     <button class="app-btn" style="padding: 6px; font-size: 12px; margin-top: 8px; background: #0f172a;" onclick="initializeRoutingOrder('Luxury Smart Watch', 50.00, 'India')">Route Order</button>
                 </div>
             </div>
         </div>
 
-        <!-- SCREEN 2: DYNAMIC INT'L SHIPPING & MULTI-CURRENCY CALCULATOR -->
+        <!-- SCREEN 2: GLOBAL ROUTING LAYER -->
         <div id="screenRouting" class="app-screen">
             <div class="premium-card">
                 <h2>✈️ Dynamic Border-Crossing Layer</h2>
@@ -200,12 +227,9 @@
                 </select>
             </div>
 
-            <!-- Global Multi-Currency Invoice Box -->
             <div class="premium-card" style="border-left: 4px solid #2563eb;">
-                <h2>📋 Localized Local Currency Invoice</h2>
-                <div id="invoiceBreakdownContainer">
-                    <!-- Dynamic currency converted layers render here -->
-                </div>
+                <h2>📋 Localized Currency Invoice</h2>
+                <div id="invoiceBreakdownContainer"></div>
                 <div style="margin-top: 15px;">
                     <input type="text" class="app-input" placeholder="💳 Enter International Card Number" style="margin-bottom: 8px;">
                     <button class="app-btn" onclick="executeEscrowPayment()">Authorize Secure Clearance</button>
@@ -213,28 +237,87 @@
             </div>
         </div>
 
-        <!-- SCREEN 3: SELLER CONTROL MANAGEMENT -->
+        <!-- SCREEN 3: SELLER HUB (WITH FULL EMBEDDED KYC & BANK ACCOUNT VALIDATION) -->
         <div id="screenSeller" class="app-screen">
-            <div class="premium-card" style="background: linear-gradient(135deg, #1e293b, #0f172a); color: white;">
-                <p style="font-size: 12px; opacity: 0.8;">Total Global Ledger Balance</p>
-                <h1 style="font-size: 32px; font-weight: 700; margin: 5px 0; color: #34d399;">$540.00 USD</h1>
-                <button style="background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;" onclick="alert('🏦 Routing clearance corridor to linked bank account...')">Withdraw Funds to Local Bank</button>
-            </div>
-
-            <div class="premium-card">
-                <h2>📦 List Global Product Cargo</h2>
-                <form id="merchantInventoryForm">
-                    <input type="text" id="mProdName" class="app-input" placeholder="Cargo Product Name" required>
-                    <input type="number" id="mProdPrice" class="app-input" placeholder="Base Item Value ($ USD)" required>
-                    <select id="mProdOrigin" class="app-input">
-                        <option value="India">Cargo Origin: India</option>
-                        <option value="Saudi Arabia">Cargo Origin: Saudi Arabia</option>
-                        <option value="China">Cargo Origin: China</option>
+            
+            <!-- SECTION A: FULL KYC & LOCAL BANKING ENTRY GATEWAY -->
+            <div id="kycVerificationGate" class="premium-card">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <span style="font-size: 40px;">💼</span>
+                    <h2 style="margin-top: 8px; margin-bottom: 4px;">Merchant Profile & Local Bank KYC</h2>
+                    <p style="font-size: 13px; color: #64748b;">Complete setup to secure multi-currency payouts locally.</p>
+                </div>
+                
+                <form id="kycSubmissionForm" onsubmit="handleKycVerification(event)">
+                    <!-- Sub-Section 1: Identity & Avatar -->
+                    <h3 style="font-size: 14px; color: #1e3a8a; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">1. Identity Verification</h3>
+                    
+                    <label style="font-size: 11px; font-weight: 600; color: #64748b;">Merchant Profile Picture:</label>
+                    <input type="file" id="kycAvatarInput" class="app-input" style="padding: 8px;" accept="image/*" required>
+                    
+                    <input type="text" id="kycFullName" class="app-input" placeholder="Full Legal Name (As per Document)" required>
+                    <input type="text" id="kycShopName" class="app-input" placeholder="Global Shop / Brand Name" required>
+                    
+                    <select class="app-input" required>
+                        <option value="">Select Government ID Type</option>
+                        <option value="Passport">International Passport</option>
+                        <option value="NationalID">National Identification Card / Iqama</option>
+                        <option value="BusinessLicense">Commercial Trade License</option>
                     </select>
-                    <input type="url" id="mProdImg" class="app-input" placeholder="Secure Image Asset URL" required>
-                    <button type="submit" class="app-btn">Publish to Worldwide Distribution</button>
+                    <input type="text" class="app-input" placeholder="ID Document Reference Number" required>
+                    
+                    <label style="font-size: 11px; font-weight: 600; color: #64748b;">Upload ID Document Copy:</label>
+                    <input type="file" class="app-input" style="padding: 8px;" required>
+                    
+                    <!-- Sub-Section 2: Local Currency Banking Routing Nodes -->
+                    <h3 style="font-size: 14px; color: #10b981; margin-top: 10px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">2. Local Currency Settlement Bank</h3>
+                    
+                    <input type="text" class="app-input" placeholder="Bank Name (e.g. SBI, HDFC, Al Rajhi)" required>
+                    <input type="text" class="app-input" placeholder="Account Holder Name" required>
+                    <input type="text" class="app-input" placeholder="Account Number / International IBAN" required>
+                    <input type="text" class="app-input" placeholder="IFSC Code / Swift-BIC Code" required>
+                    
+                    <button type="submit" class="app-btn" style="background: linear-gradient(135deg, #0f172a, #1e293b); margin-top: 10px;">Verify & Activate Seller Ledger</button>
                 </form>
             </div>
+
+            <!-- SECTION B: ACTUAL SELLER DASHBOARD (Hidden until verified) -->
+            <div id="sellerDashboardContent" style="display: none;">
+                <div class="premium-card" style="background: linear-gradient(135deg, #1e293b, #0f172a); color: white;">
+                    
+                    <!-- Dynamic Live Converted Avatar Banner -->
+                    <div class="seller-profile-banner">
+                        <img id="displaySellerAvatar" class="seller-avatar" src="" alt="Seller Profile">
+                        <div>
+                            <h3 id="displayShopName" style="font-size: 15px; font-weight: 700;">Global Merchant</h3>
+                            <p id="displayMerchantName" style="font-size: 12px; opacity: 0.7;"></p>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <p style="font-size: 12px; opacity: 0.8;">Total Global Ledger Balance</p>
+                        <span class="badge-verified">✓ Verified Trader</span>
+                    </div>
+                    <h1 style="font-size: 32px; font-weight: 700; margin: 5px 0; color: #34d399;">$540.00 USD</h1>
+                    <button style="background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;" onclick="alert('🏦 Routing direct clearance payout to your linked local bank account secure node!')">Withdraw Funds to Local Bank</button>
+                </div>
+
+                <div class="premium-card">
+                    <h2>📦 List Global Product Cargo</h2>
+                    <form id="merchantInventoryForm">
+                        <input type="text" id="mProdName" class="app-input" placeholder="Cargo Product Name" required>
+                        <input type="number" id="mProdPrice" class="app-input" placeholder="Base Item Value ($ USD)" required>
+                        <select id="mProdOrigin" class="app-input">
+                            <option value="India">Cargo Origin: India</option>
+                            <option value="Saudi Arabia">Cargo Origin: Saudi Arabia</option>
+                            <option value="China">Cargo Origin: China</option>
+                        </select>
+                        <input type="url" id="mProdImg" class="app-input" placeholder="Secure Image Asset URL" required>
+                        <button type="submit" class="app-btn">Publish to Worldwide Distribution</button>
+                    </form>
+                </div>
+            </div>
+
         </div>
 
     </div>
@@ -258,6 +341,7 @@
     <script>
         let activeCalculationItem = "Luxury Smart Watch";
         let activeCalculationBasePrice = 50.00;
+        let isSellerVerified = false;
 
         function navigateApp(screenId, btnId) {
             document.querySelectorAll('.app-screen').forEach(screen => screen.classList.remove('active-screen'));
@@ -268,6 +352,41 @@
             if(screenId === 'screenRouting') { runDynamicRoutingMatrix(); }
         }
 
+        // Full Profile Pic & Local Bank Submission handling logic
+        function handleKycVerification(e) {
+            e.preventDefault();
+            isSellerVerified = true;
+            
+            const fullName = document.getElementById('kycFullName').value;
+            const shopName = document.getElementById('kycShopName').value;
+            const avatarInput = document.getElementById('kycAvatarInput');
+            
+            // Render Live Preview of Profile Picture uploaded by user
+            if (avatarInput.files && avatarInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('displaySellerAvatar').src = e.target.result;
+                }
+                reader.readAsDataURL(avatarInput.files[0]);
+            } else {
+                document.getElementById('displaySellerAvatar').src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
+            }
+            
+            // Map inputs to Merchant Dashboard Card Layout
+            document.getElementById('displayShopName').innerText = shopName;
+            document.getElementById('displayMerchantName').innerText = "Operator: " + fullName;
+
+            // UI Toggle to switch view
+            document.getElementById('kycVerificationGate').style.display = 'none';
+            document.getElementById('sellerDashboardContent').style.display = 'block';
+            
+            document.getElementById('globalStatusNode').innerText = "Merchant Node Active";
+            document.getElementById('globalStatusNode').style.background = "#dcfce7";
+            document.getElementById('globalStatusNode').style.color = "#15803d";
+            
+            alert("🎉 Global Account Activated!\n\nIdentity Profile & Local Bank Payout Node linked successfully.");
+        }
+
         function initializeRoutingOrder(name, price, impliedOrigin) {
             activeCalculationItem = name;
             activeCalculationBasePrice = parseFloat(price);
@@ -275,7 +394,6 @@
             navigateApp('screenRouting', 'btnNavRoute');
         }
 
-        // DYNAMIC CONVERSION MATRIX (USD, INR, SAR)
         function runDynamicRoutingMatrix() {
             const origin = document.getElementById('originCountry').value;
             const destination = document.getElementById('destCountry').value;
@@ -293,26 +411,12 @@
 
             const gatewayUSD = parseFloat((activeCalculationBasePrice * 0.029 + 0.30).toFixed(2));
             const platformUSD = parseFloat((activeCalculationBasePrice * 0.05).toFixed(2));
-            
-            // Absolute Base USD Summation
             const totalUSD = activeCalculationBasePrice + freightUSD + customsUSD + gatewayUSD + platformUSD;
 
-            // CURRENCY LOGIC SWITCHES
-            let rate = 1.0;
-            let symbol = "$";
-            let currencyCode = "USD";
+            let rate = 1.0; let symbol = "$"; let currencyCode = "USD";
+            if (destination === "India") { rate = 83.50; symbol = "₹"; currencyCode = "INR"; }
+            else if (destination === "Saudi Arabia") { rate = 3.75; symbol = "SAR "; currencyCode = "SAR"; }
 
-            if (destination === "India") {
-                rate = 83.50; // $1 USD = 83.50 INR
-                symbol = "₹";
-                currencyCode = "INR";
-            } else if (destination === "Saudi Arabia") {
-                rate = 3.75; // $1 USD = 3.75 SAR
-                symbol = "SAR ";
-                currencyCode = "SAR";
-            }
-
-            // Converter Helper Function
             const fx = (val) => (val * rate).toFixed(2);
 
             const targetContainer = document.getElementById('invoiceBreakdownContainer');
@@ -328,7 +432,7 @@
         }
 
         function executeEscrowPayment() {
-            alert("🎉 Secure payment clearings authorized successfully in local converted currency! Funds held inside GlobalBazaar Escrow Ledger.");
+            alert("🎉 Secure payment clearings authorized successfully!");
             navigateApp('screenMarket', 'btnNavMarket');
         }
 
@@ -349,7 +453,7 @@
                     <button class="app-btn" style="padding: 6px; font-size: 12px; margin-top: 8px; background: #0f172a;" onclick="initializeRoutingOrder('${name}', ${price}, '${origin}')">Route Order</button>
                 </div>
             `);
-            alert("🚀 Cargo Added! Syncing with system core routing nodes.");
+            alert("🚀 Cargo Added into distribution pool!");
             document.getElementById('merchantInventoryForm').reset();
             navigateApp('screenMarket', 'btnNavMarket');
         });
