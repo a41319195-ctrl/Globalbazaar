@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalBazaar - Dynamic Multi-Currency Network</title>
+    <title>GlobalBazaar - True Multi-Currency Matrix</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -50,7 +50,7 @@
             padding: 16px;
         }
 
-        /* Top Role Selector */
+        /* Top Switcher Dashboard */
         .mode-switcher-container {
             display: flex;
             background: #e2e8f0;
@@ -83,24 +83,25 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
 
-        /* Global Localization Dropdown Shield */
+        /* Premium Global Dropdown Area */
         .currency-selector-card {
             background: #ffffff;
             border: 1px dashed #2563eb;
             border-radius: 12px;
-            padding: 12px;
+            padding: 14px;
             margin-bottom: 20px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .currency-select {
+            width: 100%;
             background: #f1f5f9;
             border: 1px solid #cbd5e1;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 13px;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
             font-weight: 600;
             color: #1e293b;
             outline: none;
@@ -207,7 +208,7 @@
 
     <div class="container">
 
-        <!-- MAIN NAVIGATION SWITCHER -->
+        <!-- MAIN DASHBOARD SWITCHER -->
         <div class="mode-switcher-container">
             <button class="mode-btn active-mode" id="toggleBuyerBtn" onclick="switchDashboardMode('buyer')">
                 <span>🛒</span> Buyer Shopping
@@ -217,13 +218,26 @@
             </button>
         </div>
 
-        <!-- DYNAMIC LOCALIZATION HUB FOR THE CURRENT REGION -->
+        <!-- TRUE GLOBAL MULTI-CURRENCY LOGISTICS MODULE -->
         <div class="currency-selector-card">
-            <span style="font-size: 13px; font-weight: 600; color: #475569;">📍 Current Terminal Region:</span>
+            <span style="font-size: 13px; font-weight: 700; color: #1e3a8a;">📍 Select Settlement Gateway Node (Multi-Currency):</span>
             <select id="userCurrencyNode" class="currency-select" onchange="applyGlobalCurrencyConversion()">
-                <option value="SAR">Saudi Arabia (SAR ریال)</option>
-                <option value="USD">United States (USD $)</option>
-                <option value="INR">India (INR ₹)</option>
+                <!-- Gulf/Middle East Node -->
+                <option value="SAR">Saudi Arabia (SAR - ریال سعودي)</option>
+                <option value="AED">United Arab Emirates (AED - درهم)</option>
+                <option value="KWD">Kuwait (KWD - دينار كويتي)</option>
+                <option value="QAR">Qatar (QAR - ريال قطري)</option>
+                <option value="OMR">Oman (OMR - ريال عماني)</option>
+                <option value="BHD">Bahrain (BHD - دينار بحريني)</option>
+                <!-- Global Currencies -->
+                <option value="USD">United States (USD - $)</option>
+                <option value="EUR">Eurozone (EUR - €)</option>
+                <option value="GBP">United Kingdom (GBP - £)</option>
+                <!-- South Asia -->
+                <option value="INR">India (INR - ₹)</option>
+                <option value="PKR">Pakistan (PKR - ₨)</option>
+                <!-- East Asia -->
+                <option value="JPY">Japan (JPY - ¥)</option>
             </select>
         </div>
 
@@ -231,19 +245,17 @@
         <div id="panelBuyerSpace" class="app-section active-section">
             <div class="premium-card" style="background: linear-gradient(135deg, #eff6ff, #ffffff); border: none;">
                 <p style="font-size: 11px; color: #3b82f6; font-weight: 700; text-transform: uppercase;">Localized Feed Matrix</p>
-                <h3 style="font-size: 17px; font-weight: 700; margin-top: 2px;">Prices auto-converted to your regional legal tender.</h3>
+                <h3 style="font-size: 16px; font-weight: 700; margin-top: 2px;">Prices auto-converted globally in realtime.</h3>
             </div>
 
             <!-- Global Product Feed Grid -->
             <div class="market-grid" id="globalContainerCatalog" style="margin-bottom: 25px;">
-                <!-- Product 1 -->
                 <div class="catalog-card" data-base-usd="50.00">
                     <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500" alt="Product">
                     <h4>Luxury Smart Watch</h4>
                     <div class="price class-converted-price">SAR 187.50</div>
                     <button class="app-btn" style="padding: 8px; font-size: 12px; margin-top: 4px; background: #0f172a;" onclick="openInstantCheckout('Luxury Smart Watch', 50.00)">Buy Now</button>
                 </div>
-                <!-- Product 2 -->
                 <div class="catalog-card" data-base-usd="120.00">
                     <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500" alt="Product">
                     <h4>Premium Headphones</h4>
@@ -252,7 +264,7 @@
                 </div>
             </div>
 
-            <!-- DYNAMIC CONVERTED INVOICE & ADDRESS LAYER -->
+            <!-- DYNAMIC INVOICE & TERMINAL LAYER -->
             <div id="checkoutFormBlock" style="display: none;">
                 <div class="premium-card" style="border-left: 4px solid #10b981;">
                     <h2>📋 Localized Cargo Settlement Invoice</h2>
@@ -274,10 +286,10 @@
                             <input type="password" id="buyerCardCvv" class="app-input" placeholder="CVV" maxlength="4" required>
                         </div>
                         
-                        <h3 style="font-size: 13px; color: #1e3a8a; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">🌍 Saudi Arabia / International Shipping Address</h3>
+                        <h3 style="font-size: 13px; color: #1e3a8a; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">🌍 Shipping & Delivery Logistics Destination</h3>
                         <input type="text" id="buyerShippingAddr" class="app-input" placeholder="Street Address, District" required>
                         <div class="flex-inputs">
-                            <input type="text" id="buyerCity" class="app-input" placeholder="City (e.g. Riyadh)" required>
+                            <input type="text" id="buyerCity" class="app-input" placeholder="City" required>
                             <input type="text" id="buyerZip" class="app-input" placeholder="Postal Code" required>
                         </div>
 
@@ -313,20 +325,20 @@
                     </select>
                     <input type="text" class="app-input" placeholder="Document Reference ID Number" required>
                     
-                    <h3 style="font-size: 14px; color: #10b981; margin-top: 10px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">2. Currency Settlement Node Bank</h3>
+                    <h3 style="font-size: 14px; color: #10b981; margin-top: 10px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">2. Settlement Bank Node</h3>
                     <input type="text" class="app-input" placeholder="Local Bank Name" required>
                     <input type="text" class="app-input" placeholder="IBAN Account Number" required>
-                    <input type="text" class="app-input" placeholder="Swift / Sorting Routing Code" required>
+                    <input type="text" class="app-input" placeholder="Swift / Sorting Code" required>
                     
                     <button type="submit" class="app-btn" style="background: linear-gradient(135deg, #0f172a, #1e293b);">Verify & Sync Settlement Node</button>
                 </form>
             </div>
 
-            <!-- DASHBOARD PANEL -->
+            <!-- SELLER MAIN PANEL -->
             <div id="sellerDashboardContent" style="display: none;">
                 <div class="premium-card" style="background: linear-gradient(135deg, #1e293b, #0f172a); color: white;">
-                    <div class="seller-profile-banner">
-                        <img id="displaySellerAvatar" class="seller-avatar" src="" alt="Seller">
+                    <div class="seller-profile-banner" style="display:flex; gap:12px; align-items:center; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:15px;">
+                        <img id="displaySellerAvatar" class="seller-avatar" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid #34d399;" src="" alt="Seller">
                         <div>
                             <h3 id="displayShopName" style="font-size: 15px; font-weight: 700;">Merchant Hub</h3>
                             <p id="displayMerchantName" style="font-size: 12px; opacity: 0.7;"></p>
@@ -337,7 +349,7 @@
                         <span class="badge-verified">✓ Active Hub Node</span>
                     </div>
                     <h1 id="merchantLedgerBalanceString" style="font-size: 30px; font-weight: 700; margin: 5px 0; color: #34d399;">SAR 2,025.00</h1>
-                    <button style="background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;" onclick="alert('🏦 Converted payout transferred to your verified local IBAN channel!')">Withdraw Revenue</button>
+                    <button style="background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;" onclick="alert('🏦 Payout routing complete!')">Withdraw Revenue</button>
                 </div>
 
                 <div class="premium-card">
@@ -355,16 +367,25 @@
     </div>
 
     <script>
-        // Core FX Rates Base $1 USD Sourced Node
+        // TRUE MULTI-CURRENCY FX ENGINE
         const FX_MATRIX = {
-            "USD": { rate: 1.0, symbol: "$", code: "USD" },
             "SAR": { rate: 3.75, symbol: "SAR ", code: "SAR" },
-            "INR": { rate: 83.50, symbol: "₹", code: "INR" }
+            "AED": { rate: 3.67, symbol: "AED ", code: "AED" },
+            "KWD": { rate: 0.31, symbol: "KWD ", code: "KWD" },
+            "QAR": { rate: 3.64, symbol: "QAR ", code: "QAR" },
+            "OMR": { rate: 0.38, symbol: "OMR ", code: "OMR" },
+            "BHD": { rate: 0.38, symbol: "BHD ", code: "BHD" },
+            "USD": { rate: 1.0,  symbol: "$", code: "USD" },
+            "EUR": { rate: 0.92, symbol: "€", code: "EUR" },
+            "GBP": { rate: 0.78, symbol: "£", code: "GBP" },
+            "INR": { rate: 83.50, symbol: "₹", code: "INR" },
+            "PKR": { rate: 278.20, symbol: "₨", code: "PKR" },
+            "JPY": { rate: 156.40, symbol: "¥", code: "JPY" }
         };
 
         let currentActiveItemName = "Luxury Smart Watch";
         let currentActiveItemPriceUSD = 50.00;
-        let globalSelectedCurrency = "SAR"; // Default initialized directly to Saudi Arabia
+        let globalSelectedCurrency = "SAR"; 
         let finalizedCheckoutPriceString = "";
 
         window.onload = function() {
@@ -385,23 +406,23 @@
             }
         }
 
-        // Live Converter Machine for Feed Catalog & Current Cards
+        // Global Dynamic Re-calculation Engine
         function applyGlobalCurrencyConversion() {
             globalSelectedCurrency = document.getElementById('userCurrencyNode').value;
             const fxObj = FX_MATRIX[globalSelectedCurrency];
 
-            // 1. Update Product Catalog Cards dynamically
+            // 1. Convert Feed Products
             document.querySelectorAll('.catalog-card').forEach(card => {
                 const usdVal = parseFloat(card.getAttribute('data-base-usd'));
                 const localizedPrice = (usdVal * fxObj.rate).toFixed(2);
                 card.querySelector('.class-converted-price').innerText = `${fxObj.symbol}${localizedPrice} ${fxObj.code}`;
             });
 
-            // 2. Update Merchant Balances to targeted Node Currency
+            // 2. Convert Seller Revenue
             const baseMerchantUSD = 540.00;
             document.getElementById('merchantLedgerBalanceString').innerText = `${fxObj.symbol}${(baseMerchantUSD * fxObj.rate).toFixed(2)} ${fxObj.code}`;
 
-            // 3. Refresh Checkout Node if open
+            // 3. Convert Active Invoice
             if(document.getElementById('checkoutFormBlock').style.display === 'block') {
                 openInstantCheckout(currentActiveItemName, currentActiveItemPriceUSD);
             }
@@ -413,7 +434,6 @@
 
             const fxObj = FX_MATRIX[globalSelectedCurrency];
             
-            // Dynamic Surcharges in USD Base
             const freightUSD = 12.50;
             const gateSurchargeUSD = 6.00;
             const grandTotalUSD = currentActiveItemPriceUSD + freightUSD + gateSurchargeUSD;
@@ -448,7 +468,7 @@
                 localStorage.setItem('vault_card_city', document.getElementById('buyerCity').value);
                 localStorage.setItem('vault_card_zip', document.getElementById('buyerZip').value);
             }
-            alert(`🇸🇦 Clearance Hub Success!\n\n${finalizedCheckoutPriceString} securely debited from card & allocated into secure network Escrow.`);
+            alert(`Clearance Hub Success!\n\n${finalizedCheckoutPriceString} securely authorized.`);
             document.getElementById('checkoutFormBlock').style.display = 'none';
             checkSavedCardsInVault();
         }
@@ -463,9 +483,9 @@
                 document.getElementById('buyerCardNumber').value = savedNum;
                 document.getElementById('buyerCardExpiry').value = localStorage.getItem('vault_card_exp') || "12/29";
                 document.getElementById('buyerCardCvv').value = "•••";
-                document.getElementById('buyerShippingAddr').value = localStorage.getItem('vault_card_addr') || "Olaya District";
-                document.getElementById('buyerCity').value = localStorage.getItem('vault_card_city') || "Riyadh";
-                document.getElementById('buyerZip').value = localStorage.getItem('vault_card_zip') || "11564";
+                document.getElementById('buyerShippingAddr').value = localStorage.getItem('vault_card_addr') || "";
+                document.getElementById('buyerCity').value = localStorage.getItem('vault_card_city') || "";
+                document.getElementById('buyerZip').value = localStorage.getItem('vault_card_zip') || "";
             }
         }
 
@@ -473,7 +493,7 @@
             localStorage.clear();
             document.getElementById('savedCardBox').style.display = 'none';
             document.getElementById('buyerPaymentCheckoutForm').reset();
-            alert("🗑️ Card removed from local sandbox storage.");
+            alert("🗑️ Card removed.");
         }
 
         function handleKycVerification(e) {
@@ -506,7 +526,7 @@
                 <div class="catalog-card" data-base-usd="${priceUSD}">
                     <img src="${img}" alt="${name}">
                     <h4 style="text-transform: capitalize;">${name}</h4>
-                    <div class="price class-converted-price">USD $${priceUSD.toFixed(2)}</div>
+                    <div class="price class-converted-price"></div>
                     <button class="app-btn" style="padding: 8px; font-size: 12px; margin-top: 4px; background: #0f172a;" onclick="openInstantCheckout('${name}', ${priceUSD})">Buy Now</button>
                 </div>
             `);
