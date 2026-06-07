@@ -87,34 +87,29 @@
         .pending { background-color: #ffe3e3; color: #e63946; }
         .approved { background-color: #d4edda; color: #155724; }
 
-        /* Payment Section Card */
-        .payment-card {
-            background: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            margin-bottom: 30px;
-            border-left: 5px solid #2ec4b6;
-        }
-        .payment-options {
+        /* Wallet & Withdrawal System Styles */
+        .wallet-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            margin-bottom: 30px;
         }
-        .pay-method {
-            border: 1px solid #ddd;
-            padding: 12px;
-            border-radius: 8px;
-            text-align: center;
-            cursor: pointer;
-            font-weight: 600;
-            background: #fafafa;
-            transition: 0.3s;
-        }
-        .pay-method:hover { border-color: #2ec4b6; background: #e6f9f8; }
+        @media (max-width: 768px) { .wallet-grid { grid-template-columns: 1fr; } }
 
-        /* Main Workspace (Lock Feature) */
+        .wallet-card {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(56, 239, 125, 0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .balance-title { font-size: 14px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; }
+        .balance-amount { font-size: 32px; font-weight: 700; margin: 10px 0; }
+
+        /* Workspace Grid and Lock Feature */
         .workspace-grid {
             display: grid;
             grid-template-columns: 1fr 2fr;
@@ -146,6 +141,21 @@
             cursor: pointer;
             width: 100%;
         }
+        .btn-action:hover { background-color: #1e3c72; }
+
+        .btn-withdraw {
+            background-color: white;
+            color: #11998e;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            margin-top: 15px;
+            transition: 0.3s;
+        }
+        .btn-withdraw:hover { background-color: #f4f6f9; }
 
         /* Product Gallery */
         .product-grid {
@@ -215,19 +225,35 @@
             </div>
         </div>
 
-        <div class="payment-card disabled-form" id="paymentBox">
-            <h2>💳 International Payout Method (Receive Money)</h2>
-            <p style="font-size: 13px; color: #666; margin-bottom: 10px;">Select your global network gateway to setup automated payouts for client checkouts:</p>
-            <div class="payment-options">
-                <div class="pay-method" onclick="setPayment('Stripe Connect Gateway')">🔵 Stripe Connect</div>
-                <div class="pay-method" onclick="setPayment('PayPal Business System')">🟡 PayPal Business</div>
-                <div class="pay-method" onclick="setPayment('Web3 USDT Crypto Network')">🟢 Web3 Crypto Wallet (USDT)</div>
+        <div class="wallet-grid disabled-form" id="walletSection">
+            <div class="wallet-card">
+                <div>
+                    <div class="balance-title">💰 Available Global Earnings</div>
+                    <div class="balance-amount" id="walletBalance">$540.00</div>
+                    <p style="font-size: 12px; opacity: 0.9;">Cleared & ready for local bank withdrawal.</p>
+                </div>
+                <button class="btn-withdraw" onclick="processWithdrawal()">Withdraw to Local Bank</button>
             </div>
-            <p style="margin-top: 12px; font-weight: 700; color: #e63946;" id="lblPaymentStatus">Status: Not Connected</p>
+
+            <div class="card" style="border-left: 5px solid #11998e;">
+                <h2>🏦 International Local Bank Settlement Account</h2>
+                <form id="bankForm" onsubmit="saveBankDetails(event)">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <input type="text" id="bankCountry" class="form-input" placeholder="Bank Country (e.g., India, USA)" required>
+                        <input type="text" id="bankName" class="form-input" placeholder="Bank Name (e.g., SBI, Chase)" required>
+                    </div>
+                    <input type="text" id="accHolder" class="form-input" placeholder="Account Holder Name" required>
+                    <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 10px;">
+                        <input type="text" id="accNumber" class="form-input" placeholder="Account Number / IBAN" required>
+                        <input type="text" id="swiftCode" class="form-input" placeholder="IFSC / SWIFT-BIC Code" required>
+                    </div>
+                    <button type="submit" class="btn-action" style="background-color: #11998e; padding: 8px;">Link Bank & Unlock Dashboard</button>
+                </form>
+            </div>
         </div>
 
         <div id="lockNotice" class="lock-notice">
-            🔒 Marketplace Protection: Please complete your Trader Profile, upload Govt ID, and link a Payout Method above to unlock the listing inventory workspace.
+            🔒 Marketplace Protection: Please complete your Trader Profile KYC, and then link your Local Bank Account above to unlock product upload features.
         </div>
 
         <div class="workspace-grid">
@@ -264,6 +290,7 @@
     <script>
         let globalSellerName = "";
         let globalShopName = "";
+        let isBankConnected = false;
 
         // Profile Form Setup
         document.getElementById('profileForm').addEventListener('submit', function(e) {
@@ -282,23 +309,36 @@
                 status.innerText = "✅ KYC Verified & Approved";
                 status.className = "status-badge approved";
 
-                // Unlock Step 2 (Payment Setup)
-                document.getElementById('paymentBox').classList.remove('disabled-form');
-                document.getElementById('profileSetupBox').innerHTML = "<h3 style='color:#28a745;'>🎉 Profile Setup Complete!</h3><p style='font-size:14px; margin-top:10px; color:#555;'>Your identity passport/national ID checks have successfully passed security compliance. Proceed to connect your payout gateway below.</p>";
+                // Unlock Step 2 (Wallet & Bank Setup)
+                document.getElementById('walletSection').classList.remove('disabled-form');
+                document.getElementById('profileSetupBox').innerHTML = "<h3 style='color:#28a745;'>🎉 Profile Setup Complete!</h3><p style='font-size:14px; margin-top:10px; color:#555;'>Identity passed. Now connect your domestic bank account information below to route multi-currency conversions.</p>";
                 
-                alert("🎉 Profile Identity Passed! Now please setup your payment method.");
+                alert("🎉 Profile Identity Passed! Now link your local bank account info for payouts.");
             }, 1200);
         });
 
-        // Payment Gateway Logic
-        function setPayment(method) {
-            document.getElementById('lblPaymentStatus').innerText = "Status: Connected via " + method;
-            document.getElementById('lblPaymentStatus').style.color = "#2ec4b6";
-            alert("🔗 Gateway Hook Established with " + method + ".");
+        // Save Bank Details Logic
+        function saveBankDetails(event) {
+            event.preventDefault();
+            const bankName = document.getElementById('bankName').value;
+            const country = document.getElementById('bankCountry').value;
+
+            isBankConnected = true;
+            alert("🔗 Multi-currency network corridor locked with " + bankName + " (" + country + ") successfully!");
             
-            // Unlock Workspace & Remove Notice
+            // Unlock Product Workspace & Remove Notice
             document.getElementById('productFormBox').classList.remove('disabled-form');
             document.getElementById('lockNotice').style.display = 'none';
+        }
+
+        // Process Bank Withdrawal Payout
+        function processWithdrawal() {
+            if(!isBankConnected){
+                alert("❌ Error: Payout failed. No verified local bank account linked yet.");
+                return;
+            }
+            alert("🏦 GlobalBazaar FX Network: Processing $540.00 USD conversion to your local bank routing corridor. Expected transit time: 12-24 hours.");
+            document.getElementById('walletBalance').innerText = "$0.00";
         }
 
         // Anti-Illegal Filter & Add Product
