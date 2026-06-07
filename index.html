@@ -4,24 +4,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body { font-family: sans-serif; background: #f4f4f4; margin: 0; padding: 10px; }
-        .header { background: white; padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .header { background: white; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
+        .top-row { display: flex; justify-content: space-between; align-items: center; }
         .nav-btns { display: flex; gap: 5px; }
         button { padding: 8px 12px; background: #1e3a8a; color: white; border: none; border-radius: 4px; cursor: pointer; }
         .section { background: white; padding: 15px; border-radius: 8px; margin-top: 10px; }
-        .product-card { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee; padding: 10px 0; }
-        .product-info { display: flex; align-items: center; gap: 10px; }
-        .product-img { width: 60px; height: 60px; background: #ddd; border-radius: 4px; }
-        input { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .product-card { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .img-box { width: 60px; height: 60px; background: #ccc; margin-right: 10px; }
+        input, select { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <strong>GLOBALBAZAAR 🌍</strong>
-    <div class="nav-btns">
-        <button onclick="show('home')">Home</button>
-        <button onclick="show('seller')">Seller</button>
+    <div class="top-row">
+        <strong>GLOBALBAZAAR 🌍</strong>
+        <div class="nav-btns">
+            <button onclick="show('home')">Home</button>
+            <button onclick="show('seller')">Seller</button>
+        </div>
     </div>
+    <select>
+        <option>SAR (Saudi)</option><option>AED (UAE)</option><option>KWD (Kuwait)</option>
+        <option>QAR (Qatar)</option><option>OMR (Oman)</option><option>BHD (Bahrain)</option>
+        <option>USD ($)</option><option>EUR (€)</option><option>GBP (£)</option>
+        <option>INR (₹)</option><option>PKR (Rs)</option>
+    </select>
 </div>
 
 <div id="homeSection" class="section">
@@ -29,34 +37,32 @@
     <select><option>Select Category</option></select>
     
     <div id="product-list">
-        <div class="product-card">
-            <div class="product-info"><div class="product-img"></div> <span>Watch<br>SAR 187</span></div>
-            <button onclick="showCheckout()">Add to Cart</button>
-        </div>
-        <div class="product-card">
-            <div class="product-info"><div class="product-img"></div> <span>Phone<br>SAR 900</span></div>
-            <button onclick="showCheckout()">Add to Cart</button>
-        </div>
-        </div>
+        <div class="product-card"><div class="img-box"></div> <span>Watch - SAR 187</span> <button onclick="openCheckout()">Add to Cart</button></div>
+        <div class="product-card"><div class="img-box"></div> <span>Phone - SAR 900</span> <button onclick="openCheckout()">Add to Cart</button></div>
+        <div class="product-card"><div class="img-box"></div> <span>Glasses - SAR 250</span> <button onclick="openCheckout()">Add to Cart</button></div>
+        <div class="product-card"><div class="img-box"></div> <span>Shoes - SAR 150</span> <button onclick="openCheckout()">Add to Cart</button></div>
+        <div class="product-card"><div class="img-box"></div> <span>Bag - SAR 130</span> <button onclick="openCheckout()">Add to Cart</button></div>
+    </div>
 
-    <div id="checkoutSection" style="display:none; margin-top:15px; border-top:2px solid #ddd; padding-top:10px;">
-        <h4>Checkout</h4>
+    <div id="checkoutSection" style="display:none; margin-top:20px; border-top:2px solid #333;">
+        <h4>Checkout Details</h4>
         <input placeholder="Shipping Address">
         <input placeholder="Postal Code">
         <input placeholder="Phone Number">
         <input placeholder="Card Details">
-        <button style="background:green;">Pay & Confirm</button>
+        <button style="background:green;" onclick="alert('Order Placed! Tracking ID: GB-9988')">Pay & Confirm</button>
     </div>
 </div>
 
 <div id="sellerSection" class="section" style="display:none;">
     <h3>🏪 Seller Portal</h3>
-    <input placeholder="Sign Up / Login Email">
+    <input placeholder="Email/Login">
     <input type="password" placeholder="Password">
     <input placeholder="KYC: ID/License">
     <input placeholder="Bank IBAN">
     <input type="file">
     <input placeholder="Product Name">
+    <select><option>Select Category</option></select>
     <button style="background: #059669;">List Product</button>
     <p>Wallet: SAR 1,250</p>
     <button style="background: #dc2626;">Withdraw Funds</button>
@@ -67,7 +73,7 @@
         document.getElementById('homeSection').style.display = page === 'home' ? 'block' : 'none';
         document.getElementById('sellerSection').style.display = page === 'seller' ? 'block' : 'none';
     }
-    function showCheckout() { document.getElementById('checkoutSection').style.display = 'block'; }
+    function openCheckout() { document.getElementById('checkoutSection').style.display = 'block'; }
 </script>
 
 </body>
