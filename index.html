@@ -6,90 +6,86 @@
     <title>GlobalBazaar | Professional Node Gateway</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #1e3a8a; --accent: #2563eb; --bg: #f8fafc; --text: #0f172a; }
+        :root { --primary: #1e3a8a; --accent: #2563eb; --bg: #f8fafc; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background-color: var(--bg); color: var(--text); padding-bottom: 50px; }
-
-        /* Header Layout */
-        header { background: #fff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100; }
-        .logo { font-weight: 800; color: var(--primary); font-size: 20px; }
-        .header-controls { display: flex; align-items: center; gap: 15px; }
+        body { background-color: var(--bg); padding-bottom: 50px; }
         
-        /* Node & Currency */
-        .node-box { background: #eff6ff; padding: 6px 12px; border-radius: 8px; border: 1px solid #bfdbfe; font-size: 13px; font-weight: 600; }
-        .node-box select { border: none; background: transparent; color: var(--primary); cursor: pointer; font-weight: 700; }
-
-        /* Main Container */
+        header { background: #fff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; }
+        .logo { font-weight: 800; color: var(--primary); font-size: 20px; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         
-        /* Mode Switcher */
-        .mode-switcher { display: flex; gap: 10px; margin-bottom: 20px; }
-        .mode-btn { flex: 1; padding: 12px; border-radius: 10px; border: none; background: #e2e8f0; font-weight: 600; cursor: pointer; transition: 0.3s; }
-        .mode-btn.active { background: var(--primary); color: white; }
-
-        .app-section { display: none; }
-        .active-section { display: block; }
-
-        /* General UI Elements */
-        .card { background: white; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 15px; }
-        .app-input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 10px; }
-        .app-btn { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .card { background: white; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .app-input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 15px; }
+        .btn { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
         
-        .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .product-card { background: white; padding: 10px; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center; }
+        .hidden { display: none; }
+        .active-section { display: block; }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo">GlobalBazaar 🌍</div>
-        <div class="header-controls">
-            <div class="node-box">
-                Node: <select id="currencySelect" onchange="updateCurrency()">
-                    <option value="SAR">SAR (Saudi)</option>
-                    <option value="USD">USD ($)</option>
-                    <option value="EUR">EUR (€)</option>
-                </select>
-            </div>
-            <div id="cartCount">🛒 0</div>
-        </div>
-    </header>
+<header>
+    <div class="logo">GlobalBazaar 🌍</div>
+    <select id="currency" class="app-input" style="width: auto; margin: 0;">
+        <option value="SAR">SAR (Saudi)</option>
+        <option value="USD">USD ($)</option>
+        <option value="EUR">EUR (€)</option>
+        <option value="INR">INR (₹)</option>
+    </select>
+</header>
 
-    <div class="container">
-        <div class="mode-switcher">
-            <button class="mode-btn active" onclick="switchTab(this, 'buyer')">🛒 Buyer</button>
-            <button class="mode-btn" onclick="switchTab(this, 'seller')">🏪 Seller</button>
-        </div>
-
-        <div id="buyer" class="app-section active-section">
-            <input type="text" class="app-input" placeholder="Search products...">
-            <div class="market-grid" id="productGrid">
-                </div>
-        </div>
-
-        <div id="seller" class="app-section">
-            <div class="card">
-                <h2>Merchant Dashboard</h2>
-                <input type="text" class="app-input" placeholder="Shop Name">
-                <input type="text" class="app-input" placeholder="Bank IBAN">
-                <button class="app-btn">Verify Account</button>
-            </div>
-        </div>
+<div class="container">
+    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <button class="btn" onclick="showSection('buyerSection')">🛒 Buyer</button>
+        <button class="btn" onclick="showSection('sellerSection')">🏪 Seller</button>
     </div>
 
-    <script>
-        function switchTab(btn, tabId) {
-            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            document.querySelectorAll('.app-section').forEach(s => s.style.display = 'none');
-            document.getElementById(tabId).style.display = 'block';
-        }
+    <div id="buyerSection" class="active-section">
+        <input type="text" class="app-input" placeholder="Search products...">
+        <div id="productDisplay"></div>
+    </div>
 
-        function updateCurrency() {
-            const currency = document.getElementById('currencySelect').value;
-            console.log("Currency changed to:", currency);
-            // यहाँ हम करेंसी कन्वर्जन का लॉजिक डालेंगे
-        }
-    </script>
+    <div id="sellerSection" class="hidden">
+        <div class="card" style="background: #1e3a8a; color: white;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <img src="https://via.placeholder.com/60" style="width:60px; height:60px; border-radius:50%;">
+                <div>
+                    <h3 id="sellerName">Merchant Name</h3>
+                    <p id="sellerBalance">Balance: SAR 0.00</p>
+                </div>
+            </div>
+            <button class="btn" style="background: #10b981; margin-top: 15px;" onclick="alert('Withdrawal Processed')">Withdraw Funds</button>
+        </div>
+
+        <div class="card">
+            <h2>📦 Add Product</h2>
+            <input type="text" class="app-input" placeholder="Product Name">
+            <select class="app-input">
+                <option>Select Category</option>
+                <option>Electronics</option>
+                <option>Fashion</option>
+                <option>Home Decor</option>
+            </select>
+            <input type="url" class="app-input" placeholder="Image URL">
+            <button class="btn">Publish Globally</button>
+        </div>
+
+        <div class="card">
+            <h2>🔒 Secure KYC</h2>
+            <input type="file" class="app-input">
+            <input type="text" class="app-input" placeholder="IBAN Account Number">
+            <button class="btn" style="background: #64748b;">Verify Identity</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showSection(id) {
+        document.getElementById('buyerSection').classList.add('hidden');
+        document.getElementById('sellerSection').classList.add('hidden');
+        document.getElementById(id).classList.remove('hidden');
+    }
+</script>
+
 </body>
 </html>
