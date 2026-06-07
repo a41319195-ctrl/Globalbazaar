@@ -3,49 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalBazaar | Full Platform</title>
+    <title>GlobalBazaar | Master Portal</title>
     <style>
-        :root { --primary: #1e3a8a; --bg: #f1f5f9; }
-        body { font-family: sans-serif; background: var(--bg); margin: 0; }
-        header { background: #fff; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ccc; }
-        .card { background: #fff; padding: 20px; border-radius: 12px; margin: 15px; border: 1px solid #e2e8f0; }
-        .input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; }
-        .btn { width: 100%; padding: 12px; background: var(--primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+        :root { --primary: #1e3a8a; --bg: #f8fafc; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #ddd; }
+        .card { background: #fff; padding: 20px; border-radius: 12px; margin-top: 20px; border: 1px solid #eee; }
+        .input { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; }
+        .btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<header>
-    <div>☰ Menu | GlobalBazaar 🌍</div>
-    <select id="currency">
-        <option>SAR (Saudi)</option><option>AED (UAE)</option><option>KWD (Kuwait)</option>
-        <option>QAR (Qatar)</option><option>USD ($)</option><option>EUR (€)</option><option>INR (₹)</option>
-    </select>
-</header>
-
-<div class="card">
-    <h3>🛒 Buyer Product View</h3>
-    <p>Luxury Smart Watch - SAR 187.50</p>
-    <button class="btn" onclick="showCheckout()">Buy Now</button>
+<div class="header">
+    <strong>GlobalBazaar 🌍</strong>
+    <select><option>SAR (Saudi)</option><option>USD ($)</option><option>INR (₹)</option></select>
+    <div>
+        <button onclick="show('buyer')">Buyer</button>
+        <button onclick="show('seller')">Seller</button>
+    </div>
 </div>
 
-<div id="checkoutFlow" class="card" style="display:none;">
-    <h3>🚚 Shipping Details</h3>
-    <input class="input" placeholder="Full Delivery Address">
-    <input class="input" placeholder="Phone Number">
-    <button class="btn" onclick="alert('Order Placed! Tracking ID: GB-998234')">Confirm Order</button>
+<div id="buyerSection" class="card">
+    <h3>🛒 Product: Smart Watch</h3>
+    <button class="btn" onclick="alert('Open Shipping & Payment Form')">Buy Now</button>
+    <div style="margin-top:15px; border-top:1px solid #eee; pt:10px;">
+        <input class="input" placeholder="Full Address">
+        <input class="input" placeholder="Phone Number">
+        <input class="input" placeholder="Card Number (Payment)">
+    </div>
 </div>
 
-<div class="card">
-    <h3>🏪 Seller Portal (KYC & Banking)</h3>
-    <input class="input" placeholder="Shop Name">
-    <input class="input" placeholder="National ID / License (KYC)">
-    <input class="input" placeholder="Bank IBAN">
-    <button class="btn">Verify Account</button>
+<div id="sellerSection" class="card" style="display:none;">
+    <h3>🏪 Seller Portal</h3>
+    <input class="input" placeholder="Email">
+    <input class="input" placeholder="Password">
+    <button class="btn">Login / Sign Up</button>
+    <div style="margin-top:15px;">
+        <input class="input" placeholder="Upload KYC (ID/License)">
+        <input class="input" placeholder="Bank IBAN">
+        <input class="input" placeholder="Product Name & Image URL">
+        <button class="btn" style="background:green;">Submit Product</button>
+    </div>
 </div>
 
 <script>
-    function showCheckout() { document.getElementById('checkoutFlow').style.display = 'block'; }
+    function show(role) {
+        document.getElementById('buyerSection').style.display = role === 'buyer' ? 'block' : 'none';
+        document.getElementById('sellerSection').style.display = role === 'seller' ? 'block' : 'none';
+    }
 </script>
 
 </body>
