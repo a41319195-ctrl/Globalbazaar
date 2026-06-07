@@ -2,21 +2,307 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Global Bazaar</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlobalBazaar - Vendor Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #f4f6f9;
+            color: #333;
+        }
+
+        /* Header Styling */
+        header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .logout-btn {
+            background-color: #e63946;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .logout-btn:hover {
+            background-color: #c92a3a;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        /* Vendor Info Card */
+        .vendor-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            border-left: 5px solid #2a5298;
+        }
+
+        .vendor-card h2 {
+            font-size: 18px;
+            color: #555;
+        }
+
+        .vendor-card p {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e3c72;
+            margin-top: 5px;
+        }
+
+        /* Form and Grid Setup */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Form Styling */
+        .form-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            height: fit-content;
+        }
+
+        .form-box h3 {
+            margin-bottom: 20px;
+            color: #1e3c72;
+            font-size: 18px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #2a5298;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background-color: #2a5298;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .submit-btn:hover {
+            background-color: #1e3c72;
+        }
+
+        /* Product List Styling */
+        .product-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .product-box h3 {
+            margin-bottom: 20px;
+            color: #1e3c72;
+            font-size: 18px;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .product-card {
+            border: 1px solid #eee;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            background: #fafafa;
+            position: relative;
+        }
+
+        .product-card img {
+            max-width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .product-card h4 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .product-card p {
+            color: #2a5298;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .badge {
+            background-color: #2ec4b6;
+            color: white;
+            padding: 3px 8px;
+            font-size: 11px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 5px;
+        }
+    </style>
 </head>
 <body>
-    <header><h1>Global Bazaar</h1></header>
-    <main>
-        <form id="vendorForm">
-            <input type="text" id="name" placeholder="Business Name" required>
-            <input type="email" id="email" placeholder="Email" required>
-            <button type="submit">Register</button>
-        </form><button id="loginBtn">Login</button>
 
-    </main>
-    <!-- सिर्फ script.js ही रहने दें -->
-    <script type="module" src="script.js"></script>
+    <header>
+        <h1>GlobalBazaar 🌍</h1>
+        <button class="logout-btn" onclick="alert('Logging out...')">Logout</button>
+    </header>
+
+    <div class="container">
+        <div class="vendor-card">
+            <h2>Vendor Profile</h2>
+            <p>🏪 Business Name: <span id="shopName">My Shop</span></p>
+        </div>
+
+        <div class="dashboard-grid">
+            
+            <div class="form-box">
+                <h3>📦 Add New Product (Global Shipping)</h3>
+                <form id="productForm">
+                    <div class="form-group">
+                        <label>Product Name</label>
+                        <input type="text" id="pName" placeholder="e.g., Silk Saree, Wireless Mouse" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="pCategory">
+                            <option value="Electronics">Electronics</option>
+                            <option value="Clothing">Clothing & Fashion</option>
+                            <option value="Home Decor">Home Decor</option>
+                            <option value="Beauty">Beauty Products</option>
+                            <option value="Other">Other Legal Goods</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Price ($ USD)</label>
+                        <input type="number" id="pPrice" placeholder="Price in USD" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Product Image Link (URL)</label>
+                        <input type="url" id="pImg" placeholder="https://example.com/image.jpg" required>
+                    </div>
+                    <button type="submit" class="submit-btn">Publish to Global Market</button>
+                </form>
+            </div>
+
+            <div class="product-box">
+                <h3>🌐 Your Live Products (Worldwide View)</h3>
+                <div class="product-grid" id="productGrid">
+                    <div class="product-card">
+                        <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500" alt="Product">
+                        <h4>Smart Watch</h4>
+                        <p>$49.99</p>
+                        <span class="badge">Approved & Legal</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // List of blocked words for illegal items
+        const illegalWords = ["drug", "gun", "weapon", "bomb", "chemical", "hack", "cocaine", "weed", "pistol", "alkohol", "alcohol"];
+
+        document.getElementById('productForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('pName').value.toLowerCase();
+            const price = document.getElementById('pPrice').value;
+            const img = document.getElementById('pImg').value;
+            const category = document.getElementById('pCategory').value;
+
+            // Check for illegal items
+            let isIllegal = illegalWords.some(word => name.includes(word));
+
+            if (isIllegal) {
+                alert("🚨 SECURITY ALERT: This item violates Global Guidelines and is illegal. Your action has been blocked!");
+                // Future upgrade: Yahan automatic account block ka system lagega backend se.
+                return;
+            }
+
+            // If legal, add to grid
+            const grid = document.getElementById('productGrid');
+            const productHtml = `
+                <div class="product-card">
+                    <img src="${img}" alt="${name}">
+                    <h4 style="text-transform: capitalize;">${document.getElementById('pName').value}</h4>
+                    <p>$${price}</p>
+                    <span class="badge" style="background-color: #2ec4b6;">Approved & Legal</span>
+                </div>
+            `;
+            
+            grid.insertAdjacentHTML('beforeend', productHtml);
+            alert("✅ Success: Product is live across the globe!");
+            document.getElementById('productForm').reset();
+        });
+    </script>
 </body>
-</html>
-
+    </html>
