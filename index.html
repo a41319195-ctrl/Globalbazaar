@@ -3,43 +3,35 @@
 <head>
     <style>
         body { font-family: sans-serif; background: #f4f4f4; margin: 0; padding: 10px; }
-        .header { background: white; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 10px; }
-        .brand { font-size: 24px; font-weight: 900; color: #1e3a8a; }
-        .top-nav { display: flex; justify-content: space-around; margin: 10px 0; }
-        .section { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; }
-        input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #1e3a8a; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .header { background: white; padding: 10px; border-radius: 10px; margin-bottom: 10px; }
+        .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .brand { font-weight: 900; color: #1e3a8a; }
+        .buttons-row { display: flex; gap: 10px; }
+        .buttons-row button { flex: 1; padding: 8px; border: none; border-radius: 5px; cursor: pointer; }
+        .search-section { background: white; padding: 15px; border-radius: 10px; }
+        input, select { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div class="brand">GLOBALBAZAAR</div>
-    <div class="top-nav">
-        <span>☰ Menu</span>
-        <select><option>SAR (Saudi)</option></select>
-        <span><button>Buyer</button> <button>Seller</button></span>
+    <div class="top-row">
+        <span class="brand">GLOBALBAZAAR</span>
+        <select style="width: auto;"><option>SAR</option><option>USD</option></select>
+    </div>
+    <div class="buttons-row">
+        <button style="background: #1e3a8a; color: white;">Buyer</button>
+        <button style="background: #e2e8f0;">Seller</button>
     </div>
 </div>
 
-<div class="section">
+<div class="search-section">
     <input type="text" placeholder="Search products...">
-    <select><option>All Categories</option></select>
-    <div>
-        <p>Smart Watch - SAR 187.50</p>
-        <button>Buy Now</button>
-    </div>
-</div>
-
-<div class="section">
-    <h3>Seller Portal</h3>
-    <div style="background:#e0f2f1; padding:10px; border-radius:5px;">
-        <p>Wallet Balance: <b>SAR 1,250.00</b></p>
-        <button style="background:green;">Withdraw Funds</button>
-    </div>
-    <input placeholder="KYC: ID/License">
-    <input placeholder="Bank IBAN">
-    <button>Update Account</button>
+    <select>
+        <option>All Categories</option>
+        <option>Electronics</option>
+        <option>Fashion</option>
+    </select>
 </div>
 
 </body>
