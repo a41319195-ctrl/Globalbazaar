@@ -3,615 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalBazaar - Ultra Premium Matrix</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>GlobalBazaar | Professional Node Gateway</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
+        :root { --primary: #1e3a8a; --accent: #2563eb; --bg: #f8fafc; --text: #0f172a; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding-bottom: 50px; }
 
-        body {
-            background-color: #f8fafc;
-            color: #0f172a;
-            padding-bottom: 40px;
-        }
+        /* Header Layout */
+        header { background: #fff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100; }
+        .logo { font-weight: 800; color: var(--primary); font-size: 20px; }
+        .header-controls { display: flex; align-items: center; gap: 15px; }
+        
+        /* Node & Currency */
+        .node-box { background: #eff6ff; padding: 6px 12px; border-radius: 8px; border: 1px solid #bfdbfe; font-size: 13px; font-weight: 600; }
+        .node-box select { border: none; background: transparent; color: var(--primary); cursor: pointer; font-weight: 700; }
 
-        header {
-            background: #ffffff;
-            padding: 16px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #e2e8f0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        header h1 {
-            font-size: 20px;
-            font-weight: 700;
-            color: #1e3a8a;
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .cart-badge-container {
-            position: relative;
-            cursor: pointer;
-            background: #f1f5f9;
-            padding: 8px 12px;
-            border-radius: 10px;
-            font-weight: 700;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .cart-counter {
-            background: #ef4444;
-            color: white;
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 20px;
-            position: absolute;
-            top: -5px;
-            right: -5px;
-        }
-
-        .live-node-badge {
-            background: #e0f2fe;
-            color: #0369a1;
-            font-size: 11px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-weight: 600;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 16px;
-        }
-
-        /* Top Central Switcher Dashboard */
-        .mode-switcher-container {
-            display: flex;
-            background: #e2e8f0;
-            padding: 6px;
-            border-radius: 14px;
-            margin-bottom: 14px;
-            gap: 6px;
-        }
-
-        .mode-btn {
-            flex: 1;
-            border: none;
-            background: none;
-            padding: 12px;
-            font-size: 14px;
-            font-weight: 700;
-            color: #475569;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .mode-btn.active-mode {
-            background: #ffffff;
-            color: #2563eb;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        }
-
-        /* Global Localization Dropdown UI */
-        .currency-selector-card {
-            background: #ffffff;
-            border: 1px dashed #2563eb;
-            border-radius: 12px;
-            padding: 14px;
-            margin-bottom: 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .currency-select {
-            width: 100%;
-            background: #f1f5f9;
-            border: 1px solid #cbd5e1;
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            color: #1e293b;
-            outline: none;
-            cursor: pointer;
-        }
-
-        .search-bar-container {
-            margin-bottom: 20px;
-        }
+        /* Main Container */
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        
+        /* Mode Switcher */
+        .mode-switcher { display: flex; gap: 10px; margin-bottom: 20px; }
+        .mode-btn { flex: 1; padding: 12px; border-radius: 10px; border: none; background: #e2e8f0; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .mode-btn.active { background: var(--primary); color: white; }
 
         .app-section { display: none; }
-        .active-section { display: block; animation: fadeIn 0.25s ease-in-out; }
+        .active-section { display: block; }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .premium-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01);
-        }
-
-        .premium-card h2 {
-            font-size: 16px;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 14px;
-        }
-
-        .app-input {
-            width: 100%;
-            background: #f8fafc;
-            border: 1px solid #cbd5e1;
-            padding: 12px 14px;
-            border-radius: 10px;
-            font-size: 14px;
-            color: #334155;
-            margin-bottom: 14px;
-        }
-
-        .app-btn {
-            background: linear-gradient(135deg, #1e3a8a, #2563eb);
-            color: white;
-            border: none;
-            width: 100%;
-            padding: 14px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .badge-verified {
-            background: #dcfce7;
-            color: #15803d;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 700;
-        }
-
-        .invoice-line {
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-            padding: 10px 0;
-            border-bottom: 1px dashed #e2e8f0;
-        }
-        .invoice-total {
-            font-weight: 700;
-            color: #10b981;
-            font-size: 16px;
-            border-bottom: none;
-            padding-top: 14px;
-        }
-
-        .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-        .catalog-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; text-align: center; transition: all 0.2s; }
-        .catalog-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
-        .catalog-card img { width: 100%; height: 110px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; }
-        .catalog-card h4 { font-size: 13px; font-weight: 600; color: #1e293b; text-align: left; margin-left: 2px; }
-        .catalog-card .price { color: #2563eb; font-weight: 700; font-size: 14px; margin: 4px 0; text-align: left; margin-left: 2px; }
+        /* General UI Elements */
+        .card { background: white; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 15px; }
+        .app-input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 10px; }
+        .app-btn { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
         
-        .flex-inputs { display: flex; gap: 10px; }
-        .saved-card-badge {
-            background: #f1f5f9;
-            border: 1px dashed #cbd5e1;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 12px;
-            margin-bottom: 12px;
-            display: none;
-            align-items: center;
-            justify-content: space-between;
-        }
+        .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .product-card { background: white; padding: 10px; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>GlobalBazaar 🌍</h1>
-        <div class="header-actions">
-            <div class="cart-badge-container" onclick="scrollToCheckout()">
-                <span>🛒 Cart</span>
-                <span class="cart-counter" id="globalCartCount">0</span>
+        <div class="logo">GlobalBazaar 🌍</div>
+        <div class="header-controls">
+            <div class="node-box">
+                Node: <select id="currencySelect" onchange="updateCurrency()">
+                    <option value="SAR">SAR (Saudi)</option>
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                </select>
             </div>
-            <div class="live-node-badge" id="globalStatusNode">Auto-IP Active</div>
+            <div id="cartCount">🛒 0</div>
         </div>
     </header>
 
     <div class="container">
-
-        <!-- MAIN NAVIGATION SWITCHER -->
-        <div class="mode-switcher-container">
-            <button class="mode-btn active-mode" id="toggleBuyerBtn" onclick="switchDashboardMode('buyer')">
-                <span>🛒</span> Buyer Shopping
-            </button>
-            <button class="mode-btn" id="toggleSellerBtn" onclick="switchDashboardMode('seller')">
-                <span>🏪</span> Seller Panel
-            </button>
+        <div class="mode-switcher">
+            <button class="mode-btn active" onclick="switchTab(this, 'buyer')">🛒 Buyer</button>
+            <button class="mode-btn" onclick="switchTab(this, 'seller')">🏪 Seller</button>
         </div>
 
-        <!-- REGIONAL MANAGEMENT DROPDOWN -->
-        <div class="currency-selector-card">
-            <span style="font-size: 12px; font-weight: 700; color: #1e3a8a;">📍 Settlement Node Gateway:</span>
-            <select id="userCurrencyNode" class="currency-select" onchange="applyGlobalCurrencyConversion()">
-                <option value="SAR">Saudi Arabia (SAR - ریal)</option>
-                <option value="AED">United Arab Emirates (AED - درهم)</option>
-                <option value="KWD">Kuwait (KWD - دينار)</option>
-                <option value="QAR">Qatar (QAR - ريال)</option>
-                <option value="OMR">Oman (OMR - ريال)</option>
-                <option value="BHD">Bahrain (BHD - دينار)</option>
-                <option value="USD">United States (USD - $)</option>
-                <option value="EUR">Eurozone (EUR - €)</option>
-                <option value="GBP">United Kingdom (GBP - £)</option>
-                <option value="INR">India (INR - ₹)</option>
-                <option value="PKR">Pakistan (PKR - ₨)</option>
-            </select>
+        <div id="buyer" class="app-section active-section">
+            <input type="text" class="app-input" placeholder="Search products...">
+            <div class="market-grid" id="productGrid">
+                </div>
         </div>
 
-        <!-- ================= BUYER INTERFACE ================= -->
-        <div id="panelBuyerSpace" class="app-section active-section">
-            
-            <!-- Realtime Search Component -->
-            <div class="search-bar-container">
-                <input type="text" id="productSearchField" class="app-input" style="margin-bottom:0;" placeholder="🔍 Search products instantly..." oninput="triggerLiveSearch()">
-            </div>
-
-            <!-- Global Product Feed Grid -->
-            <div class="market-grid" id="globalContainerCatalog" style="margin-bottom: 25px;">
-                <div class="catalog-card" data-base-usd="50.00">
-                    <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500" alt="Product">
-                    <h4>Luxury Smart Watch</h4>
-                    <div class="price class-converted-price"></div>
-                    <button class="app-btn" style="padding: 8px; font-size: 12px; margin-top: 4px; background: #0f172a;" onclick="addItemToCart('Luxury Smart Watch', 50.00)">Buy Now</button>
-                </div>
-                <div class="catalog-card" data-base-usd="120.00">
-                    <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500" alt="Product">
-                    <h4>Premium Headphones</h4>
-                    <div class="price class-converted-price"></div>
-                    <button class="app-btn" style="padding: 8px; font-size: 12px; margin-top: 4px; background: #0f172a;" onclick="addItemToCart('Premium Headphones', 120.00)">Buy Now</button>
-                </div>
-            </div>
-
-            <!-- DYNAMIC INVOICE & TERMINAL LAYER -->
-            <div id="checkoutFormBlock" style="display: none;">
-                <div class="premium-card" style="border-left: 4px solid #10b981;">
-                    <h2>📋 Localized Cargo Settlement Invoice</h2>
-                    <div id="invoiceBreakdownContainer"></div>
-                </div>
-
-                <div class="premium-card">
-                    <h2>💳 Secure Credit/Debit Card Checkout</h2>
-                    <div id="savedCardBox" class="saved-card-badge">
-                        <span>🔒 Vault Card: <strong id="savedCardDetail">None</strong></span>
-                        <button style="background:none; border:none; color:#ef4444; font-weight:700; cursor:pointer;" onclick="clearSavedBuyerCard()">Remove</button>
-                    </div>
-
-                    <form id="buyerPaymentCheckoutForm" onsubmit="executeEscrowPayment(event)">
-                        <input type="text" id="buyerCardName" class="app-input" placeholder="Cardholder Full Name" required>
-                        <input type="text" id="buyerCardNumber" class="app-input" placeholder="Card Number" maxlength="19" required>
-                        <div class="flex-inputs">
-                            <input type="text" id="buyerCardExpiry" class="app-input" placeholder="MM/YY" maxlength="5" required>
-                            <input type="password" id="buyerCardCvv" class="app-input" placeholder="CVV" maxlength="4" required>
-                        </div>
-                        
-                        <h3 style="font-size: 13px; color: #1e3a8a; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">🌍 Logistics Shipping Destination</h3>
-                        <input type="text" id="buyerShippingAddr" class="app-input" placeholder="Street Address, District" required>
-                        <div class="flex-inputs">
-                            <input type="text" id="buyerCity" class="app-input" placeholder="City" required>
-                            <input type="text" id="buyerZip" class="app-input" placeholder="Postal Code" required>
-                        </div>
-
-                        <div style="margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
-                            <input type="checkbox" id="saveCardCheckbox">
-                            <label for="saveCardCheckbox" style="font-size: 12px; color: #475569; cursor: pointer;">Save card securely for instant network authentication</label>
-                        </div>
-                        <button type="submit" class="app-btn" id="payButtonText">Authorize Checkout</button>
-                    </form>
-                </div>
+        <div id="seller" class="app-section">
+            <div class="card">
+                <h2>Merchant Dashboard</h2>
+                <input type="text" class="app-input" placeholder="Shop Name">
+                <input type="text" class="app-input" placeholder="Bank IBAN">
+                <button class="app-btn">Verify Account</button>
             </div>
         </div>
-
-        <!-- ================= SELLER INTERFACE ================= -->
-        <div id="panelSellerSpace" class="app-section">
-            <div id="kycVerificationGate" class="premium-card">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <span style="font-size: 40px;">💼</span>
-                    <h2 style="margin-top: 8px; margin-bottom: 4px;">Merchant Profile & Local Bank KYC</h2>
-                    <p style="font-size: 13px; color: #64748b;">Activate node ledger to capture worldwide customer conversions.</p>
-                </div>
-                
-                <form id="kycSubmissionForm" onsubmit="handleKycVerification(event)">
-                    <h3 style="font-size: 14px; color: #1e3a8a; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">1. Identity Verification</h3>
-                    <input type="file" id="kycAvatarInput" class="app-input" style="padding: 8px;" accept="image/*" required>
-                    <input type="text" id="kycFullName" class="app-input" placeholder="Full Legal Name" required>
-                    <input type="text" id="kycShopName" class="app-input" placeholder="Global Shop / Brand Name" required>
-                    
-                    <select class="app-input" required>
-                        <option value="">Select Local ID Type</option>
-                        <option value="NationalID">Saudi Iqama / National ID</option>
-                        <option value="Passport">International Passport</option>
-                    </select>
-                    <input type="text" class="app-input" placeholder="Document ID Number" required>
-                    
-                    <h3 style="font-size: 14px; color: #10b981; margin-top: 10px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">2. Settlement Bank Node</h3>
-                    <input type="text" class="app-input" placeholder="Local Bank Name" required>
-                    <input type="text" class="app-input" placeholder="IBAN Account Number" required>
-                    <input type="text" class="app-input" placeholder="Swift / Sorting Code" required>
-                    
-                    <button type="submit" class="app-btn" style="background: linear-gradient(135deg, #0f172a, #1e293b);">Verify & Sync Settlement Node</button>
-                </form>
-            </div>
-
-            <!-- SELLER DASHBOARD HUB -->
-            <div id="sellerDashboardContent" style="display: none;">
-                <div class="premium-card" style="background: linear-gradient(135deg, #1e293b, #0f172a); color: white;">
-                    <div class="seller-profile-banner" style="display:flex; gap:12px; align-items:center; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:15px;">
-                        <img id="displaySellerAvatar" class="seller-avatar" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid #34d399;" src="" alt="Seller">
-                        <div>
-                            <h3 id="displayShopName" style="font-size: 15px; font-weight: 700;">Merchant Hub</h3>
-                            <p id="displayMerchantName" style="font-size: 12px; opacity: 0.7;"></p>
-                        </div>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <p style="font-size: 12px; opacity: 0.8;">Unified Local Settled Revenue</p>
-                        <span class="badge-verified">✓ Active Hub Node</span>
-                    </div>
-                    <h1 id="merchantLedgerBalanceString" style="font-size: 30px; font-weight: 700; margin: 5px 0; color: #34d399;"></h1>
-                    <button style="background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;" onclick="alert('🏦 Payout complete!')">Withdraw Revenue</button>
-                </div>
-
-                <div class="premium-card">
-                    <h2>📦 Create New Global Cargo Item</h2>
-                    <form id="merchantInventoryForm">
-                        <input type="text" id="mProdName" class="app-input" placeholder="Cargo Item Name" required>
-                        <input type="number" id="mProdPrice" class="app-input" placeholder="Base Target Price ($ USD)" required>
-                        <input type="url" id="mProdImg" class="app-input" placeholder="Product Asset Image URL" required>
-                        <button type="submit" class="app-btn">Inject to Worldwide Feed</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
     </div>
 
     <script>
-        // GLOBAL FX MATRIX 
-        const FX_MATRIX = {
-            "SAR": { rate: 3.75, symbol: "SAR ", code: "" },
-            "AED": { rate: 3.67, symbol: "AED ", code: "" },
-            "KWD": { rate: 0.31, symbol: "KWD ", code: "" },
-            "QAR": { rate: 3.64, symbol: "QAR ", code: "" },
-            "OMR": { rate: 0.38, symbol: "OMR ", code: "" },
-            "BHD": { rate: 0.38, symbol: "BHD ", code: "" },
-            "USD": { rate: 1.0,  symbol: "$", code: "" },
-            "EUR": { rate: 0.92, symbol: "€", code: "" },
-            "GBP": { rate: 0.78, symbol: "£", code: "" },
-            "INR": { rate: 83.50, symbol: "₹", code: "" },
-            "PKR": { rate: 278.20, symbol: "₨", code: "" }
-        };
-
-        let currentActiveItemName = "";
-        let currentActiveItemPriceUSD = 0;
-        let globalSelectedCurrency = "SAR"; 
-        let finalizedCheckoutPriceString = "";
-        let cartItemsCount = 0;
-
-        window.onload = function() {
-            autoDetectUserCountryNode();
-            checkSavedCardsInVault();
-        };
-
-        // Automatic Geolocation Node Sim
-        function autoDetectUserCountryNode() {
-            // Simulated smart IP-lookup to default into SAR when operator is in Saudi Arabia
-            document.getElementById('userCurrencyNode').value = "SAR";
-            document.getElementById('globalStatusNode').innerText = "📍 Riyadh Node Live";
-            document.getElementById('globalStatusNode').style.background = "#dcfce7";
-            document.getElementById('globalStatusNode').style.color = "#15803d";
-            applyGlobalCurrencyConversion();
+        function switchTab(btn, tabId) {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.app-section').forEach(s => s.style.display = 'none');
+            document.getElementById(tabId).style.display = 'block';
         }
 
-        function switchDashboardMode(mode) {
-            document.querySelectorAll('.app-section').forEach(sec => sec.classList.remove('active-section'));
-            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active-mode'));
-
-            if (mode === 'buyer') {
-                document.getElementById('panelBuyerSpace').classList.add('active-section');
-                document.getElementById('toggleBuyerBtn').classList.add('active-mode');
-            } else if (mode === 'seller') {
-                document.getElementById('panelSellerSpace').classList.add('active-section');
-                document.getElementById('toggleSellerBtn').classList.add('active-mode');
-            }
+        function updateCurrency() {
+            const currency = document.getElementById('currencySelect').value;
+            console.log("Currency changed to:", currency);
+            // यहाँ हम करेंसी कन्वर्जन का लॉजिक डालेंगे
         }
-
-        // Live Realtime Multi-Currency Conversion (Fixed UI Double-Text Glitch)
-        function applyGlobalCurrencyConversion() {
-            globalSelectedCurrency = document.getElementById('userCurrencyNode').value;
-            const fxObj = FX_MATRIX[globalSelectedCurrency];
-
-            document.querySelectorAll('.catalog-card').forEach(card => {
-                const usdVal = parseFloat(card.getAttribute('data-base-usd'));
-                const localizedPrice = (usdVal * fxObj.rate).toFixed(2);
-                card.querySelector('.class-converted-price').innerText = `${fxObj.symbol}${localizedPrice}`;
-            });
-
-            const baseMerchantUSD = 540.00;
-            document.getElementById('merchantLedgerBalanceString').innerText = `${fxObj.symbol}${(baseMerchantUSD * fxObj.rate).toFixed(2)}`;
-
-            if(document.getElementById('checkoutFormBlock').style.display === 'block') {
-                renderInvoiceBreakdown();
-            }
-        }
-
-        // Realtime Local Search Engine
-        function triggerLiveSearch() {
-            const query = document.getElementById('productSearchField').value.toLowerCase();
-            document.querySelectorAll('.catalog-card').forEach(card => {
-                const title = card.querySelector('h4').innerText.toLowerCase();
-                if(title.includes(query)) {
-                    card.style.display = "block";
-                } else {
-                    card.style.display = "none";
-                }
-            });
-        }
-
-        function addItemToCart(name, priceUSD) {
-            cartItemsCount++;
-            document.getElementById('globalCartCount').innerText = cartItemsCount;
-            
-            currentActiveItemName = name;
-            currentActiveItemPriceUSD = parseFloat(priceUSD);
-            
-            renderInvoiceBreakdown();
-            document.getElementById('checkoutFormBlock').style.display = 'block';
-            scrollToCheckout();
-        }
-
-        function renderInvoiceBreakdown() {
-            const fxObj = FX_MATRIX[globalSelectedCurrency];
-            
-            const freightUSD = 12.50;
-            const gateSurchargeUSD = 6.00;
-            const grandTotalUSD = currentActiveItemPriceUSD + freightUSD + gateSurchargeUSD;
-
-            const localBase = (currentActiveItemPriceUSD * fxObj.rate).toFixed(2);
-            const localFreight = (freightUSD * fxObj.rate).toFixed(2);
-            const localSurcharge = (gateSurchargeUSD * fxObj.rate).toFixed(2);
-            const localTotal = (grandTotalUSD * fxObj.rate).toFixed(2);
-
-            finalizedCheckoutPriceString = `${fxObj.symbol}${localTotal}`;
-            document.getElementById('payButtonText').innerText = "Authorize & Pay " + finalizedCheckoutPriceString;
-
-            document.getElementById('invoiceBreakdownContainer').innerHTML = `
-                <div class="invoice-line"><span>Product Selected:</span><strong>${currentActiveItemName}</strong></div>
-                <div class="invoice-line"><span>Base Value:</span><span>${fxObj.symbol}${localBase}</span></div>
-                <div class="invoice-line"><span>Cross-Border Logistics:</span><span>${fxObj.symbol}${localFreight}</span></div>
-                <div class="invoice-line"><span>Clearance Node Surcharge:</span><span>${fxObj.symbol}${localSurcharge}</span></div>
-                <div class="invoice-line invoice-total"><span>Total Payable Amount:</span><span>${finalizedCheckoutPriceString}</span></div>
-            `;
-        }
-
-        function scrollToCheckout() {
-            if(cartItemsCount > 0) {
-                document.getElementById('checkoutFormBlock').scrollIntoView({ behavior: 'smooth' });
-            } else {
-                alert("🛒 Your shopping cart is empty! Click 'Buy Now' on an item first.");
-            }
-        }
-
-        function executeEscrowPayment(e) {
-            e.preventDefault();
-            if(document.getElementById('saveCardCheckbox').checked) {
-                localStorage.setItem('vault_card_num', document.getElementById('buyerCardNumber').value);
-                localStorage.setItem('vault_card_name', document.getElementById('buyerCardName').value);
-                localStorage.setItem('vault_card_exp', document.getElementById('buyerCardExpiry').value);
-                localStorage.setItem('vault_card_addr', document.getElementById('buyerShippingAddr').value);
-                localStorage.setItem('vault_card_city', document.getElementById('buyerCity').value);
-                localStorage.setItem('vault_card_zip', document.getElementById('buyerZip').value);
-            }
-            alert(`🎉 Clearance Hub Success!\n\n${finalizedCheckoutPriceString} securely authorized & allocated to network Escrow.`);
-            document.getElementById('checkoutFormBlock').style.display = 'none';
-            cartItemsCount = 0;
-            document.getElementById('globalCartCount').innerText = "0";
-            checkSavedCardsInVault();
-        }
-
-        function checkSavedCardsInVault() {
-            const savedNum = localStorage.getItem('vault_card_num');
-            const savedName = localStorage.getItem('vault_card_name');
-            if(savedNum && savedName) {
-                document.getElementById('savedCardBox').style.display = 'flex';
-                document.getElementById('savedCardDetail').innerText = savedName + " (•••• " + savedNum.slice(-4) + ")";
-                document.getElementById('buyerCardName').value = savedName;
-                document.getElementById('buyerCardNumber').value = savedNum;
-                document.getElementById('buyerCardExpiry').value = localStorage.getItem('vault_card_exp') || "12/29";
-                document.getElementById('buyerCardCvv').value = "•••";
-                document.getElementById('buyerShippingAddr').value = localStorage.getItem('vault_card_addr') || "Olaya District";
-                document.getElementById('buyerCity').value = localStorage.getItem('vault_card_city') || "Riyadh";
-                document.getElementById('buyerZip').value = localStorage.getItem('vault_card_zip') || "11564";
-            }
-        }
-
-        function clearSavedBuyerCard() {
-            localStorage.clear();
-            document.getElementById('savedCardBox').style.display = 'none';
-            document.getElementById('buyerPaymentCheckoutForm').reset();
-            alert("🗑️ Card data cleared from sandbox cache.");
-        }
-
-        function handleKycVerification(e) {
-            e.preventDefault();
-            const fullName = document.getElementById('kycFullName').value;
-            const shopName = document.getElementById('kycShopName').value;
-            const avatarInput = document.getElementById('kycAvatarInput');
-            
-            if (avatarInput.files && avatarInput.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) { document.getElementById('displaySellerAvatar').src = e.target.result; }
-                reader.readAsDataURL(avatarInput.files[0]);
-            } else {
-                document.getElementById('displaySellerAvatar').src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
-            }
-            
-            document.getElementById('displayShopName').innerText = shopName;
-            document.getElementById('displayMerchantName').innerText = "Operator: " + fullName;
-            document.getElementById('kycVerificationGate').style.display = 'none';
-            document.getElementById('sellerDashboardContent').style.display = 'block';
-        }
-
-        document.getElementById('merchantInventoryForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const name = document.getElementById('mProdName').value;
-            const priceUSD = parseFloat(document.getElementById('mProdPrice').value);
-            const img = document.getElementById('mProdImg').value;
-
-            document.getElementById('globalContainerCatalog').insertAdjacentHTML('beforeend', `
-                <div class="catalog-card" data-base-usd="${priceUSD}">
-                    <img src="${img}" alt="${name}">
-                    <h4 style="text-transform: capitalize;">${name}</h4>
-                    <div class="price class-converted-price"></div>
-                    <button class="app-btn" style="padding: 8px; font-size: 12px; margin-top: 4px; background: #0f172a;" onclick="addItemToCart('${name}', ${priceUSD})">Buy Now</button>
-                </div>
-            `);
-            
-            alert("🚀 Cargo successfully published globally!");
-            document.getElementById('merchantInventoryForm').reset();
-            applyGlobalCurrencyConversion();
-            switchDashboardMode('buyer');
-        });
     </script>
 </body>
 </html>
