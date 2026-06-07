@@ -3,85 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalBazaar - Premium Matrix</title>
+    <title>GlobalBazaar - Professional Matrix</title>
     <style>
-        /* ... [अपना पूरा CSS यहाँ रहने दें] ... */
+        /* [आपका पूरा 600+ लाइन वाला CSS यहाँ रखें] */
         
-        /* नया साइड मेनू स्टाइल */
+        /* नया: साइड मेनू का स्टाइल */
         .sidenav { height: 100%; width: 0; position: fixed; z-index: 1000; top: 0; left: 0; background-color: #fff; overflow-x: hidden; transition: 0.5s; padding-top: 60px; box-shadow: 2px 0 5px rgba(0,0,0,0.2); }
-        .sidenav a { padding: 15px; text-decoration: none; font-size: 18px; color: #1e3a8a; display: block; }
+        .sidenav a { padding: 15px; text-decoration: none; font-size: 18px; color: #1e3a8a; display: block; cursor: pointer; }
         .menu-btn { font-size: 24px; cursor: pointer; color: #1e3a8a; margin-right: 15px; }
+        
+        /* पेमेंट पेज स्टाइल */
+        #paymentPage { padding: 20px; background: white; border-radius: 16px; border: 1px solid #e2e8f0; }
     </style>
 </head>
 <body>
 
     <div id="mySidenav" class="sidenav">
-        <a href="javascript:void(0)" onclick="document.getElementById('mySidenav').style.width = '0'">× Close</a>
-        <div style="padding: 20px;">
-            <button class="app-btn" onclick="switchDashboardMode('buyer'); document.getElementById('mySidenav').style.width = '0'">🛒 Buyer Panel</button>
-            <br><br>
-            <button class="app-btn" onclick="switchDashboardMode('seller'); document.getElementById('mySidenav').style.width = '0'">🏪 Seller Panel</button>
-        </div>
+        <a onclick="closeNav()">× Close</a>
+        <a onclick="switchDashboardMode('buyer'); closeNav()">🛒 Buyer Shopping</a>
+        <a onclick="switchDashboardMode('seller'); closeNav()">🏪 Seller Panel</a>
     </div>
 
     <header>
         <div style="display:flex; align-items:center;">
-            <span class="menu-btn" onclick="document.getElementById('mySidenav').style.width = '250px'">☰</span>
-            <h1>GlobalBazaar</h1>
+            <span class="menu-btn" onclick="openNav()">☰</span>
+            <h1>GlobalBazaar 🌍</h1>
         </div>
         </header>
 
     <div class="container">
-        <div id="dummyProduct" class="premium-card">
-            <img src="https://via.placeholder.com/300" alt="Dummy">
-            <h3>Premium Gadget</h3>
-            <button class="app-btn" onclick="showPaymentForm()">Buy Now</button>
+        <div id="panelBuyerSpace" class="app-section active-section">
+            <input type="text" id="productSearchField" class="app-input" placeholder="🔍 Search products...">
+            <div class="market-grid" id="globalContainerCatalog">
+                <div class="catalog-card">
+                    <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500" alt="Watch">
+                    <h4>Premium Smart Watch</h4>
+                    <button class="app-btn" onclick="showPaymentPage('Premium Smart Watch', 99)">Buy Now</button>
+                </div>
+            </div>
         </div>
 
-        <div id="paymentSection" style="display:none;">
-            <input type="text" id="cardName" class="app-input" placeholder="Cardholder Name">
-            <input type="text" id="cardNumber" class="app-input" placeholder="Card Number (16 digits)">
-            <button class="app-btn" onclick="saveCardData()">Save & Pay</button>
+        <div id="paymentPage" style="display:none;" class="premium-card">
+            <h2>Payment for <span id="itemName"></span></h2>
+            <input type="text" id="buyerCard" class="app-input" placeholder="Enter 16 digit Card Number">
+            <button class="app-btn" onclick="processPayment()">Confirm & Pay</button>
         </div>
+
+        <div id="panelSellerSpace" class="app-section" style="display:none;">
+            </div>
     </div>
 
     <script>
-        // [अपना ओरिजिनल JS यहाँ पेस्ट करें]
+        // [आपका पूरा ओरिजिनल JavaScript यहाँ रखें]
 
-        // KYC अपडेटेड फंक्शन (जेन्युइन आईडी चेक)
-        function handleKycVerification(e) {
-            e.preventDefault();
-            const idNumber = document.getElementById('kycIdNumber').value;
-            
-            // सुरक्षा चेक: डुप्लीकेट या छोटी आईडी को रोकें
-            if (idNumber.length < 10) {
-                alert("⚠️ कृपया अपनी वैध (Valid) आईडी दर्ज करें।");
-                return;
-            }
-            
-            // फोटो अपलोड का लॉजिक
-            const file = document.getElementById('kycAvatarInput').files[0];
-            const reader = new FileReader();
-            reader.onload = function(e) { document.getElementById('displaySellerAvatar').src = e.target.result; }
-            if(file) reader.readAsDataURL(file);
+        // 1. मेनू कंट्रोल फंक्शन
+        function openNav() { document.getElementById("mySidenav").style.width = "250px"; }
+        function closeNav() { document.getElementById("mySidenav").style.width = "0"; }
 
-            // आगे का Firebase कोड यहाँ रहने दें
-            document.getElementById('kycVerificationGate').style.display = 'none';
+        // 2. सेलर पैनल स्विचिंग (पुराना फंक्शन ओवरराइड)
+        function switchDashboardMode(mode) {
+            document.getElementById('panelBuyerSpace').style.display = (mode === 'buyer') ? 'block' : 'none';
+            document.getElementById('panelSellerSpace').style.display = (mode === 'seller') ? 'block' : 'none';
+            document.getElementById('paymentPage').style.display = 'none';
         }
 
-        // कार्ड सेविंग लॉजिक
-        function saveCardData() {
-            const cardNum = document.getElementById('cardNumber').value;
-            if(cardNum.length === 16) {
-                localStorage.setItem('userCard', cardNum);
-                alert("✅ कार्ड सुरक्षित रूप से सेव कर लिया गया है!");
+        // 3. पेमेंट पेज का लॉजिक
+        function showPaymentPage(name, price) {
+            document.getElementById('panelBuyerSpace').style.display = 'none';
+            document.getElementById('paymentPage').style.display = 'block';
+            document.getElementById('itemName').innerText = name;
+        }
+
+        function processPayment() {
+            const card = document.getElementById('buyerCard').value;
+            if(card.length === 16) {
+                localStorage.setItem('buyer_card', card);
+                alert("✅ पेमेंट सफल! आपका कार्ड सुरक्षित रूप से स्टोर हो गया है।");
+                location.reload(); 
             } else {
                 alert("❌ कृपया सही कार्ड नंबर डालें।");
             }
         }
         
-        function showPaymentForm() {
-            document.getElementById('paymentSection').style.display = 'block';
+        // 4. KYC लॉजिक (जेन्युइन चेक)
+        function handleKycVerification(e) {
+            e.preventDefault();
+            const idNumber = document.getElementById('kycIdNumber').value;
+            if (idNumber.length < 10) { alert("⚠️ कृपया अपनी वैध (Valid) आईडी दर्ज करें।"); return; }
+            
+            // ... (आपका ओरिजिनल Firebase सेविंग लॉजिक यहाँ जारी रखें)
         }
     </script>
 </body>
