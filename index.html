@@ -2,63 +2,73 @@
 <html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalBazaar Marketplace</title>
+    <title>GlobalBazaar Professional Marketplace</title>
     <style>
         body { font-family: sans-serif; background: #f4f4f4; margin: 0; padding: 10px; }
-        .header { background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 10px; }
-        .top-row { display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-weight: 900; color: #1e3a8a; font-size: 20px; }
-        .btn-group { display: flex; gap: 5px; }
-        button { padding: 8px 12px; background: #1e3a8a; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .header { background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 10px; text-align: center; }
+        .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .logo { font-size: 24px; font-weight: 900; color: #1e3a8a; }
+        .role-btns { display: flex; gap: 5px; }
         .section { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; }
-        input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .input-group { margin-bottom: 10px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #1e3a8a; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div class="top-row">
+    <div class="top-nav">
         <div class="logo">☰ GLOBALBAZAAR 🌍</div>
-        <div class="btn-group">
+        <div class="role-btns">
             <button onclick="show('buyerSection')">Buyer</button>
             <button onclick="show('sellerSection')">Seller</button>
         </div>
     </div>
-    <select>
-        <option>SAR (Saudi)</option><option>USD</option><option>INR</option>
+    <select id="currency">
+        <option>SAR (Saudi)</option><option>AED (UAE)</option><option>KWD (Kuwait)</option>
+        <option>QAR (Qatar)</option><option>OMR (Oman)</option><option>BHD (Bahrain)</option>
+        <option>USD ($)</option><option>EUR (€)</option><option>GBP (£)</option>
+        <option>INR (₹)</option><option>PKR (Rs)</option>
     </select>
+</div>
+
+<div class="section">
+    <input type="text" placeholder="Search products...">
+    <select><option>All Categories</option></select>
 </div>
 
 <div id="buyerSection" class="section">
     <h3>🛒 Buyer Portal</h3>
-    <input type="text" placeholder="Search products...">
-    <select><option>All Categories</option></select>
-    
-    <div id="products">
-        <p>1. Watch - SAR 187 | <button onclick="openCheckout()">Add to Cart</button></p>
-        <p>2. Phone - SAR 900 | <button onclick="openCheckout()">Add to Cart</button></p>
-        </div>
+    <div style="border: 1px solid #ddd; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+        <p><b>Product:</b> Luxury Smart Watch - <b>SAR 187.50</b></p>
+        <button onclick="openPayment()" style="width: auto; float: right;">Add to Cart</button>
+        <div style="clear: both;"></div>
+    </div>
 
-    <div id="checkoutArea" style="display:none; border-top:2px solid #eee; margin-top:10px;">
+    <div id="paymentArea" style="display:none; margin-top:20px; border-top:1px solid #eee;">
+        <h4>Checkout Details</h4>
         <input placeholder="Shipping Address">
-        <input placeholder="Phone Number">
         <input placeholder="Card Details (Payment)">
-        <button style="background:green;">Pay & Confirm</button>
-        <p>Tracking ID: GB-9988</p>
+        <button style="background: green;">Pay & Confirm</button>
+        <p><i>Tracking ID: #GB-998877</i></p>
     </div>
 </div>
 
 <div id="sellerSection" class="section" style="display:none;">
     <h3>🏪 Seller Portal</h3>
-    <input placeholder="Email / Login">
-    <input placeholder="KYC: National ID / License">
-    <input placeholder="Bank IBAN">
-    <input type="file" placeholder="Profile Pic">
+    <input placeholder="Sign Up / Login Email">
+    <input type="password" placeholder="Password">
     <hr>
-    <h4>List Product</h4>
+    <h4>KYC & Verification</h4>
+    <input placeholder="National ID / License">
+    <input placeholder="Bank IBAN for Withdrawal">
+    <input type="file" placeholder="Profile Picture">
+    <hr>
+    <h4>Product Listing</h4>
     <input placeholder="Product Name">
-    <select><option>Select Category</option></select>
-    <input type="file" placeholder="Product Pic">
+    <select><option>Choose Category</option></select>
+    <input type="file" placeholder="Product Picture">
     <button style="background: #059669;">List Product</button>
     <hr>
     <p>Wallet Balance: <b>SAR 1,250.00</b></p>
@@ -66,11 +76,11 @@
 </div>
 
 <script>
-    function show(id) {
-        document.getElementById('buyerSection').style.display = (id === 'buyerSection') ? 'block' : 'none';
-        document.getElementById('sellerSection').style.display = (id === 'sellerSection') ? 'block' : 'none';
+    function show(role) {
+        document.getElementById('buyerSection').style.display = role === 'buyerSection' ? 'block' : 'none';
+        document.getElementById('sellerSection').style.display = role === 'sellerSection' ? 'block' : 'none';
     }
-    function openCheckout() { document.getElementById('checkoutArea').style.display = 'block'; }
+    function openPayment() { document.getElementById('paymentArea').style.display = 'block'; }
 </script>
 
 </body>
