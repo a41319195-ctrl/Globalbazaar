@@ -75,16 +75,24 @@
             padding: 4px 10px;
             border-radius: 20px;
             font-weight: 600;
-        }mode-switcher-container
+        }
+
         .container {
             max-width: 600px;
             margin: 0 auto;
             padding: 16px;
- 
         }
 
         /* Top Central Switcher Dashboard */
-        .
+        .mode-switcher-container {
+            display: flex;
+            background: #e2e8f0;
+            padding: 6px;
+            border-radius: 14px;
+            margin-bottom: 14px;
+            gap: 6px;
+        }
+
         .mode-btn {
             flex: 1;
             border: none;
@@ -101,37 +109,14 @@
             align-items: center;
             gap: 8px;
         }
-        mode-btn.active-mode {
+
+        .mode-btn.active-mode {
             background: #ffffff;
             color: #2563eb;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
 
-        .
-
         /* Global Localization Dropdown UI */
-            display: flex;
-            background: #e2e8f0;
-            padding: 6px;
-            border-radius: 14px;
-            margin-bottom: 14px;
-            gap: 6px;
-        }
-            display: flex;
-            background: #e2e8f0;
-            padding: 6px;
-            border-radius: 14px;
-            margin-bottom: 14px;
-            gap: 6px;
-        }
-            display: flex;
-            background: #e2e8f0;
-            padding: 6px;
-            border-radius: 14px;
-            margin-bottom: 14px;
-            gap: 6px;
-        }
-
         .currency-selector-card {
             background: #ffffff;
             border: 1px dashed #2563eb;
@@ -173,7 +158,36 @@
             border: 1px solid #e2e8f0;
             border-radius: 16px;
             padding: 20px;
-            
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01);
+        }
+
+        .premium-card h2 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 14px;
+        }
+
+        .app-input {
+            width: 100%;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            padding: 12px 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #334155;
+            margin-bottom: 14px;
+        }
+
+        .app-btn {
+            background: linear-gradient(135deg, #1e3a8a, #2563eb);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
         }
@@ -599,49 +613,5 @@
             switchDashboardMode('buyer');
         });
     </script>
-    <style>
-    .sidenav { height: 100%; width: 0; position: fixed; z-index: 9999; top: 0; left: 0; background-color: #ffffff; overflow-x: hidden; transition: 0.5s; padding-top: 60px; box-shadow: 2px 0 5px rgba(0,0,0,0.2); }
-    .sidenav a { padding: 15px 25px; text-decoration: none; font-size: 18px; color: #1e3a8a; display: block; font-weight: 600; cursor: pointer; }
-    .menu-icon { font-size: 24px; cursor: pointer; margin-right: 15px; color: #1e3a8a; }
-</style>
-
-<div id="mySidenav" class="sidenav">
-    <a onclick="document.getElementById('mySidenav').style.width='0'">× Close</a>
-    <div style="padding: 10px 20px;">
-    <div class="mode-switcher-container">
-        <button class="mode-btn active-mode" id="toggleBuyerBtn" onclick="switchDashboardMode('buyer')">🛒 Buyer</button>
-        <button class="mode-btn" id="toggleSellerBtn" onclick="switchDashboardMode('seller')">🏪 Seller</button>
-    </div>
-    <div class="currency-selector-card">
-        <select id="userCurrencyNode" class="currency-select" onchange="applyGlobalCurrencyConversion()">
-            <option value="SAR">Saudi Arabia (SAR)</option>
-            <option value="AED">UAE (AED)</option>
-            <option value="KWD">Kuwait (KWD)</option>
-            <option value="QAR">Qatar (QAR)</option>
-            <option value="OMR">Oman (OMR)</option>
-            <option value="BHD">Bahrain (BHD)</option>
-            <option value="USD">USA (USD)</option>
-            <option value="EUR">Euro (EUR)</option>
-            <option value="GBP">UK (GBP)</option>
-            <option value="INR">India (INR)</option>
-            <option value="PKR">Pakistan (PKR)</option>
-        </select>
-    </div>
-</div>
-
-    <a onclick="switchDashboardMode('buyer'); document.getElementById('mySidenav').style.width='0'">🛒 Buyer Shopping</a>
-    <a onclick="switchDashboardMode('seller'); document.getElementById('mySidenav').style.width='0'">🏪 Seller Panel</a>
-</div>
-
-<script>
-    // यह आपके हेडर में बटन जोड़ने का काम करेगा ताकि कोड न कटे
-    const header = document.querySelector('header h1');
-    const menuBtn = document.createElement('span');
-    menuBtn.className = 'menu-icon';
-    menuBtn.innerHTML = '☰';
-    menuBtn.onclick = function() { document.getElementById('mySidenav').style.width = '250px'; };
-    header.prepend(menuBtn);
-</script>
-
 </body>
 </html>
