@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalBazaar - Vendor Dashboard</title>
+    <title>GlobalBazaar - Secure Vendor Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -18,7 +18,6 @@
             color: #333;
         }
 
-        /* Header Styling */
         header {
             background: linear-gradient(135deg, #1e3c72, #2a5298);
             color: white;
@@ -32,7 +31,6 @@
         header h1 {
             font-size: 22px;
             font-weight: 700;
-            letter-spacing: 1px;
         }
 
         .logout-btn {
@@ -43,94 +41,107 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
-            transition: 0.3s;
         }
 
-        .logout-btn:hover {
-            background-color: #c92a3a;
-        }
-
-        /* Main Container */
         .container {
             max-width: 1200px;
             margin: 30px auto;
             padding: 0 20px;
         }
 
-        /* Vendor Info Card */
-        .vendor-card {
+        /* Profile & KYC Badge */
+        .profile-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .profile-section { grid-template-columns: 1fr; }
+        }
+
+        .card {
             background: white;
             padding: 20px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            margin-bottom: 30px;
             border-left: 5px solid #2a5298;
         }
 
-        .vendor-card h2 {
-            font-size: 18px;
-            color: #555;
-        }
-
-        .vendor-card p {
-            font-size: 16px;
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
             font-weight: 600;
-            color: #1e3c72;
-            margin-top: 5px;
+            font-size: 13px;
+            margin-top: 10px;
         }
 
-        /* Form and Grid Setup */
-        .dashboard-grid {
+        .pending { background-color: #ffe3e3; color: #e63946; }
+        .approved { background-color: #d4edda; color: #155724; border-left: 5px solid #28a745; }
+
+        /* KYC Form Styling */
+        .kyc-box input, .kyc-box select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 8px;
+            margin-bottom: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        .btn-secure {
+            background-color: #2ec4b6;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+        }
+
+        /* Lock Overlay for Security */
+        .workspace-grid {
             display: grid;
             grid-template-columns: 1fr 2fr;
             gap: 30px;
+            position: relative;
         }
 
         @media (max-width: 768px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
+            .workspace-grid { grid-template-columns: 1fr; }
         }
 
-        /* Form Styling */
-        .form-box {
+        .disabled-form {
+            opacity: 0.4;
+            pointer-events: none;
+            position: relative;
+        }
+
+        .lock-notice {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            text-align: center;
+            border: 1px solid #ffeeba;
+        }
+
+        /* Form & Product Layout */
+        .box-style {
             background: white;
             padding: 25px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            height: fit-content;
         }
 
-        .form-box h3 {
-            margin-bottom: 20px;
-            color: #1e3c72;
-            font-size: 18px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 14px;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #555;
-        }
-
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 14px;
-            outline: none;
-        }
-
-        .form-group input:focus {
-            border-color: #2a5298;
-        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 14px; margin-bottom: 5px; font-weight: 600; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
 
         .submit-btn {
             width: 100%;
@@ -142,25 +153,6 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .submit-btn:hover {
-            background-color: #1e3c72;
-        }
-
-        /* Product List Styling */
-        .product-box {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-
-        .product-box h3 {
-            margin-bottom: 20px;
-            color: #1e3c72;
-            font-size: 18px;
         }
 
         .product-grid {
@@ -175,7 +167,6 @@
             border-radius: 8px;
             text-align: center;
             background: #fafafa;
-            position: relative;
         }
 
         .product-card img {
@@ -184,17 +175,6 @@
             object-fit: cover;
             border-radius: 6px;
             margin-bottom: 10px;
-        }
-
-        .product-card h4 {
-            font-size: 16px;
-            margin-bottom: 5px;
-        }
-
-        .product-card p {
-            color: #2a5298;
-            font-weight: 700;
-            font-size: 15px;
         }
 
         .badge {
@@ -216,19 +196,44 @@
     </header>
 
     <div class="container">
-        <div class="vendor-card">
-            <h2>Vendor Profile</h2>
-            <p>🏪 Business Name: <span id="shopName">My Shop</span></p>
+        
+        <div class="profile-section">
+            <div class="card" id="profileCard">
+                <h2>🏪 Trader Profile</h2>
+                <p style="margin-top: 10px;"><strong>Business Name:</strong> My Shop</p>
+                <p><strong>Trader ID:</strong> GB-99413-TX</p>
+                <div id="traderStatus" class="status-badge pending">❌ Unverified (KYC Pending)</div>
+            </div>
+
+            <div class="card kyc-box" id="kycFormBox">
+                <h2>🆔 Government ID & KYC Verification</h2>
+                <form id="kycForm">
+                    <select id="idType" required>
+                        <option value="">Select ID Document Type</option>
+                        <option value="Passport">International Passport</option>
+                        <option value="National ID">National ID Card / Government ID</option>
+                        <option value="Driving License">Driving License</option>
+                    </select>
+                    <input type="text" id="idNumber" placeholder="Enter Document ID Number" required>
+                    <label style="font-size: 12px; color: #666;">Upload Clear Photo of ID Document:</label>
+                    <input type="file" id="idFile" accept="image/*" required>
+                    <button type="submit" class="btn-secure">Submit KYC for Approval</button>
+                </form>
+            </div>
         </div>
 
-        <div class="dashboard-grid">
+        <div id="lockNotice" class="lock-notice">
+            🔒 Security Notice: Your shop features are locked. Please complete your Govt ID KYC verification above to start selling globally.
+        </div>
+
+        <div class="workspace-grid">
             
-            <div class="form-box">
-                <h3>📦 Add New Product (Global Shipping)</h3>
+            <div class="box-style disabled-form" id="productFormBox">
+                <h3 style="color: #1e3c72; margin-bottom: 20px;">📦 Add New Product (Global Shipping)</h3>
                 <form id="productForm">
                     <div class="form-group">
                         <label>Product Name</label>
-                        <input type="text" id="pName" placeholder="e.g., Silk Saree, Wireless Mouse" required>
+                        <input type="text" id="pName" placeholder="e.g., Wireless Mouse" required>
                     </div>
                     <div class="form-group">
                         <label>Category</label>
@@ -236,7 +241,6 @@
                             <option value="Electronics">Electronics</option>
                             <option value="Clothing">Clothing & Fashion</option>
                             <option value="Home Decor">Home Decor</option>
-                            <option value="Beauty">Beauty Products</option>
                             <option value="Other">Other Legal Goods</option>
                         </select>
                     </div>
@@ -245,15 +249,15 @@
                         <input type="number" id="pPrice" placeholder="Price in USD" required>
                     </div>
                     <div class="form-group">
-                        <label>Product Image Link (URL)</label>
+                        <label>Product Image URL</label>
                         <input type="url" id="pImg" placeholder="https://example.com/image.jpg" required>
                     </div>
                     <button type="submit" class="submit-btn">Publish to Global Market</button>
                 </form>
             </div>
 
-            <div class="product-box">
-                <h3>🌐 Your Live Products (Worldwide View)</h3>
+            <div class="box-style">
+                <h3 style="color: #1e3c72; margin-bottom: 20px;">🌐 Your Live Products (Worldwide)</h3>
                 <div class="product-grid" id="productGrid">
                     <div class="product-card">
                         <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500" alt="Product">
@@ -268,8 +272,31 @@
     </div>
 
     <script>
-        // List of blocked words for illegal items
-        const illegalWords = ["drug", "gun", "weapon", "bomb", "chemical", "hack", "cocaine", "weed", "pistol", "alkohol", "alcohol"];
+        // KYC Submission Logic
+        document.getElementById('kycForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Simulating Verification Review
+            alert("⏳ Uploading documents to secure server... Processing KYC verification.");
+            
+            setTimeout(() => {
+                // Update Status Badge
+                const status = document.getElementById('traderStatus');
+                status.innerText = "✅ Verified Trader (Global Access)";
+                status.className = "status-badge approved";
+                document.getElementById('profileCard').style.borderLeft = "5px solid #28a745";
+
+                // Unlock Product Form
+                document.getElementById('productFormBox').classList.remove('disabled-form');
+                document.getElementById('lockNotice').style.display = 'none';
+                document.getElementById('kycFormBox').innerHTML = "<h2 style='color:#28a745;'>🎉 KYC Verification Success!</h2><p style='margin-top:10px; color:#555;'>Your identity has been verified securely. You are now authorized to clear global shipments and sell legal goods.</p>";
+                
+                alert("🎉 KYC Approved! Your store is now unlocked for global trading.");
+            }, 1500);
+        });
+
+        // Anti-Illegal Filter Logic
+        const illegalWords = ["drug", "gun", "weapon", "bomb", "chemical", "hack", "cocaine", "weed", "pistol", "charas", "ganja"];
 
         document.getElementById('productForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -277,32 +304,28 @@
             const name = document.getElementById('pName').value.toLowerCase();
             const price = document.getElementById('pPrice').value;
             const img = document.getElementById('pImg').value;
-            const category = document.getElementById('pCategory').value;
 
-            // Check for illegal items
             let isIllegal = illegalWords.some(word => name.includes(word));
 
             if (isIllegal) {
-                alert("🚨 SECURITY ALERT: This item violates Global Guidelines and is illegal. Your action has been blocked!");
-                // Future upgrade: Yahan automatic account block ka system lagega backend se.
+                alert("🚨 SECURITY ALERT: Illegal item detected. Action blocked! Repeated attempts will permanently ban your verified Trader ID.");
                 return;
             }
 
-            // If legal, add to grid
             const grid = document.getElementById('productGrid');
             const productHtml = `
                 <div class="product-card">
                     <img src="${img}" alt="${name}">
                     <h4 style="text-transform: capitalize;">${document.getElementById('pName').value}</h4>
                     <p>$${price}</p>
-                    <span class="badge" style="background-color: #2ec4b6;">Approved & Legal</span>
+                    <span class="badge">Approved & Legal</span>
                 </div>
             `;
             
             grid.insertAdjacentHTML('beforeend', productHtml);
-            alert("✅ Success: Product is live across the globe!");
+            alert("✅ Success: Product is now live in the global marketplace!");
             document.getElementById('productForm').reset();
         });
     </script>
 </body>
-    </html>
+</html>
