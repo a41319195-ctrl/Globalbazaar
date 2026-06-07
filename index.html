@@ -63,6 +63,7 @@
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             border-left: 5px solid #2a5298;
+            margin-bottom: 20px;
         }
 
         .card h2 { font-size: 18px; color: #1e3c72; margin-bottom: 15px; }
@@ -87,7 +88,7 @@
         .pending { background-color: #ffe3e3; color: #e63946; }
         .approved { background-color: #d4edda; color: #155724; }
 
-        /* Wallet & Withdrawal System Styles */
+        /* Wallet & Payout Design */
         .wallet-grid {
             display: grid;
             grid-template-columns: 1fr 2fr;
@@ -109,7 +110,20 @@
         .balance-title { font-size: 14px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; }
         .balance-amount { font-size: 32px; font-weight: 700; margin: 10px 0; }
 
-        /* Workspace Grid and Lock Feature */
+        .btn-withdraw {
+            background-color: white;
+            color: #11998e;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        /* Workspace Configuration */
         .workspace-grid {
             display: grid;
             grid-template-columns: 1fr 2fr;
@@ -117,7 +131,7 @@
         }
         @media (max-width: 768px) { .workspace-grid { grid-template-columns: 1fr; } }
 
-        .disabled-form { opacity: 0.2; pointer-events: none; }
+        .disabled-form { opacity: 0.15; pointer-events: none; }
 
         .lock-notice {
             background: #fff3cd;
@@ -141,23 +155,7 @@
             cursor: pointer;
             width: 100%;
         }
-        .btn-action:hover { background-color: #1e3c72; }
 
-        .btn-withdraw {
-            background-color: white;
-            color: #11998e;
-            border: none;
-            padding: 10px;
-            border-radius: 6px;
-            font-weight: 700;
-            cursor: pointer;
-            text-align: center;
-            margin-top: 15px;
-            transition: 0.3s;
-        }
-        .btn-withdraw:hover { background-color: #f4f6f9; }
-
-        /* Product Gallery */
         .product-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -198,6 +196,7 @@
 
     <div class="container">
         
+        <!-- STEP 1: Profile Creation & KYC -->
         <div class="top-grid">
             <div class="card" id="profileSetupBox">
                 <h2>👤 Trader Profile & KYC Setup</h2>
@@ -216,6 +215,7 @@
                 </form>
             </div>
 
+            <!-- Dynamic Live Profile -->
             <div class="card">
                 <h2>🏪 Live Merchant Identity</h2>
                 <p style="margin-top: 10px;"><strong>Owner Name:</strong> <span id="lblSellerName" style="color:#1e3c72; font-weight:600;">Pending Setup...</span></p>
@@ -225,7 +225,9 @@
             </div>
         </div>
 
+        <!-- STEP 2: International Wallet & Bank Payout Setup -->
         <div class="wallet-grid disabled-form" id="walletSection">
+            <!-- Global Wallet Card -->
             <div class="wallet-card">
                 <div>
                     <div class="balance-title">💰 Available Global Earnings</div>
@@ -235,29 +237,33 @@
                 <button class="btn-withdraw" onclick="processWithdrawal()">Withdraw to Local Bank</button>
             </div>
 
-            <div class="card" style="border-left: 5px solid #11998e;">
+            <!-- Bank Account Form -->
+            <div class="card" style="border-left: 5px solid #11998e; margin-bottom: 0;">
                 <h2>🏦 International Local Bank Settlement Account</h2>
                 <form id="bankForm" onsubmit="saveBankDetails(event)">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                        <input type="text" id="bankCountry" class="form-input" placeholder="Bank Country (e.g., India, USA)" required>
-                        <input type="text" id="bankName" class="form-input" placeholder="Bank Name (e.g., SBI, Chase)" required>
+                        <input type="text" id="bankCountry" class="form-input" placeholder="Bank Country (e.g., India)" required>
+                        <input type="text" id="bankName" class="form-input" placeholder="Bank Name (e.g., SBI)" required>
                     </div>
                     <input type="text" id="accHolder" class="form-input" placeholder="Account Holder Name" required>
                     <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 10px;">
                         <input type="text" id="accNumber" class="form-input" placeholder="Account Number / IBAN" required>
-                        <input type="text" id="swiftCode" class="form-input" placeholder="IFSC / SWIFT-BIC Code" required>
+                        <input type="text" id="swiftCode" class="form-input" placeholder="IFSC / SWIFT Code" required>
                     </div>
-                    <button type="submit" class="btn-action" style="background-color: #11998e; padding: 8px;">Link Bank & Unlock Dashboard</button>
+                    <button type="submit" class="btn-action" style="background-color: #11998e;">Link Bank & Unlock Marketplace</button>
                 </form>
             </div>
         </div>
 
+        <!-- Security Warning Notice -->
         <div id="lockNotice" class="lock-notice">
-            🔒 Marketplace Protection: Please complete your Trader Profile KYC, and then link your Local Bank Account above to unlock product upload features.
+            🔒 Marketplace Protection: Please complete your Profile KYC, and link your Local Bank Account above to unlock global product listing features.
         </div>
 
+        <!-- STEP 3: Locked Marketplace Workspace -->
         <div class="workspace-grid">
-            <div class="card disabled-form" id="productFormBox">
+            <!-- Add Product Form -->
+            <div class="card disabled-form" id="productFormBox" style="border-left: 5px solid #1e3c72;">
                 <h2>📦 Add Product to Global Inventory</h2>
                 <form id="productForm">
                     <input type="text" id="pName" class="form-input" placeholder="Product Name (e.g., Luxury Silk Saree)" required>
@@ -272,7 +278,8 @@
                 </form>
             </div>
 
-            <div class="card">
+            <!-- Global Inventory Gallery -->
+            <div class="card" style="border-left: 5px solid #2a5298;">
                 <h2>🌐 Your Live Worldwide Catalog</h2>
                 <div class="product-grid" id="productGrid">
                     <div class="product-card">
@@ -299,7 +306,7 @@
             globalSellerName = document.getElementById('sellerNameInput').value;
             globalShopName = document.getElementById('shopNameInput').value;
 
-            alert("⚙️ Submitting documentation... Scanning international screening databases.");
+            alert("⚙️ Submitting documentation to GlobalBazaar Compliance Core...");
 
             setTimeout(() => {
                 document.getElementById('lblSellerName').innerText = globalSellerName;
@@ -309,24 +316,23 @@
                 status.innerText = "✅ KYC Verified & Approved";
                 status.className = "status-badge approved";
 
-                // Unlock Step 2 (Wallet & Bank Setup)
+                // Unlock Wallet & Bank Section
                 document.getElementById('walletSection').classList.remove('disabled-form');
-                document.getElementById('profileSetupBox').innerHTML = "<h3 style='color:#28a745;'>🎉 Profile Setup Complete!</h3><p style='font-size:14px; margin-top:10px; color:#555;'>Identity passed. Now connect your domestic bank account information below to route multi-currency conversions.</p>";
+                document.getElementById('profileSetupBox').innerHTML = "<h3 style='color:#28a745;'>🎉 Profile Setup Complete!</h3><p style='font-size:14px; margin-top:10px; color:#555;'>Identity verification passed. Please link your domestic bank info below to receive instant converted payouts.</p>";
                 
-                alert("🎉 Profile Identity Passed! Now link your local bank account info for payouts.");
-            }, 1200);
+                alert("🎉 Profile Identity Passed! Now fill the Bank Payout Account form below.");
+            }, 1000);
         });
 
         // Save Bank Details Logic
         function saveBankDetails(event) {
             event.preventDefault();
             const bankName = document.getElementById('bankName').value;
-            const country = document.getElementById('bankCountry').value;
-
             isBankConnected = true;
-            alert("🔗 Multi-currency network corridor locked with " + bankName + " (" + country + ") successfully!");
             
-            // Unlock Product Workspace & Remove Notice
+            alert("🏦 Settlement network corridor initialized successfully with " + bankName + "!");
+            
+            // Unlock Main Product Form
             document.getElementById('productFormBox').classList.remove('disabled-form');
             document.getElementById('lockNotice').style.display = 'none';
         }
@@ -337,7 +343,7 @@
                 alert("❌ Error: Payout failed. No verified local bank account linked yet.");
                 return;
             }
-            alert("🏦 GlobalBazaar FX Network: Processing $540.00 USD conversion to your local bank routing corridor. Expected transit time: 12-24 hours.");
+            alert("🔀 International Settlement: Processing $540.00 USD clearance to your bank account. Fund availability status: 12-24 Hours.");
             document.getElementById('walletBalance').innerText = "$0.00";
         }
 
@@ -354,7 +360,7 @@
             let isIllegal = illegalWords.some(word => name.includes(word));
 
             if (isIllegal) {
-                alert("🚨 SECURITY SYSTEM BLOCKED ACTION: Illegal item parameters triggered. Attempt logged under Merchant ID.");
+                alert("🚨 SYSTEM WARNING: This product contains strictly banned illegal keywords. Blocked.");
                 return;
             }
 
@@ -369,7 +375,7 @@
             `;
             
             grid.insertAdjacentHTML('beforeend', productHtml);
-            alert("🚀 Broadcast Success: Product is now queryable worldwide!");
+            alert("🚀 Broadcast Success: Product added under merchant profile " + globalShopName);
             document.getElementById('productForm').reset();
         });
     </script>
