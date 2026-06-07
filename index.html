@@ -4,19 +4,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GlobalBazaar - Ultra Premium Matrix</title>
-    </head>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: #f8fafc; color: #0f172a; padding-bottom: 40px; }
+        header { background: #ffffff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100; }
+        .container { max-width: 600px; margin: 0 auto; padding: 16px; }
+        .mode-switcher-container { display: flex; background: #e2e8f0; padding: 6px; border-radius: 14px; margin-bottom: 14px; gap: 6px; }
+        .mode-btn { flex: 1; border: none; background: none; padding: 12px; font-weight: 700; color: #475569; border-radius: 10px; cursor: pointer; }
+        .active-mode { background: #ffffff; color: #2563eb; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .app-section { display: none; }
+        .active-section { display: block; }
+        .currency-selector-card { background: #ffffff; border: 1px dashed #2563eb; border-radius: 12px; padding: 14px; margin-bottom: 14px; }
+        .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .catalog-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; text-align: center; }
+        .app-input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #cbd5e1; border-radius: 10px; }
+        .app-btn { background: #1e3a8a; color: white; border: none; width: 100%; padding: 12px; border-radius: 10px; cursor: pointer; }
+    </style>
+</head>
 <body>
-    <script>
-        // Yahan se lekar niche tak naya script paste karein
-        const FX_MATRIX = {
-            "SAR": { rate: 3.75, symbol: "SAR " },
-            "USD": { rate: 1.0,  symbol: "$" }
-        };
 
+    <header>
+        <h1>GlobalBazaar 🌍</h1>
+    </header>
+
+    <div class="container">
+        <div class="mode-switcher-container">
+            <button class="mode-btn active-mode" id="toggleBuyerBtn" onclick="switchDashboardMode('buyer')">🛒 Buyer</button>
+            <button class="mode-btn" id="toggleSellerBtn" onclick="switchDashboardMode('seller')">🏪 Seller</button>
+        </div>
+
+        <div class="currency-selector-card">
+            <select id="userCurrencyNode" class="app-input" onchange="applyGlobalCurrencyConversion()">
+                <option value="SAR">Saudi Arabia (SAR)</option>
+                <option value="USD">United States (USD)</option>
+            </select>
+        </div>
+
+        <div id="panelBuyerSpace" class="app-section active-section">
+            <input type="text" class="app-input" id="productSearchField" placeholder="Search..." oninput="triggerLiveSearch()">
+            <div class="market-grid" id="globalContainerCatalog">
+                <div class="catalog-card" data-base-usd="50.00">
+                    <h4>Luxury Watch</h4>
+                    <div class="price class-converted-price">SAR 187.50</div>
+                    <button class="app-btn" onclick="alert('Added!')">Buy Now</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="panelSellerSpace" class="app-section">
+            <div class="premium-card">
+                <h2>Merchant KYC</h2>
+                <button class="app-btn" onclick="alert('Syncing...')">Verify Node</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const FX_MATRIX = { "SAR": { rate: 3.75, symbol: "SAR " }, "USD": { rate: 1.0, symbol: "$" } };
+        
         function switchDashboardMode(mode) {
             document.querySelectorAll('.app-section').forEach(sec => sec.classList.remove('active-section'));
             document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active-mode'));
-            if (mode === 'buyer') {
+            if(mode === 'buyer') {
                 document.getElementById('panelBuyerSpace').classList.add('active-section');
                 document.getElementById('toggleBuyerBtn').classList.add('active-mode');
             } else {
@@ -24,7 +74,17 @@
                 document.getElementById('toggleSellerBtn').classList.add('active-mode');
             }
         }
-        // ... Baki saare functions yahan paste kar dein ...
+
+        function applyGlobalCurrencyConversion() {
+            const node = document.getElementById('userCurrencyNode').value;
+            const rates = FX_MATRIX[node];
+            document.querySelectorAll('.class-converted-price').forEach(el => {
+                const base = parseFloat(el.parentElement.getAttribute('data-base-usd'));
+                el.innerText = rates.symbol + (base * rates.rate).toFixed(2);
+            });
+        }
+        
+        function triggerLiveSearch() { /* search logic */ }
     </script>
 </body>
 </html>
