@@ -37,22 +37,30 @@
     <select><option>Select Category</option></select>
     
     <div id="product-list">
-        <div class="product-card"><div class="img-box"></div> <span>Watch - SAR 187</span> <button onclick="openCheckout()">Add to Cart</button></div>
-        <div class="product-card"><div class="img-box"></div> <span>Phone - SAR 900</span> <button onclick="openCheckout()">Add to Cart</button></div>
-        <div class="product-card"><div class="img-box"></div> <span>Glasses - SAR 250</span> <button onclick="openCheckout()">Add to Cart</button></div>
-        <div class="product-card"><div class="img-box"></div> <span>Shoes - SAR 150</span> <button onclick="openCheckout()">Add to Cart</button></div>
+               <div class="product-card" style="display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #ddd;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="img-box"></div>
+                <div><div>Watch</div><div style="font-weight:bold; color: #1e3a8a;">SAR 187</div></div>
+            </div>
+            <button onclick="openCheckout()" style="padding: 5px 10px;">Add to Cart</button>
+        </div>
+ oduct-card"><div class="img-box"></div> <span>Shoes - SAR 150</span> <button onclick="openCheckout()">Add to Cart</button></div>
         <div class="product-card"><div class="img-box"></div> <span>Bag - SAR 130</span> <button onclick="openCheckout()">Add to Cart</button></div>
     </div>
 
-    <div id="checkoutSection" style="display:none; margin-top:20px; border-top:2px solid #333;">
-        <h4>Checkout Details</h4>
+        <div id="checkoutSection" style="display:none; margin-top:20px; border-top:2px solid #333; padding: 15px; background: #fff;">
+        <h4>💳 Secure Payment Details</h4>
         <input placeholder="Shipping Address">
-        <input placeholder="Postal Code">
         <input placeholder="Phone Number">
-        <input placeholder="Card Details">
-        <button style="background:green;" onclick="alert('Order Placed! Tracking ID: GB-9988')">Pay & Confirm</button>
+        <input placeholder="Cardholder Name">
+        <input placeholder="Card Number (0000 0000 0000 0000)" maxlength="16">
+        <div style="display: flex; gap: 5px;">
+            <input placeholder="MM/YY" style="flex:1;">
+            <input placeholder="CVV" type="password" maxlength="3" style="flex:1;">
+        </div>
+        <button style="background:green; margin-top:10px; width:100%;" onclick="alert('Order Successful! Tracking ID: GB-9988')">Pay & Confirm</button>
     </div>
-</div>
+
 
 <div id="sellerSection" class="section" style="display:none;">
     <h3>🏪 Seller Portal</h3>
