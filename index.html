@@ -162,7 +162,6 @@
         .catalog-card .price { color: #2563eb; font-weight: 700; font-size: 14px; margin: 4px 0; }
         .route-badge { font-size: 10px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #64748b; }
         
-        /* Seller mini-profile card */
         .seller-profile-banner {
             display: flex;
             align-items: center;
@@ -178,6 +177,23 @@
             object-fit: cover;
             border: 2px solid #34d399;
             background: #475569;
+        }
+
+        /* Buyer Payment Form Layout Elements */
+        .flex-inputs {
+            display: flex;
+            gap: 10px;
+        }
+        .saved-card-badge {
+            background: #f1f5f9;
+            border: 1px dashed #cbd5e1;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin-bottom: 12px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
         }
     </style>
 </head>
@@ -208,7 +224,7 @@
             </div>
         </div>
 
-        <!-- SCREEN 2: GLOBAL ROUTING LAYER -->
+        <!-- SCREEN 2: GLOBAL ROUTING LAYER & BUYER SECURE GATEWAY -->
         <div id="screenRouting" class="app-screen">
             <div class="premium-card">
                 <h2>✈️ Dynamic Border-Crossing Layer</h2>
@@ -227,20 +243,61 @@
                 </select>
             </div>
 
+            <!-- Multi-Currency Invoice -->
             <div class="premium-card" style="border-left: 4px solid #2563eb;">
                 <h2>📋 Localized Currency Invoice</h2>
                 <div id="invoiceBreakdownContainer"></div>
-                <div style="margin-top: 15px;">
-                    <input type="text" class="app-input" placeholder="💳 Enter International Card Number" style="margin-bottom: 8px;">
-                    <button class="app-btn" onclick="executeEscrowPayment()">Authorize Secure Clearance</button>
+            </div>
+
+            <!-- BUYER METHOD INTERFACE LAYER -->
+            <div class="premium-card">
+                <h2>💳 Secure International Payment Terminal</h2>
+                
+                <!-- Saved Vault Card Context Indicator -->
+                <div id="savedCardBox" class="saved-card-badge">
+                    <span>🔒 Saved Card: <strong id="savedCardDetail">None</strong></span>
+                    <button style="background:none; border:none; color:#ef4444; font-weight:700; cursor:pointer;" onclick="clearSavedBuyerCard()">Remove</button>
                 </div>
+
+                <form id="buyerPaymentCheckoutForm" onsubmit="executeEscrowPayment(event)">
+                    <label style="font-size: 11px; font-weight: 600; color: #64748b;">Cardholder Full Name:</label>
+                    <input type="text" id="buyerCardName" class="app-input" placeholder="John Doe" required>
+
+                    <label style="font-size: 11px; font-weight: 600; color: #64748b;">Card Number:</label>
+                    <input type="text" id="buyerCardNumber" class="app-input" placeholder="4532 •••• •••• 8824" maxlength="19" required>
+
+                    <div class="flex-inputs">
+                        <div style="flex: 1;">
+                            <label style="font-size: 11px; font-weight: 600; color: #64748b;">Expiry Date:</label>
+                            <input type="text" id="buyerCardExpiry" class="app-input" placeholder="MM/YY" maxlength="5" required>
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-size: 11px; font-weight: 600; color: #64748b;">Security Code (CVV):</label>
+                            <input type="password" id="buyerCardCvv" class="app-input" placeholder="•••" maxlength="4" required>
+                        </div>
+                    </div>
+
+                    <h3 style="font-size: 13px; color: #1e3a8a; margin-top: 5px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">🌍 Shipping & International Billing Address</h3>
+                    
+                    <input type="text" id="buyerShippingAddr" class="app-input" placeholder="Street Address, Apartment, Suite" required>
+                    <div class="flex-inputs">
+                        <input type="text" id="buyerCity" class="app-input" placeholder="City" required>
+                        <input type="text" id="buyerZip" class="app-input" placeholder="ZIP / Postal Code" required>
+                    </div>
+
+                    <div style="margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="saveCardCheckbox" style="cursor: pointer;">
+                        <label for="saveCardCheckbox" style="font-size: 12px; color: #475569; font-weight: 500; cursor: pointer;">Save this card details securely for future global purchases</label>
+                    </div>
+
+                    <button type="submit" class="app-btn" id="payButtonText">Authorize Converted Checkout</button>
+                </form>
             </div>
         </div>
 
-        <!-- SCREEN 3: SELLER HUB (WITH FULL EMBEDDED KYC & BANK ACCOUNT VALIDATION) -->
+        <!-- SCREEN 3: SELLER HUB -->
         <div id="screenSeller" class="app-screen">
-            
-            <!-- SECTION A: FULL KYC & LOCAL BANKING ENTRY GATEWAY -->
+            <!-- SECTION A: MERCHANT KYC GATEWAY -->
             <div id="kycVerificationGate" class="premium-card">
                 <div style="text-align: center; margin-bottom: 20px;">
                     <span style="font-size: 40px;">💼</span>
@@ -249,43 +306,37 @@
                 </div>
                 
                 <form id="kycSubmissionForm" onsubmit="handleKycVerification(event)">
-                    <!-- Sub-Section 1: Identity & Avatar -->
                     <h3 style="font-size: 14px; color: #1e3a8a; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">1. Identity Verification</h3>
                     
                     <label style="font-size: 11px; font-weight: 600; color: #64748b;">Merchant Profile Picture:</label>
                     <input type="file" id="kycAvatarInput" class="app-input" style="padding: 8px;" accept="image/*" required>
                     
-                    <input type="text" id="kycFullName" class="app-input" placeholder="Full Legal Name (As per Document)" required>
+                    <input type="text" id="kycFullName" class="app-input" placeholder="Full Legal Name" required>
                     <input type="text" id="kycShopName" class="app-input" placeholder="Global Shop / Brand Name" required>
                     
                     <select class="app-input" required>
                         <option value="">Select Government ID Type</option>
                         <option value="Passport">International Passport</option>
-                        <option value="NationalID">National Identification Card / Iqama</option>
-                        <option value="BusinessLicense">Commercial Trade License</option>
+                        <option value="NationalID">National Identification Card</option>
                     </select>
                     <input type="text" class="app-input" placeholder="ID Document Reference Number" required>
                     
                     <label style="font-size: 11px; font-weight: 600; color: #64748b;">Upload ID Document Copy:</label>
                     <input type="file" class="app-input" style="padding: 8px;" required>
                     
-                    <!-- Sub-Section 2: Local Currency Banking Routing Nodes -->
                     <h3 style="font-size: 14px; color: #10b981; margin-top: 10px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">2. Local Currency Settlement Bank</h3>
-                    
-                    <input type="text" class="app-input" placeholder="Bank Name (e.g. SBI, HDFC, Al Rajhi)" required>
+                    <input type="text" class="app-input" placeholder="Bank Name" required>
                     <input type="text" class="app-input" placeholder="Account Holder Name" required>
                     <input type="text" class="app-input" placeholder="Account Number / International IBAN" required>
                     <input type="text" class="app-input" placeholder="IFSC Code / Swift-BIC Code" required>
                     
-                    <button type="submit" class="app-btn" style="background: linear-gradient(135deg, #0f172a, #1e293b); margin-top: 10px;">Verify & Activate Seller Ledger</button>
+                    <button type="submit" class="app-btn" style="background: linear-gradient(135deg, #0f172a, #1e293b);">Verify & Activate Seller Ledger</button>
                 </form>
             </div>
 
-            <!-- SECTION B: ACTUAL SELLER DASHBOARD (Hidden until verified) -->
+            <!-- SECTION B: SELLER DASHBOARD -->
             <div id="sellerDashboardContent" style="display: none;">
                 <div class="premium-card" style="background: linear-gradient(135deg, #1e293b, #0f172a); color: white;">
-                    
-                    <!-- Dynamic Live Converted Avatar Banner -->
                     <div class="seller-profile-banner">
                         <img id="displaySellerAvatar" class="seller-avatar" src="" alt="Seller Profile">
                         <div>
@@ -293,13 +344,12 @@
                             <p id="displayMerchantName" style="font-size: 12px; opacity: 0.7;"></p>
                         </div>
                     </div>
-
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <p style="font-size: 12px; opacity: 0.8;">Total Global Ledger Balance</p>
                         <span class="badge-verified">✓ Verified Trader</span>
                     </div>
                     <h1 style="font-size: 32px; font-weight: 700; margin: 5px 0; color: #34d399;">$540.00 USD</h1>
-                    <button style="background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;" onclick="alert('🏦 Routing direct clearance payout to your linked local bank account secure node!')">Withdraw Funds to Local Bank</button>
+                    <button style="background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;" onclick="alert('🏦 Routing payout to linked local account node!')">Withdraw Funds</button>
                 </div>
 
                 <div class="premium-card">
@@ -310,14 +360,12 @@
                         <select id="mProdOrigin" class="app-input">
                             <option value="India">Cargo Origin: India</option>
                             <option value="Saudi Arabia">Cargo Origin: Saudi Arabia</option>
-                            <option value="China">Cargo Origin: China</option>
                         </select>
                         <input type="url" id="mProdImg" class="app-input" placeholder="Secure Image Asset URL" required>
                         <button type="submit" class="app-btn">Publish to Worldwide Distribution</button>
                     </form>
                 </div>
             </div>
-
         </div>
 
     </div>
@@ -342,6 +390,12 @@
         let activeCalculationItem = "Luxury Smart Watch";
         let activeCalculationBasePrice = 50.00;
         let isSellerVerified = false;
+        let currentTargetBillDisplay = "$90.95 USD";
+
+        // Check local storage for pre-saved buyer cards on init
+        window.onload = function() {
+            checkSavedCardsInVault();
+        };
 
         function navigateApp(screenId, btnId) {
             document.querySelectorAll('.app-screen').forEach(screen => screen.classList.remove('active-screen'));
@@ -352,31 +406,74 @@
             if(screenId === 'screenRouting') { runDynamicRoutingMatrix(); }
         }
 
-        // Full Profile Pic & Local Bank Submission handling logic
+        function checkSavedCardsInVault() {
+            const savedNum = localStorage.getItem('vault_card_num');
+            const savedName = localStorage.getItem('vault_card_name');
+            if(savedNum && savedName) {
+                document.getElementById('savedCardBox').style.display = 'flex';
+                document.getElementById('savedCardDetail').innerText = savedName + " (•••• " + savedNum.slice(-4) + ")";
+                // Autofill for testing convenience
+                document.getElementById('buyerCardName').value = savedName;
+                document.getElementById('buyerCardNumber').value = savedNum;
+                document.getElementById('buyerCardExpiry').value = localStorage.getItem('vault_card_exp') || "12/29";
+                document.getElementById('buyerCardCvv').value = "•••";
+                document.getElementById('buyerShippingAddr').value = localStorage.getItem('vault_card_addr') || "Main Hub Rd";
+                document.getElementById('buyerCity').value = localStorage.getItem('vault_card_city') || "Riyadh";
+                document.getElementById('buyerZip').value = localStorage.getItem('vault_card_zip') || "11564";
+            }
+        }
+
+        function clearSavedBuyerCard() {
+            localStorage.removeItem('vault_card_num');
+            localStorage.removeItem('vault_card_name');
+            localStorage.removeItem('vault_card_exp');
+            localStorage.removeItem('vault_card_addr');
+            localStorage.removeItem('vault_card_city');
+            localStorage.removeItem('vault_card_zip');
+            document.getElementById('savedCardBox').style.display = 'none';
+            document.getElementById('buyerPaymentCheckoutForm').reset();
+            alert("🗑️ Buyer card deleted from local device cache.");
+        }
+
+        // Executing cross border buyer escrow clearing
+        function executeEscrowPayment(e) {
+            e.preventDefault();
+            
+            const cardNum = document.getElementById('buyerCardNumber').value;
+            const cardName = document.getElementById('buyerCardName').value;
+            
+            // Save logic if checkbox is ticked
+            if(document.getElementById('saveCardCheckbox').checked) {
+                localStorage.setItem('vault_card_num', cardNum);
+                localStorage.setItem('vault_card_name', cardName);
+                localStorage.setItem('vault_card_exp', document.getElementById('buyerCardExpiry').value);
+                localStorage.setItem('vault_card_addr', document.getElementById('buyerShippingAddr').value);
+                localStorage.setItem('vault_card_city', document.getElementById('buyerCity').value);
+                localStorage.setItem('vault_card_zip', document.getElementById('buyerZip').value);
+            }
+
+            alert("⚡ Clearing Process Initiated!\n\nCharged: " + currentTargetBillDisplay + "\nStatus: Authorized Via International Card Protection Layer.\n\nFunds transferred to secure Escrow Vault!");
+            checkSavedCardsInVault();
+            navigateApp('screenMarket', 'btnNavMarket');
+        }
+
         function handleKycVerification(e) {
             e.preventDefault();
             isSellerVerified = true;
-            
             const fullName = document.getElementById('kycFullName').value;
             const shopName = document.getElementById('kycShopName').value;
             const avatarInput = document.getElementById('kycAvatarInput');
             
-            // Render Live Preview of Profile Picture uploaded by user
             if (avatarInput.files && avatarInput.files[0]) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('displaySellerAvatar').src = e.target.result;
-                }
+                reader.onload = function(e) { document.getElementById('displaySellerAvatar').src = e.target.result; }
                 reader.readAsDataURL(avatarInput.files[0]);
             } else {
                 document.getElementById('displaySellerAvatar').src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
             }
             
-            // Map inputs to Merchant Dashboard Card Layout
             document.getElementById('displayShopName').innerText = shopName;
             document.getElementById('displayMerchantName').innerText = "Operator: " + fullName;
-
-            // UI Toggle to switch view
             document.getElementById('kycVerificationGate').style.display = 'none';
             document.getElementById('sellerDashboardContent').style.display = 'block';
             
@@ -384,7 +481,7 @@
             document.getElementById('globalStatusNode').style.background = "#dcfce7";
             document.getElementById('globalStatusNode').style.color = "#15803d";
             
-            alert("🎉 Global Account Activated!\n\nIdentity Profile & Local Bank Payout Node linked successfully.");
+            alert("🎉 Global Account Activated Successfully!");
         }
 
         function initializeRoutingOrder(name, price, impliedOrigin) {
@@ -418,6 +515,9 @@
             else if (destination === "Saudi Arabia") { rate = 3.75; symbol = "SAR "; currencyCode = "SAR"; }
 
             const fx = (val) => (val * rate).toFixed(2);
+            currentTargetBillDisplay = `${symbol}${fx(totalUSD)} ${currencyCode}`;
+
+            document.getElementById('payButtonText').innerText = "Pay " + currentTargetBillDisplay;
 
             const targetContainer = document.getElementById('invoiceBreakdownContainer');
             targetContainer.innerHTML = `
@@ -427,36 +527,9 @@
                 <div class="invoice-line"><span>Customs Surcharge:</span><span>${symbol}${fx(customsUSD)}</span></div>
                 <div class="invoice-line"><span>Gateway Fee:</span><span>${symbol}${fx(gatewayUSD)}</span></div>
                 <div class="invoice-line"><span>Platform Margin:</span><span>${symbol}${fx(platformUSD)}</span></div>
-                <div class="invoice-line invoice-total"><span>Total Payable Amount:</span><span>${symbol}${fx(totalUSD)} ${currencyCode}</span></div>
+                <div class="invoice-line invoice-total"><span>Total Payable Amount:</span><span>${currentTargetBillDisplay}</span></div>
             `;
         }
-
-        function executeEscrowPayment() {
-            alert("🎉 Secure payment clearings authorized successfully!");
-            navigateApp('screenMarket', 'btnNavMarket');
-        }
-
-        document.getElementById('merchantInventoryForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const name = document.getElementById('mProdName').value;
-            const price = parseFloat(document.getElementById('mProdPrice').value);
-            const origin = document.getElementById('mProdOrigin').value;
-            const img = document.getElementById('mProdImg').value;
-
-            const catalogBox = document.getElementById('globalContainerCatalog');
-            catalogBox.insertAdjacentHTML('beforeend', `
-                <div class="catalog-card">
-                    <img src="${img}" alt="${name}">
-                    <h4 style="text-transform: capitalize;">${name}</h4>
-                    <div class="price">$${price.toFixed(2)} USD</div>
-                    <span class="route-badge">Origin: ${origin} Node</span>
-                    <button class="app-btn" style="padding: 6px; font-size: 12px; margin-top: 8px; background: #0f172a;" onclick="initializeRoutingOrder('${name}', ${price}, '${origin}')">Route Order</button>
-                </div>
-            `);
-            alert("🚀 Cargo Added into distribution pool!");
-            document.getElementById('merchantInventoryForm').reset();
-            navigateApp('screenMarket', 'btnNavMarket');
-        });
     </script>
 </body>
 </html>
