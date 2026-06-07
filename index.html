@@ -24,9 +24,7 @@
 </head>
 <body>
 
-    <header>
-        <h1>GlobalBazaar 🌍</h1>
-    </header>
+    <header><h1>GlobalBazaar 🌍</h1></header>
 
     <div class="container">
         <div class="mode-switcher-container">
@@ -37,31 +35,48 @@
         <div class="currency-selector-card">
             <select id="userCurrencyNode" class="app-input" onchange="applyGlobalCurrencyConversion()">
                 <option value="SAR">Saudi Arabia (SAR)</option>
+                <option value="AED">UAE (AED)</option>
+                <option value="KWD">Kuwait (KWD)</option>
                 <option value="USD">United States (USD)</option>
+                <option value="INR">India (INR)</option>
+                <option value="PKR">Pakistan (PKR)</option>
             </select>
         </div>
 
         <div id="panelBuyerSpace" class="app-section active-section">
-            <input type="text" class="app-input" id="productSearchField" placeholder="Search..." oninput="triggerLiveSearch()">
+            <input type="text" class="app-input" placeholder="Search products..." oninput="triggerLiveSearch()">
             <div class="market-grid" id="globalContainerCatalog">
                 <div class="catalog-card" data-base-usd="50.00">
                     <h4>Luxury Watch</h4>
                     <div class="price class-converted-price">SAR 187.50</div>
                     <button class="app-btn" onclick="alert('Added!')">Buy Now</button>
                 </div>
+                <div class="catalog-card" data-base-usd="120.00">
+                    <h4>Headphones</h4>
+                    <div class="price class-converted-price">SAR 450.00</div>
+                    <button class="app-btn" onclick="alert('Added!')">Buy Now</button>
+                </div>
             </div>
         </div>
 
         <div id="panelSellerSpace" class="app-section">
-            <div class="premium-card">
+            <div class="catalog-card">
                 <h2>Merchant KYC</h2>
-                <button class="app-btn" onclick="alert('Syncing...')">Verify Node</button>
+                <input type="text" class="app-input" placeholder="Shop Name">
+                <button class="app-btn">Verify Node</button>
             </div>
         </div>
     </div>
 
     <script>
-        const FX_MATRIX = { "SAR": { rate: 3.75, symbol: "SAR " }, "USD": { rate: 1.0, symbol: "$" } };
+        const FX_MATRIX = { 
+            "SAR": { rate: 3.75, symbol: "SAR " }, 
+            "AED": { rate: 3.67, symbol: "AED " },
+            "KWD": { rate: 0.31, symbol: "KWD " },
+            "USD": { rate: 1.0, symbol: "$" },
+            "INR": { rate: 83.50, symbol: "₹" },
+            "PKR": { rate: 278.20, symbol: "₨" }
+        };
         
         function switchDashboardMode(mode) {
             document.querySelectorAll('.app-section').forEach(sec => sec.classList.remove('active-section'));
@@ -83,8 +98,6 @@
                 el.innerText = rates.symbol + (base * rates.rate).toFixed(2);
             });
         }
-        
-        function triggerLiveSearch() { /* search logic */ }
     </script>
 </body>
 </html>
