@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalBazaar - Secure Vendor Dashboard</title>
+    <title>GlobalBazaar - Professional Vendor Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -28,10 +28,7 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
-        header h1 {
-            font-size: 22px;
-            font-weight: 700;
-        }
+        header h1 { font-size: 22px; font-weight: 700; }
 
         .logout-btn {
             background-color: #e63946;
@@ -49,8 +46,7 @@
             padding: 0 20px;
         }
 
-        /* Profile & KYC Badge */
-        .profile-section {
+        .top-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
@@ -58,7 +54,7 @@
         }
 
         @media (max-width: 768px) {
-            .profile-section { grid-template-columns: 1fr; }
+            .top-grid { grid-template-columns: 1fr; }
         }
 
         .card {
@@ -69,6 +65,17 @@
             border-left: 5px solid #2a5298;
         }
 
+        .card h2 { font-size: 18px; color: #1e3c72; margin-bottom: 15px; }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
         .status-badge {
             display: inline-block;
             padding: 5px 12px;
@@ -77,90 +84,75 @@
             font-size: 13px;
             margin-top: 10px;
         }
-
         .pending { background-color: #ffe3e3; color: #e63946; }
-        .approved { background-color: #d4edda; color: #155724; border-left: 5px solid #28a745; }
+        .approved { background-color: #d4edda; color: #155724; }
 
-        /* KYC Form Styling */
-        .kyc-box input, .kyc-box select {
-            width: 100%;
-            padding: 8px;
-            margin-top: 8px;
-            margin-bottom: 12px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
+        /* Payment Section Card */
+        .payment-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            border-left: 5px solid #2ec4b6;
         }
-
-        .btn-secure {
-            background-color: #2ec4b6;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 6px;
+        .payment-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .pay-method {
+            border: 1px solid #ddd;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
             cursor: pointer;
             font-weight: 600;
-            width: 100%;
+            background: #fafafa;
+            transition: 0.3s;
         }
+        .pay-method:hover { border-color: #2ec4b6; background: #e6f9f8; }
 
-        /* Lock Overlay for Security */
+        /* Main Workspace (Lock Feature) */
         .workspace-grid {
             display: grid;
             grid-template-columns: 1fr 2fr;
             gap: 30px;
-            position: relative;
         }
+        @media (max-width: 768px) { .workspace-grid { grid-template-columns: 1fr; } }
 
-        @media (max-width: 768px) {
-            .workspace-grid { grid-template-columns: 1fr; }
-        }
-
-        .disabled-form {
-            opacity: 0.4;
-            pointer-events: none;
-            position: relative;
-        }
+        .disabled-form { opacity: 0.2; pointer-events: none; }
 
         .lock-notice {
             background: #fff3cd;
             color: #856404;
             padding: 15px;
             border-radius: 8px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             font-weight: 600;
             text-align: center;
             border: 1px solid #ffeeba;
         }
 
-        /* Form & Product Layout */
-        .box-style {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 14px; margin-bottom: 5px; font-weight: 600; }
-        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
-
-        .submit-btn {
-            width: 100%;
+        .btn-action {
             background-color: #2a5298;
             color: white;
             border: none;
             padding: 12px;
             border-radius: 6px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
+            width: 100%;
         }
 
+        /* Product Gallery */
         .product-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 20px;
         }
-
         .product-card {
             border: 1px solid #eee;
             padding: 15px;
@@ -168,7 +160,6 @@
             text-align: center;
             background: #fafafa;
         }
-
         .product-card img {
             max-width: 100%;
             height: 120px;
@@ -176,15 +167,15 @@
             border-radius: 6px;
             margin-bottom: 10px;
         }
-
-        .badge {
-            background-color: #2ec4b6;
-            color: white;
-            padding: 3px 8px;
+        .seller-tag {
             font-size: 11px;
-            border-radius: 20px;
-            display: inline-block;
-            margin-top: 5px;
+            color: #666;
+            display: block;
+            margin-top: 4px;
+            background: #e9ecef;
+            padding: 4px;
+            border-radius: 4px;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -192,110 +183,125 @@
 
     <header>
         <h1>GlobalBazaar 🌍</h1>
-        <button class="logout-btn" onclick="alert('Logging out...')">Logout</button>
+        <button class="logout-btn">Logout</button>
     </header>
 
     <div class="container">
         
-        <div class="profile-section">
-            <div class="card" id="profileCard">
-                <h2>🏪 Trader Profile</h2>
-                <p style="margin-top: 10px;"><strong>Business Name:</strong> My Shop</p>
-                <p><strong>Trader ID:</strong> GB-99413-TX</p>
-                <div id="traderStatus" class="status-badge pending">❌ Unverified (KYC Pending)</div>
-            </div>
-
-            <div class="card kyc-box" id="kycFormBox">
-                <h2>🆔 Government ID & KYC Verification</h2>
-                <form id="kycForm">
-                    <select id="idType" required>
-                        <option value="">Select ID Document Type</option>
+        <div class="top-grid">
+            <div class="card" id="profileSetupBox">
+                <h2>👤 Trader Profile & KYC Setup</h2>
+                <form id="profileForm">
+                    <input type="text" id="sellerNameInput" class="form-input" placeholder="Your Full Name (As per Passport)" required>
+                    <input type="text" id="shopNameInput" class="form-input" placeholder="Your Shop / Business Name" required>
+                    <select id="idType" class="form-input" required>
+                        <option value="">Select Government ID Type</option>
                         <option value="Passport">International Passport</option>
-                        <option value="National ID">National ID Card / Government ID</option>
-                        <option value="Driving License">Driving License</option>
+                        <option value="National ID">National Identity Card</option>
                     </select>
-                    <input type="text" id="idNumber" placeholder="Enter Document ID Number" required>
-                    <label style="font-size: 12px; color: #666;">Upload Clear Photo of ID Document:</label>
-                    <input type="file" id="idFile" accept="image/*" required>
-                    <button type="submit" class="btn-secure">Submit KYC for Approval</button>
+                    <input type="text" id="idNumber" class="form-input" placeholder="ID Document Number" required>
+                    <label style="font-size: 12px; color: #555;">Upload ID Document Photo:</label>
+                    <input type="file" class="form-input" accept="image/*" required>
+                    <button type="submit" class="btn-action">Verify ID & Activate Profile</button>
                 </form>
             </div>
+
+            <div class="card">
+                <h2>🏪 Live Merchant Identity</h2>
+                <p style="margin-top: 10px;"><strong>Owner Name:</strong> <span id="lblSellerName" style="color:#1e3c72; font-weight:600;">Pending Setup...</span></p>
+                <p><strong>Business Name:</strong> <span id="lblShopName" style="color:#1e3c72; font-weight:600;">Pending Setup...</span></p>
+                <p><strong>System Security Status:</strong></p>
+                <div id="traderStatus" class="status-badge pending">❌ Verification Required</div>
+            </div>
+        </div>
+
+        <div class="payment-card disabled-form" id="paymentBox">
+            <h2>💳 International Payout Method (Receive Money)</h2>
+            <p style="font-size: 13px; color: #666; margin-bottom: 10px;">Select your global network gateway to setup automated payouts for client checkouts:</p>
+            <div class="payment-options">
+                <div class="pay-method" onclick="setPayment('Stripe Connect Gateway')">🔵 Stripe Connect</div>
+                <div class="pay-method" onclick="setPayment('PayPal Business System')">🟡 PayPal Business</div>
+                <div class="pay-method" onclick="setPayment('Web3 USDT Crypto Network')">🟢 Web3 Crypto Wallet (USDT)</div>
+            </div>
+            <p style="margin-top: 12px; font-weight: 700; color: #e63946;" id="lblPaymentStatus">Status: Not Connected</p>
         </div>
 
         <div id="lockNotice" class="lock-notice">
-            🔒 Security Notice: Your shop features are locked. Please complete your Govt ID KYC verification above to start selling globally.
+            🔒 Marketplace Protection: Please complete your Trader Profile, upload Govt ID, and link a Payout Method above to unlock the listing inventory workspace.
         </div>
 
         <div class="workspace-grid">
-            
-            <div class="box-style disabled-form" id="productFormBox">
-                <h3 style="color: #1e3c72; margin-bottom: 20px;">📦 Add New Product (Global Shipping)</h3>
+            <div class="card disabled-form" id="productFormBox">
+                <h2>📦 Add Product to Global Inventory</h2>
                 <form id="productForm">
-                    <div class="form-group">
-                        <label>Product Name</label>
-                        <input type="text" id="pName" placeholder="e.g., Wireless Mouse" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Category</label>
-                        <select id="pCategory">
-                            <option value="Electronics">Electronics</option>
-                            <option value="Clothing">Clothing & Fashion</option>
-                            <option value="Home Decor">Home Decor</option>
-                            <option value="Other">Other Legal Goods</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Price ($ USD)</label>
-                        <input type="number" id="pPrice" placeholder="Price in USD" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Product Image URL</label>
-                        <input type="url" id="pImg" placeholder="https://example.com/image.jpg" required>
-                    </div>
-                    <button type="submit" class="submit-btn">Publish to Global Market</button>
+                    <input type="text" id="pName" class="form-input" placeholder="Product Name (e.g., Luxury Silk Saree)" required>
+                    <select id="pCategory" class="form-input">
+                        <option value="Electronics">Electronics & Gadgets</option>
+                        <option value="Clothing">Clothing & Fashion</option>
+                        <option value="Handicrafts">Handicrafts & Art</option>
+                    </select>
+                    <input type="number" id="pPrice" class="form-input" placeholder="Selling Price ($ USD)" required>
+                    <input type="url" id="pImg" class="form-input" placeholder="Product Image Link (URL)" required>
+                    <button type="submit" class="btn-action" style="background-color: #1e3c72;">Publish Live to Worldwide Catalog</button>
                 </form>
             </div>
 
-            <div class="box-style">
-                <h3 style="color: #1e3c72; margin-bottom: 20px;">🌐 Your Live Products (Worldwide)</h3>
+            <div class="card">
+                <h2>🌐 Your Live Worldwide Catalog</h2>
                 <div class="product-grid" id="productGrid">
                     <div class="product-card">
                         <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500" alt="Product">
-                        <h4>Smart Watch</h4>
-                        <p>$49.99</p>
-                        <span class="badge">Approved & Legal</span>
+                        <h4>Demo Smart Watch</h4>
+                        <p style="color:#2a5298; font-weight:700;">$49.99</p>
+                        <span class="seller-tag">Merchant: GlobalBazaar LLC</span>
                     </div>
                 </div>
             </div>
-
         </div>
+
     </div>
 
     <script>
-        // KYC Submission Logic
-        document.getElementById('kycForm').addEventListener('submit', function(e) {
+        let globalSellerName = "";
+        let globalShopName = "";
+
+        // Profile Form Setup
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Simulating Verification Review
-            alert("⏳ Uploading documents to secure server... Processing KYC verification.");
-            
-            setTimeout(() => {
-                // Update Status Badge
-                const status = document.getElementById('traderStatus');
-                status.innerText = "✅ Verified Trader (Global Access)";
-                status.className = "status-badge approved";
-                document.getElementById('profileCard').style.borderLeft = "5px solid #28a745";
+            globalSellerName = document.getElementById('sellerNameInput').value;
+            globalShopName = document.getElementById('shopNameInput').value;
 
-                // Unlock Product Form
-                document.getElementById('productFormBox').classList.remove('disabled-form');
-                document.getElementById('lockNotice').style.display = 'none';
-                document.getElementById('kycFormBox').innerHTML = "<h2 style='color:#28a745;'>🎉 KYC Verification Success!</h2><p style='margin-top:10px; color:#555;'>Your identity has been verified securely. You are now authorized to clear global shipments and sell legal goods.</p>";
+            alert("⚙️ Submitting documentation... Scanning international screening databases.");
+
+            setTimeout(() => {
+                document.getElementById('lblSellerName').innerText = globalSellerName;
+                document.getElementById('lblShopName').innerText = globalShopName;
+
+                const status = document.getElementById('traderStatus');
+                status.innerText = "✅ KYC Verified & Approved";
+                status.className = "status-badge approved";
+
+                // Unlock Step 2 (Payment Setup)
+                document.getElementById('paymentBox').classList.remove('disabled-form');
+                document.getElementById('profileSetupBox').innerHTML = "<h3 style='color:#28a745;'>🎉 Profile Setup Complete!</h3><p style='font-size:14px; margin-top:10px; color:#555;'>Your identity passport/national ID checks have successfully passed security compliance. Proceed to connect your payout gateway below.</p>";
                 
-                alert("🎉 KYC Approved! Your store is now unlocked for global trading.");
-            }, 1500);
+                alert("🎉 Profile Identity Passed! Now please setup your payment method.");
+            }, 1200);
         });
 
-        // Anti-Illegal Filter Logic
+        // Payment Gateway Logic
+        function setPayment(method) {
+            document.getElementById('lblPaymentStatus').innerText = "Status: Connected via " + method;
+            document.getElementById('lblPaymentStatus').style.color = "#2ec4b6";
+            alert("🔗 Gateway Hook Established with " + method + ".");
+            
+            // Unlock Workspace & Remove Notice
+            document.getElementById('productFormBox').classList.remove('disabled-form');
+            document.getElementById('lockNotice').style.display = 'none';
+        }
+
+        // Anti-Illegal Filter & Add Product
         const illegalWords = ["drug", "gun", "weapon", "bomb", "chemical", "hack", "cocaine", "weed", "pistol", "charas", "ganja"];
 
         document.getElementById('productForm').addEventListener('submit', function(e) {
@@ -308,7 +314,7 @@
             let isIllegal = illegalWords.some(word => name.includes(word));
 
             if (isIllegal) {
-                alert("🚨 SECURITY ALERT: Illegal item detected. Action blocked! Repeated attempts will permanently ban your verified Trader ID.");
+                alert("🚨 SECURITY SYSTEM BLOCKED ACTION: Illegal item parameters triggered. Attempt logged under Merchant ID.");
                 return;
             }
 
@@ -317,13 +323,13 @@
                 <div class="product-card">
                     <img src="${img}" alt="${name}">
                     <h4 style="text-transform: capitalize;">${document.getElementById('pName').value}</h4>
-                    <p>$${price}</p>
-                    <span class="badge">Approved & Legal</span>
+                    <p style="color:#2a5298; font-weight:700;">$${price}</p>
+                    <span class="seller-tag">Merchant: ${globalShopName} (${globalSellerName})</span>
                 </div>
             `;
             
             grid.insertAdjacentHTML('beforeend', productHtml);
-            alert("✅ Success: Product is now live in the global marketplace!");
+            alert("🚀 Broadcast Success: Product is now queryable worldwide!");
             document.getElementById('productForm').reset();
         });
     </script>
