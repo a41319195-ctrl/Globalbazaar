@@ -1,58 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalBazaar | Master Portal</title>
     <style>
-        :root { --primary: #1e3a8a; --bg: #f8fafc; }
-        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #ddd; }
-        .card { background: #fff; padding: 20px; border-radius: 12px; margin-top: 20px; border: 1px solid #eee; }
-        .input { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; }
-        .btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; }
+        body { font-family: sans-serif; background: #f8fafc; margin: 0; padding: 10px; }
+        .brand { font-size: 28px; font-weight: 900; color: #1e3a8a; text-align: center; display: block; }
+        .section { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #1e3a8a; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <strong>GlobalBazaar 🌍</strong>
-    <select><option>SAR (Saudi)</option><option>USD ($)</option><option>INR (₹)</option></select>
-    <div>
-        <button onclick="show('buyer')">Buyer</button>
-        <button onclick="show('seller')">Seller</button>
+<header>
+    <span class="brand">GLOBALBAZAAR</span>
+    <select id="currency">
+        <option>SAR (Saudi)</option><option>USD ($)</option><option>INR (₹)</option><option>AED (UAE)</option>
+    </select>
+</header>
+
+<div class="section">
+    <input type="text" placeholder="🔍 Search products...">
+    <select>
+        <option>All Categories</option><option>Electronics</option><option>Fashion</option><option>Home Decor</option>
+    </select>
+</div>
+
+<div class="section">
+    <h3>🛒 Products</h3>
+    <div class="grid">
+        <div><b>Smart Watch</b><br>SAR 187.50<br><button onclick="alert('Checkout Form Opened')">Buy Now</button></div>
+        <div><b>Headphones</b><br>SAR 450.00<br><button onclick="alert('Checkout Form Opened')">Buy Now</button></div>
     </div>
 </div>
 
-<div id="buyerSection" class="card">
-    <h3>🛒 Product: Smart Watch</h3>
-    <button class="btn" onclick="alert('Open Shipping & Payment Form')">Buy Now</button>
-    <div style="margin-top:15px; border-top:1px solid #eee; pt:10px;">
-        <input class="input" placeholder="Full Address">
-        <input class="input" placeholder="Phone Number">
-        <input class="input" placeholder="Card Number (Payment)">
-    </div>
-</div>
-
-<div id="sellerSection" class="card" style="display:none;">
+<div class="section">
     <h3>🏪 Seller Portal</h3>
-    <input class="input" placeholder="Email">
-    <input class="input" placeholder="Password">
-    <button class="btn">Login / Sign Up</button>
-    <div style="margin-top:15px;">
-        <input class="input" placeholder="Upload KYC (ID/License)">
-        <input class="input" placeholder="Bank IBAN">
-        <input class="input" placeholder="Product Name & Image URL">
-        <button class="btn" style="background:green;">Submit Product</button>
+    <div style="background:#f1f5f9; padding:10px; border-radius:6px; margin-bottom:10px;">
+        <p>Wallet Balance: <b>SAR 1,250.00</b></p>
+        <button style="background:#059669;">Withdraw Funds</button>
     </div>
+    <input placeholder="KYC: ID/License">
+    <input placeholder="Bank IBAN">
+    <button>Update Account</button>
 </div>
-
-<script>
-    function show(role) {
-        document.getElementById('buyerSection').style.display = role === 'buyer' ? 'block' : 'none';
-        document.getElementById('sellerSection').style.display = role === 'seller' ? 'block' : 'none';
-    }
-</script>
 
 </body>
 </html>
