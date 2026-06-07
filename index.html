@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalBazaar - Unified Trade Network</title>
+    <title>GlobalBazaar - Professional Matrix</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -50,7 +50,7 @@
             padding: 16px;
         }
 
-        /* Top Mode Switcher Dashboard Style */
+        /* Top Central Switcher Dashboard */
         .mode-switcher-container {
             display: flex;
             background: #e2e8f0;
@@ -104,7 +104,7 @@
             font-size: 16px;
             font-weight: 700;
             color: #1e293b;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
 
         .app-input {
@@ -159,7 +159,6 @@
         .catalog-card img { width: 100%; height: 110px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; }
         .catalog-card h4 { font-size: 13px; font-weight: 600; color: #1e293b; }
         .catalog-card .price { color: #2563eb; font-weight: 700; font-size: 14px; margin: 4px 0; }
-        .route-badge { font-size: 10px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #64748b; }
         
         .seller-profile-banner {
             display: flex;
@@ -196,12 +195,12 @@
 
     <header>
         <h1>GlobalBazaar 🌍</h1>
-        <div class="live-node-badge" id="globalStatusNode">Compliance Layer Secure</div>
+        <div class="live-node-badge" id="globalStatusNode">Secure Trading Node</div>
     </header>
 
     <div class="container">
 
-        <!-- NEW MAIN SWITCHER DASHBOARD ON TOP -->
+        <!-- CORE TOP DASHBOARD SWITCHER -->
         <div class="mode-switcher-container">
             <button class="mode-btn active-mode" id="toggleBuyerBtn" onclick="switchDashboardMode('buyer')">
                 <span>🛒</span> Buyer Shopping
@@ -211,46 +210,32 @@
             </button>
         </div>
 
-        <!-- ================= BUYER SPACE ================= -->
+        <!-- ================= BUYER INTERFACE ================= -->
         <div id="panelBuyerSpace" class="app-section active-section">
-            <div class="premium-card" style="background: linear-gradient(180deg, #eff6ff, #ffffff); border: none;">
-                <p style="font-size: 12px; color: #3b82f6; font-weight: 700; text-transform: uppercase;">Worldwide Feed</p>
-                <h3 style="font-size: 18px; font-weight: 700; margin-top: 2px;">Cross-Border Direct Hub</h3>
+            <div class="premium-card" style="background: linear-gradient(135deg, #eff6ff, #ffffff); border: none;">
+                <p style="font-size: 11px; color: #3b82f6; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Global Cargo Feed</p>
+                <h3 style="font-size: 17px; font-weight: 700; margin-top: 2px;">Instant International Checkouts</h3>
             </div>
 
-            <!-- Feed Catalog -->
+            <!-- Global Feed Products -->
             <div class="market-grid" id="globalContainerCatalog" style="margin-bottom: 25px;">
                 <div class="catalog-card">
                     <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500" alt="Product">
                     <h4>Luxury Smart Watch</h4>
                     <div class="price">$50.00 USD</div>
-                    <span class="route-badge">Origin: Global Depot</span>
-                    <button class="app-btn" style="padding: 6px; font-size: 12px; margin-top: 8px; background: #0f172a;" onclick="initializeRoutingOrder('Luxury Smart Watch', 50.00, 'India')">Route Order</button>
+                    <button class="app-btn" style="padding: 8px; font-size: 12px; margin-top: 4px; background: #0f172a;" onclick="openInstantCheckout('Luxury Smart Watch', 50.00)">Buy Now</button>
                 </div>
             </div>
 
-            <!-- Embedded Checkout Interface Layout (Triggers when Route Order is tapped) -->
+            <!-- DYNAMIC INSTANT INVOICE & CARD TERMINAL (Slides open when Buy Now is clicked) -->
             <div id="checkoutFormBlock" style="display: none;">
-                <div class="premium-card" style="border-left: 4px solid #3b82f6;">
-                    <h2>✈️ Dynamic Border-Crossing Logistics Matrix</h2>
-                    <label style="font-size: 11px; font-weight: 600; color:#475569;">Merchant Cargo Origin:</label>
-                    <select id="originCountry" class="app-input" onchange="runDynamicRoutingMatrix()">
-                        <option value="India">India (Mumbai Terminal)</option>
-                        <option value="Saudi Arabia">Saudi Arabia (Riyadh Air Hub)</option>
-                    </select>
-
-                    <label style="font-size: 11px; font-weight: 600; color:#475569;">Consumer Delivery Destination:</label>
-                    <select id="destCountry" class="app-input" onchange="runDynamicRoutingMatrix()">
-                        <option value="United States">United States (USD $)</option>
-                        <option value="Saudi Arabia">Saudi Arabia (SAR ریال)</option>
-                        <option value="India">India (INR ₹)</option>
-                    </select>
-                    
-                    <div id="invoiceBreakdownContainer" style="margin-top: 10px;"></div>
+                <div class="premium-card" style="border-left: 4px solid #10b981;">
+                    <h2>📋 Order Invoice Surcharge</h2>
+                    <div id="invoiceBreakdownContainer"></div>
                 </div>
 
                 <div class="premium-card">
-                    <h2>💳 Secure International Payment Terminal</h2>
+                    <h2>💳 Secure Credit/Debit Card Terminal</h2>
                     <div id="savedCardBox" class="saved-card-badge">
                         <span>🔒 Saved Vault Node: <strong id="savedCardDetail">None</strong></span>
                         <button style="background:none; border:none; color:#ef4444; font-weight:700; cursor:pointer;" onclick="clearSavedBuyerCard()">Remove</button>
@@ -258,37 +243,37 @@
 
                     <form id="buyerPaymentCheckoutForm" onsubmit="executeEscrowPayment(event)">
                         <input type="text" id="buyerCardName" class="app-input" placeholder="Cardholder Full Name" required>
-                        <input type="text" id="buyerCardNumber" class="app-input" placeholder="4532 •••• •••• 8824" maxlength="19" required>
+                        <input type="text" id="buyerCardNumber" class="app-input" placeholder="Card Number (4532 •••• •••• 8824)" maxlength="19" required>
                         <div class="flex-inputs">
                             <input type="text" id="buyerCardExpiry" class="app-input" placeholder="MM/YY" maxlength="5" required>
                             <input type="password" id="buyerCardCvv" class="app-input" placeholder="CVV" maxlength="4" required>
                         </div>
                         
-                        <h3 style="font-size: 13px; color: #1e3a8a; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">🌍 Shipping Destination</h3>
-                        <input type="text" id="buyerShippingAddr" class="app-input" placeholder="Street Address" required>
+                        <h3 style="font-size: 13px; color: #1e3a8a; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">🌍 Shipping & Destination Logistics Address</h3>
+                        <input type="text" id="buyerShippingAddr" class="app-input" placeholder="Full Street Address" required>
                         <div class="flex-inputs">
                             <input type="text" id="buyerCity" class="app-input" placeholder="City" required>
-                            <input type="text" id="buyerZip" class="app-input" placeholder="ZIP Code" required>
+                            <input type="text" id="buyerZip" class="app-input" placeholder="ZIP / Postal Code" required>
                         </div>
 
                         <div style="margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
                             <input type="checkbox" id="saveCardCheckbox">
-                            <label for="saveCardCheckbox" style="font-size: 12px; color: #475569;">Save card details for future seamless purchases</label>
+                            <label for="saveCardCheckbox" style="font-size: 12px; color: #475569; cursor: pointer;">Save this card securely for future purchases</label>
                         </div>
-                        <button type="submit" class="app-btn" id="payButtonText">Authorize Escrow Payment</button>
+                        <button type="submit" class="app-btn" id="payButtonText">Authorize Converted Checkout</button>
                     </form>
                 </div>
             </div>
         </div>
 
-        <!-- ================= SELLER SPACE ================= -->
+        <!-- ================= SELLER INTERFACE ================= -->
         <div id="panelSellerSpace" class="app-section">
-            <!-- SECTION A: KYC ENTRY PORTAL -->
+            <!-- KYC GATEWAY -->
             <div id="kycVerificationGate" class="premium-card">
                 <div style="text-align: center; margin-bottom: 20px;">
                     <span style="font-size: 40px;">💼</span>
                     <h2 style="margin-top: 8px; margin-bottom: 4px;">Merchant Profile & Local Bank KYC</h2>
-                    <p style="font-size: 13px; color: #64748b;">Setup your verified terminal to start listing & receiving local payouts.</p>
+                    <p style="font-size: 13px; color: #64748b;">Complete setup to secure multi-currency payouts locally.</p>
                 </div>
                 
                 <form id="kycSubmissionForm" onsubmit="handleKycVerification(event)">
@@ -301,51 +286,44 @@
                     <select class="app-input" required>
                         <option value="">Select ID Type</option>
                         <option value="Passport">Passport</option>
-                        <option value="NationalID">National Identification Card</option>
+                        <option value="NationalID">National ID Card</option>
                     </select>
-                    <input type="text" class="app-input" placeholder="ID Number" required>
-                    <label style="font-size: 11px; font-weight: 600; color: #64748b;">Upload ID Scan Copy:</label>
-                    <input type="file" class="app-input" style="padding: 8px;" required>
+                    <input type="text" class="app-input" placeholder="ID Card Number" required>
                     
-                    <h3 style="font-size: 14px; color: #10b981; margin-top: 10px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">2. Local Settlement Bank Node</h3>
+                    <h3 style="font-size: 14px; color: #10b981; margin-top: 10px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">2. Local Settlement Bank Account</h3>
                     <input type="text" class="app-input" placeholder="Bank Name" required>
-                    <input type="text" class="app-input" placeholder="Account Holder Name" required>
                     <input type="text" class="app-input" placeholder="Account Number / IBAN" required>
-                    <input type="text" class="app-input" placeholder="IFSC / Swift Sort Code" required>
+                    <input type="text" class="app-input" placeholder="IFSC / Swift Code" required>
                     
-                    <button type="submit" class="app-btn" style="background: linear-gradient(135deg, #0f172a, #1e293b);">Activate Seller Dashboard</button>
+                    <button type="submit" class="app-btn" style="background: linear-gradient(135deg, #0f172a, #1e293b);">Verify & Activate Seller Ledger</button>
                 </form>
             </div>
 
-            <!-- SECTION B: MAIN SELLER OPERATION CARD -->
+            <!-- SELLER MAIN HUB DASHBOARD -->
             <div id="sellerDashboardContent" style="display: none;">
                 <div class="premium-card" style="background: linear-gradient(135deg, #1e293b, #0f172a); color: white;">
                     <div class="seller-profile-banner">
-                        <img id="displaySellerAvatar" class="seller-avatar" src="" alt="Avatar">
+                        <img id="displaySellerAvatar" class="seller-avatar" src="" alt="Seller">
                         <div>
-                            <h3 id="displayShopName" style="font-size: 15px; font-weight: 700;">Global Store</h3>
+                            <h3 id="displayShopName" style="font-size: 15px; font-weight: 700;">Global Merchant</h3>
                             <p id="displayMerchantName" style="font-size: 12px; opacity: 0.7;"></p>
                         </div>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <p style="font-size: 12px; opacity: 0.8;">Total Global Ledger Balance</p>
+                        <p style="font-size: 12px; opacity: 0.8;">Total Global Revenue Balance</p>
                         <span class="badge-verified">✓ Verified Trader</span>
                     </div>
                     <h1 style="font-size: 32px; font-weight: 700; margin: 5px 0; color: #34d399;">$540.00 USD</h1>
-                    <button style="background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;" onclick="alert('🏦 Payout transferred directly into your local settlement bank!')">Withdraw Funds</button>
+                    <button style="background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;" onclick="alert('🏦 Routing payout directly to your linked bank account!')">Withdraw Funds</button>
                 </div>
 
                 <div class="premium-card">
-                    <h2>📦 List & Launch Cargo Product</h2>
+                    <h2>📦 Create & List Global Product</h2>
                     <form id="merchantInventoryForm">
-                        <input type="text" id="mProdName" class="app-input" placeholder="Cargo Product Name" required>
-                        <input type="number" id="mProdPrice" class="app-input" placeholder="Base Item Value ($ USD)" required>
-                        <select id="mProdOrigin" class="app-input">
-                            <option value="India">Origin Node: India</option>
-                            <option value="Saudi Arabia">Origin Node: Saudi Arabia</option>
-                        </select>
+                        <input type="text" id="mProdName" class="app-input" placeholder="Product Name" required>
+                        <input type="number" id="mProdPrice" class="app-input" placeholder="Price ($ USD)" required>
                         <input type="url" id="mProdImg" class="app-input" placeholder="Product Image Link URL" required>
-                        <button type="submit" class="app-btn">Publish to Worldwide Distribution</button>
+                        <button type="submit" class="app-btn">Publish to Worldwide Feed</button>
                     </form>
                 </div>
             </div>
@@ -354,16 +332,13 @@
     </div>
 
     <script>
-        let activeCalculationItem = "Luxury Smart Watch";
-        let activeCalculationBasePrice = 50.00;
-        let isSellerVerified = false;
-        let currentTargetBillDisplay = "$90.95 USD";
+        let currentTotalDisplayPrice = "$68.50 USD";
 
         window.onload = function() {
             checkSavedCardsInVault();
         };
 
-        // Core Switch Dashboard Mode Engine
+        // Top Switcher Controller
         function switchDashboardMode(mode) {
             document.querySelectorAll('.app-section').forEach(sec => sec.classList.remove('active-section'));
             document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active-mode'));
@@ -387,7 +362,7 @@
                 document.getElementById('buyerCardNumber').value = savedNum;
                 document.getElementById('buyerCardExpiry').value = localStorage.getItem('vault_card_exp') || "12/29";
                 document.getElementById('buyerCardCvv').value = "•••";
-                document.getElementById('buyerShippingAddr').value = localStorage.getItem('vault_card_addr') || "Main Hub Rd";
+                document.getElementById('buyerShippingAddr').value = localStorage.getItem('vault_card_addr') || "King Fahd Road";
                 document.getElementById('buyerCity').value = localStorage.getItem('vault_card_city') || "Riyadh";
                 document.getElementById('buyerZip').value = localStorage.getItem('vault_card_zip') || "11564";
             }
@@ -402,49 +377,29 @@
             localStorage.removeItem('vault_card_zip');
             document.getElementById('savedCardBox').style.display = 'none';
             document.getElementById('buyerPaymentCheckoutForm').reset();
-            alert("🗑️ Buyer card removed from device vault.");
+            alert("🗑️ Card data cleared.");
         }
 
-        function initializeRoutingOrder(name, price, impliedOrigin) {
-            activeCalculationItem = name;
-            activeCalculationBasePrice = parseFloat(price);
-            document.getElementById('originCountry').value = impliedOrigin;
-            
-            // Open payment section right underneath catalog
-            document.getElementById('checkoutFormBlock').style.display = 'block';
-            runDynamicRoutingMatrix();
-            
-            // Smooth view scroll down to matrix invoice
-            document.getElementById('checkoutFormBlock').scrollIntoView({ behavior: 'smooth' });
-        }
+        // Instant Dynamic Checkout Without Limited Dropdowns
+        function openInstantCheckout(name, price) {
+            const basePrice = parseFloat(price);
+            const logisticsFreight = 12.50;
+            const globalTaxSurcharge = 6.00;
+            const grandTotal = basePrice + logisticsFreight + globalTaxSurcharge;
 
-        function runDynamicRoutingMatrix() {
-            const origin = document.getElementById('originCountry').value;
-            const destination = document.getElementById('destCountry').value;
-
-            let freightUSD = 12.50; let customsUSD = 3.80; 
-            if (origin === "India" && destination === "United States") { freightUSD = 28.50; customsUSD = 8.20; }
-            else if (origin === destination) { freightUSD = 4.00; customsUSD = 0.00; }
-
-            const gatewayUSD = parseFloat((activeCalculationBasePrice * 0.029 + 0.30).toFixed(2));
-            const platformUSD = parseFloat((activeCalculationBasePrice * 0.05).toFixed(2));
-            const totalUSD = activeCalculationBasePrice + freightUSD + customsUSD + gatewayUSD + platformUSD;
-
-            let rate = 1.0; let symbol = "$"; let currencyCode = "USD";
-            if (destination === "India") { rate = 83.50; symbol = "₹"; currencyCode = "INR"; }
-            else if (destination === "Saudi Arabia") { rate = 3.75; symbol = "SAR "; currencyCode = "SAR"; }
-
-            const fx = (val) => (val * rate).toFixed(2);
-            currentTargetBillDisplay = `${symbol}${fx(totalUSD)} ${currencyCode}`;
-            document.getElementById('payButtonText').innerText = "Authorize & Pay " + currentTargetBillDisplay;
+            currentTotalDisplayPrice = `$${grandTotal.toFixed(2)} USD`;
+            document.getElementById('payButtonText').innerText = "Authorize & Pay " + currentTotalDisplayPrice;
 
             document.getElementById('invoiceBreakdownContainer').innerHTML = `
-                <div class="invoice-line"><span>Cargo Item:</span><strong>${activeCalculationItem}</strong></div>
-                <div class="invoice-line"><span>Base Value:</span><span>${symbol}${fx(activeCalculationBasePrice)}</span></div>
-                <div class="invoice-line"><span>Logistics Freight:</span><span>${symbol}${fx(freightUSD)}</span></div>
-                <div class="invoice-line"><span>Customs Surcharge:</span><span>${symbol}${fx(customsUSD)}</span></div>
-                <div class="invoice-line invoice-total"><span>Total Amount:</span><span>${currentTargetBillDisplay}</span></div>
+                <div class="invoice-line"><span>Product Selected:</span><strong>${name}</strong></div>
+                <div class="invoice-line"><span>Base Value:</span><span>$${basePrice.toFixed(2)} USD</span></div>
+                <div class="invoice-line"><span>Cross-Border Freight:</span><span>$${logisticsFreight.toFixed(2)} USD</span></div>
+                <div class="invoice-line"><span>Global Gateway Surcharge:</span><span>$${globalTaxSurcharge.toFixed(2)} USD</span></div>
+                <div class="invoice-line invoice-total"><span>Total Payable:</span><span>${currentTotalDisplayPrice}</span></div>
             `;
+
+            document.getElementById('checkoutFormBlock').style.display = 'block';
+            document.getElementById('checkoutFormBlock').scrollIntoView({ behavior: 'smooth' });
         }
 
         function executeEscrowPayment(e) {
@@ -457,14 +412,13 @@
                 localStorage.setItem('vault_card_city', document.getElementById('buyerCity').value);
                 localStorage.setItem('vault_card_zip', document.getElementById('buyerZip').value);
             }
-            alert("🎉 Escrow Payment Success! Order routed to live international shipping node.");
+            alert("🎉 International Payment Securely Authorized! " + currentTotalDisplayPrice + " held safely in escrow node.");
             document.getElementById('checkoutFormBlock').style.display = 'none';
             checkSavedCardsInVault();
         }
 
         function handleKycVerification(e) {
             e.preventDefault();
-            isSellerVerified = true;
             const fullName = document.getElementById('kycFullName').value;
             const shopName = document.getElementById('kycShopName').value;
             const avatarInput = document.getElementById('kycAvatarInput');
@@ -491,7 +445,6 @@
             e.preventDefault();
             const name = document.getElementById('mProdName').value;
             const price = parseFloat(document.getElementById('mProdPrice').value);
-            const origin = document.getElementById('mProdOrigin').value;
             const img = document.getElementById('mProdImg').value;
 
             document.getElementById('globalContainerCatalog').insertAdjacentHTML('beforeend', `
@@ -499,11 +452,10 @@
                     <img src="${img}" alt="${name}">
                     <h4 style="text-transform: capitalize;">${name}</h4>
                     <div class="price">$${price.toFixed(2)} USD</div>
-                    <span class="route-badge">Origin: ${origin} Node</span>
-                    <button class="app-btn" style="padding: 6px; font-size: 12px; margin-top: 8px; background: #0f172a;" onclick="initializeRoutingOrder('${name}', ${price}, '${origin}')">Route Order</button>
+                    <button class="app-btn" style="padding: 8px; font-size: 12px; margin-top: 4px; background: #0f172a;" onclick="openInstantCheckout('${name}', ${price})">Buy Now</button>
                 </div>
             `);
-            alert("🚀 Product launched to global market feed successfully!");
+            alert("🚀 Product pushed instantly to global feed!");
             document.getElementById('merchantInventoryForm').reset();
             switchDashboardMode('buyer');
         });
