@@ -6,61 +6,84 @@
     <title>GlobalBazaar - Ultra Premium Matrix</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: #f8fafc; color: #0f172a; padding-bottom: 40px; }
         header { background: #ffffff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100; }
+        header h1 { font-size: 20px; font-weight: 700; color: #1e3a8a; }
+        .cart-badge-container { position: relative; cursor: pointer; background: #f1f5f9; padding: 8px 12px; border-radius: 10px; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+        .cart-counter { background: #ef4444; color: white; font-size: 10px; padding: 2px 6px; border-radius: 20px; position: absolute; top: -5px; right: -5px; }
+        .live-node-badge { background: #e0f2fe; color: #0369a1; font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
         .container { max-width: 600px; margin: 0 auto; padding: 16px; }
         .mode-switcher-container { display: flex; background: #e2e8f0; padding: 6px; border-radius: 14px; margin-bottom: 14px; gap: 6px; }
-        .mode-btn { flex: 1; border: none; background: none; padding: 12px; font-weight: 700; color: #475569; border-radius: 10px; cursor: pointer; }
-        .active-mode { background: #ffffff; color: #2563eb; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-        .app-section { display: none; }
-        .active-section { display: block; }
+        .mode-btn { flex: 1; border: none; background: none; padding: 12px; font-size: 14px; font-weight: 700; color: #475569; border-radius: 10px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .mode-btn.active-mode { background: #ffffff; color: #2563eb; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
         .currency-selector-card { background: #ffffff; border: 1px dashed #2563eb; border-radius: 12px; padding: 14px; margin-bottom: 14px; }
+        .currency-select { width: 100%; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 600; color: #1e293b; cursor: pointer; }
+        .app-section { display: none; }
+        .active-section { display: block; animation: fadeIn 0.25s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .premium-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+        .app-input { width: 100%; background: #f8fafc; border: 1px solid #cbd5e1; padding: 12px 14px; border-radius: 10px; font-size: 14px; margin-bottom: 14px; }
+        .app-btn { background: linear-gradient(135deg, #1e3a8a, #2563eb); color: white; border: none; width: 100%; padding: 14px; border-radius: 12px; font-weight: 600; cursor: pointer; }
         .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
         .catalog-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; text-align: center; }
-        .app-input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #cbd5e1; border-radius: 10px; }
-        .app-btn { background: #1e3a8a; color: white; border: none; width: 100%; padding: 12px; border-radius: 10px; cursor: pointer; }
+        .catalog-card img { width: 100%; height: 110px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; }
+        .price { color: #2563eb; font-weight: 700; font-size: 14px; margin: 4px 0; }
     </style>
 </head>
 <body>
 
-    <header><h1>GlobalBazaar 🌍</h1></header>
+    <header>
+        <h1>GlobalBazaar 🌍</h1>
+        <div class="header-actions">
+            <div class="cart-badge-container" onclick="alert('Cart')">🛒 Cart <span class="cart-counter" id="globalCartCount">0</span></div>
+            <div class="live-node-badge" id="globalStatusNode">Riyadh Node Live</div>
+        </div>
+    </header>
 
     <div class="container">
         <div class="mode-switcher-container">
-            <button class="mode-btn active-mode" id="toggleBuyerBtn" onclick="switchDashboardMode('buyer')">🛒 Buyer</button>
-            <button class="mode-btn" id="toggleSellerBtn" onclick="switchDashboardMode('seller')">🏪 Seller</button>
+            <button class="mode-btn active-mode" id="toggleBuyerBtn" onclick="switchDashboardMode('buyer')">🛒 Buyer Shopping</button>
+            <button class="mode-btn" id="toggleSellerBtn" onclick="switchDashboardMode('seller')">🏪 Seller Panel</button>
         </div>
 
         <div class="currency-selector-card">
-            <select id="userCurrencyNode" class="app-input" onchange="applyGlobalCurrencyConversion()">
+            <span style="font-size: 12px; font-weight: 700;">📍 Settlement Node Gateway:</span>
+            <select id="userCurrencyNode" class="currency-select" onchange="applyGlobalCurrencyConversion()">
                 <option value="SAR">Saudi Arabia (SAR)</option>
                 <option value="AED">UAE (AED)</option>
                 <option value="KWD">Kuwait (KWD)</option>
+                <option value="QAR">Qatar (QAR)</option>
+                <option value="OMR">Oman (OMR)</option>
+                <option value="BHD">Bahrain (BHD)</option>
                 <option value="USD">United States (USD)</option>
+                <option value="EUR">Eurozone (EUR)</option>
+                <option value="GBP">United Kingdom (GBP)</option>
                 <option value="INR">India (INR)</option>
                 <option value="PKR">Pakistan (PKR)</option>
             </select>
         </div>
 
         <div id="panelBuyerSpace" class="app-section active-section">
-            <input type="text" class="app-input" placeholder="Search products..." oninput="triggerLiveSearch()">
+            <input type="text" id="productSearchField" class="app-input" placeholder="🔍 Search products..." oninput="triggerLiveSearch()">
             <div class="market-grid" id="globalContainerCatalog">
                 <div class="catalog-card" data-base-usd="50.00">
-                    <h4>Luxury Watch</h4>
+                    <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500" alt="Watch">
+                    <h4>Luxury Smart Watch</h4>
                     <div class="price class-converted-price">SAR 187.50</div>
-                    <button class="app-btn" onclick="alert('Added!')">Buy Now</button>
+                    <button class="app-btn" style="padding:8px; font-size:12px; background:#0f172a;" onclick="alert('Added!')">Buy Now</button>
                 </div>
                 <div class="catalog-card" data-base-usd="120.00">
-                    <h4>Headphones</h4>
+                    <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500" alt="Headphones">
+                    <h4>Premium Headphones</h4>
                     <div class="price class-converted-price">SAR 450.00</div>
-                    <button class="app-btn" onclick="alert('Added!')">Buy Now</button>
+                    <button class="app-btn" style="padding:8px; font-size:12px; background:#0f172a;" onclick="alert('Added!')">Buy Now</button>
                 </div>
             </div>
         </div>
 
         <div id="panelSellerSpace" class="app-section">
-            <div class="catalog-card">
+            <div class="premium-card">
                 <h2>Merchant KYC</h2>
                 <input type="text" class="app-input" placeholder="Shop Name">
                 <button class="app-btn">Verify Node</button>
@@ -69,19 +92,19 @@
     </div>
 
     <script>
-        const FX_MATRIX = { 
-            "SAR": { rate: 3.75, symbol: "SAR " }, 
-            "AED": { rate: 3.67, symbol: "AED " },
-            "KWD": { rate: 0.31, symbol: "KWD " },
-            "USD": { rate: 1.0, symbol: "$" },
-            "INR": { rate: 83.50, symbol: "₹" },
+        const FX_MATRIX = {
+            "SAR": { rate: 3.75, symbol: "SAR " }, "AED": { rate: 3.67, symbol: "AED " },
+            "KWD": { rate: 0.31, symbol: "KWD " }, "QAR": { rate: 3.64, symbol: "QAR " },
+            "OMR": { rate: 0.38, symbol: "OMR " }, "BHD": { rate: 0.38, symbol: "BHD " },
+            "USD": { rate: 1.0,  symbol: "$" },    "EUR": { rate: 0.92, symbol: "€" },
+            "GBP": { rate: 0.78, symbol: "£" },    "INR": { rate: 83.50, symbol: "₹" },
             "PKR": { rate: 278.20, symbol: "₨" }
         };
-        
+
         function switchDashboardMode(mode) {
             document.querySelectorAll('.app-section').forEach(sec => sec.classList.remove('active-section'));
             document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active-mode'));
-            if(mode === 'buyer') {
+            if (mode === 'buyer') {
                 document.getElementById('panelBuyerSpace').classList.add('active-section');
                 document.getElementById('toggleBuyerBtn').classList.add('active-mode');
             } else {
@@ -96,6 +119,14 @@
             document.querySelectorAll('.class-converted-price').forEach(el => {
                 const base = parseFloat(el.parentElement.getAttribute('data-base-usd'));
                 el.innerText = rates.symbol + (base * rates.rate).toFixed(2);
+            });
+        }
+
+        function triggerLiveSearch() {
+            const query = document.getElementById('productSearchField').value.toLowerCase();
+            document.querySelectorAll('.catalog-card').forEach(card => {
+                const name = card.querySelector('h4').innerText.toLowerCase();
+                card.style.display = name.includes(query) ? 'block' : 'none';
             });
         }
     </script>
