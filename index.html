@@ -212,7 +212,7 @@
         <div class="brand-3d">GlobalBazaar</div>
     </div>
     <div class="right-group">
-        <!-- Menu Buttons: Sign Up, Login, Admin, Profile -->
+        <!-- ===== MENU BUTTONS: Sign Up, Login, Admin, Profile ===== -->
         <div class="menu-buttons">
             <button class="menu-btn menu-btn-outline" id="headerSignupBtn">Sign Up</button>
             <button class="menu-btn menu-btn-outline" id="headerLoginBtn">Login</button>
@@ -221,11 +221,16 @@
         </div>
         <div class="currency-3d">
             <select id="currencySelect">
-                <option value="SAR">🇸🇦 SAR</option><option value="USD">🇺🇸 USD</option>
-                <option value="EUR">🇪🇺 EUR</option><option value="GBP">🇬🇧 GBP</option>
-                <option value="INR">🇮🇳 INR</option><option value="PKR">🇵🇰 PKR</option>
-                <option value="NPR">🇳🇵 NPR</option><option value="BDT">🇧🇩 BDT</option>
-                <option value="LKR">🇱🇰 LKR</option><option value="AED">🇦🇪 AED</option>
+                <option value="SAR">🇸🇦 SAR</option>
+                <option value="USD">🇺🇸 USD</option>
+                <option value="EUR">🇪🇺 EUR</option>
+                <option value="GBP">🇬🇧 GBP</option>
+                <option value="INR">🇮🇳 INR</option>
+                <option value="PKR">🇵🇰 PKR</option>
+                <option value="NPR">🇳🇵 NPR</option>
+                <option value="BDT">🇧🇩 BDT</option>
+                <option value="LKR">🇱🇰 LKR</option>
+                <option value="AED">🇦🇪 AED</option>
             </select>
         </div>
         <div class="rating-3d">
@@ -235,7 +240,7 @@
     </div>
 </div>
 
-<!-- Country Dropdown (Saudi Arabia text ki jagah) -->
+<!-- ===== COUNTRY DROPDOWN (Saudi Arabia text ki jagah) ===== -->
 <div style="max-width: 560px; margin: 10px auto 0; padding: 0 16px;">
     <select id="globalCountrySelect" class="country-selector" style="width: 100%;">
         <option value="SA">🇸🇦 Saudi Arabia</option>
@@ -262,7 +267,7 @@
 </div>
 
 <div class="container">
-    <!-- Dashboard Tabs: Sirf Buyer aur Seller -->
+    <!-- ===== DASHBOARD TABS: Sirf Buyer aur Seller (Profile aur Admin hata diye) ===== -->
     <div class="mode-tabs">
         <button class="mode-btn active" data-tab="buyer">🛒 Buyer</button>
         <button class="mode-btn" data-tab="seller">🏪 Seller</button>
@@ -283,7 +288,6 @@
                 <input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required>
                 <input type="email" id="sellerEmail" placeholder="Email" class="input" required>
                 
-                <!-- Phone with Country Code -->
                 <div class="phone-group">
                     <select id="sellerCountryCode">
                         <option value="+966">🇸🇦 +966</option>
@@ -310,7 +314,6 @@
                 <input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required>
                 <input type="text" id="sellerCountryReg" placeholder="Country" class="input" required>
                 
-                <!-- International KYC Documents -->
                 <div class="doc-section">
                     <div class="doc-title">🌍 International KYC Documents</div>
                     <div id="internationalDocsContainer">
@@ -340,7 +343,6 @@
         <div id="sellerDashboard" style="display:none;"></div>
     </div>
 
-    <!-- Profile Section -->
     <div id="profileSection" class="section">
         <div id="profileAuthBox" class="premium-card">
             <div id="loginFormDiv">
@@ -428,7 +430,6 @@
     </div>
 </div>
 
-<!-- Legal Modals -->
 <div id="termsModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeTermsModal()">&times;</span><h2>Terms & Conditions</h2><p>By using GlobalBazaar, you agree to these terms. You must be 18+.</p><button class="btn-primary" onclick="closeTermsModal()">Close</button></div></div>
 <div id="privacyModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closePrivacyModal()">&times;</span><h2>Privacy Policy</h2><p>We collect name, email, phone, address for order processing.</p><button class="btn-primary" onclick="closePrivacyModal()">Close</button></div></div>
 <div id="sellerAgreementModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSellerAgreementModal()">&times;</span><h2>Seller Agreement</h2><p>5% commission + 2.5% gateway fee. Payments released after delivery confirmation.</p><button class="btn-primary" onclick="closeSellerAgreementModal()">Close</button></div></div>
@@ -444,7 +445,6 @@
     const GATEWAY_FEE = 0.025;
     const HANDLING_FEE = 2;
     
-    // Razorpay Configuration
     let razorpayConfig = JSON.parse(localStorage.getItem('razorpay_config')) || {
         key: "rzp_test_YourKey",
         secret: ""
@@ -456,7 +456,6 @@
     let selectedCurr = "SAR";
     let buyerCountry = "SA";
     
-    // EmailJS Configuration
     emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
     
     function sendEmailNotification(toEmail, subject, message) {
@@ -837,7 +836,7 @@
         document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
     }
     
-    // ===== HEADER BUTTONS =====
+    // ===== HEADER BUTTONS (Menu ke andar) =====
     document.getElementById('headerSignupBtn')?.addEventListener('click', () => {
         document.querySelector('.mode-btn[data-tab="profile"]').click();
         document.getElementById('signupFormDiv').style.display = 'block';
@@ -855,7 +854,7 @@
         document.querySelector('.mode-btn[data-tab="profile"]').click();
     });
     
-    // Dashboard tabs
+    // ===== DASHBOARD TABS (Sirf Buyer, Seller) =====
     document.querySelectorAll('.mode-btn').forEach(btn => btn.addEventListener('click', () => {
         let tab = btn.dataset.tab;
         document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
@@ -954,7 +953,6 @@
     if(currentUser?.role === 'seller') { document.getElementById('sellerRegisterBox').style.display='none'; document.getElementById('sellerDashboard').style.display='block'; renderSellerDashboard(); }
     if(currentUser) { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = currentUser.name; document.getElementById('profileRoleBadge').innerText = currentUser.role || 'Buyer'; displaySavedAddress(); renderBuyerOrders(); }
     
-    // Country dropdown change event
     document.getElementById('globalCountrySelect')?.addEventListener('change', (e) => {
         buyerCountry = e.target.value;
         renderProducts();
