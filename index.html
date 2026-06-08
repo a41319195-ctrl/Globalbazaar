@@ -427,14 +427,31 @@
             checkSavedCardsInVault();
         };
 
-        // Automatic Geolocation Node Sim
-        function autoDetectUserCountryNode() {
-            // Simulated smart IP-lookup to default into SAR when operator is in Saudi Arabia
-            document.getElementById('userCurrencyNode').value = "SAR";
-            document.getElementById('globalStatusNode').innerText = "📍 Riyadh Node Live";
-            document.getElementById('globalStatusNode').style.background = "#dcfce7";
-            document.getElementById('globalStatusNode').style.color = "#15803d";
-            applyGlobalCurrencyConversion();
+        // सुरक्षित मेमोरी ऑब्जेक्ट (पेज रिफ्रेश होते ही यह डेटा अपने आप डिलीट हो जाएगा)
+let temporaryVault = {}; 
+
+function executeEscrowPayment(e) {
+    e.preventDefault();
+    
+    // डेटा को localStorage में सेव करने के बजाय, सिर्फ अस्थायी मेमोरी में रखें
+    if(document.getElementById('saveCardCheckbox').checked) {
+        temporaryVault = {
+            card_num: document.getElementById('buyerCardNumber').value.slice(-4), // केवल अंतिम 4 अंक रखें
+            card_name: document.getElementById('buyerCardName').value
+        };
+        console.log("Card details held in volatile memory only.");
+    }
+
+    alert(`🎉 Clearance Hub Success!\n\n${finalizedCheckoutPriceString} securely authorized & allocated to network Escrow.`);
+    
+    // सुरक्षित रूप से फॉर्म डेटा साफ़ करें
+    document.getElementById('buyerPaymentCheckoutForm').reset();
+    document.getElementById('checkoutFormBlock').style.display = 'none';
+    
+    cartItemsCount = 0;
+    document.getElementById('globalCartCount').innerText = "0";
+}
+
         }
 
         function switchDashboardMode(mode) {
@@ -592,31 +609,13 @@
             const priceUSD = parseFloat(document.getElementById('mProdPrice').value);
             const img = document.getElementById('mProdImg').value;
 
-            document.getElementById('globalContainerCatalog').insertAdjacentHTML('beforeend', `
-                <div class="catalog-card" data-base-usd="${priceUSD}">
-                    <img src="${img}" alt="${name}">
-                    <h4 style="text-transform: capitalize;">${name}</h4>
-                    <div class="price class-converted-price"></div>
-                    <button class="app-btn" style="padding: 8px; font-size: 12px; margin-top: 4px; background: #0f172a;" onclick="addItemToCart('${name}', ${priceUSD})">Buy Now</button>
-                </div>
-            `);
-            
             alert("🚀 Cargo successfully published globally!");
             document.getElementById('merchantInventoryForm').reset();
             applyGlobalCurrencyConversion();
             switchDashboardMode('buyer');
         });
     
-    function executeEscrowPayment(e) {
-    e.preventDefault();
-    let amountText = document.getElementById('payButtonText') ? document.getElementById('payButtonText').innerText : "Amount";
-    alert("✅ " + amountText + " Successfully Authorized!\nOrder ID: #" + Math.floor(Math.random()*900000));
-    var formElement = document.getElementById('checkoutFormBlock');
-    if(formElement) { formElement.style.display = 'none'; }
-    var cartCount = document.getElementById('globalCartCount');
-    if(cartCount) { cartCount.innerText = '0'; }
-    e.target.reset(); 
-}
+    
 </script>
 </body>
 </html>
