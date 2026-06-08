@@ -606,6 +606,17 @@
             applyGlobalCurrencyConversion();
             switchDashboardMode('buyer');
         });
-    </script>
+    
+    function executeEscrowPayment(e) {
+    e.preventDefault();
+    let amountText = document.getElementById('payButtonText') ? document.getElementById('payButtonText').innerText : "Amount";
+    alert("✅ " + amountText + " Successfully Authorized!\nOrder ID: #" + Math.floor(Math.random()*900000));
+    var formElement = document.getElementById('checkoutFormBlock');
+    if(formElement) { formElement.style.display = 'none'; }
+    var cartCount = document.getElementById('globalCartCount');
+    if(cartCount) { cartCount.innerText = '0'; }
+    e.target.reset(); 
+}
+</script>
 </body>
 </html>
