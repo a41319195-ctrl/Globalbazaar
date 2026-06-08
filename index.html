@@ -2,809 +2,365 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>GlobalBazaar - Complete Marketplace</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Razorpay CDN -->
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <!-- EmailJS CDN -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <!-- jsPDF CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlobalBazaar - 195+ Countries Support</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background: linear-gradient(135deg, #f5f7fb 0%, #eef2f8 100%); padding-bottom: 90px; }
-        
-        .header-3d {
-            background: linear-gradient(145deg, #ffffff, #f0f4fa);
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 10px 25px -8px rgba(0,0,0,0.15);
-            border-bottom: 1px solid rgba(59,130,246,0.15);
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .left-group { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
-        .right-group { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
-        .menu-icon-3d {
-            background: linear-gradient(145deg, #1e293b, #0f172a);
-            border: none;
-            font-size: 26px;
-            cursor: pointer;
-            padding: 8px 14px;
-            border-radius: 18px;
-            color: white;
-            box-shadow: 0 8px 12px rgba(0,0,0,0.2);
-        }
-        .logo-3d { font-size: 38px; background: radial-gradient(circle at 35% 35%, #ffdd77, #ffaa33); border-radius: 50%; padding: 5px; }
-        .brand-3d { font-weight: 800; font-size: 22px; background: linear-gradient(135deg, #1e3a8a, #3b82f6, #06b6d4); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .currency-3d { background: linear-gradient(145deg, #1e2a4a, #0f172f); padding: 6px 15px; border-radius: 40px; }
-        .currency-3d select { background: transparent; border: none; color: #FFD966; font-size: 14px; font-weight: bold; padding: 5px 8px; cursor: pointer; }
-        .rating-3d { background: linear-gradient(145deg, #2a2040, #1a1030); padding: 6px 16px; border-radius: 40px; text-align: center; }
-        .stars-small { font-size: 16px; letter-spacing: 2px; color: #FFB347; }
-        .rating-text-small { font-size: 10px; color: #aaa; }
-        
-        .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); z-index: 200; display: none; }
-        .drawer { position: fixed; top: 0; left: -85%; width: 75%; max-width: 280px; height: 100%; background: white; z-index: 201; transition: left 0.3s ease; border-radius: 0 24px 24px 0; padding: 20px 0; overflow-y: auto; }
-        .drawer.open { left: 0; }
-        .drawer-header { padding: 20px; border-bottom: 1px solid #eef2f8; }
-        .drawer-item { display: flex; align-items: center; gap: 14px; padding: 14px 20px; font-weight: 600; font-size: 16px; cursor: pointer; margin: 4px 12px; border-radius: 14px; }
-        .drawer-item:hover { background: #f1f5f9; }
-        
-        .container { max-width: 560px; margin: 0 auto; padding: 16px; }
-        .mode-tabs { display: flex; background: #e2e8f0; padding: 6px; border-radius: 60px; margin-bottom: 20px; gap: 6px; flex-wrap: wrap; }
-        .mode-btn { flex: 1; border: none; background: none; padding: 12px; font-weight: 700; border-radius: 50px; font-size: 14px; cursor: pointer; }
-        .mode-btn.active { background: white; color: #2563eb; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-        .section { display: none; }
-        .section.active { display: block; }
-        
-        .cat-scroll { display: flex; gap: 10px; overflow-x: auto; padding: 8px 0 16px; }
-        .cat-pill { background: white; padding: 8px 22px; border-radius: 40px; font-weight: 600; font-size: 14px; border: 1px solid #e2e8f0; cursor: pointer; white-space: nowrap; }
-        .cat-pill.active { background: #1e3a8a; color: white; }
-        
-        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
-        .product-card { background: white; border-radius: 20px; padding: 12px; cursor: pointer; border: 1px solid #eef2f8; transition: 0.2s; }
-        .product-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
-        .product-card img { width: 100%; height: 130px; object-fit: cover; border-radius: 16px; }
-        .seller-name-tag { font-size: 11px; color: #3b82f6; margin: 10px 0 6px; font-weight: 600; }
-        .prod-price { font-weight: 800; font-size: 16px; color: #1e3a8a; margin-top: 6px; }
-        .card-actions { display: flex; gap: 8px; margin-top: 12px; }
-        .btn-sm { flex: 1; padding: 8px; border-radius: 40px; font-weight: 700; font-size: 12px; border: none; cursor: pointer; }
-        .btn-buy { background: #0f172a; color: white; }
-        .btn-wish { background: #f1f5f9; }
-        .btn-wish.active { background: #fee2e2; color: #dc2626; }
-        
-        .fixed-cart {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            background: linear-gradient(145deg, #1e3a8a, #1e2a5a);
-            color: white;
-            border: none;
-            border-radius: 60px;
-            padding: 16px 28px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 800;
-            font-size: 18px;
-            z-index: 99;
-            cursor: pointer;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-        }
-        .cart-badge { background: #ef4444; color: white; font-size: 13px; padding: 2px 10px; border-radius: 40px; }
-        
-        .input { width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; margin-bottom: 14px; font-size: 14px; }
-        .btn-primary { background: #1e3a8a; color: white; border: none; padding: 14px; border-radius: 60px; font-weight: 700; font-size: 15px; width: 100%; cursor: pointer; }
-        .premium-card { background: white; border-radius: 24px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
-        .flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .order-card { background: #f8fafc; border-radius: 16px; padding: 14px; margin-bottom: 12px; font-size: 13px; border-left: 4px solid #cbd5e1; }
-        
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 300; overflow-y: auto; }
-        .modal-card { background: white; margin: 50px 20px; border-radius: 28px; padding: 24px; max-width: 500px; margin-left: auto; margin-right: auto; }
-        .close-modal { float: right; font-size: 28px; cursor: pointer; }
-        
-        .seller-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #3b82f6; }
-        .role-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; background: #dbeafe; color: #1e40af; }
-        .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; z-index: 1000; display: none; font-size: 14px; }
-        .checkbox-group { display: flex; align-items: center; gap: 10px; margin: 15px 0; font-size: 13px; flex-wrap: wrap; }
-        .legal-link { color: #3b82f6; text-decoration: none; cursor: pointer; }
-        .footer-legal { text-align: center; padding: 20px; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; margin-top: 20px; }
-        .btn-download { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 20px; font-size: 11px; cursor: pointer; }
-        
-        @media (max-width: 600px) {
-            .brand-3d { font-size: 16px; }
-            .logo-3d { font-size: 28px; }
-            .fixed-cart { padding: 12px 20px; font-size: 14px; bottom: 15px; right: 15px; }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 20px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; margin-bottom: 10px; }
+        .form-group { margin-bottom: 20px; }
+        label { font-weight: bold; display: block; margin-bottom: 8px; color: #555; }
+        select, input { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; }
+        .phone-group { display: flex; gap: 10px; }
+        .phone-group select { width: 35%; }
+        .phone-group input { width: 65%; }
+        .document-row { background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px; }
+        button { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 18px; cursor: pointer; }
+        .cart { background: #ff9800; color: white; padding: 10px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
+        .navbar { background: white; padding: 15px 20px; border-radius: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .menu-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+        .menu-btn { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .login-btn { background: #667eea; color: white; }
+        .signup-btn { background: #ff9800; color: white; }
+        .admin-btn { background: #dc3545; color: white; }
+        .profile-btn { background: #28a745; color: white; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-<div class="header-3d">
-    <div class="left-group">
-        <button class="menu-icon-3d" id="menuBtn">☰</button>
-        <div class="logo-3d">🌍</div>
-        <div class="brand-3d">GlobalBazaar</div>
+<div class="navbar">
+    <div class="logo" style="font-size:24px; font-weight:bold;">🌍 GlobalBazaar</div>
+    <div class="menu-buttons" id="menuButtons">
+        <button class="menu-btn login-btn" onclick="showLogin()">🔐 Login</button>
+        <button class="menu-btn signup-btn" onclick="showSignup()">📝 Sign Up</button>
+        <button class="menu-btn admin-btn" onclick="showAdmin()">⚙️ Admin</button>
+        <button class="menu-btn profile-btn" onclick="showProfile()">👤 Profile</button>
     </div>
-    <div class="right-group">
-        <div class="currency-3d">
-            <select id="currencySelect">
-                <option value="SAR">🇸🇦 SAR</option><option value="USD">🇺🇸 USD</option>
-                <option value="EUR">🇪🇺 EUR</option><option value="GBP">🇬🇧 GBP</option>
-                <option value="INR">🇮🇳 INR</option><option value="PKR">🇵🇰 PKR</option>
-                <option value="NPR">🇳🇵 NPR</option><option value="BDT">🇧🇩 BDT</option>
-                <option value="LKR">🇱🇰 LKR</option><option value="AED">🇦🇪 AED</option>
-            </select>
-        </div>
-        <div class="rating-3d">
-            <div class="stars-small">★★★★☆</div>
-            <div class="rating-text-small">4.7 ★ (2k+ ratings)</div>
-        </div>
-    </div>
-</div>
-
-<div class="drawer-overlay" id="drawerOverlay"></div>
-<div class="drawer" id="drawer">
-    <div class="drawer-header"><h2>GlobalBazaar 🌍</h2><p style="font-size:12px;">Multi‑Seller Hub</p></div>
-    <div class="drawer-item" data-mode="buyer">🛒 Buyer Shopping</div>
-    <div class="drawer-item" data-mode="seller">🏪 Seller Dashboard</div>
-    <div class="drawer-item" data-mode="profile">👤 My Profile</div>
-    <div class="drawer-item" id="drawerWishlist">❤️ My Wishlist</div>
-    <div class="drawer-item" data-mode="admin">⚙️ Admin Panel</div>
-    <div class="drawer-item" id="drawerSupport">📞 Support</div>
-    <div class="drawer-item" id="drawerLogout">🚪 Logout</div>
 </div>
 
 <div class="container">
-    <div class="mode-tabs">
-        <button class="mode-btn active" data-tab="buyer">🛒 Buyer</button>
-        <button class="mode-btn" data-tab="seller">🏪 Seller</button>
-        <button class="mode-btn" data-tab="profile">👤 Profile</button>
-        <button class="mode-btn" data-tab="admin">⚙️ Admin</button>
+    <div class="cart">🛒 Cart 3 items | Global Marketplace 🌍</div>
+    
+    <!-- Country Selection - 195+ Countries -->
+    <div class="form-group">
+        <label>🌐 Select Your Country (195+ Countries)</label>
+        <select id="countrySelect" onchange="updateDocumentsAndPhoneCode()">
+            <option value="">-- Select Country --</option>
+        </select>
     </div>
 
-    <div id="buyerSection" class="section active">
-        <div class="cat-scroll" id="catList"></div>
-        <input type="text" id="searchInput" class="input" placeholder="🔍 Search products...">
-        <div class="product-grid" id="productsGrid"></div>
-    </div>
-
-    <div id="sellerSection" class="section">
-        <div id="sellerRegisterBox" class="premium-card">
-            <h2>🏪 Open Your Shop</h2>
-            <form id="sellerRegForm">
-                <input type="file" id="sellerAvatar" accept="image/*" class="input" required>
-                <input type="text" id="sellerFullName" placeholder="Full Legal Name" class="input" required>
-                <input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required>
-                <input type="email" id="sellerEmail" placeholder="Email" class="input" required>
-                <input type="tel" id="sellerPhone" placeholder="Phone Number" class="input" required>
-                <input type="password" id="sellerPassword" placeholder="Password" class="input" required>
-                <input type="date" id="sellerDob" class="input" required>
-                <h4>📍 Shop Address</h4>
-                <input type="text" id="sellerHouseNo" placeholder="House No." class="input" required>
-                <input type="text" id="sellerStreet" placeholder="Street" class="input" required>
-                <input type="text" id="sellerCity" placeholder="City" class="input" required>
-                <input type="text" id="sellerState" placeholder="State" class="input" required>
-                <input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required>
-                <input type="text" id="sellerCountryReg" placeholder="Country" class="input" required>
-                <h4>🆔 KYC</h4>
-                <input type="text" id="sellerAadhaar" placeholder="Aadhaar Number" class="input">
-                <input type="file" id="sellerAadhaarImage" accept="image/*" class="input">
-                <input type="text" id="sellerPan" placeholder="PAN Number" class="input">
-                <input type="file" id="sellerPanImage" accept="image/*" class="input">
-                <h4>🏦 Bank Account</h4>
-                <input type="text" id="sellerBank" placeholder="Bank Name" class="input" required>
-                <input type="text" id="sellerAccountNo" placeholder="Account Number" class="input" required>
-                <input type="text" id="sellerIfsc" placeholder="IFSC Code" class="input" required>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="sellerAgreement" required>
-                    <label>I agree to the <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span> and confirm that I am 18+ years old.</label>
-                </div>
-                <button type="submit" class="btn-primary">✅ Register Shop</button>
-            </form>
-        </div>
-        <div id="sellerDashboard" style="display:none;"></div>
-    </div>
-
-    <div id="profileSection" class="section">
-        <div id="profileAuthBox" class="premium-card">
-            <div style="display:flex; gap:12px; margin-bottom:20px;">
-                <button id="showLoginBtn" class="btn-primary" style="background:#e2e8f0; color:#1e293b;">Login</button>
-                <button id="showSignupBtn" class="btn-primary" style="background:#e2e8f0; color:#1e293b;">Sign Up</button>
-            </div>
-            <div id="loginFormDiv">
-                <input type="email" id="loginEmail" placeholder="Email" class="input">
-                <input type="password" id="loginPass" placeholder="Password" class="input">
-                <button class="btn-primary" id="doLoginBtn">Login</button>
-            </div>
-            <div id="signupFormDiv" style="display:none;">
-                <input type="text" id="signupName" placeholder="Full Name" class="input" required>
-                <input type="date" id="signupDob" class="input" required>
-                <select id="signupRole" class="input">
-                    <option value="buyer">Buyer</option>
-                    <option value="seller">Seller</option>
-                </select>
-                <input type="email" id="signupEmail" placeholder="Email" class="input" required>
-                <input type="tel" id="signupPhone" placeholder="Phone" class="input" required>
-                <input type="password" id="signupPass" placeholder="Password" class="input" required>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="termsCheckbox" required>
-                    <label>I accept the <span class="legal-link" onclick="showTerms()">Terms & Conditions</span> and <span class="legal-link" onclick="showPrivacy()">Privacy Policy</span></label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="ageCheckbox" required>
-                    <label>I confirm that I am 18 years or older.</label>
-                </div>
-                <button class="btn-primary" id="doSignupBtn">Create Account</button>
-            </div>
-        </div>
-        <div id="buyerProfilePanel" style="display:none;">
-            <div class="premium-card">
-                <div class="flex-between"><h2>👋 Welcome, <span id="profileName"></span></h2><span class="role-badge" id="profileRoleBadge">Buyer</span></div>
-                <div id="profileAddressSection"><h3>📍 Saved Address</h3><div id="savedAddressDisplay" class="address-card"></div><button id="editAddressBtn" class="btn-primary" style="background:#64748b; margin-top:10px;">✏️ Edit Address</button></div>
-                <button class="btn-primary" id="logoutBuyerBtn" style="background:#dc2626; margin-top:10px;">Logout</button>
-            </div>
-            <div class="premium-card"><h3>📜 My Orders</h3><div id="buyerOrdersList"></div></div>
-            <div class="premium-card"><h3>📄 Refund & Cancellation Policy</h3><p style="font-size:12px; color:#64748b;">Cancellation within 24 hours of order. Refund processed within 7-10 business days after product return verification.</p></div>
+    <!-- Phone Number with Country Code -->
+    <div class="form-group">
+        <label>📞 Phone Number</label>
+        <div class="phone-group">
+            <select id="countryCode"></select>
+            <input type="tel" id="phoneNumber" placeholder="Enter phone number">
         </div>
     </div>
 
-    <div id="adminSection" class="section">
-        <div id="adminPanel" class="premium-card">
-            <h2>⚙️ Admin Dashboard</h2>
-            <div id="adminLoginBox"><input type="password" id="adminKey" class="input" placeholder="Enter Admin Key"><button class="btn-primary" id="adminLoginBtn">Login</button></div>
-            <div id="adminContent" style="display:none;">
-                <div class="flex-between"><h3>📋 All Sellers</h3><button id="refreshAdminBtn" style="background:#64748b; padding:8px 16px; border-radius:30px; border:none; color:white;">Refresh</button></div>
-                <div id="adminSellersList"></div>
-                <h3>💰 Platform Earnings</h3><div id="platformEarnings"></div>
-                <h3>💸 Pending Withdrawals</h3><div id="pendingWithdrawals"></div>
-                <h3>📊 All Orders</h3><div id="adminOrdersList"></div>
-                <h3>⚙️ Razorpay Settings</h3>
-                <div class="premium-card">
-                    <input type="text" id="razorpayKey" class="input" placeholder="Razorpay Key ID (rzp_test_xxx)" value="rzp_test_YourKey">
-                    <input type="text" id="razorpaySecret" class="input" placeholder="Razorpay Key Secret">
-                    <button id="saveRazorpaySettings" class="btn-primary">Save Settings</button>
-                    <p style="font-size:11px; margin-top:10px;">Get keys from <a href="https://dashboard.razorpay.com/" target="_blank">Razorpay Dashboard</a></p>
-                </div>
-            </div>
-        </div>
+    <!-- Dynamic International Documents -->
+    <div id="documentSection">
+        <div class="document-row">Select a country to see required KYC documents</div>
     </div>
-</div>
 
-<button class="fixed-cart" id="cartFloatBtn">🛒 Cart <span class="cart-badge" id="cartCountBadge">0</span></button>
-<div class="toast" id="toast"></div>
-
-<div id="productModal" class="modal">
-    <div class="modal-card">
-        <span class="close-modal" id="closeModalBtn">&times;</span>
-        <img id="modalImg" style="width:100%; border-radius:16px;">
-        <h2 id="modalTitle"></h2>
-        <p id="modalSellerName"></p>
-        <p id="modalDesc"></p>
-        <div id="priceBreakdownModal" class="price-breakdown"></div>
-        <h3 id="modalPrice"></h3>
-        <button class="btn-primary" id="modalAddCartBtn">Add to Cart</button>
-        <button class="btn-primary" id="modalAddWishBtn" style="background:#64748b;">❤️ Wishlist</button>
+    <!-- Bank Details -->
+    <div class="form-group">
+        <label>🏦 Bank Details</label>
+        <input type="text" id="bankName" placeholder="Bank Name">
+        <input type="text" id="accountNumber" placeholder="Account Number" style="margin-top:10px;">
+        <input type="text" id="bankCode" placeholder="IFSC / Routing / Sort Code" style="margin-top:10px;">
     </div>
-</div>
 
-<!-- Legal Modals -->
-<div id="termsModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeTermsModal()">&times;</span><h2>Terms & Conditions</h2><p>By using GlobalBazaar, you agree to these terms. You must be 18+.</p><button class="btn-primary" onclick="closeTermsModal()">Close</button></div></div>
-<div id="privacyModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closePrivacyModal()">&times;</span><h2>Privacy Policy</h2><p>We collect name, email, phone, address for order processing.</p><button class="btn-primary" onclick="closePrivacyModal()">Close</button></div></div>
-<div id="sellerAgreementModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSellerAgreementModal()">&times;</span><h2>Seller Agreement</h2><p>5% commission + 2.5% gateway fee. Payments released after delivery confirmation.</p><button class="btn-primary" onclick="closeSellerAgreementModal()">Close</button></div></div>
-<div id="supportModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSupportModal()">&times;</span><h2>📞 Support</h2><p>Email: support@globalbazaar.com<br>WhatsApp: +966 123 456 789</p><button class="btn-primary" onclick="closeSupportModal()">Close</button></div></div>
-
-<div class="footer-legal">
-    © 2026 GlobalBazaar Marketplace | <span class="legal-link" onclick="showTerms()">Terms</span> | <span class="legal-link" onclick="showPrivacy()">Privacy</span> | <span class="legal-link" onclick="showSupport()">Support</span>
+    <button onclick="submitKYC()">✅ Submit KYC</button>
 </div>
 
 <script>
-    // ============ CONSTANTS ============
-    const PLATFORM_COMMISSION = 0.05;
-    const GATEWAY_FEE = 0.025;
-    const HANDLING_FEE = 2;
-    
-    // Razorpay Configuration (Admin se set hoga)
-    let razorpayConfig = JSON.parse(localStorage.getItem('razorpay_config')) || {
-        key: "rzp_test_YourKey",
-        secret: ""
-    };
-    
-    let fx = { SAR:3.75, USD:1, EUR:0.92, GBP:0.78, INR:83.5, PKR:278, NPR:133.5, BDT:117, LKR:305, AED:3.67 };
-    let sym = { SAR:"SAR ", USD:"$", EUR:"€", GBP:"£", INR:"₹", PKR:"₨", NPR:"रू ", BDT:"৳", LKR:"Rs ", AED:"د.إ" };
-    
-    let selectedCurr = "SAR";
-    let buyerCountry = "IN";
-    
-    // EmailJS Configuration (Register at emailjs.com)
-    emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
-    
-    function sendEmailNotification(toEmail, subject, message) {
-        // Demo: Console log
-        console.log(`📧 Email to ${toEmail}: ${subject} - ${message}`);
-        showToast(`📧 Email sent to ${toEmail}`, false);
-        // Real implementation:
-        // emailjs.send("service_id", "template_id", { to_email: toEmail, subject: subject, message: message });
+    // ============ 195+ COUNTRIES DATABASE ============
+    const countriesList = [
+        { code: "AF", name: "Afghanistan", phoneCode: "+93", docs: ["National ID (Tazkira)", "Passport"] },
+        { code: "AL", name: "Albania", phoneCode: "+355", docs: ["ID Card", "Passport"] },
+        { code: "DZ", name: "Algeria", phoneCode: "+213", docs: ["National ID", "Passport"] },
+        { code: "AD", name: "Andorra", phoneCode: "+376", docs: ["ID Card", "Passport"] },
+        { code: "AO", name: "Angola", phoneCode: "+244", docs: ["National ID", "Passport"] },
+        { code: "AG", name: "Antigua and Barbuda", phoneCode: "+1", docs: ["Passport", "Driver's License"] },
+        { code: "AR", name: "Argentina", phoneCode: "+54", docs: ["DNI", "Passport"] },
+        { code: "AM", name: "Armenia", phoneCode: "+374", docs: ["ID Card", "Passport"] },
+        { code: "AU", name: "Australia", phoneCode: "+61", docs: ["Driver's License", "Passport", "Medicare Card"] },
+        { code: "AT", name: "Austria", phoneCode: "+43", docs: ["ID Card", "Passport"] },
+        { code: "AZ", name: "Azerbaijan", phoneCode: "+994", docs: ["ID Card", "Passport"] },
+        { code: "BS", name: "Bahamas", phoneCode: "+1", docs: ["Passport", "Driver's License"] },
+        { code: "BH", name: "Bahrain", phoneCode: "+973", docs: ["CPR", "Passport"] },
+        { code: "BD", name: "Bangladesh", phoneCode: "+880", docs: ["National ID", "Passport"] },
+        { code: "BB", name: "Barbados", phoneCode: "+1", docs: ["ID Card", "Passport"] },
+        { code: "BY", name: "Belarus", phoneCode: "+375", docs: ["ID Card", "Passport"] },
+        { code: "BE", name: "Belgium", phoneCode: "+32", docs: ["eID", "Passport"] },
+        { code: "BZ", name: "Belize", phoneCode: "+501", docs: ["Passport", "Driver's License"] },
+        { code: "BJ", name: "Benin", phoneCode: "+229", docs: ["National ID", "Passport"] },
+        { code: "BT", name: "Bhutan", phoneCode: "+975", docs: ["CID Card", "Passport"] },
+        { code: "BO", name: "Bolivia", phoneCode: "+591", docs: ["CI", "Passport"] },
+        { code: "BA", name: "Bosnia and Herzegovina", phoneCode: "+387", docs: ["ID Card", "Passport"] },
+        { code: "BW", name: "Botswana", phoneCode: "+267", docs: ["Omang", "Passport"] },
+        { code: "BR", name: "Brazil", phoneCode: "+55", docs: ["RG", "CPF", "Passport"] },
+        { code: "BN", name: "Brunei", phoneCode: "+673", docs: ["IC", "Passport"] },
+        { code: "BG", name: "Bulgaria", phoneCode: "+359", docs: ["ID Card", "Passport"] },
+        { code: "BF", name: "Burkina Faso", phoneCode: "+226", docs: ["National ID", "Passport"] },
+        { code: "BI", name: "Burundi", phoneCode: "+257", docs: ["National ID", "Passport"] },
+        { code: "KH", name: "Cambodia", phoneCode: "+855", docs: ["ID Card", "Passport"] },
+        { code: "CM", name: "Cameroon", phoneCode: "+237", docs: ["National ID", "Passport"] },
+        { code: "CA", name: "Canada", phoneCode: "+1", docs: ["SIN", "Driver's License", "Passport"] },
+        { code: "CV", name: "Cape Verde", phoneCode: "+238", docs: ["National ID", "Passport"] },
+        { code: "CF", name: "Central African Republic", phoneCode: "+236", docs: ["National ID", "Passport"] },
+        { code: "TD", name: "Chad", phoneCode: "+235", docs: ["National ID", "Passport"] },
+        { code: "CL", name: "Chile", phoneCode: "+56", docs: ["RUT", "Passport"] },
+        { code: "CN", name: "China", phoneCode: "+86", docs: ["National ID", "Passport"] },
+        { code: "CO", name: "Colombia", phoneCode: "+57", docs: ["Cedula", "Passport"] },
+        { code: "KM", name: "Comoros", phoneCode: "+269", docs: ["National ID", "Passport"] },
+        { code: "CG", name: "Congo", phoneCode: "+242", docs: ["National ID", "Passport"] },
+        { code: "CR", name: "Costa Rica", phoneCode: "+506", docs: ["Cedula", "Passport"] },
+        { code: "HR", name: "Croatia", phoneCode: "+385", docs: ["ID Card", "Passport"] },
+        { code: "CU", name: "Cuba", phoneCode: "+53", docs: ["Carnet", "Passport"] },
+        { code: "CY", name: "Cyprus", phoneCode: "+357", docs: ["ID Card", "Passport"] },
+        { code: "CZ", name: "Czech Republic", phoneCode: "+420", docs: ["ID Card", "Passport"] },
+        { code: "DK", name: "Denmark", phoneCode: "+45", docs: ["CPR Card", "Passport"] },
+        { code: "DJ", name: "Djibouti", phoneCode: "+253", docs: ["National ID", "Passport"] },
+        { code: "DM", name: "Dominica", phoneCode: "+1", docs: ["Passport", "Driver's License"] },
+        { code: "DO", name: "Dominican Republic", phoneCode: "+1", docs: ["Cedula", "Passport"] },
+        { code: "EC", name: "Ecuador", phoneCode: "+593", docs: ["Cedula", "Passport"] },
+        { code: "EG", name: "Egypt", phoneCode: "+20", docs: ["National ID", "Passport"] },
+        { code: "SV", name: "El Salvador", phoneCode: "+503", docs: ["DUI", "Passport"] },
+        { code: "GQ", name: "Equatorial Guinea", phoneCode: "+240", docs: ["National ID", "Passport"] },
+        { code: "ER", name: "Eritrea", phoneCode: "+291", docs: ["National ID", "Passport"] },
+        { code: "EE", name: "Estonia", phoneCode: "+372", docs: ["ID Card", "Passport"] },
+        { code: "SZ", name: "Eswatini", phoneCode: "+268", docs: ["National ID", "Passport"] },
+        { code: "ET", name: "Ethiopia", phoneCode: "+251", docs: ["Kebele ID", "Passport"] },
+        { code: "FJ", name: "Fiji", phoneCode: "+679", docs: ["National ID", "Passport"] },
+        { code: "FI", name: "Finland", phoneCode: "+358", docs: ["ID Card", "Passport"] },
+        { code: "FR", name: "France", phoneCode: "+33", docs: ["CNI", "Passport"] },
+        { code: "GA", name: "Gabon", phoneCode: "+241", docs: ["National ID", "Passport"] },
+        { code: "GM", name: "Gambia", phoneCode: "+220", docs: ["National ID", "Passport"] },
+        { code: "GE", name: "Georgia", phoneCode: "+995", docs: ["ID Card", "Passport"] },
+        { code: "DE", name: "Germany", phoneCode: "+49", docs: ["Personalausweis", "Passport"] },
+        { code: "GH", name: "Ghana", phoneCode: "+233", docs: ["Ghana Card", "Passport"] },
+        { code: "GR", name: "Greece", phoneCode: "+30", docs: ["ID Card", "Passport"] },
+        { code: "GD", name: "Grenada", phoneCode: "+1", docs: ["Passport", "Driver's License"] },
+        { code: "GT", name: "Guatemala", phoneCode: "+502", docs: ["DPI", "Passport"] },
+        { code: "GN", name: "Guinea", phoneCode: "+224", docs: ["National ID", "Passport"] },
+        { code: "GW", name: "Guinea-Bissau", phoneCode: "+245", docs: ["National ID", "Passport"] },
+        { code: "GY", name: "Guyana", phoneCode: "+592", docs: ["National ID", "Passport"] },
+        { code: "HT", name: "Haiti", phoneCode: "+509", docs: ["National ID", "Passport"] },
+        { code: "HN", name: "Honduras", phoneCode: "+504", docs: ["DNI", "Passport"] },
+        { code: "HU", name: "Hungary", phoneCode: "+36", docs: ["ID Card", "Passport"] },
+        { code: "IS", name: "Iceland", phoneCode: "+354", docs: ["ID Card", "Passport"] },
+        { code: "IN", name: "India", phoneCode: "+91", docs: ["Aadhaar Card", "PAN Card", "Voter ID", "Passport"] },
+        { code: "ID", name: "Indonesia", phoneCode: "+62", docs: ["KTP", "Passport"] },
+        { code: "IR", name: "Iran", phoneCode: "+98", docs: ["National ID", "Passport"] },
+        { code: "IQ", name: "Iraq", phoneCode: "+964", docs: ["National ID", "Passport"] },
+        { code: "IE", name: "Ireland", phoneCode: "+353", docs: ["PPS Card", "Passport"] },
+        { code: "IL", name: "Israel", phoneCode: "+972", docs: ["Teudat Zehut", "Passport"] },
+        { code: "IT", name: "Italy", phoneCode: "+39", docs: ["Carta d'Identità", "Passport"] },
+        { code: "JM", name: "Jamaica", phoneCode: "+1", docs: ["TRN", "Passport"] },
+        { code: "JP", name: "Japan", phoneCode: "+81", docs: ["My Number Card", "Passport"] },
+        { code: "JO", name: "Jordan", phoneCode: "+962", docs: ["National ID", "Passport"] },
+        { code: "KZ", name: "Kazakhstan", phoneCode: "+7", docs: ["ID Card", "Passport"] },
+        { code: "KE", name: "Kenya", phoneCode: "+254", docs: ["National ID", "Passport"] },
+        { code: "KI", name: "Kiribati", phoneCode: "+686", docs: ["National ID", "Passport"] },
+        { code: "KP", name: "North Korea", phoneCode: "+850", docs: ["Citizen ID", "Passport"] },
+        { code: "KR", name: "South Korea", phoneCode: "+82", docs: ["Resident ID", "Passport"] },
+        { code: "KW", name: "Kuwait", phoneCode: "+965", docs: ["Civil ID", "Passport"] },
+        { code: "KG", name: "Kyrgyzstan", phoneCode: "+996", docs: ["ID Card", "Passport"] },
+        { code: "LA", name: "Laos", phoneCode: "+856", docs: ["Citizen ID", "Passport"] },
+        { code: "LV", name: "Latvia", phoneCode: "+371", docs: ["ID Card", "Passport"] },
+        { code: "LB", name: "Lebanon", phoneCode: "+961", docs: ["National ID", "Passport"] },
+        { code: "LS", name: "Lesotho", phoneCode: "+266", docs: ["National ID", "Passport"] },
+        { code: "LR", name: "Liberia", phoneCode: "+231", docs: ["National ID", "Passport"] },
+        { code: "LY", name: "Libya", phoneCode: "+218", docs: ["National ID", "Passport"] },
+        { code: "LI", name: "Liechtenstein", phoneCode: "+423", docs: ["ID Card", "Passport"] },
+        { code: "LT", name: "Lithuania", phoneCode: "+370", docs: ["ID Card", "Passport"] },
+        { code: "LU", name: "Luxembourg", phoneCode: "+352", docs: ["ID Card", "Passport"] },
+        { code: "MG", name: "Madagascar", phoneCode: "+261", docs: ["National ID", "Passport"] },
+        { code: "MW", name: "Malawi", phoneCode: "+265", docs: ["National ID", "Passport"] },
+        { code: "MY", name: "Malaysia", phoneCode: "+60", docs: ["MyKad", "Passport"] },
+        { code: "MV", name: "Maldives", phoneCode: "+960", docs: ["National ID", "Passport"] },
+        { code: "ML", name: "Mali", phoneCode: "+223", docs: ["National ID", "Passport"] },
+        { code: "MT", name: "Malta", phoneCode: "+356", docs: ["ID Card", "Passport"] },
+        { code: "MH", name: "Marshall Islands", phoneCode: "+692", docs: ["Passport"] },
+        { code: "MR", name: "Mauritania", phoneCode: "+222", docs: ["National ID", "Passport"] },
+        { code: "MU", name: "Mauritius", phoneCode: "+230", docs: ["National ID", "Passport"] },
+        { code: "MX", name: "Mexico", phoneCode: "+52", docs: ["INE", "Passport"] },
+        { code: "FM", name: "Micronesia", phoneCode: "+691", docs: ["Passport"] },
+        { code: "MD", name: "Moldova", phoneCode: "+373", docs: ["ID Card", "Passport"] },
+        { code: "MC", name: "Monaco", phoneCode: "+377", docs: ["ID Card", "Passport"] },
+        { code: "MN", name: "Mongolia", phoneCode: "+976", docs: ["National ID", "Passport"] },
+        { code: "ME", name: "Montenegro", phoneCode: "+382", docs: ["ID Card", "Passport"] },
+        { code: "MA", name: "Morocco", phoneCode: "+212", docs: ["National ID", "Passport"] },
+        { code: "MZ", name: "Mozambique", phoneCode: "+258", docs: ["National ID", "Passport"] },
+        { code: "MM", name: "Myanmar", phoneCode: "+95", docs: ["Citizen ID", "Passport"] },
+        { code: "NA", name: "Namibia", phoneCode: "+264", docs: ["National ID", "Passport"] },
+        { code: "NR", name: "Nauru", phoneCode: "+674", docs: ["Passport"] },
+        { code: "NP", name: "Nepal", phoneCode: "+977", docs: ["Citizenship Card", "Passport"] },
+        { code: "NL", name: "Netherlands", phoneCode: "+31", docs: ["BSN", "Passport"] },
+        { code: "NZ", name: "New Zealand", phoneCode: "+64", docs: ["Driver's License", "Passport"] },
+        { code: "NI", name: "Nicaragua", phoneCode: "+505", docs: ["Cedula", "Passport"] },
+        { code: "NE", name: "Niger", phoneCode: "+227", docs: ["National ID", "Passport"] },
+        { code: "NG", name: "Nigeria", phoneCode: "+234", docs: ["NIN", "Passport"] },
+        { code: "MK", name: "North Macedonia", phoneCode: "+389", docs: ["ID Card", "Passport"] },
+        { code: "NO", name: "Norway", phoneCode: "+47", docs: ["ID Card", "Passport"] },
+        { code: "OM", name: "Oman", phoneCode: "+968", docs: ["Civil ID", "Passport"] },
+        { code: "PK", name: "Pakistan", phoneCode: "+92", docs: ["CNIC", "Passport"] },
+        { code: "PW", name: "Palau", phoneCode: "+680", docs: ["Passport"] },
+        { code: "PS", name: "Palestine", phoneCode: "+970", docs: ["National ID", "Passport"] },
+        { code: "PA", name: "Panama", phoneCode: "+507", docs: ["Cedula", "Passport"] },
+        { code: "PG", name: "Papua New Guinea", phoneCode: "+675", docs: ["National ID", "Passport"] },
+        { code: "PY", name: "Paraguay", phoneCode: "+595", docs: ["Cedula", "Passport"] },
+        { code: "PE", name: "Peru", phoneCode: "+51", docs: ["DNI", "Passport"] },
+        { code: "PH", name: "Philippines", phoneCode: "+63", docs: ["National ID", "Passport"] },
+        { code: "PL", name: "Poland", phoneCode: "+48", docs: ["Dowód Osobisty", "Passport"] },
+        { code: "PT", name: "Portugal", phoneCode: "+351", docs: ["Cartão de Cidadão", "Passport"] },
+        { code: "QA", name: "Qatar", phoneCode: "+974", docs: ["QID", "Passport"] },
+        { code: "RO", name: "Romania", phoneCode: "+40", docs: ["ID Card", "Passport"] },
+        { code: "RU", name: "Russia", phoneCode: "+7", docs: ["Internal Passport", "Passport"] },
+        { code: "RW", name: "Rwanda", phoneCode: "+250", docs: ["National ID", "Passport"] },
+        { code: "KN", name: "Saint Kitts and Nevis", phoneCode: "+1", docs: ["Passport"] },
+        { code: "LC", name: "Saint Lucia", phoneCode: "+1", docs: ["Passport"] },
+        { code: "VC", name: "Saint Vincent", phoneCode: "+1", docs: ["Passport"] },
+        { code: "WS", name: "Samoa", phoneCode: "+685", docs: ["National ID", "Passport"] },
+        { code: "SM", name: "San Marino", phoneCode: "+378", docs: ["ID Card", "Passport"] },
+        { code: "ST", name: "Sao Tome and Principe", phoneCode: "+239", docs: ["National ID", "Passport"] },
+        { code: "SA", name: "Saudi Arabia", phoneCode: "+966", docs: ["Iqama", "National ID", "Passport"] },
+        { code: "SN", name: "Senegal", phoneCode: "+221", docs: ["National ID", "Passport"] },
+        { code: "RS", name: "Serbia", phoneCode: "+381", docs: ["ID Card", "Passport"] },
+        { code: "SC", name: "Seychelles", phoneCode: "+248", docs: ["National ID", "Passport"] },
+        { code: "SL", name: "Sierra Leone", phoneCode: "+232", docs: ["National ID", "Passport"] },
+        { code: "SG", name: "Singapore", phoneCode: "+65", docs: ["NRIC", "Passport"] },
+        { code: "SK", name: "Slovakia", phoneCode: "+421", docs: ["ID Card", "Passport"] },
+        { code: "SI", name: "Slovenia", phoneCode: "+386", docs: ["ID Card", "Passport"] },
+        { code: "SB", name: "Solomon Islands", phoneCode: "+677", docs: ["National ID", "Passport"] },
+        { code: "SO", name: "Somalia", phoneCode: "+252", docs: ["National ID", "Passport"] },
+        { code: "ZA", name: "South Africa", phoneCode: "+27", docs: ["ID Card", "Passport"] },
+        { code: "SS", name: "South Sudan", phoneCode: "+211", docs: ["National ID", "Passport"] },
+        { code: "ES", name: "Spain", phoneCode: "+34", docs: ["DNI", "Passport"] },
+        { code: "LK", name: "Sri Lanka", phoneCode: "+94", docs: ["National ID", "Passport"] },
+        { code: "SD", name: "Sudan", phoneCode: "+249", docs: ["National ID", "Passport"] },
+        { code: "SR", name: "Suriname", phoneCode: "+597", docs: ["National ID", "Passport"] },
+        { code: "SE", name: "Sweden", phoneCode: "+46", docs: ["ID Card", "Passport"] },
+        { code: "CH", name: "Switzerland", phoneCode: "+41", docs: ["ID Card", "Passport"] },
+        { code: "SY", name: "Syria", phoneCode: "+963", docs: ["National ID", "Passport"] },
+        { code: "TW", name: "Taiwan", phoneCode: "+886", docs: ["National ID", "Passport"] },
+        { code: "TJ", name: "Tajikistan", phoneCode: "+992", docs: ["ID Card", "Passport"] },
+        { code: "TZ", name: "Tanzania", phoneCode: "+255", docs: ["National ID", "Passport"] },
+        { code: "TH", name: "Thailand", phoneCode: "+66", docs: ["Thai ID Card", "Passport"] },
+        { code: "TL", name: "Timor-Leste", phoneCode: "+670", docs: ["National ID", "Passport"] },
+        { code: "TG", name: "Togo", phoneCode: "+228", docs: ["National ID", "Passport"] },
+        { code: "TO", name: "Tonga", phoneCode: "+676", docs: ["National ID", "Passport"] },
+        { code: "TT", name: "Trinidad and Tobago", phoneCode: "+1", docs: ["National ID", "Passport"] },
+        { code: "TN", name: "Tunisia", phoneCode: "+216", docs: ["National ID", "Passport"] },
+        { code: "TR", name: "Turkey", phoneCode: "+90", docs: ["Turkish ID", "Passport"] },
+        { code: "TM", name: "Turkmenistan", phoneCode: "+993", docs: ["ID Card", "Passport"] },
+        { code: "TV", name: "Tuvalu", phoneCode: "+688", docs: ["Passport"] },
+        { code: "UG", name: "Uganda", phoneCode: "+256", docs: ["National ID", "Passport"] },
+        { code: "UA", name: "Ukraine", phoneCode: "+380", docs: ["ID Card", "Passport"] },
+        { code: "AE", name: "United Arab Emirates", phoneCode: "+971", docs: ["Emirates ID", "Passport"] },
+        { code: "GB", name: "United Kingdom", phoneCode: "+44", docs: ["BRP", "Passport", "Driver's License"] },
+        { code: "US", name: "United States", phoneCode: "+1", docs: ["SSN", "Driver's License", "Passport"] },
+        { code: "UY", name: "Uruguay", phoneCode: "+598", docs: ["Cedula", "Passport"] },
+        { code: "UZ", name: "Uzbekistan", phoneCode: "+998", docs: ["ID Card", "Passport"] },
+        { code: "VU", name: "Vanuatu", phoneCode: "+678", docs: ["National ID", "Passport"] },
+        { code: "VA", name: "Vatican City", phoneCode: "+379", docs: ["Passport"] },
+        { code: "VE", name: "Venezuela", phoneCode: "+58", docs: ["Cedula", "Passport"] },
+        { code: "VN", name: "Vietnam", phoneCode: "+84", docs: ["National ID", "Passport"] },
+        { code: "YE", name: "Yemen", phoneCode: "+967", docs: ["National ID", "Passport"] },
+        { code: "ZM", name: "Zambia", phoneCode: "+260", docs: ["National ID", "Passport"] },
+        { code: "ZW", name: "Zimbabwe", phoneCode: "+263", docs: ["National ID", "Passport"] }
+    ];
+
+    // Load countries into dropdown
+    function loadCountries() {
+        const countrySelect = document.getElementById('countrySelect');
+        const phoneCodeSelect = document.getElementById('countryCode');
+        
+        countriesList.sort((a, b) => a.name.localeCompare(b.name));
+        
+        countriesList.forEach(country => {
+            const option = document.createElement('option');
+            option.value = country.code;
+            option.textContent = `${country.flag || '🌍'} ${country.name}`;
+            countrySelect.appendChild(option);
+            
+            const phoneOption = document.createElement('option');
+            phoneOption.value = country.phoneCode;
+            phoneOption.textContent = `${country.name} ${country.phoneCode}`;
+            phoneCodeSelect.appendChild(phoneOption);
+        });
     }
-    
-    function sendWhatsAppNotification(phone, message) {
-        console.log(`💬 WhatsApp to ${phone}: ${message}`);
-        // Real: Twilio API
-        showToast(`💬 WhatsApp notification sent`, false);
-    }
-    
-    function generatePDFInvoice(order) {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.setFontSize(18);
-        doc.text("GlobalBazaar Invoice", 20, 20);
-        doc.setFontSize(12);
-        doc.text(`Order ID: ${order.trackingNumber}`, 20, 40);
-        doc.text(`Date: ${order.date}`, 20, 50);
-        doc.text(`Product: ${order.productName} x${order.qty}`, 20, 60);
-        doc.text(`Amount: ${getSym()}${convert(order.amount)}`, 20, 70);
-        doc.text(`Status: ${order.status}`, 20, 80);
-        doc.text(`Address: ${order.address}`, 20, 90);
-        doc.save(`invoice_${order.trackingNumber}.pdf`);
-        showToast("Invoice downloaded!", false);
-    }
-    
-    function convert(usd) { return (usd * fx[selectedCurr]).toFixed(2); }
-    function getSym() { return sym[selectedCurr]; }
-    function showToast(msg, isError) { let t = document.getElementById('toast'); t.innerText = msg; t.style.backgroundColor = isError ? '#dc2626' : '#10b981'; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
-    
-    function showTerms() { document.getElementById('termsModal').style.display = 'block'; }
-    function closeTermsModal() { document.getElementById('termsModal').style.display = 'none'; }
-    function showPrivacy() { document.getElementById('privacyModal').style.display = 'block'; }
-    function closePrivacyModal() { document.getElementById('privacyModal').style.display = 'none'; }
-    function showSellerAgreement() { document.getElementById('sellerAgreementModal').style.display = 'block'; }
-    function closeSellerAgreementModal() { document.getElementById('sellerAgreementModal').style.display = 'none'; }
-    function showSupport() { document.getElementById('supportModal').style.display = 'block'; }
-    function closeSupportModal() { document.getElementById('supportModal').style.display = 'none'; }
-    
-    function calculateAge(dob) {
-        let today = new Date();
-        let birthDate = new Date(dob);
-        let age = today.getFullYear() - birthDate.getFullYear();
-        let m = today.getMonth() - birthDate.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
-        return age;
-    }
-    
-    const illegalKeywords = ["gun","pistol","weapon","bomb","drugs","cocaine","heroin"];
-    function isIllegal(n,d) { return illegalKeywords.some(k => (n+d).toLowerCase().includes(k)); }
-    
-    function getShippingCost(sellerCountry, buyerCountry) {
-        if(sellerCountry === buyerCountry) return 5;
-        let nearby = ["SA","AE","IN","PK","BD","LK","NP"];
-        return nearby.includes(sellerCountry) && nearby.includes(buyerCountry) ? 12 : 25;
-    }
-    
-    function calculateFinalPrice(basePrice, sellerCountry) {
-        let shipping = getShippingCost(sellerCountry, buyerCountry);
-        let commission = basePrice * PLATFORM_COMMISSION;
-        let gateway = basePrice * GATEWAY_FEE;
-        return { total: basePrice + commission + gateway + shipping + HANDLING_FEE, shipping, commission, gateway, basePrice };
-    }
-    
-    // Razorpay Payment Function
-    function processRazorpayPayment(amountINR, orderId, buyerEmail, buyerPhone, buyerName, callback) {
-        if(!razorpayConfig.key || razorpayConfig.key === "rzp_test_YourKey") {
-            showToast("⚠️ Razorpay not configured! Admin please set Razorpay Key in Admin panel.", true);
-            callback(false, null);
+
+    // Update documents and phone code based on selected country
+    function updateDocumentsAndPhoneCode() {
+        const countryCode = document.getElementById('countrySelect').value;
+        const country = countriesList.find(c => c.code === countryCode);
+        
+        if (!country) {
+            document.getElementById('documentSection').innerHTML = '<div class="document-row">Please select a country</div>';
             return;
         }
         
-        var options = {
-            key: razorpayConfig.key,
-            amount: Math.round(amountINR * 100),
-            currency: "INR",
-            name: "GlobalBazaar",
-            description: `Order ${orderId}`,
-            prefill: {
-                name: buyerName,
-                email: buyerEmail,
-                contact: buyerPhone
-            },
-            theme: { color: "#1e3a8a" },
-            handler: function(response) {
-                showToast("✅ Payment successful!", false);
-                sendEmailNotification(buyerEmail, "Payment Successful", `Your payment of ₹${amountINR} for order ${orderId} is successful. Payment ID: ${response.razorpay_payment_id}`);
-                callback(true, response.razorpay_payment_id);
-            }
-        };
-        var rzp = new Razorpay(options);
-        rzp.open();
-    }
-    
-    let sellers = JSON.parse(localStorage.getItem('gb_sellers')) || [];
-    let products = JSON.parse(localStorage.getItem('gb_products')) || [
-        {id:1, sellerId:0, sellerName:"GlobalBazaar", name:"Luxury Smart Watch", price:50, category:"Electronics", image:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400", description:"Premium smart watch", rating:4.5, reviews:[], sellerCountry:"IN"},
-        {id:2, sellerId:0, sellerName:"GlobalBazaar", name:"Premium Headphones", price:120, category:"Electronics", image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", description:"Noise cancellation", rating:4.8, reviews:[], sellerCountry:"IN"}
-    ];
-    let buyers = JSON.parse(localStorage.getItem('gb_buyers')) || [];
-    let currentUser = JSON.parse(localStorage.getItem('gb_current_user')) || null;
-    let cart = JSON.parse(localStorage.getItem('gb_cart')) || [];
-    let wishlist = JSON.parse(localStorage.getItem('gb_wishlist')) || [];
-    let orders = JSON.parse(localStorage.getItem('gb_orders')) || [];
-    let platformEarnings = JSON.parse(localStorage.getItem('gb_platform_earnings')) || 0;
-    let pendingWithdrawals = JSON.parse(localStorage.getItem('gb_pending_withdrawals')) || [];
-    let payouts = JSON.parse(localStorage.getItem('gb_payouts')) || [];
-    
-    function saveAll() {
-        localStorage.setItem('gb_sellers', JSON.stringify(sellers));
-        localStorage.setItem('gb_products', JSON.stringify(products));
-        localStorage.setItem('gb_buyers', JSON.stringify(buyers));
-        localStorage.setItem('gb_current_user', JSON.stringify(currentUser));
-        localStorage.setItem('gb_cart', JSON.stringify(cart));
-        localStorage.setItem('gb_wishlist', JSON.stringify(wishlist));
-        localStorage.setItem('gb_orders', JSON.stringify(orders));
-        localStorage.setItem('gb_platform_earnings', JSON.stringify(platformEarnings));
-        localStorage.setItem('gb_pending_withdrawals', JSON.stringify(pendingWithdrawals));
-        localStorage.setItem('gb_payouts', JSON.stringify(payouts));
-        localStorage.setItem('razorpay_config', JSON.stringify(razorpayConfig));
-    }
-    
-    // Save Razorpay Settings
-    document.getElementById('saveRazorpaySettings')?.addEventListener('click', () => {
-        razorpayConfig.key = document.getElementById('razorpayKey').value;
-        razorpayConfig.secret = document.getElementById('razorpaySecret').value;
-        saveAll();
-        showToast("Razorpay settings saved!", false);
-    });
-    
-    async function detectLocation() { try { let r = await fetch('https://ipapi.co/json/'); let d = await r.json(); buyerCountry = d.country_code || "IN"; } catch(e) {} renderProducts(); }
-    detectLocation();
-    document.getElementById('currencySelect').addEventListener('change', (e) => { selectedCurr = e.target.value; renderProducts(); updateCartUI(); renderBuyerOrders(); });
-    
-    function getAddressLineByLine() {
-        let h = prompt("House No.:"); if(!h) return null;
-        let s = prompt("Street:"); if(!s) return null;
-        let c = prompt("City:"); if(!c) return null;
-        let st = prompt("State:"); if(!st) return null;
-        let p = prompt("PIN Code:"); if(!p) return null;
-        let co = prompt("Country:", "India"); if(!co) return null;
-        let addr = `${h}, ${s}, ${c}, ${st} - ${p}, ${co}`;
-        if(currentUser) { currentUser.savedAddress = { house:h, street:s, city:c, state:st, pincode:p, country:co, fullAddress:addr }; saveAll(); displaySavedAddress(); }
-        return addr;
-    }
-    
-    function displaySavedAddress() {
-        if(currentUser?.savedAddress) document.getElementById('savedAddressDisplay').innerHTML = `🏠 ${currentUser.savedAddress.house}<br>📌 ${currentUser.savedAddress.street}<br>🏙️ ${currentUser.savedAddress.city}<br>🗺️ ${currentUser.savedAddress.state}<br>📮 ${currentUser.savedAddress.pincode}<br>🌍 ${currentUser.savedAddress.country}`;
-        else document.getElementById('savedAddressDisplay').innerHTML = "No address saved.";
-    }
-    
-    let currentCategory = "All";
-    function renderCats() {
-        let cats = ["All", ...new Set(products.map(p=>p.category))];
-        document.getElementById('catList').innerHTML = cats.map(c => `<div class="cat-pill ${currentCategory===c?'active':''}" data-cat="${c}">${c}</div>`).join('');
-        document.querySelectorAll('.cat-pill').forEach(el => el.addEventListener('click', (e) => { currentCategory = e.target.dataset.cat; renderCats(); renderProducts(); }));
-    }
-    
-    function renderProducts() {
-        let search = document.getElementById('searchInput')?.value.toLowerCase() || "";
-        let filtered = products.filter(p => (currentCategory==="All" || p.category===currentCategory) && p.name.toLowerCase().includes(search));
-        let sellerMap = new Map(sellers.map(s=>[s.id, s]));
-        let html = filtered.map(p => {
-            let seller = sellerMap.get(p.sellerId) || {shopName:"GlobalBazaar", country:"IN"};
-            let final = calculateFinalPrice(p.price, seller.country);
-            return `<div class="product-card" data-id="${p.id}"><img src="${p.image}"><div class="seller-name-tag">🏪 ${seller.shopName}</div><h4>${p.name}</h4><div class="prod-price">${getSym()}${convert(final.total)}</div><div class="card-actions"><button class="btn-sm btn-buy addCartBtn" data-id="${p.id}">Buy</button><button class="btn-sm btn-wish wishBtn ${wishlist.includes(p.id)?'active':''}" data-id="${p.id}">❤️</button></div></div>`;
-        }).join('');
-        document.getElementById('productsGrid').innerHTML = html;
-        document.querySelectorAll('.addCartBtn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); addToCart(parseInt(btn.dataset.id)); }));
-        document.querySelectorAll('.wishBtn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); toggleWish(parseInt(btn.dataset.id)); }));
-        document.querySelectorAll('.product-card').forEach(card => card.addEventListener('click', () => openProduct(parseInt(card.dataset.id))));
-    }
-    
-    let currentProduct = null;
-    function openProduct(id) {
-        let p = products.find(x=>x.id===id);
-        if(!p) return;
-        currentProduct = p;
-        let seller = sellers.find(s=>s.id===p.sellerId) || {shopName:"GlobalBazaar", country:"IN"};
-        let final = calculateFinalPrice(p.price, seller.country);
-        document.getElementById('modalImg').src = p.image;
-        document.getElementById('modalTitle').innerText = p.name;
-        document.getElementById('modalSellerName').innerHTML = `🏪 ${seller.shopName}`;
-        document.getElementById('modalDesc').innerText = p.description;
-        document.getElementById('priceBreakdownModal').innerHTML = `Base: ${getSym()}${convert(p.price)}<br>+ Shipping: ${getSym()}${convert(final.shipping)}<br>+ Fees: ${getSym()}${convert(final.commission+final.gateway+HANDLING_FEE)}<br><strong>Total: ${getSym()}${convert(final.total)}</strong>`;
-        document.getElementById('modalPrice').innerHTML = `${getSym()}${convert(final.total)}`;
-        document.getElementById('productModal').style.display = 'block';
-    }
-    
-    function addToCart(id) {
-        let p = products.find(x=>x.id===id);
-        if(!p) return;
-        let existing = cart.find(i=>i.id===id);
-        if(existing) existing.qty++;
-        else cart.push({id:p.id, name:p.name, price:p.price, sellerId:p.sellerId, sellerCountry:p.sellerCountry || "IN", qty:1});
-        saveAll();
-        updateCartUI();
-        showToast("Added to cart", false);
-    }
-    
-    function updateCartUI() { document.getElementById('cartCountBadge').innerText = cart.reduce((a,b)=>a+b.qty,0); }
-    function toggleWish(id) { if(wishlist.includes(id)) wishlist = wishlist.filter(i=>i!==id); else wishlist.push(id); saveAll(); renderProducts(); }
-    
-    // Checkout with Razorpay
-    document.getElementById('cartFloatBtn')?.addEventListener('click', () => {
-        if(cart.length === 0) { showToast("Cart empty!", true); return; }
-        if(!currentUser) { showToast("Login first!", true); return; }
-        let address = currentUser.savedAddress?.fullAddress || getAddressLineByLine();
-        if(!address) return;
+        // Auto-update phone code
+        document.getElementById('countryCode').value = country.phoneCode;
         
-        let totalUSD = cart.reduce((sum, item) => {
-            let seller = sellers.find(s=>s.id===item.sellerId);
-            let final = calculateFinalPrice(item.price, seller?.country || "IN");
-            return sum + (final.total * item.qty);
-        }, 0);
-        let totalINR = totalUSD * fx.INR;
-        
-        let tracking = "GB" + Date.now();
-        
-        processRazorpayPayment(totalINR, tracking, currentUser.email, currentUser.phone, currentUser.name, (success, paymentId) => {
-            if(success) {
-                cart.forEach(item => {
-                    let seller = sellers.find(s=>s.id===item.sellerId);
-                    let final = calculateFinalPrice(item.price, seller?.country || "IN");
-                    orders.push({
-                        id: Date.now()+Math.random(), trackingNumber: tracking, paymentId: paymentId,
-                        sellerId: item.sellerId, sellerName: item.sellerName,
-                        buyerEmail: currentUser.email, buyerName: currentUser.name,
-                        productName: item.name, amount: final.total, basePrice: item.price,
-                        address: address, date: new Date().toLocaleString(), 
-                        status: "Confirmed", qty: item.qty, shippingCost: final.shipping,
-                        commission: final.commission, sellerReleased: false
-                    });
-                    platformEarnings += final.commission * item.qty;
-                });
-                cart = []; saveAll(); updateCartUI();
-                sendEmailNotification(currentUser.email, "Order Confirmed", `Your order ${tracking} has been confirmed. Total: ${getSym()}${convert(totalUSD)}`);
-                sendWhatsAppNotification(currentUser.phone, `Order ${tracking} confirmed! Thank you for shopping at GlobalBazaar.`);
-                showToast(`Order Confirmed! Tracking: ${tracking}`, false);
-                if(currentUser?.role === 'buyer') renderBuyerOrders();
-                if(currentUser?.role === 'seller') renderSellerDashboard();
+        // Generate document fields
+        let html = '<label>📄 KYC Documents</label>';
+        country.docs.forEach((doc, index) => {
+            if (doc.includes('ID') || doc.includes('Card') || doc.includes('License')) {
+                html += `
+                    <div class="document-row">
+                        <strong>${doc}</strong><br>
+                        <input type="file" accept="image/*,application/pdf" id="doc_${index}">
+                        <small>Upload your ${doc}</small>
+                    </div>
+                `;
+            } else if (doc.includes('SSN') || doc.includes('SIN') || doc.includes('NIN') || doc.includes('CNIC') || doc.includes('TIN')) {
+                html += `
+                    <div class="document-row">
+                        <strong>${doc}</strong><br>
+                        <input type="text" placeholder="Enter ${doc} number" id="doc_${index}_text">
+                        <input type="file" accept="image/*" id="doc_${index}_file">
+                    </div>
+                `;
             } else {
-                showToast("Payment failed!", true);
+                html += `
+                    <div class="document-row">
+                        <strong>${doc}</strong><br>
+                        <input type="file" accept="image/*,application/pdf" id="doc_${index}">
+                    </div>
+                `;
             }
         });
-    });
-    
-    function confirmOrderReceived(orderId) {
-        let order = orders.find(o => o.id === orderId);
-        if(order && order.status === "Shipped") {
-            order.status = "Delivered";
-            saveAll();
-            sendEmailNotification(order.buyerEmail, "Order Delivered", `Your order ${order.trackingNumber} has been delivered. Thank you!`);
-            showToast("Order marked as Delivered!", false);
-            renderBuyerOrders();
-            renderSellerDashboard();
-            setTimeout(() => {
-                let ord = orders.find(o => o.id === orderId);
-                if(ord && ord.status === "Delivered") {
-                    ord.status = "Completed";
-                    let seller = sellers.find(s => s.id === ord.sellerId);
-                    if(seller) {
-                        let sellerEarning = ord.basePrice - ord.shippingCost - HANDLING_FEE;
-                        seller.earnings = (seller.earnings || 0) + (sellerEarning * ord.qty);
-                        ord.sellerReleased = true;
-                        saveAll();
-                        sendEmailNotification(seller.email, "Payment Released", `Payment of ${getSym()}${convert(sellerEarning * ord.qty)} has been released for order ${ord.trackingNumber}`);
-                        showToast(`Payment released to seller`, false);
-                        renderSellerDashboard();
-                    }
-                    renderBuyerOrders();
-                }
-            }, 5000);
-        } else {
-            showToast("Order not shipped yet!", true);
-        }
-    }
-    
-    function markOrderShipped(orderId, trackingNum) {
-        let order = orders.find(o => o.id === orderId);
-        if(order && order.status === "Confirmed") {
-            order.status = "Shipped";
-            order.trackingNumber = trackingNum;
-            saveAll();
-            sendEmailNotification(order.buyerEmail, "Order Shipped", `Your order ${order.trackingNumber} has been shipped. Tracking: ${trackingNum}`);
-            showToast("Order marked as Shipped!", false);
-            renderSellerDashboard();
-            renderBuyerOrders();
-        }
-    }
-    
-    function requestWithdrawal(sellerId) {
-        let seller = sellers.find(s => s.id === sellerId);
-        if(seller && seller.earnings > 0) {
-            pendingWithdrawals.push({
-                id: Date.now(), sellerId: seller.id, sellerName: seller.shopName,
-                amount: seller.earnings, bank: seller.bankName, account: seller.accountNo,
-                ifsc: seller.ifsc, date: new Date().toLocaleString(), status: "Pending"
-            });
-            seller.earnings = 0;
-            saveAll();
-            sendEmailNotification(seller.email, "Withdrawal Request", `Your withdrawal request of ${getSym()}${convert(pendingWithdrawals[pendingWithdrawals.length-1].amount)} has been submitted.`);
-            showToast(`Withdrawal request submitted!`, false);
-            renderSellerDashboard();
-        } else { showToast("No balance to withdraw", true); }
-    }
-    
-    document.getElementById('sellerRegForm')?.addEventListener('submit', (e) => {
-        e.preventDefault();
-        if(!document.getElementById('sellerAgreement').checked) { showToast("Accept Seller Agreement", true); return; }
-        let dob = document.getElementById('sellerDob').value;
-        if(calculateAge(dob) < 18) { showToast("You must be 18+", true); return; }
         
-        let avatar = document.getElementById('sellerAvatar').files[0];
-        if(!avatar) { showToast("Upload shop logo", true); return; }
-        let reader = new FileReader();
-        reader.onload = (ev) => {
-            let newSeller = {
-                id: Date.now(), avatar: ev.target.result,
-                fullName: document.getElementById('sellerFullName').value,
-                shopName: document.getElementById('sellerShopName').value,
-                email: document.getElementById('sellerEmail').value,
-                phone: document.getElementById('sellerPhone').value,
-                password: document.getElementById('sellerPassword').value,
-                dob: dob,
-                houseNo: document.getElementById('sellerHouseNo').value,
-                street: document.getElementById('sellerStreet').value,
-                city: document.getElementById('sellerCity').value,
-                state: document.getElementById('sellerState').value,
-                pincode: document.getElementById('sellerPincode').value,
-                country: document.getElementById('sellerCountryReg').value,
-                aadhaar: document.getElementById('sellerAadhaar').value,
-                pan: document.getElementById('sellerPan').value,
-                bankName: document.getElementById('sellerBank').value,
-                accountNo: document.getElementById('sellerAccountNo').value,
-                ifsc: document.getElementById('sellerIfsc').value,
-                earnings: 0
-            };
-            sellers.push(newSeller);
-            currentUser = { name: newSeller.fullName, email: newSeller.email, role: 'seller', sellerId: newSeller.id, phone: newSeller.phone };
-            saveAll();
-            document.getElementById('sellerRegisterBox').style.display = 'none';
-            document.getElementById('sellerDashboard').style.display = 'block';
-            renderSellerDashboard();
-            showToast("Shop Registered!", false);
-        };
-        reader.readAsDataURL(avatar);
-    });
-    
-    function renderSellerDashboard() {
-        if(!currentUser?.sellerId) return;
-        let seller = sellers.find(s=>s.id === currentUser.sellerId);
-        if(!seller) return;
-        let myProducts = products.filter(p=>p.sellerId === seller.id);
-        let myOrders = orders.filter(o=>o.sellerId === seller.id);
-        let addressHtml = `${seller.houseNo}, ${seller.street}, ${seller.city}, ${seller.state} - ${seller.pincode}, ${seller.country}`;
-        document.getElementById('sellerDashboard').innerHTML = `
-            <div class="premium-card"><div class="flex-between"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📍 ${addressHtml}</p></div><span class="role-badge">Seller</span></div><div class="flex-between"><span>🏦 ${seller.bankName} - ${seller.accountNo}</span><span>💰 ${getSym()}${convert(seller.earnings)}</span></div><button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Request Withdrawal</button></div>
-            <div class="premium-card"><h3>➕ Add Product</h3><input type="text" id="prodName" placeholder="Product Name" class="input"><input type="number" id="prodPrice" placeholder="Price (USD)" class="input"><select id="prodCat" class="input"><option>Electronics</option><option>Fashion</option><option>Home</option></select><input type="url" id="prodImg" placeholder="Image URL" class="input"><textarea id="prodDesc" placeholder="Description" class="input"></textarea><button id="publishBtn" class="btn-primary">Publish</button></div>
-            <div class="premium-card"><h3>📋 My Products</h3><div id="myProductsList"></div></div>
-            <div class="premium-card"><h3>📦 Orders Received</h3><div id="ordersList"></div></div>
-        `;
-        document.getElementById('publishBtn')?.addEventListener('click', () => {
-            let name = document.getElementById('prodName').value;
-            let desc = document.getElementById('prodDesc').value;
-            if(isIllegal(name, desc)) { showToast("Illegal product blocked!", true); return; }
-            let price = parseFloat(document.getElementById('prodPrice').value);
-            if(!name || !price) { showToast("Fill name & price", true); return; }
-            products.push({ id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, name, price, category: document.getElementById('prodCat').value, image: document.getElementById('prodImg').value || "https://placehold.co/200x200", description: desc, rating: 0, reviews: [], sellerCountry: seller.country });
-            saveAll(); renderSellerDashboard(); renderProducts(); showToast("Product published!", false);
-        });
-        document.getElementById('myProductsList').innerHTML = myProducts.map(p => `<div class="flex-between"><span>${p.name} - ${getSym()}${convert(p.price)}</span><button class="delProd" data-id="${p.id}" style="background:#dc2626; border:none; padding:6px 14px; border-radius:30px;">Delete</button></div>`).join('');
-        document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', () => { products = products.filter(p=>p.id!==parseInt(btn.dataset.id)); saveAll(); renderSellerDashboard(); renderProducts(); showToast("Product deleted", false); }));
-        document.getElementById('ordersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>Buyer: ${o.buyerName}<br>Product: ${o.productName} x${o.qty}<br>Amount: ${getSym()}${convert(o.amount)}<br>Status: ${o.status}<br>Address: ${o.address}${o.status === "Confirmed" ? `<br><button class="shipBtn" data-id="${o.id}" style="background:#3b82f6; margin-top:10px; padding:8px 16px; border-radius:30px; border:none; color:white;">Mark as Shipped</button>` : ''}</div>`).join('');
-        document.querySelectorAll('.shipBtn').forEach(btn => btn.addEventListener('click', () => { let track = prompt("Enter tracking number:"); if(track) markOrderShipped(parseFloat(btn.dataset.id), track); }));
-        document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
+        document.getElementById('documentSection').innerHTML = html;
     }
+
+    function showLogin() { alert("🔐 Login functionality - Enter your credentials"); }
+    function showSignup() { alert("📝 Sign Up - Create your account"); }
+    function showAdmin() { alert("⚙️ Admin Panel - Manage platform"); }
+    function showProfile() { alert("👤 My Profile - View your details"); }
     
-    document.getElementById('showLoginBtn')?.addEventListener('click', () => { document.getElementById('loginFormDiv').style.display='block'; document.getElementById('signupFormDiv').style.display='none'; });
-    document.getElementById('showSignupBtn')?.addEventListener('click', () => { document.getElementById('loginFormDiv').style.display='none'; document.getElementById('signupFormDiv').style.display='block'; });
-    
-    document.getElementById('doLoginBtn')?.addEventListener('click', () => {
-        let email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPass').value;
-        let user = buyers.find(b=>b.email===email && b.password===pass);
-        if(user) { currentUser = user; saveAll(); document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = user.name; document.getElementById('profileRoleBadge').innerText = user.role || 'Buyer'; displaySavedAddress(); renderBuyerOrders(); showToast("Login successful!", false); }
-        else showToast("Invalid credentials", true);
-    });
-    
-    document.getElementById('doSignupBtn')?.addEventListener('click', () => {
-        if(!document.getElementById('termsCheckbox').checked) { showToast("Accept Terms & Conditions", true); return; }
-        if(!document.getElementById('ageCheckbox').checked) { showToast("Confirm you are 18+", true); return; }
-        let dob = document.getElementById('signupDob').value;
-        if(calculateAge(dob) < 18) { showToast("You must be 18+", true); return; }
+    function submitKYC() {
+        const country = document.getElementById('countrySelect').value;
+        const countryName = countriesList.find(c => c.code === country)?.name;
+        const phoneCode = document.getElementById('countryCode').value;
+        const phone = document.getElementById('phoneNumber').value;
         
-        let name = document.getElementById('signupName').value, email = document.getElementById('signupEmail').value, phone = document.getElementById('signupPhone').value, pass = document.getElementById('signupPass').value, role = document.getElementById('signupRole').value;
-        if(!name || !email || !pass) { showToast("Fill all fields", true); return; }
-        if(buyers.find(b=>b.email===email)) { showToast("Email exists", true); return; }
-        let newUser = { name, email, phone, password: pass, role, dob, savedAddress: null };
-        buyers.push(newUser); currentUser = newUser; saveAll();
-        document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block';
-        document.getElementById('profileName').innerText = name; document.getElementById('profileRoleBadge').innerText = role;
-        displaySavedAddress(); renderBuyerOrders(); showToast("Signup successful!", false);
-        sendEmailNotification(email, "Welcome to GlobalBazaar", `Hi ${name}, welcome to GlobalBazaar! Start shopping now.`);
-    });
-    
-    document.getElementById('logoutBuyerBtn')?.addEventListener('click', () => { currentUser = null; saveAll(); location.reload(); });
-    
-    function renderBuyerOrders() {
-        if(!currentUser) return;
-        let myOrders = orders.filter(o=>o.buyerEmail===currentUser.email);
-        document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty} - ${getSym()}${convert(o.amount)}<br>📍 ${o.address}<br>Status: ${o.status}<br>Date: ${o.date}<br><button class="btn-download" onclick="generatePDFInvoice(${JSON.stringify(o).replace(/"/g, '&quot;')})">📄 Download Invoice</button>${o.status === "Shipped" ? `<br><button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981; margin-top:10px; padding:8px 16px; border-radius:30px; border:none; color:white;">I have received the product</button>` : ''}</div>`).join('');
-        document.querySelectorAll('.confirmReceivedBtn').forEach(btn => btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id))));
+        if (!country || !phone) {
+            alert("⚠️ Please select country and enter phone number!");
+            return;
+        }
+        
+        alert(`✅ KYC Submitted Successfully!\n\n🌍 Country: ${countryName}\n📞 Phone: ${phoneCode} ${phone}\n\n📄 Documents received. Our team will verify within 24 hours.`);
     }
-    
-    let adminLoggedIn = false;
-    document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
-        if(document.getElementById('adminKey').value === 'admin123') {
-            adminLoggedIn = true;
-            document.getElementById('adminLoginBox').style.display = 'none';
-            document.getElementById('adminContent').style.display = 'block';
-            document.getElementById('razorpayKey').value = razorpayConfig.key;
-            document.getElementById('razorpaySecret').value = razorpayConfig.secret;
-            loadAdminData();
-            showToast("Admin logged in", false);
-        } else showToast("Wrong admin key (admin123)", true);
-    });
-    
-    function loadAdminData() {
-        document.getElementById('adminSellersList').innerHTML = sellers.map(s => `<div class="order-card"><strong>${s.shopName}</strong><br>${s.email}<br>📞 ${s.phone}<br>🏦 ${s.bankName} - ${s.accountNo}<br>💰 ${getSym()}${convert(s.earnings)}</div>`).join('');
-        document.getElementById('platformEarnings').innerHTML = `<h2>${getSym()}${convert(platformEarnings)}</h2>`;
-        document.getElementById('pendingWithdrawals').innerHTML = pendingWithdrawals.map(w => `<div class="flex-between order-card"><span>💰 ${getSym()}${convert(w.amount)} - ${w.sellerName}<br>🏦 ${w.bank} - ${w.account}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981; padding:8px 16px; border-radius:30px; border:none; color:white;">Approve & Transfer</button></div>`).join('');
-        document.querySelectorAll('.approveBtn').forEach(btn => btn.addEventListener('click', () => {
-            let w = pendingWithdrawals.find(w=>w.id===parseInt(btn.dataset.id));
-            if(w) {
-                payouts.push({...w, status:"Approved", approvedDate:new Date().toLocaleString()});
-                pendingWithdrawals = pendingWithdrawals.filter(w=>w.id!==parseInt(btn.dataset.id));
-                saveAll();
-                let seller = sellers.find(s=>s.id===w.sellerId);
-                if(seller) {
-                    sendEmailNotification(seller.email, "Withdrawal Approved", `Your withdrawal request of ${getSym()}${convert(w.amount)} has been approved. Amount will be credited to ${seller.bankName} - ${seller.accountNo} within 2-3 business days.`);
-                }
-                loadAdminData();
-                showToast(`Approved ${getSym()}${convert(w.amount)} payout`, false);
-            }
-        }));
-        document.getElementById('adminOrdersList').innerHTML = orders.map(o => `<div class="order-card">🔖 ${o.trackingNumber}<br>${o.productName} x${o.qty} - ${o.buyerName}<br>Status: ${o.status} | Payment ID: ${o.paymentId || 'N/A'}</div>`).join('');
-    }
-    document.getElementById('refreshAdminBtn')?.addEventListener('click', loadAdminData);
-    
-    function openDrawer() { document.getElementById('drawer').classList.add('open'); document.getElementById('drawerOverlay').style.display = 'block'; }
-    function closeDrawer() { document.getElementById('drawer').classList.remove('open'); document.getElementById('drawerOverlay').style.display = 'none'; }
-    document.getElementById('menuBtn').onclick = openDrawer;
-    document.getElementById('drawerOverlay').onclick = closeDrawer;
-    document.getElementById('drawerSupport')?.addEventListener('click', () => { showSupport(); closeDrawer(); });
-    
-    document.querySelectorAll('.mode-btn').forEach(btn => btn.addEventListener('click', () => {
-        let tab = btn.dataset.tab;
-        document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
-        btn.classList.add('active');
-        document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-        document.getElementById(tab + "Section").classList.add('active');
-        if(tab === 'seller' && currentUser?.role === 'seller') { document.getElementById('sellerRegisterBox').style.display='none'; document.getElementById('sellerDashboard').style.display='block'; renderSellerDashboard(); }
-        if(tab === 'profile' && currentUser) { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; displaySavedAddress(); renderBuyerOrders(); }
-        closeDrawer();
-    }));
-    document.querySelectorAll('.drawer-item[data-mode]').forEach(el => el.addEventListener('click', () => { document.querySelector(`.mode-btn[data-tab="${el.dataset.mode}"]`).click(); closeDrawer(); }));
-    document.getElementById('drawerWishlist')?.addEventListener('click', () => { let wp = products.filter(p=>wishlist.includes(p.id)); alert("Wishlist:\n"+wp.map(p=>p.name).join("\n")); closeDrawer(); });
-    document.getElementById('drawerLogout')?.addEventListener('click', () => { currentUser=null; saveAll(); location.reload(); });
-    document.getElementById('editAddressBtn')?.addEventListener('click', () => { getAddressLineByLine(); displaySavedAddress(); });
-    document.getElementById('closeModalBtn')?.addEventListener('click', () => document.getElementById('productModal').style.display='none');
-    document.getElementById('modalAddCartBtn')?.addEventListener('click', () => { if(currentProduct) addToCart(currentProduct.id); document.getElementById('productModal').style.display='none'; });
-    document.getElementById('modalAddWishBtn')?.addEventListener('click', () => { if(currentProduct) toggleWish(currentProduct.id); document.getElementById('productModal').style.display='none'; });
-    
-    renderCats(); renderProducts(); updateCartUI();
-    if(currentUser?.role === 'seller') { document.getElementById('sellerRegisterBox').style.display='none'; document.getElementById('sellerDashboard').style.display='block'; renderSellerDashboard(); }
-    if(currentUser) { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = currentUser.name; document.getElementById('profileRoleBadge').innerText = currentUser.role || 'Buyer'; displaySavedAddress(); renderBuyerOrders(); }
+
+    // Initialize
+    loadCountries();
 </script>
 </body>
 </html>
