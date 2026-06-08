@@ -235,7 +235,7 @@
     </div>
 </div>
 
-<!-- Country Dropdown -->
+<!-- Country Dropdown (Saudi Arabia text ki jagah) -->
 <div style="max-width: 560px; margin: 10px auto 0; padding: 0 16px;">
     <select id="globalCountrySelect" class="country-selector" style="width: 100%;">
         <option value="SA">🇸🇦 Saudi Arabia</option>
@@ -262,7 +262,7 @@
 </div>
 
 <div class="container">
-    <!-- Dashboard Tabs: Sirf Buyer aur Seller (Profile aur Admin hata diye) -->
+    <!-- Dashboard Tabs: Sirf Buyer aur Seller -->
     <div class="mode-tabs">
         <button class="mode-btn active" data-tab="buyer">🛒 Buyer</button>
         <button class="mode-btn" data-tab="seller">🏪 Seller</button>
@@ -310,7 +310,7 @@
                 <input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required>
                 <input type="text" id="sellerCountryReg" placeholder="Country" class="input" required>
                 
-                <!-- International KYC Documents (Aadhaar/PAN ki jagah) -->
+                <!-- International KYC Documents -->
                 <div class="doc-section">
                     <div class="doc-title">🌍 International KYC Documents</div>
                     <div id="internationalDocsContainer">
@@ -340,7 +340,7 @@
         <div id="sellerDashboard" style="display:none;"></div>
     </div>
 
-    <!-- Profile Section: Sirf Forms (Login/Signup buttons hata diye) -->
+    <!-- Profile Section -->
     <div id="profileSection" class="section">
         <div id="profileAuthBox" class="premium-card">
             <div id="loginFormDiv">
@@ -444,7 +444,7 @@
     const GATEWAY_FEE = 0.025;
     const HANDLING_FEE = 2;
     
-    // Razorpay Configuration (Admin se set hoga)
+    // Razorpay Configuration
     let razorpayConfig = JSON.parse(localStorage.getItem('razorpay_config')) || {
         key: "rzp_test_YourKey",
         secret: ""
@@ -454,9 +454,9 @@
     let sym = { SAR:"SAR ", USD:"$", EUR:"€", GBP:"£", INR:"₹", PKR:"₨", NPR:"रू ", BDT:"৳", LKR:"Rs ", AED:"د.إ" };
     
     let selectedCurr = "SAR";
-    let buyerCountry = "IN";
+    let buyerCountry = "SA";
     
-    // EmailJS Configuration (Register at emailjs.com)
+    // EmailJS Configuration
     emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
     
     function sendEmailNotification(toEmail, subject, message) {
@@ -523,7 +523,6 @@
         return { total: basePrice + commission + gateway + shipping + HANDLING_FEE, shipping, commission, gateway, basePrice };
     }
     
-    // Razorpay Payment Function
     function processRazorpayPayment(amountINR, orderId, buyerEmail, buyerPhone, buyerName, callback) {
         if(!razorpayConfig.key || razorpayConfig.key === "rzp_test_YourKey") {
             showToast("⚠️ Razorpay not configured! Admin please set Razorpay Key in Admin panel.", true);
@@ -555,8 +554,8 @@
     
     let sellers = JSON.parse(localStorage.getItem('gb_sellers')) || [];
     let products = JSON.parse(localStorage.getItem('gb_products')) || [
-        {id:1, sellerId:0, sellerName:"GlobalBazaar", name:"Luxury Smart Watch", price:50, category:"Electronics", image:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400", description:"Premium smart watch", rating:4.5, reviews:[], sellerCountry:"IN"},
-        {id:2, sellerId:0, sellerName:"GlobalBazaar", name:"Premium Headphones", price:120, category:"Electronics", image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", description:"Noise cancellation", rating:4.8, reviews:[], sellerCountry:"IN"}
+        {id:1, sellerId:0, sellerName:"GlobalBazaar", name:"Luxury Smart Watch", price:50, category:"Electronics", image:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400", description:"Premium smart watch", rating:4.5, reviews:[], sellerCountry:"SA"},
+        {id:2, sellerId:0, sellerName:"GlobalBazaar", name:"Premium Headphones", price:120, category:"Electronics", image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", description:"Noise cancellation", rating:4.8, reviews:[], sellerCountry:"SA"}
     ];
     let buyers = JSON.parse(localStorage.getItem('gb_buyers')) || [];
     let currentUser = JSON.parse(localStorage.getItem('gb_current_user')) || null;
@@ -581,7 +580,6 @@
         localStorage.setItem('razorpay_config', JSON.stringify(razorpayConfig));
     }
     
-    // Save Razorpay Settings
     document.getElementById('saveRazorpaySettings')?.addEventListener('click', () => {
         razorpayConfig.key = document.getElementById('razorpayKey').value;
         razorpayConfig.secret = document.getElementById('razorpaySecret').value;
@@ -589,7 +587,7 @@
         showToast("Razorpay settings saved!", false);
     });
     
-    async function detectLocation() { try { let r = await fetch('https://ipapi.co/json/'); let d = await r.json(); buyerCountry = d.country_code || "IN"; } catch(e) {} renderProducts(); }
+    async function detectLocation() { try { let r = await fetch('https://ipapi.co/json/'); let d = await r.json(); buyerCountry = d.country_code || "SA"; } catch(e) {} renderProducts(); }
     detectLocation();
     document.getElementById('currencySelect').addEventListener('change', (e) => { selectedCurr = e.target.value; renderProducts(); updateCartUI(); renderBuyerOrders(); });
     
@@ -599,7 +597,7 @@
         let c = prompt("City:"); if(!c) return null;
         let st = prompt("State:"); if(!st) return null;
         let p = prompt("PIN Code:"); if(!p) return null;
-        let co = prompt("Country:", "India"); if(!co) return null;
+        let co = prompt("Country:", "Saudi Arabia"); if(!co) return null;
         let addr = `${h}, ${s}, ${c}, ${st} - ${p}, ${co}`;
         if(currentUser) { currentUser.savedAddress = { house:h, street:s, city:c, state:st, pincode:p, country:co, fullAddress:addr }; saveAll(); displaySavedAddress(); }
         return addr;
@@ -622,7 +620,7 @@
         let filtered = products.filter(p => (currentCategory==="All" || p.category===currentCategory) && p.name.toLowerCase().includes(search));
         let sellerMap = new Map(sellers.map(s=>[s.id, s]));
         let html = filtered.map(p => {
-            let seller = sellerMap.get(p.sellerId) || {shopName:"GlobalBazaar", country:"IN"};
+            let seller = sellerMap.get(p.sellerId) || {shopName:"GlobalBazaar", country:"SA"};
             let final = calculateFinalPrice(p.price, seller.country);
             return `<div class="product-card" data-id="${p.id}"><img src="${p.image}"><div class="seller-name-tag">🏪 ${seller.shopName}</div><h4>${p.name}</h4><div class="prod-price">${getSym()}${convert(final.total)}</div><div class="card-actions"><button class="btn-sm btn-buy addCartBtn" data-id="${p.id}">Buy</button><button class="btn-sm btn-wish wishBtn ${wishlist.includes(p.id)?'active':''}" data-id="${p.id}">❤️</button></div></div>`;
         }).join('');
@@ -637,7 +635,7 @@
         let p = products.find(x=>x.id===id);
         if(!p) return;
         currentProduct = p;
-        let seller = sellers.find(s=>s.id===p.sellerId) || {shopName:"GlobalBazaar", country:"IN"};
+        let seller = sellers.find(s=>s.id===p.sellerId) || {shopName:"GlobalBazaar", country:"SA"};
         let final = calculateFinalPrice(p.price, seller.country);
         document.getElementById('modalImg').src = p.image;
         document.getElementById('modalTitle').innerText = p.name;
@@ -653,7 +651,7 @@
         if(!p) return;
         let existing = cart.find(i=>i.id===id);
         if(existing) existing.qty++;
-        else cart.push({id:p.id, name:p.name, price:p.price, sellerId:p.sellerId, sellerCountry:p.sellerCountry || "IN", qty:1});
+        else cart.push({id:p.id, name:p.name, price:p.price, sellerId:p.sellerId, sellerCountry:p.sellerCountry || "SA", qty:1});
         saveAll();
         updateCartUI();
         showToast("Added to cart", false);
@@ -662,7 +660,6 @@
     function updateCartUI() { document.getElementById('cartCountBadge').innerText = cart.reduce((a,b)=>a+b.qty,0); }
     function toggleWish(id) { if(wishlist.includes(id)) wishlist = wishlist.filter(i=>i!==id); else wishlist.push(id); saveAll(); renderProducts(); }
     
-    // Checkout with Razorpay
     document.getElementById('cartFloatBtn')?.addEventListener('click', () => {
         if(cart.length === 0) { showToast("Cart empty!", true); return; }
         if(!currentUser) { showToast("Login first!", true); return; }
@@ -671,7 +668,7 @@
         
         let totalUSD = cart.reduce((sum, item) => {
             let seller = sellers.find(s=>s.id===item.sellerId);
-            let final = calculateFinalPrice(item.price, seller?.country || "IN");
+            let final = calculateFinalPrice(item.price, seller?.country || "SA");
             return sum + (final.total * item.qty);
         }, 0);
         let totalINR = totalUSD * fx.INR;
@@ -682,7 +679,7 @@
             if(success) {
                 cart.forEach(item => {
                     let seller = sellers.find(s=>s.id===item.sellerId);
-                    let final = calculateFinalPrice(item.price, seller?.country || "IN");
+                    let final = calculateFinalPrice(item.price, seller?.country || "SA");
                     orders.push({
                         id: Date.now()+Math.random(), trackingNumber: tracking, paymentId: paymentId,
                         sellerId: item.sellerId, sellerName: item.sellerName,
@@ -840,7 +837,7 @@
         document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
     }
     
-    // ===== HEADER BUTTONS (Menu ke andar) =====
+    // ===== HEADER BUTTONS =====
     document.getElementById('headerSignupBtn')?.addEventListener('click', () => {
         document.querySelector('.mode-btn[data-tab="profile"]').click();
         document.getElementById('signupFormDiv').style.display = 'block';
@@ -858,7 +855,7 @@
         document.querySelector('.mode-btn[data-tab="profile"]').click();
     });
     
-    // Dashboard tabs ke liye event listener (sirf Buyer aur Seller)
+    // Dashboard tabs
     document.querySelectorAll('.mode-btn').forEach(btn => btn.addEventListener('click', () => {
         let tab = btn.dataset.tab;
         document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
