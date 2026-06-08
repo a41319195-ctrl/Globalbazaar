@@ -19,27 +19,31 @@
             background: linear-gradient(145deg, #ffffff, #f0f4fa);
             padding: 12px 20px;
             display: flex;
-            align-items: center;
-            justify-content: space-between;
+            flex-direction: column;
             position: sticky;
             top: 0;
             z-index: 100;
             box-shadow: 0 10px 25px -8px rgba(0,0,0,0.15);
             border-bottom: 1px solid rgba(59,130,246,0.15);
-            flex-wrap: wrap;
-            gap: 10px;
         }
         
-        /* ALL ITEMS IN ONE HORIZONTAL LINE */
-        .header-items {
+        /* First row - Menu + GLOBALBAZAAR + Logo */
+        .header-row {
             display: flex;
             align-items: center;
             gap: 15px;
             flex-wrap: wrap;
-            width: 100%;
         }
         
-        /* Menu button */
+        /* Second row - Currency dropdown (logo ke niche) */
+        .currency-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-top: 5px;
+            margin-left: 60px; /* Logo ke neeche align karne ke liye */
+        }
+        
         .menu-icon-3d {
             background: linear-gradient(145deg, #1e293b, #0f172a);
             border: none;
@@ -51,7 +55,6 @@
             box-shadow: 0 8px 12px rgba(0,0,0,0.2);
         }
         
-        /* GLOBALBAZAAR - font size bada (menu button ke level tak) */
         .brand-3d { 
             font-weight: 800; 
             font-size: 32px; 
@@ -69,20 +72,18 @@
             padding: 5px; 
         }
         
-        /* Currency Dropdown - chota size, logo ke right mein */
+        /* Currency Dropdown - aur chhota, logo ke niche */
         .currency-dropdown {
             background: linear-gradient(145deg, #1e2a4a, #0f172f);
             border: none;
-            padding: 6px 12px;
-            border-radius: 40px;
+            padding: 4px 10px;
+            border-radius: 30px;
             color: #FFD966;
-            font-size: 13px;
+            font-size: 11px;
             font-weight: bold;
             cursor: pointer;
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
-        
-        /* Heart ab cart section mein hoga - yahan nahi */
         
         .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); z-index: 200; display: none; }
         .drawer { position: fixed; top: 0; left: -85%; width: 75%; max-width: 280px; height: 100%; background: white; z-index: 201; transition: left 0.3s ease; border-radius: 0 24px 24px 0; padding: 20px 0; overflow-y: auto; }
@@ -133,13 +134,7 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.25);
         }
         .cart-badge { background: #ef4444; color: white; font-size: 13px; padding: 2px 10px; border-radius: 40px; }
-        
-        /* Heart in cart section */
-        .cart-heart {
-            font-size: 24px;
-            color: #ff3366;
-            margin-left: 10px;
-        }
+        .cart-heart { font-size: 24px; color: #ff3366; margin-left: 10px; }
         
         .input { width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; margin-bottom: 14px; font-size: 14px; }
         .btn-primary { background: #1e3a8a; color: white; border: none; padding: 14px; border-radius: 60px; font-weight: 700; font-size: 15px; width: 100%; cursor: pointer; }
@@ -207,23 +202,22 @@
             .brand-3d { font-size: 24px; }
             .logo-3d { font-size: 28px; }
             .fixed-cart { padding: 12px 20px; font-size: 14px; bottom: 15px; right: 15px; }
-            .currency-dropdown { font-size: 10px; padding: 4px 8px; }
-            .cart-heart { font-size: 20px; }
-            .header-items { gap: 8px; }
+            .currency-dropdown { font-size: 9px; padding: 3px 8px; }
+            .currency-row { margin-left: 55px; }
         }
     </style>
 </head>
 <body>
 
 <div class="header-3d">
-    <div class="header-items">
-        <!-- Menu button -->
+    <!-- First row: Menu + GLOBALBAZAAR + Logo -->
+    <div class="header-row">
         <button class="menu-icon-3d" id="menuBtn">☰</button>
-        <!-- GLOBALBAZAAR - font size bada -->
         <div class="brand-3d">GLOBALBAZAAR</div>
-        <!-- Logo -->
         <div class="logo-3d">🌍</div>
-        <!-- Currency Dropdown - chota, logo ke right mein -->
+    </div>
+    <!-- Second row: Currency dropdown (logo ke niche, chota) -->
+    <div class="currency-row">
         <select id="currencySelect" class="currency-dropdown">
             <option value="SAR">🇸🇦 SAR</option>
             <option value="USD">🇺🇸 USD $</option>
@@ -246,7 +240,7 @@
     </div>
 </div>
 
-<!-- Country Dropdown (shipping ke liye) -->
+<!-- Shipping Country Dropdown (Saudi Arabia text ki jagah - yahan se hata diya, ab drawer mein hai) -->
 <div style="max-width: 560px; margin: 10px auto 0; padding: 0 16px;">
     <select id="globalCountrySelect" class="country-selector">
         <option value="SA">🇸🇦 Saudi Arabia</option>
@@ -300,7 +294,7 @@
     <div class="drawer-item" data-mode="seller">🏪 Seller Dashboard</div>
     <div class="drawer-item" id="drawerWishlist">❤️ My Wishlist</div>
     <div class="drawer-item" id="drawerSupport">📞 Support</div>
-    <!-- Saudi Arabia text yahan drawer mein dal diya -->
+    <!-- Saudi Arabia text yahan drawer mein hai - screen se hata diya -->
     <div class="drawer-item" id="drawerCountry">🇸🇦 Saudi Arabia</div>
     <div class="drawer-item" id="drawerLogout">🚪 Logout</div>
 </div>
@@ -484,7 +478,6 @@
     </div>
 </div>
 
-<!-- Cart Button with Heart 💜 inside cart section -->
 <button class="fixed-cart" id="cartFloatBtn">
     🛒 Cart <span class="cart-badge" id="cartCountBadge">0</span>
     <span class="cart-heart">💜</span>
@@ -538,7 +531,7 @@
         SGD: "$", MYR: "RM ", THB: "฿", JPY: "¥", CNY: "¥"
     };
     
-    let selectedCurr = "USD";
+    let selectedCurr = "SAR";
     let buyerCountry = "SA";
     
     emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
