@@ -305,7 +305,7 @@
             </div>
 
             <!-- DYNAMIC INVOICE & TERMINAL LAYER -->
-            <div id="checkoutFormBlock" style="display: block;">
+            <div id="checkoutFormBlock" style="display: none;">
                 <div class="premium-card" style="border-left: 4px solid #10b981;">
                     <h2>📋 Localized Cargo Settlement Invoice</h2>
                     <div id="invoiceBreakdownContainer"></div>
@@ -315,21 +315,27 @@
                     <h2>💳 Secure Credit/Debit Card Checkout</h2>
                     <div id="savedCardBox" class="saved-card-badge">
                         <span>🔒 Vault Card: <strong id="savedCardDetail">None</strong></span>
-                        <form id="buyerPaymentCheckoutForm" onsubmit="executeEscrowPayment(event)" style="padding: 10px; background: #fff; border: 1px solid #ccc; border-radius: 8px;">
-    <h4 style="margin-top: 0;">💳 Secure Payment Details</h4>
-    <input type="text" id="buyerShippingAddr" placeholder="Shipping Address" required style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ccc;">
-    <input type="text" id="buyerPhone" placeholder="Phone Number" required style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ccc;">
-    <input type="text" id="buyerCardName" placeholder="Cardholder Name" required style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ccc;">
-    <input type="text" id="buyerCardNumber" placeholder="Card Number (16 digits)" maxlength="16" pattern="\d{16}" required style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ccc;">
-    
-    <div style="display: flex; gap: 10px;">
-        <input type="text" id="buyerCardExpiry" placeholder="MM/YY" maxlength="5" required style="width: 50%; padding: 8px; border: 1px solid #ccc;">
-        <input type="password" id="buyerCardCvv" placeholder="CVV" maxlength="3" pattern="\d{3}" required style="width: 50%; padding: 8px; border: 1px solid #ccc;">
-    </div>
-    
-    <button type="submit" style="width: 100%; padding: 10px; background: #059669; color: white; border: none; border-radius: 5px; margin-top: 10px; cursor: pointer;">Pay & Confirm</button>
-</form>
+                        <button style="background:none; border:none; color:#ef4444; font-weight:700; cursor:pointer;" onclick="clearSavedBuyerCard()">Remove</button>
+                    </div>
 
+                    <form id="buyerPaymentCheckoutForm" onsubmit="executeEscrowPayment(event)">
+                        <input type="text" id="buyerCardName" class="app-input" placeholder="Cardholder Full Name" required>
+                        <input type="text" id="buyerCardNumber" class="app-input" placeholder="Card Number" maxlength="19" required>
+                        <div class="flex-inputs">
+                            <input type="text" id="buyerCardExpiry" class="app-input" placeholder="MM/YY" maxlength="5" required>
+                            <input type="password" id="buyerCardCvv" class="app-input" placeholder="CVV" maxlength="4" required>
+                        </div>
+                        
+                        <h3 style="font-size: 13px; color: #1e3a8a; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">🌍 Logistics Shipping Destination</h3>
+                        <input type="text" id="buyerShippingAddr" class="app-input" placeholder="Street Address, District" required>
+                        <div class="flex-inputs">
+                            <input type="text" id="buyerCity" class="app-input" placeholder="City" required>
+                            <input type="text" id="buyerZip" class="app-input" placeholder="Postal Code" required>
+                        </div>
+
+                        <div style="margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="saveCardCheckbox">
+                            <label for="saveCardCheckbox" style="font-size: 12px; color: #475569; cursor: pointer;">Save card securely for instant network authentication</label>
                         </div>
                         <button type="submit" class="app-btn" id="payButtonText">Authorize Checkout</button>
                     </form>
@@ -427,31 +433,14 @@
             checkSavedCardsInVault();
         };
 
-        // सुरक्षित मेमोरी ऑब्जेक्ट (पेज रिफ्रेश होते ही यह डेटा अपने आप डिलीट हो जाएगा)
-let temporaryVault = {}; 
-
-function executeEscrowPayment(e) {
-    e.preventDefault();
-    
-    // डेटा को localStorage में सेव करने के बजाय, सिर्फ अस्थायी मेमोरी में रखें
-    if(document.getElementById('saveCardCheckbox').checked) {
-        temporaryVault = {
-            card_num: document.getElementById('buyerCardNumber').value.slice(-4), // केवल अंतिम 4 अंक रखें
-            card_name: document.getElementById('buyerCardName').value
-        };
-        console.log("Card details held in volatile memory only.");
-    }
-
-    alert(`🎉 Clearance Hub Success!\n\n${finalizedCheckoutPriceString} securely authorized & allocated to network Escrow.`);
-    
-    // सुरक्षित रूप से फॉर्म डेटा साफ़ करें
-    document.getElementById('buyerPaymentCheckoutForm').reset();
-    document.getElementById('checkoutFormBlock').style.display = 'none';
-    
-    cartItemsCount = 0;
-    document.getElementById('globalCartCount').innerText = "0";
-}
-
+        // Automatic Geolocation Node Sim
+        function autoDetectUserCountryNode() {
+            // Simulated smart IP-lookup to default into SAR when operator is in Saudi Arabia
+            document.getElementById('userCurrencyNode').value = "SAR";
+            document.getElementById('globalStatusNode').innerText = "📍 Riyadh Node Live";
+            document.getElementById('globalStatusNode').style.background = "#dcfce7";
+            document.getElementById('globalStatusNode').style.color = "#15803d";
+            applyGlobalCurrencyConversion();
         }
 
         function switchDashboardMode(mode) {
@@ -553,13 +542,26 @@ function executeEscrowPayment(e) {
                 localStorage.setItem('vault_card_city', document.getElementById('buyerCity').value);
                 localStorage.setItem('vault_card_zip', document.getElementById('buyerZip').value);
             }
-            // सुधार: checkSavedCardsInVault से localStorage का असुरक्षित इस्तेमाल कम किया
+            alert(`🎉 Clearance Hub Success!\n\n${finalizedCheckoutPriceString} securely authorized & allocated to network Escrow.`);
+            document.getElementById('checkoutFormBlock').style.display = 'none';
+            cartItemsCount = 0;
+            document.getElementById('globalCartCount').innerText = "0";
+            checkSavedCardsInVault();
+        }
+
         function checkSavedCardsInVault() {
-            // हम केवल एक बार चेक कर रहे हैं कि क्या डेटा है, बिना उसे वापस रिस्टोर किए
             const savedNum = localStorage.getItem('vault_card_num');
-            if(savedNum) {
+            const savedName = localStorage.getItem('vault_card_name');
+            if(savedNum && savedName) {
                 document.getElementById('savedCardBox').style.display = 'flex';
-                document.getElementById('savedCardDetail').innerText = "Card ending in " + savedNum.slice(-4);
+                document.getElementById('savedCardDetail').innerText = savedName + " (•••• " + savedNum.slice(-4) + ")";
+                document.getElementById('buyerCardName').value = savedName;
+                document.getElementById('buyerCardNumber').value = savedNum;
+                document.getElementById('buyerCardExpiry').value = localStorage.getItem('vault_card_exp') || "12/29";
+                document.getElementById('buyerCardCvv').value = "•••";
+                document.getElementById('buyerShippingAddr').value = localStorage.getItem('vault_card_addr') || "Olaya District";
+                document.getElementById('buyerCity').value = localStorage.getItem('vault_card_city') || "Riyadh";
+                document.getElementById('buyerZip').value = localStorage.getItem('vault_card_zip') || "11564";
             }
         }
 
@@ -567,13 +569,22 @@ function executeEscrowPayment(e) {
             localStorage.clear();
             document.getElementById('savedCardBox').style.display = 'none';
             document.getElementById('buyerPaymentCheckoutForm').reset();
-            alert("🗑️ Sandbox cache cleared.");
+            alert("🗑️ Card data cleared from sandbox cache.");
         }
 
         function handleKycVerification(e) {
             e.preventDefault();
             const fullName = document.getElementById('kycFullName').value;
             const shopName = document.getElementById('kycShopName').value;
+            const avatarInput = document.getElementById('kycAvatarInput');
+            
+            if (avatarInput.files && avatarInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) { document.getElementById('displaySellerAvatar').src = e.target.result; }
+                reader.readAsDataURL(avatarInput.files[0]);
+            } else {
+                document.getElementById('displaySellerAvatar').src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
+            }
             
             document.getElementById('displayShopName').innerText = shopName;
             document.getElementById('displayMerchantName').innerText = "Operator: " + fullName;
@@ -583,12 +594,24 @@ function executeEscrowPayment(e) {
 
         document.getElementById('merchantInventoryForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            const name = document.getElementById('mProdName').value;
+            const priceUSD = parseFloat(document.getElementById('mProdPrice').value);
+            const img = document.getElementById('mProdImg').value;
+
+            document.getElementById('globalContainerCatalog').insertAdjacentHTML('beforeend', `
+                <div class="catalog-card" data-base-usd="${priceUSD}">
+                    <img src="${img}" alt="${name}">
+                    <h4 style="text-transform: capitalize;">${name}</h4>
+                    <div class="price class-converted-price"></div>
+                    <button class="app-btn" style="padding: 8px; font-size: 12px; margin-top: 4px; background: #0f172a;" onclick="addItemToCart('${name}', ${priceUSD})">Buy Now</button>
+                </div>
+            `);
+            
             alert("🚀 Cargo successfully published globally!");
             document.getElementById('merchantInventoryForm').reset();
             applyGlobalCurrencyConversion();
             switchDashboardMode('buyer');
         });
-
-</script>
+    </script>
 </body>
 </html>
