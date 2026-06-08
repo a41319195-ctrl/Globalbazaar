@@ -34,27 +34,27 @@
         .header-items {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
             flex-wrap: wrap;
             width: 100%;
         }
         
-        /* Menu button - size chota */
+        /* Menu button */
         .menu-icon-3d {
             background: linear-gradient(145deg, #1e293b, #0f172a);
             border: none;
             font-size: 22px;
             cursor: pointer;
-            padding: 6px 12px;
+            padding: 8px 14px;
             border-radius: 18px;
             color: white;
             box-shadow: 0 8px 12px rgba(0,0,0,0.2);
         }
         
-        /* GLOBALBAZAAR - font size bada */
+        /* GLOBALBAZAAR - font size bada (menu button ke level tak) */
         .brand-3d { 
             font-weight: 800; 
-            font-size: 28px; 
+            font-size: 32px; 
             background: linear-gradient(135deg, #1e3a8a, #3b82f6, #06b6d4); 
             -webkit-background-clip: text; 
             background-clip: text; 
@@ -69,29 +69,20 @@
             padding: 5px; 
         }
         
-        /* Heart symbol */
-        .heart-symbol {
-            font-size: 32px;
-            color: #ff3366;
-        }
-        
-        /* Currency Dropdown - $ ke andar saari currencies */
+        /* Currency Dropdown - chota size, logo ke right mein */
         .currency-dropdown {
             background: linear-gradient(145deg, #1e2a4a, #0f172f);
             border: none;
-            padding: 8px 16px;
+            padding: 6px 12px;
             border-radius: 40px;
             color: #FFD966;
-            font-size: 16px;
+            font-size: 13px;
             font-weight: bold;
             cursor: pointer;
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
         
-        .currency-dropdown option {
-            background: #1e2a4a;
-            color: white;
-        }
+        /* Heart ab cart section mein hoga - yahan nahi */
         
         .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); z-index: 200; display: none; }
         .drawer { position: fixed; top: 0; left: -85%; width: 75%; max-width: 280px; height: 100%; background: white; z-index: 201; transition: left 0.3s ease; border-radius: 0 24px 24px 0; padding: 20px 0; overflow-y: auto; }
@@ -142,6 +133,13 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.25);
         }
         .cart-badge { background: #ef4444; color: white; font-size: 13px; padding: 2px 10px; border-radius: 40px; }
+        
+        /* Heart in cart section */
+        .cart-heart {
+            font-size: 24px;
+            color: #ff3366;
+            margin-left: 10px;
+        }
         
         .input { width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; margin-bottom: 14px; font-size: 14px; }
         .btn-primary { background: #1e3a8a; color: white; border: none; padding: 14px; border-radius: 60px; font-weight: 700; font-size: 15px; width: 100%; cursor: pointer; }
@@ -206,12 +204,12 @@
         }
         
         @media (max-width: 600px) {
-            .brand-3d { font-size: 20px; }
+            .brand-3d { font-size: 24px; }
             .logo-3d { font-size: 28px; }
             .fixed-cart { padding: 12px 20px; font-size: 14px; bottom: 15px; right: 15px; }
-            .heart-symbol { font-size: 24px; }
-            .currency-dropdown { font-size: 12px; padding: 4px 10px; }
-            .header-items { gap: 10px; }
+            .currency-dropdown { font-size: 10px; padding: 4px 8px; }
+            .cart-heart { font-size: 20px; }
+            .header-items { gap: 8px; }
         }
     </style>
 </head>
@@ -219,15 +217,13 @@
 
 <div class="header-3d">
     <div class="header-items">
-        <!-- Menu button - size chota -->
+        <!-- Menu button -->
         <button class="menu-icon-3d" id="menuBtn">☰</button>
         <!-- GLOBALBAZAAR - font size bada -->
         <div class="brand-3d">GLOBALBAZAAR</div>
         <!-- Logo -->
         <div class="logo-3d">🌍</div>
-        <!-- Heart symbol -->
-        <div class="heart-symbol">💜</div>
-        <!-- Currency Dropdown - $ ke andar saari currencies -->
+        <!-- Currency Dropdown - chota, logo ke right mein -->
         <select id="currencySelect" class="currency-dropdown">
             <option value="SAR">🇸🇦 SAR</option>
             <option value="USD">🇺🇸 USD $</option>
@@ -250,7 +246,7 @@
     </div>
 </div>
 
-<!-- Country Dropdown (Saudi Arabia text hata diya, ab drawer mein dalenge) -->
+<!-- Country Dropdown (shipping ke liye) -->
 <div style="max-width: 560px; margin: 10px auto 0; padding: 0 16px;">
     <select id="globalCountrySelect" class="country-selector">
         <option value="SA">🇸🇦 Saudi Arabia</option>
@@ -304,7 +300,7 @@
     <div class="drawer-item" data-mode="seller">🏪 Seller Dashboard</div>
     <div class="drawer-item" id="drawerWishlist">❤️ My Wishlist</div>
     <div class="drawer-item" id="drawerSupport">📞 Support</div>
-    <!-- Saudi Arabia text ko yahan drawer mein dal diya -->
+    <!-- Saudi Arabia text yahan drawer mein dal diya -->
     <div class="drawer-item" id="drawerCountry">🇸🇦 Saudi Arabia</div>
     <div class="drawer-item" id="drawerLogout">🚪 Logout</div>
 </div>
@@ -488,7 +484,12 @@
     </div>
 </div>
 
-<button class="fixed-cart" id="cartFloatBtn">🛒 Cart <span class="cart-badge" id="cartCountBadge">0</span></button>
+<!-- Cart Button with Heart 💜 inside cart section -->
+<button class="fixed-cart" id="cartFloatBtn">
+    🛒 Cart <span class="cart-badge" id="cartCountBadge">0</span>
+    <span class="cart-heart">💜</span>
+</button>
+
 <div class="toast" id="toast"></div>
 
 <div id="productModal" class="modal">
@@ -520,52 +521,21 @@
     const GATEWAY_FEE = 0.025;
     const HANDLING_FEE = 2;
     
-    // Razorpay Configuration
     let razorpayConfig = JSON.parse(localStorage.getItem('razorpay_config')) || {
         key: "rzp_test_YourKey",
         secret: ""
     };
     
-    // Exchange rates (base USD)
     let fx = {
-        SAR: 3.75,
-        USD: 1,
-        EUR: 0.92,
-        GBP: 0.78,
-        INR: 83.5,
-        PKR: 278,
-        NPR: 133.5,
-        BDT: 117,
-        LKR: 305,
-        AED: 3.67,
-        CAD: 1.36,
-        AUD: 1.52,
-        SGD: 1.35,
-        MYR: 4.70,
-        THB: 36.5,
-        JPY: 150.2,
-        CNY: 7.25
+        SAR: 3.75, USD: 1, EUR: 0.92, GBP: 0.78, INR: 83.5, PKR: 278,
+        NPR: 133.5, BDT: 117, LKR: 305, AED: 3.67, CAD: 1.36, AUD: 1.52,
+        SGD: 1.35, MYR: 4.70, THB: 36.5, JPY: 150.2, CNY: 7.25
     };
     
-    // Currency symbols
     let sym = {
-        SAR: "SAR ",
-        USD: "$",
-        EUR: "€",
-        GBP: "£",
-        INR: "₹",
-        PKR: "₨",
-        NPR: "रू ",
-        BDT: "৳",
-        LKR: "Rs ",
-        AED: "د.إ ",
-        CAD: "$",
-        AUD: "$",
-        SGD: "$",
-        MYR: "RM ",
-        THB: "฿",
-        JPY: "¥",
-        CNY: "¥"
+        SAR: "SAR ", USD: "$", EUR: "€", GBP: "£", INR: "₹", PKR: "₨",
+        NPR: "रू ", BDT: "৳", LKR: "Rs ", AED: "د.إ ", CAD: "$", AUD: "$",
+        SGD: "$", MYR: "RM ", THB: "฿", JPY: "¥", CNY: "¥"
     };
     
     let selectedCurr = "USD";
@@ -704,17 +674,14 @@
     async function detectLocation() { try { let r = await fetch('https://ipapi.co/json/'); let d = await r.json(); buyerCountry = d.country_code || "SA"; } catch(e) {} renderProducts(); }
     detectLocation();
     
-    // Currency selection event
     document.getElementById('currencySelect').addEventListener('change', (e) => { 
         selectedCurr = e.target.value; 
         renderProducts(); 
         updateCartUI(); 
         renderBuyerOrders();
         if(currentUser?.role === 'seller') renderSellerDashboard();
-        if(currentUser) renderBuyerOrders();
     });
     
-    // Country selection for shipping
     document.getElementById('globalCountrySelect')?.addEventListener('change', (e) => {
         buyerCountry = e.target.value;
         renderProducts();
