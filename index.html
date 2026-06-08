@@ -17,7 +17,8 @@
             background: #f5f7fb;
             overflow-x: hidden;
             padding-bottom: 95px;
-            font-size: 17px;
+            font-size: 18px;
+            line-height: 1.5;
         }
 
         /* HEADER */
@@ -106,8 +107,8 @@
         }
         .drawer.open { left: 0; }
         .drawer-header { padding: 24px 20px; border-bottom: 1px solid #eef2f8; }
-        .drawer-header h2 { font-size: 26px; }
-        .drawer-header p { font-size: 15px; }
+        .drawer-header h2 { font-size: 28px; }
+        .drawer-header p { font-size: 16px; }
         .drawer-item {
             display: flex;
             align-items: center;
@@ -130,10 +131,10 @@
         .mode-tabs {
             display: flex;
             background: white;
-            padding: 6px;
+            padding: 8px;
             border-radius: 60px;
             margin-bottom: 24px;
-            gap: 8px;
+            gap: 10px;
         }
         .mode-btn {
             flex: 1;
@@ -141,8 +142,8 @@
             background: transparent;
             padding: 16px;
             font-weight: 700;
-            border-radius: 40px;
-            font-size: 17px;
+            border-radius: 50px;
+            font-size: 18px;
             cursor: pointer;
         }
         .mode-btn.active {
@@ -155,16 +156,16 @@
         /* CATEGORIES */
         .cat-scroll {
             display: flex;
-            gap: 12px;
+            gap: 14px;
             overflow-x: auto;
             padding: 10px 0 18px;
         }
         .cat-pill {
             background: white;
-            padding: 12px 26px;
-            border-radius: 40px;
+            padding: 12px 28px;
+            border-radius: 50px;
             font-weight: 600;
-            font-size: 16px;
+            font-size: 17px;
             border: 1px solid #e2e8f0;
             cursor: pointer;
             white-space: nowrap;
@@ -187,7 +188,7 @@
         }
         .product-card img { width: 100%; height: 150px; object-fit: cover; border-radius: 20px; }
         .seller-name-tag { font-size: 13px; color: #2563eb; margin: 12px 0 8px; font-weight: 700; }
-        .product-card h4 { font-size: 17px; margin-bottom: 6px; }
+        .product-card h4 { font-size: 18px; margin-bottom: 6px; }
         .prod-price { font-weight: 800; font-size: 20px; color: #1e2b6e; margin-top: 8px; }
         .card-actions { display: flex; gap: 12px; margin-top: 16px; }
         .btn-sm { flex: 1; padding: 12px; border-radius: 60px; font-weight: 700; font-size: 15px; border: none; cursor: pointer; }
@@ -222,15 +223,6 @@
             margin-bottom: 18px;
             font-size: 17px;
         }
-        .input-opt {
-            width: 100%;
-            padding: 18px;
-            border: 1px solid #e2e8f0;
-            border-radius: 24px;
-            margin-bottom: 18px;
-            font-size: 17px;
-            background: #fefce8;
-        }
         .btn-primary {
             background: #1e2b6e;
             color: white;
@@ -241,10 +233,6 @@
             font-size: 18px;
             width: 100%;
             cursor: pointer;
-            margin-top: 8px;
-        }
-        .btn-danger {
-            background: #dc2626;
         }
         .fixed-cart {
             position: fixed;
@@ -261,21 +249,18 @@
             font-size: 20px;
             z-index: 99;
             cursor: pointer;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
         }
-        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
         .order-card { background: #f8fafc; border-radius: 22px; padding: 18px; margin-bottom: 16px; font-size: 16px; }
-        h3 { font-size: 22px; margin-bottom: 14px; }
-        h4 { font-size: 18px; margin: 14px 0 10px; }
-        .address-section {
+        h3 { font-size: 24px; margin-bottom: 16px; }
+        h4 { font-size: 19px; margin: 16px 0 12px; }
+        .address-box {
             background: #f0f9ff;
-            border-radius: 24px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid #bae6fd;
-        }
-        .address-section h4 {
-            color: #0369a1;
-            margin-top: 0;
+            border-radius: 20px;
+            padding: 16px;
+            margin: 12px 0;
+            border-left: 4px solid #2563eb;
         }
         .illegal-warning {
             background: #fee2e2;
@@ -285,6 +270,20 @@
             font-size: 14px;
             margin-top: 8px;
             text-align: center;
+        }
+        .seller-dashboard-card {
+            background: white;
+            border-radius: 28px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid #eef2f8;
+        }
+        .seller-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #2563eb;
         }
     </style>
 </head>
@@ -312,7 +311,6 @@
     </div>
 </div>
 
-<!-- DRAWER -->
 <div class="drawer-overlay" id="drawerOverlay"></div>
 <div class="drawer" id="drawer">
     <div class="drawer-header"><h2>GlobalBazaar</h2><p>Multi‑Seller Hub</p></div>
@@ -331,16 +329,14 @@
         <button class="mode-btn" data-tab="profile">👤 Profile</button>
     </div>
 
-    <!-- BUYER SECTION -->
     <div id="buyerSection" class="section active">
         <div class="cat-scroll" id="catList"></div>
         <input type="text" id="searchInput" class="input" placeholder="🔍 Search products..." oninput="renderProducts()">
         <div class="product-grid" id="productsGrid"></div>
     </div>
 
-    <!-- SELLER SECTION -->
     <div id="sellerSection" class="section">
-        <div id="sellerRegisterBox" class="modal-card" style="margin:0; padding:24px;">
+        <div id="sellerRegisterBox" class="seller-dashboard-card" style="margin:0;">
             <h2 style="margin-bottom:20px;">🏪 Open Your Shop</h2>
             <form id="sellerRegForm">
                 <h4>📸 Profile Picture</h4>
@@ -348,34 +344,29 @@
                 <input type="text" id="sellerFullName" placeholder="Full Legal Name" class="input" required>
                 <input type="text" id="sellerShopName" placeholder="Shop / Brand Name" class="input" required>
                 <input type="email" id="sellerEmail" placeholder="Email" class="input" required>
-                <input type="tel" id="sellerPhone" placeholder="📞 Phone Number (WhatsApp)" class="input" required>
+                <input type="tel" id="sellerPhone" placeholder="📞 Phone Number" class="input" required>
                 <input type="password" id="sellerPassword" placeholder="Password" class="input" required>
-                
-                <h4>📍 Shop Address (for pickup)</h4>
-                <input type="text" id="sellerStreet" placeholder="Street / Area / Village" class="input" required>
-                <input type="text" id="sellerCity" placeholder="City / Town" class="input" required>
-                <input type="text" id="sellerState" placeholder="State / Province" class="input" required>
+                <h4>📍 Shop Address</h4>
+                <input type="text" id="sellerStreet" placeholder="Street / Area" class="input" required>
+                <input type="text" id="sellerCity" placeholder="City" class="input" required>
+                <input type="text" id="sellerState" placeholder="State" class="input" required>
                 <input type="text" id="sellerCountryReg" placeholder="Country" class="input" required>
-                
-                <h4>🆔 KYC Documents</h4>
-                <select id="sellerIdType" class="input"><option>National ID / Iqama</option><option>Passport</option></select>
+                <h4>🆔 KYC</h4>
+                <select id="sellerIdType" class="input"><option>National ID</option><option>Passport</option></select>
                 <input type="text" id="sellerIdNumber" placeholder="ID Number" class="input" required>
                 <input type="file" id="sellerIdImage" accept="image/*" class="input" required>
-                
-                <h4>🏦 Bank Account (for payout)</h4>
+                <h4>🏦 Bank Account</h4>
                 <input type="text" id="sellerBank" placeholder="Bank Name" class="input" required>
-                <input type="text" id="sellerIban" placeholder="IBAN / Account Number" class="input" required>
-                <input type="text" id="sellerSwift" placeholder="Swift / Routing Code" class="input" required>
-                
+                <input type="text" id="sellerIban" placeholder="IBAN" class="input" required>
+                <input type="text" id="sellerSwift" placeholder="Swift Code" class="input" required>
                 <button type="submit" class="btn-primary">✅ Register Shop</button>
             </form>
         </div>
         <div id="sellerDashboard" style="display:none;"></div>
     </div>
 
-    <!-- PROFILE SECTION -->
     <div id="profileSection" class="section">
-        <div id="profileAuthBox" class="modal-card" style="margin:0;">
+        <div id="profileAuthBox" class="seller-dashboard-card" style="margin:0;">
             <div style="display:flex; gap:12px; margin-bottom:20px;">
                 <button id="showLoginBtn" class="btn-primary" style="background:#e2e8f0; color:#000;">Login</button>
                 <button id="showSignupBtn" class="btn-primary" style="background:#e2e8f0; color:#000;">Sign Up</button>
@@ -393,15 +384,20 @@
             </div>
         </div>
         <div id="buyerProfilePanel" style="display:none;">
-            <div class="modal-card"><h2>👋 Welcome, <span id="profileName"></span></h2><button class="btn-primary" id="logoutBuyerBtn" style="background:#dc2626;">Logout</button></div>
-            <div class="modal-card"><h3>📜 Order History</h3><div id="buyerOrdersList"></div></div>
+            <div class="seller-dashboard-card">
+                <h2>👋 Welcome, <span id="profileName"></span></h2>
+                <button class="btn-primary" id="logoutBuyerBtn" style="background:#dc2626;">Logout</button>
+            </div>
+            <div class="seller-dashboard-card">
+                <h3>📜 Order History</h3>
+                <div id="buyerOrdersList"></div>
+            </div>
         </div>
     </div>
 </div>
 
 <button class="fixed-cart" id="cartFloatBtn">🛒 Cart <span class="badge" id="cartCountBadge">0</span></button>
 
-<!-- PRODUCT MODAL -->
 <div id="productModal" class="modal">
     <div class="modal-card">
         <span class="close-modal" id="closeModalBtn">&times;</span>
@@ -423,53 +419,31 @@
 </div>
 
 <script>
-    // ============ ILLEGAL KEYWORDS BLOCKING SYSTEM ============
+    // ILLEGAL KEYWORDS
     const illegalKeywords = [
-        // Weapons
-        "gun", "pistol", "rifle", "shotgun", "weapon", "bomb", "explosive", "grenade", "ammunition", "bullet",
-        "knife", "sword", "dager", "rocket", "missile", "revolver", "firearm", "handgun",
-        // Drugs
-        "cocaine", "heroin", "weed", "marijuana", "cannabis", "drugs", "narcotics", "lsd", "mdma", "ecstasy",
-        "meth", "amphetamine", "opium", "morphine", "fentanyl", "tramadol", "crack",
-        // Human Trafficking
-        "human trafficking", "slave", "forced labour", "child labour", "sex trafficking", "organ trade",
-        // Wildlife
-        "ivory", "tiger skin", "elephant tusk", "rhino horn", "pangolin", "endangered species", "animal skin",
-        // Counterfeit
-        "fake", "replica", "counterfeit", "duplicate", "forged", "copy", "imitation", "knockoff",
-        // Adult
-        "porn", "adult toy", "nude", "sexual", "xxx", "virginity", "sex",
-        // Stolen/Cyber
-        "hacked account", "stolen credit card", "fake id", "passport fake", "visa fake"
+        "gun","pistol","rifle","weapon","bomb","explosive","grenade","ammunition","bullet","knife","sword",
+        "cocaine","heroin","weed","marijuana","cannabis","drugs","narcotics","lsd","mdma","meth",
+        "human trafficking","slave","forced labour","child labour","sex trafficking",
+        "ivory","tiger skin","elephant tusk","rhino horn",
+        "fake","replica","counterfeit","duplicate","forged",
+        "porn","adult toy","nude","sexual","xxx"
     ];
 
-    function isProductIllegal(name, description) {
-        let checkText = (name + " " + description).toLowerCase();
-        for(let keyword of illegalKeywords) {
-            if(checkText.includes(keyword)) {
-                return { illegal: true, keyword: keyword };
-            }
-        }
-        return { illegal: false };
+    function isIllegal(name, desc) {
+        let text = (name + " " + desc).toLowerCase();
+        for(let kw of illegalKeywords) if(text.includes(kw)) return true;
+        return false;
     }
 
-    // ============ CURRENCY SYSTEM (12 Currencies) ============
-    let fx = {
-        "SAR": 3.75, "AED": 3.67, "KWD": 0.31, "QAR": 3.64,
-        "OMR": 0.38, "BHD": 0.38, "USD": 1.0, "EUR": 0.92,
-        "GBP": 0.78, "INR": 83.5, "PKR": 278, "CNY": 7.25
-    };
-    let sym = {
-        "SAR": "SAR ", "AED": "AED ", "KWD": "KWD ", "QAR": "QAR ",
-        "OMR": "OMR ", "BHD": "BHD ", "USD": "$", "EUR": "€",
-        "GBP": "£", "INR": "₹", "PKR": "₨", "CNY": "¥"
-    };
-    
+    // CURRENCY
+    let fx = { "SAR":3.75, "AED":3.67, "KWD":0.31, "QAR":3.64, "OMR":0.38, "BHD":0.38, "USD":1, "EUR":0.92, "GBP":0.78, "INR":83.5, "PKR":278, "CNY":7.25 };
+    let sym = { "SAR":"SAR ", "AED":"AED ", "KWD":"KWD ", "QAR":"QAR ", "OMR":"OMR ", "BHD":"BHD ", "USD":"$", "EUR":"€", "GBP":"£", "INR":"₹", "PKR":"₨", "CNY":"¥" };
     let selectedCurr = "SAR";
+
     let sellers = JSON.parse(localStorage.getItem('gb_sellers')) || [];
     let products = JSON.parse(localStorage.getItem('gb_products')) || [
-        {id:1, sellerId:0, sellerName:"GlobalBazaar", name:"Luxury Smart Watch", price:50, category:"Electronics", image:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400", description:"Premium smart watch", rating:4.5, reviews:[], costPrice:25, shippingCostSeller:5, weight:0.3},
-        {id:2, sellerId:0, sellerName:"GlobalBazaar", name:"Premium Headphones", price:120, category:"Electronics", image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", description:"Noise cancellation", rating:4.8, reviews:[], costPrice:60, shippingCostSeller:7, weight:0.5}
+        {id:1, sellerId:0, sellerName:"GlobalBazaar", name:"Luxury Smart Watch", price:50, category:"Electronics", image:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400", description:"Premium smart watch", rating:4.5, reviews:[]},
+        {id:2, sellerId:0, sellerName:"GlobalBazaar", name:"Premium Headphones", price:120, category:"Electronics", image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", description:"Noise cancellation", rating:4.8, reviews:[]}
     ];
     let buyers = JSON.parse(localStorage.getItem('gb_buyers')) || [];
     let currentBuyer = JSON.parse(localStorage.getItem('gb_current_buyer')) || null;
@@ -477,11 +451,6 @@
     let cart = JSON.parse(localStorage.getItem('gb_cart')) || [];
     let wishlist = JSON.parse(localStorage.getItem('gb_wishlist')) || [];
     let orders = JSON.parse(localStorage.getItem('gb_orders')) || [];
-    let payouts = JSON.parse(localStorage.getItem('gb_payouts')) || [];
-
-    let buyerIpCountry = "SA";
-    let buyerIpCity = "Riyadh";
-    let pendingAddress = null;
 
     function saveAll() {
         localStorage.setItem('gb_sellers', JSON.stringify(sellers));
@@ -492,51 +461,16 @@
         localStorage.setItem('gb_cart', JSON.stringify(cart));
         localStorage.setItem('gb_wishlist', JSON.stringify(wishlist));
         localStorage.setItem('gb_orders', JSON.stringify(orders));
-        localStorage.setItem('gb_payouts', JSON.stringify(payouts));
-    }
-
-    async function detectLocation() {
-        try {
-            let res = await fetch('https://ipapi.co/json/');
-            let data = await res.json();
-            buyerIpCountry = data.country_code || "SA";
-            buyerIpCity = data.city || "Riyadh";
-        } catch(e) { buyerIpCountry = "SA"; buyerIpCity = "Riyadh"; }
-        renderProducts();
-    }
-    detectLocation();
-
-    function getShippingCost(sellerCountry, buyerCountry) {
-        if(sellerCountry === buyerCountry) return 5;
-        let nearby = ["SA","AE","QA","KW","OM","BH"];
-        if(nearby.includes(sellerCountry) && nearby.includes(buyerCountry)) return 12;
-        return 25;
-    }
-
-    function calcFinalPrice(basePrice, sellerCountry) {
-        let commission = basePrice > 100 ? 0.03 : (basePrice > 50 ? 0.04 : 0.05);
-        let platformFee = basePrice * commission;
-        let gatewayFee = basePrice * 0.025;
-        let shipping = getShippingCost(sellerCountry, buyerIpCountry);
-        let handling = 2;
-        let total = basePrice + platformFee + gatewayFee + shipping + handling;
-        return { total, shipping, commission: commission*100 };
     }
 
     function convert(usd) { return (usd * fx[selectedCurr]).toFixed(2); }
     function getSym() { return sym[selectedCurr]; }
 
-    function applyCurrency() {
-        selectedCurr = document.getElementById('currencySelect').value;
-        renderProducts();
-        updateCartUI();
-        if(currentSeller) renderSellerDashboard();
-    }
-    document.getElementById('currencySelect').addEventListener('change', applyCurrency);
+    document.getElementById('currencySelect').addEventListener('change', (e) => { selectedCurr = e.target.value; renderProducts(); updateCartUI(); if(currentSeller) renderSellerDashboard(); });
 
     let currentCategory = "All";
-    function renderCats() { 
-        let cats = ["All", ...new Set(products.map(p=>p.category))]; 
+    function renderCats() {
+        let cats = ["All", ...new Set(products.map(p=>p.category))];
         document.getElementById('catList').innerHTML = cats.map(c => `<div class="cat-pill ${currentCategory===c?'active':''}" data-cat="${c}">${c}</div>`).join('');
         document.querySelectorAll('.cat-pill').forEach(el => el.addEventListener('click', (e) => { currentCategory = e.target.dataset.cat; renderCats(); renderProducts(); }));
     }
@@ -544,15 +478,13 @@
     function renderProducts() {
         let search = document.getElementById('searchInput')?.value.toLowerCase() || "";
         let filtered = products.filter(p => (currentCategory==="All" || p.category===currentCategory) && p.name.toLowerCase().includes(search));
-        let sellerMap = new Map(sellers.map(s=>[s.id, s]));
         let html = filtered.map(p => {
-            let seller = sellerMap.get(p.sellerId) || {shopName:p.sellerName || "GlobalBazaar", country:"SA"};
-            let finalObj = calcFinalPrice(p.price, seller.country || "SA");
+            let seller = sellers.find(s=>s.id===p.sellerId) || {shopName:p.sellerName || "GlobalBazaar"};
             return `<div class="product-card" data-id="${p.id}">
                 <img src="${p.image}" onerror="this.src='https://placehold.co/200x200'">
-                <div class="seller-name-tag">🏪 ${seller.shopName || "GlobalBazaar"}</div>
+                <div class="seller-name-tag">🏪 ${seller.shopName}</div>
                 <h4>${p.name}</h4>
-                <div class="prod-price">${getSym()}${convert(finalObj.total)}</div>
+                <div class="prod-price">${getSym()}${convert(p.price)}</div>
                 <div class="card-actions">
                     <button class="btn-sm btn-buy addCartBtn" data-id="${p.id}">Buy</button>
                     <button class="btn-sm btn-wish wishBtn ${wishlist.includes(p.id)?'active':''}" data-id="${p.id}">❤️</button>
@@ -566,99 +498,78 @@
         updateWishUI();
     }
 
-    function openProduct(id) { 
-        let p = products.find(x=>x.id===id); 
-        if(!p) return; 
-        currentProduct = p; 
-        let seller = sellers.find(s=>s.id===p.sellerId) || {shopName:p.sellerName || "GlobalBazaar", country:"SA"}; 
-        let final = calcFinalPrice(p.price, seller.country || "SA"); 
-        document.getElementById('modalImg').src = p.image; 
-        document.getElementById('modalTitle').innerText = p.name; 
-        document.getElementById('modalSellerName').innerHTML = `🏪 ${seller.shopName || "GlobalBazaar"}`; 
-        document.getElementById('modalDesc').innerText = p.description; 
-        document.getElementById('modalPrice').innerHTML = `${getSym()}${convert(final.total)}`; 
-        let stars = "★".repeat(Math.floor(p.rating)) + "☆".repeat(5-Math.floor(p.rating)); 
-        document.getElementById('modalStars').innerHTML = stars; 
-        document.getElementById('modalReviews').innerHTML = p.reviews.map(r=>`<div class="order-card">⭐${r.rating} - ${r.text}<br><small>${r.user}</small></div>`).join('') || "<i>No reviews</i>"; 
-        document.getElementById('productModal').style.display = 'block'; 
+    function openProduct(id) {
+        let p = products.find(x=>x.id===id);
+        if(!p) return;
+        currentProduct = p;
+        let seller = sellers.find(s=>s.id===p.sellerId) || {shopName:p.sellerName};
+        document.getElementById('modalImg').src = p.image;
+        document.getElementById('modalTitle').innerText = p.name;
+        document.getElementById('modalSellerName').innerHTML = `🏪 ${seller.shopName}`;
+        document.getElementById('modalDesc').innerText = p.description;
+        document.getElementById('modalPrice').innerHTML = `${getSym()}${convert(p.price)}`;
+        let stars = "★".repeat(Math.floor(p.rating)) + "☆".repeat(5-Math.floor(p.rating));
+        document.getElementById('modalStars').innerHTML = stars;
+        document.getElementById('modalReviews').innerHTML = p.reviews.map(r=>`<div class="order-card">⭐${r.rating} - ${r.text}<br><small>${r.user}</small></div>`).join('') || "<i>No reviews</i>";
+        document.getElementById('productModal').style.display = 'block';
     }
     let currentProduct = null;
 
-    function addToCart(id) { 
-        let p = products.find(x=>x.id===id); 
-        if(!p) return; 
-        let existing = cart.find(i=>i.id===id); 
-        if(existing) existing.qty++; 
-        else cart.push({id:p.id, name:p.name, price:p.price, sellerId:p.sellerId, sellerName:p.sellerName, qty:1}); 
-        saveAll(); 
-        updateCartUI(); 
-        alert("✅ Added to cart"); 
-    }
-    function updateCartUI() { 
-        let c = cart.reduce((a,b)=>a+b.qty,0); 
-        document.getElementById('cartCountBadge').innerText = c; 
-    }
-    function toggleWish(id) { 
-        if(wishlist.includes(id)) wishlist = wishlist.filter(i=>i!==id); 
-        else wishlist.push(id); 
-        saveAll(); 
-        renderProducts(); 
-        updateWishUI(); 
-    }
-    function updateWishUI() { 
-        document.getElementById('wishCountHead').innerText = wishlist.length; 
+    function addToCart(id) {
+        let p = products.find(x=>x.id===id);
+        if(!p) return;
+        let existing = cart.find(i=>i.id===id);
+        if(existing) existing.qty++;
+        else cart.push({id:p.id, name:p.name, price:p.price, sellerId:p.sellerId, sellerName:p.sellerName, qty:1});
+        saveAll();
+        updateCartUI();
+        alert("✅ Added to cart");
     }
 
-    // ADDRESS COLLECTION (LINE BY LINE)
+    function updateCartUI() { document.getElementById('cartCountBadge').innerText = cart.reduce((a,b)=>a+b.qty,0); }
+    function toggleWish(id) { if(wishlist.includes(id)) wishlist = wishlist.filter(i=>i!==id); else wishlist.push(id); saveAll(); renderProducts(); updateWishUI(); }
+    function updateWishUI() { document.getElementById('wishCountHead').innerText = wishlist.length; }
+
+    // ADDRESS COLLECTION
     function collectAddress() {
-        let address = {
-            fullName: prompt("📝 1/7 - Full Name (Required):", ""),
-            street: prompt("📝 2/7 - Street / Area / Village (Required):", ""),
-            houseNo: prompt("📝 3/7 - House / Building No. (Optional):", "") || "N/A",
-            landmark: prompt("📝 4/7 - Landmark (Optional):", "") || "N/A",
-            city: prompt("📝 5/7 - City / Town (Required):", ""),
-            state: prompt("📝 6/7 - State / Province (Required):", ""),
-            country: prompt("📝 7/7 - Country (Required):", "India")
+        let addr = {
+            name: prompt("📝 Full Name (Required):", ""),
+            street: prompt("📝 Street / Area / Village (Required):", ""),
+            house: prompt("🏠 House/Building No. (Optional):", "") || "N/A",
+            landmark: prompt("📍 Landmark (Optional):", "") || "N/A",
+            city: prompt("🏙️ City / Town (Required):", ""),
+            state: prompt("🗺️ State / Province (Required):", ""),
+            country: prompt("🌍 Country (Required):", "India")
         };
-        if(!address.fullName || !address.street || !address.city || !address.state || !address.country) {
-            alert("❌ Full Name, Street, City, State, Country are required!");
+        if(!addr.name || !addr.street || !addr.city || !addr.state || !addr.country) {
+            alert("❌ Name, Street, City, State, Country are required!");
             return null;
         }
-        return address;
+        return `${addr.name}, ${addr.street}, ${addr.house}, ${addr.landmark}, ${addr.city}, ${addr.state}, ${addr.country}`;
     }
 
     // CHECKOUT
     document.getElementById('cartFloatBtn')?.addEventListener('click', () => {
         if(cart.length===0) return alert("Cart is empty!");
-        if(!currentBuyer) { alert("Please login as buyer first!"); switchMode('profile'); return; }
+        if(!currentBuyer) { alert("Please login as buyer first! Go to Profile tab."); return; }
         
         let address = collectAddress();
         if(!address) return;
         
-        let totalUSD = cart.reduce((a,i)=>a+(i.price*i.qty),0);
-        let trackingGen = "GB" + Date.now() + Math.floor(Math.random()*1000);
-        
+        let tracking = "GB" + Date.now() + Math.floor(Math.random()*10000);
         cart.forEach(item => {
-            let seller = sellers.find(s=>s.id===item.sellerId);
-            orders.push({ 
-                id: Date.now()+Math.random(), 
-                trackingNumber: trackingGen,
-                sellerId: item.sellerId, 
-                sellerName: item.sellerName, 
-                buyerEmail: currentBuyer.email, 
-                buyerName: address.fullName,
-                productName: item.name, 
-                amount: item.price*item.qty,
-                address: `${address.fullName}, ${address.street}, ${address.houseNo}, ${address.landmark}, ${address.city}, ${address.state}, ${address.country}`,
-                date: new Date().toISOString(), 
-                status: "confirmed"
+            orders.push({
+                id: Date.now()+Math.random(), trackingNumber: tracking,
+                sellerId: item.sellerId, sellerName: item.sellerName,
+                buyerEmail: currentBuyer.email, buyerName: currentBuyer.name,
+                productName: item.name, amount: item.price*item.qty,
+                address: address, date: new Date().toLocaleString(), status: "confirmed"
             });
-            if(seller) seller.earnings += (item.price*item.qty);
+            let seller = sellers.find(s=>s.id===item.sellerId);
+            if(seller) seller.earnings = (seller.earnings||0) + (item.price*item.qty);
         });
-        cart = []; 
-        saveAll(); 
-        updateCartUI(); 
-        alert(`✅ ORDER CONFIRMED!\n\nTracking Number: ${trackingGen}\n\nYour order will be shipped soon.`);
+        cart = []; saveAll(); updateCartUI();
+        alert(`✅ ORDER CONFIRMED!\nTracking ID: ${tracking}\nWe'll update you.`);
         if(currentBuyer) renderBuyerOrders();
     });
 
@@ -667,14 +578,14 @@
         e.preventDefault();
         let avatar = document.getElementById('sellerAvatar').files[0];
         let idImg = document.getElementById('sellerIdImage').files[0];
-        if(!avatar || !idImg) { alert("Upload profile photo & ID document"); return; }
+        if(!avatar || !idImg) { alert("Upload photo & ID"); return; }
         let reader = new FileReader();
         reader.onload = (ev) => {
             let avatarUrl = ev.target.result;
             let reader2 = new FileReader();
             reader2.onload = (ev2) => {
-                let newSeller = { 
-                    id: Date.now(), avatar: avatarUrl, 
+                let newSeller = {
+                    id: Date.now(), avatar: avatarUrl,
                     fullName: document.getElementById('sellerFullName').value,
                     shopName: document.getElementById('sellerShopName').value,
                     email: document.getElementById('sellerEmail').value,
@@ -690,15 +601,15 @@
                     bankName: document.getElementById('sellerBank').value,
                     iban: document.getElementById('sellerIban').value,
                     swift: document.getElementById('sellerSwift').value,
-                    earnings: 0, products: []
+                    earnings: 0
                 };
-                sellers.push(newSeller); 
-                currentSeller = newSeller; 
+                sellers.push(newSeller);
+                currentSeller = newSeller;
                 saveAll();
-                document.getElementById('sellerRegisterBox').style.display = 'none'; 
+                document.getElementById('sellerRegisterBox').style.display = 'none';
                 document.getElementById('sellerDashboard').style.display = 'block';
                 renderSellerDashboard();
-                alert("✅ Shop Registered Successfully!");
+                alert("✅ Shop Registered!");
             };
             reader2.readAsDataURL(idImg);
         };
@@ -707,93 +618,98 @@
 
     function renderSellerDashboard() {
         if(!currentSeller) return;
-        let prodList = products.filter(p=>p.sellerId===currentSeller.id);
-        let sellerOrders = orders.filter(o=>o.sellerId===currentSeller.id);
-        let totalEarn = sellerOrders.reduce((a,b)=>a+b.amount,0);
-        currentSeller.earnings = totalEarn; 
+        let myProds = products.filter(p=>p.sellerId===currentSeller.id);
+        let myOrders = orders.filter(o=>o.sellerId===currentSeller.id);
+        let earnings = myOrders.reduce((a,b)=>a+b.amount,0);
+        currentSeller.earnings = earnings;
         saveAll();
         document.getElementById('sellerDashboard').innerHTML = `
-            <div class="modal-card">
+            <div class="seller-dashboard-card">
                 <div class="flex-between">
-                    <div><img src="${currentSeller.avatar}" style="width:70px;height:70px;border-radius:50%;"><h2>${currentSeller.shopName}</h2><p>${currentSeller.fullName}</p><p>📞 ${currentSeller.phone}</p></div>
-                    <span style="background:#dcfce7;padding:6px 14px;border-radius:30px;">✅ KYC</span>
+                    <div><img src="${currentSeller.avatar}" class="seller-avatar"><h2 style="margin-top:10px;">${currentSeller.shopName}</h2><p>${currentSeller.fullName}</p><p>📞 ${currentSeller.phone}</p></div>
+                    <span style="background:#dcfce7;padding:8px 16px;border-radius:40px;">✅ KYC</span>
                 </div>
-                <div class="flex-between" style="margin:16px 0;"><span>🏦 ${currentSeller.bankName}</span><span>💰 ${getSym()}${convert(totalEarn)}</span></div>
-                <button id="withdrawBtnSeller" class="btn-primary" style="margin-top:12px;">💸 Withdraw Weekly</button>
+                <div class="flex-between" style="margin:16px 0;"><span>🏦 ${currentSeller.bankName}</span><span>💰 ${getSym()}${convert(earnings)}</span></div>
+                <button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Withdraw Weekly</button>
             </div>
-            <div class="modal-card">
+            <div class="seller-dashboard-card">
                 <h3>➕ Add Product</h3>
-                <div id="illegalWarning" class="illegal-warning" style="display:none;">🚫 ILLEGAL PRODUCT DETECTED! This product violates our policy.</div>
+                <div id="illegalWarn" class="illegal-warning" style="display:none;">🚫 Illegal product detected!</div>
                 <input id="prodName" class="input" placeholder="Product Name">
-                <input id="prodPriceUsd" class="input" type="number" placeholder="Selling Price USD">
-                <input id="prodCost" class="input" type="number" placeholder="My cost USD">
-                <input id="prodShipCost" class="input" type="number" placeholder="Shipping cost I pay">
-                <select id="prodCat" class="input"><option>Electronics</option><option>Fashion</option><option>Home</option><option>Beauty</option></select>
-                <input id="prodImgUrl" class="input" placeholder="Image URL">
-                <textarea id="prodDescArea" class="input" rows="3" placeholder="Description"></textarea>
-                <button id="publishProdBtn" class="btn-primary">Publish Product</button>
+                <input id="prodPrice" class="input" type="number" placeholder="Price (USD)">
+                <select id="prodCat" class="input"><option>Electronics</option><option>Fashion</option><option>Home</option></select>
+                <input id="prodImg" class="input" placeholder="Image URL">
+                <textarea id="prodDesc" class="input" rows="3" placeholder="Description"></textarea>
+                <button id="publishBtn" class="btn-primary">Publish</button>
             </div>
-            <div class="modal-card"><h3>📋 My Products</h3><div id="sellerProdList"></div></div>
-            <div class="modal-card"><h3>📦 Orders Received</h3><div id="sellerOrdersList"></div></div>`;
+            <div class="seller-dashboard-card"><h3>📋 My Products</h3><div id="myProductsList"></div></div>
+            <div class="seller-dashboard-card"><h3>📦 Orders Received</h3><div id="sellerOrdersList"></div></div>
+        `;
         
-        document.getElementById('publishProdBtn')?.addEventListener('click', () => {
+        document.getElementById('publishBtn')?.addEventListener('click', () => {
             let name = document.getElementById('prodName').value;
-            let desc = document.getElementById('prodDescArea').value;
-            let illegalCheck = isProductIllegal(name, desc);
-            if(illegalCheck.illegal) {
-                document.getElementById('illegalWarning').style.display = 'block';
-                alert(`🚫 BLOCKED! Product contains illegal keyword: "${illegalCheck.keyword}"\n\nWeapons, Drugs, Human Trafficking, and Counterfeit products are strictly prohibited.`);
+            let desc = document.getElementById('prodDesc').value;
+            if(isIllegal(name, desc)) {
+                document.getElementById('illegalWarn').style.display = 'block';
+                alert("🚫 BLOCKED! Illegal product not allowed.");
                 return;
             }
-            document.getElementById('illegalWarning').style.display = 'none';
-            let price = parseFloat(document.getElementById('prodPriceUsd').value);
-            let cost = parseFloat(document.getElementById('prodCost').value);
-            let shipCost = parseFloat(document.getElementById('prodShipCost').value);
+            document.getElementById('illegalWarn').style.display = 'none';
+            let price = parseFloat(document.getElementById('prodPrice').value);
             let cat = document.getElementById('prodCat').value;
-            let img = document.getElementById('prodImgUrl').value;
-            if(!name || !price) { alert("Fill product name and price"); return; }
-            let newP = { 
-                id: Date.now(), 
-                sellerId: currentSeller.id, 
-                sellerName: currentSeller.shopName, 
-                name, price, category: cat, 
-                image: img || "https://placehold.co/200x200", 
-                description: desc, rating:0, reviews:[], 
-                costPrice: cost, shippingCostSeller: shipCost, weight: 0.5 
-            };
-            products.push(newP); 
-            saveAll(); 
-            renderSellerDashboard(); 
+            let img = document.getElementById('prodImg').value;
+            if(!name || !price) { alert("Fill name & price"); return; }
+            let newP = { id: Date.now(), sellerId: currentSeller.id, sellerName: currentSeller.shopName, name, price, category: cat, image: img || "https://placehold.co/200x200", description: desc, rating: 0, reviews: [] };
+            products.push(newP);
+            saveAll();
+            renderSellerDashboard();
             renderProducts();
-            alert("✅ Product published successfully!");
+            alert("Product published!");
             document.getElementById('prodName').value = '';
-            document.getElementById('prodPriceUsd').value = '';
-            document.getElementById('prodCost').value = '';
-            document.getElementById('prodShipCost').value = '';
-            document.getElementById('prodImgUrl').value = '';
-            document.getElementById('prodDescArea').value = '';
+            document.getElementById('prodPrice').value = '';
+            document.getElementById('prodImg').value = '';
+            document.getElementById('prodDesc').value = '';
         });
         
-        document.getElementById('sellerProdList').innerHTML = prodList.map(p=>`<div class="flex-between"><span>${p.name} - ${getSym()}${convert(p.price)}</span><button class="delProd" data-id="${p.id}" style="background:#dc2626;border:none;padding:8px 16px;border-radius:30px;color:white;">❌</button></div>`).join('');
-        document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', (e) => { let id = parseInt(btn.dataset.id); products = products.filter(p=>p.id!==id); saveAll(); renderSellerDashboard(); renderProducts(); }));
+        document.getElementById('myProductsList').innerHTML = myProds.map(p => `<div class="flex-between"><span>${p.name} - ${getSym()}${convert(p.price)}</span><button class="delProd" data-id="${p.id}" style="background:#dc2626;border:none;padding:6px 14px;border-radius:30px;color:white;">Delete</button></div>`).join('');
+        document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', () => { products = products.filter(p=>p.id!==parseInt(btn.dataset.id)); saveAll(); renderSellerDashboard(); renderProducts(); }));
         
-        document.getElementById('sellerOrdersList').innerHTML = sellerOrders.map(o=>`<div class="order-card"><strong>Order #${o.trackingNumber}</strong><br>Buyer: ${o.buyerName}<br>Product: ${o.productName}<br>Amount: ${getSym()}${convert(o.amount)}<br>Address: ${o.address}<br><button class="markShippedBtn" data-order="${o.id}" style="background:#2563eb;border:none;padding:8px 16px;border-radius:30px;color:white;">📦 Mark Shipped</button></div>`).join('');
-        document.querySelectorAll('.markShippedBtn').forEach(btn => btn.addEventListener('click', (e) => { let oid = btn.dataset.order; let track = prompt("Enter Tracking Number:"); if(track) { let ord = orders.find(o=>o.id==oid); if(ord) ord.trackingNumber = track; saveAll(); alert("Tracking added!"); renderSellerDashboard(); } }));
+        document.getElementById('sellerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>Order #${o.trackingNumber}</strong><br>Buyer: ${o.buyerName}<br>Product: ${o.productName}<br>Amount: ${getSym()}${convert(o.amount)}<br>Address: ${o.address}<br><button class="shipBtn" data-id="${o.id}" style="background:#2563eb;border:none;padding:8px 16px;border-radius:30px;color:white;">📦 Mark Shipped</button></div>`).join('');
+        document.querySelectorAll('.shipBtn').forEach(btn => btn.addEventListener('click', () => { let track = prompt("Enter Tracking Number:"); if(track) { let ord = orders.find(o=>o.id==parseInt(btn.dataset.id)); ord.trackingNumber = track; saveAll(); alert("Tracking added!"); renderSellerDashboard(); } }));
         
-        document.getElementById('withdrawBtnSeller')?.addEventListener('click', () => { if(currentSeller.earnings>0) { payouts.push({sellerId:currentSeller.id, amount:currentSeller.earnings, date:new Date().toISOString()}); currentSeller.earnings=0; saveAll(); alert("Withdrawal requested! Weekly payout."); renderSellerDashboard(); } else alert("No balance"); });
+        document.getElementById('withdrawBtn')?.addEventListener('click', () => { if(currentSeller.earnings>0) { alert(`Withdrawal ${getSym()}${convert(currentSeller.earnings)} requested to ${currentSeller.bankName}`); currentSeller.earnings=0; saveAll(); renderSellerDashboard(); } else alert("No balance"); });
     }
 
     // BUYER AUTH
     document.getElementById('showLoginBtn')?.addEventListener('click', () => { document.getElementById('loginFormDiv').style.display='block'; document.getElementById('signupFormDiv').style.display='none'; });
     document.getElementById('showSignupBtn')?.addEventListener('click', () => { document.getElementById('loginFormDiv').style.display='none'; document.getElementById('signupFormDiv').style.display='block'; });
-    document.getElementById('doLoginBtn')?.addEventListener('click', () => { let em = document.getElementById('loginEmail').value, pw = document.getElementById('loginPass').value; let b = buyers.find(x=>x.email===em && x.password===pw); if(b) { currentBuyer = b; saveAll(); document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = b.name; renderBuyerOrders(); alert("Welcome!"); } else alert("Invalid"); });
-    document.getElementById('doSignupBtn')?.addEventListener('click', () => { let name = document.getElementById('signupName').value, em = document.getElementById('signupEmail').value, pw = document.getElementById('signupPass').value; if(buyers.find(x=>x.email===em)) return alert("Email exists"); buyers.push({name, email:em, password:pw}); currentBuyer = {name, email:em, password:pw}; saveAll(); document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = name; renderBuyerOrders(); alert("Signup success!"); });
+    document.getElementById('doLoginBtn')?.addEventListener('click', () => {
+        let em = document.getElementById('loginEmail').value;
+        let pw = document.getElementById('loginPass').value;
+        let buyer = buyers.find(b=>b.email===em && b.password===pw);
+        if(buyer) { currentBuyer = buyer; saveAll(); document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = buyer.name; renderBuyerOrders(); alert("Login successful!"); }
+        else alert("Invalid credentials");
+    });
+    document.getElementById('doSignupBtn')?.addEventListener('click', () => {
+        let name = document.getElementById('signupName').value;
+        let em = document.getElementById('signupEmail').value;
+        let pw = document.getElementById('signupPass').value;
+        if(buyers.find(b=>b.email===em)) { alert("Email exists"); return; }
+        let newBuyer = { name, email: em, password: pw };
+        buyers.push(newBuyer);
+        currentBuyer = newBuyer;
+        saveAll();
+        document.getElementById('profileAuthBox').style.display='none';
+        document.getElementById('buyerProfilePanel').style.display='block';
+        document.getElementById('profileName').innerText = name;
+        renderBuyerOrders();
+        alert("Signup successful!");
+    });
     document.getElementById('logoutBuyerBtn')?.addEventListener('click', () => { currentBuyer = null; saveAll(); document.getElementById('profileAuthBox').style.display='block'; document.getElementById('buyerProfilePanel').style.display='none'; });
-    
-    function renderBuyerOrders() { 
-        let myOrders = orders.filter(o=>o.buyerEmail===currentBuyer?.email); 
-        document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o=>`<div class="order-card"><strong>🔖 Tracking: ${o.trackingNumber}</strong><br>${o.productName} - ${getSym()}${convert(o.amount)}<br>📍 ${o.address}<br>Status: ${o.status}<br><button class="trackBtn" data-track="${o.trackingNumber}" style="background:#2563eb;border:none;padding:8px 16px;border-radius:30px;color:white;">🔍 Track Order</button></div>`).join('');
-        document.querySelectorAll('.trackBtn').forEach(btn => btn.addEventListener('click', () => { alert(`Tracking Number: ${btn.dataset.track}\nUse courier website to track`); }));
+
+    function renderBuyerOrders() {
+        let myOrders = orders.filter(o=>o.buyerEmail===currentBuyer?.email);
+        document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 Tracking: ${o.trackingNumber}</strong><br>${o.productName} - ${getSym()}${convert(o.amount)}<br>📍 ${o.address}<br>Status: ${o.status}</div>`).join('') || "<p>No orders yet</p>";
     }
 
     // DRAWER & TABS
@@ -801,19 +717,18 @@
     function closeDrawer() { document.getElementById('drawer').classList.remove('open'); document.getElementById('drawerOverlay').style.display = 'none'; }
     document.getElementById('menuBtn').onclick = openDrawer;
     document.getElementById('drawerOverlay').onclick = closeDrawer;
-    
-    function switchMode(mode) {
-        document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
-        if(mode==='buyer') { document.querySelector('.mode-btn[data-tab="buyer"]').classList.add('active'); document.getElementById('buyerSection').classList.add('active'); }
-        else if(mode==='seller') { document.querySelector('.mode-btn[data-tab="seller"]').classList.add('active'); document.getElementById('sellerSection').classList.add('active'); if(currentSeller) { document.getElementById('sellerRegisterBox').style.display='none'; document.getElementById('sellerDashboard').style.display='block'; renderSellerDashboard(); } }
-        else if(mode==='profile') { document.querySelector('.mode-btn[data-tab="profile"]').classList.add('active'); document.getElementById('profileSection').classList.add('active'); if(currentBuyer) { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; renderBuyerOrders(); } }
+    document.querySelectorAll('.mode-btn').forEach(btn => btn.addEventListener('click', (e) => {
+        let tab = btn.dataset.tab;
+        document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+        document.getElementById(tab+"Section").classList.add('active');
+        if(tab==='seller' && currentSeller) { document.getElementById('sellerRegisterBox').style.display='none'; document.getElementById('sellerDashboard').style.display='block'; renderSellerDashboard(); }
+        if(tab==='profile' && currentBuyer) { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; renderBuyerOrders(); }
         closeDrawer();
-    }
-    
-    document.querySelectorAll('.mode-btn').forEach(btn => btn.addEventListener('click', (e) => { let tab = btn.dataset.tab; switchMode(tab); }));
-    document.querySelectorAll('.drawer-item[data-mode]').forEach(el => el.addEventListener('click', (e) => { switchMode(el.dataset.mode); }));
-    document.getElementById('drawerWishlist')?.addEventListener('click', () => { let wishProds = products.filter(p=>wishlist.includes(p.id)); alert("❤️ Wishlist:\n"+wishProds.map(p=>p.name).join("\n")); closeDrawer(); });
+    }));
+    document.querySelectorAll('.drawer-item[data-mode]').forEach(el => el.addEventListener('click', () => { document.querySelector(`.mode-btn[data-tab="${el.dataset.mode}"]`).click(); closeDrawer(); }));
+    document.getElementById('drawerWishlist')?.addEventListener('click', () => { let wp = products.filter(p=>wishlist.includes(p.id)); alert("❤️ Wishlist:\n"+wp.map(p=>p.name).join("\n")); closeDrawer(); });
     document.getElementById('drawerLogout')?.addEventListener('click', () => { currentBuyer=null; currentSeller=null; saveAll(); location.reload(); });
     document.getElementById('closeModalBtn')?.addEventListener('click', () => document.getElementById('productModal').style.display='none');
     document.getElementById('modalAddCartBtn')?.addEventListener('click', () => { if(currentProduct) addToCart(currentProduct.id); document.getElementById('productModal').style.display='none'; });
