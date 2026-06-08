@@ -5,11 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>GlobalBazaar - Complete Marketplace</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Razorpay CDN -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <!-- EmailJS CDN -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <!-- jsPDF CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -27,7 +24,7 @@
             border-bottom: 1px solid rgba(59,130,246,0.15);
         }
         
-        /* First row - Menu + GLOBALBAZAAR + Logo */
+        /* First row: Menu + Logo + GLOBALBAZAAR (ek line me) */
         .header-row {
             display: flex;
             align-items: center;
@@ -35,13 +32,13 @@
             flex-wrap: wrap;
         }
         
-        /* Second row - Currency dropdown (logo ke niche) */
+        /* Second row: Currency dropdown (logo ke thik niche) */
         .currency-row {
             display: flex;
             align-items: center;
             justify-content: flex-start;
             margin-top: 5px;
-            margin-left: 60px; /* Logo ke neeche align karne ke liye */
+            margin-left: 58px; /* logo ke niche align karne ke liye */
         }
         
         .menu-icon-3d {
@@ -72,7 +69,7 @@
             padding: 5px; 
         }
         
-        /* Currency Dropdown - aur chhota, logo ke niche */
+        /* Currency Dropdown - chhota, logo ke niche */
         .currency-dropdown {
             background: linear-gradient(145deg, #1e2a4a, #0f172f);
             border: none;
@@ -203,20 +200,20 @@
             .logo-3d { font-size: 28px; }
             .fixed-cart { padding: 12px 20px; font-size: 14px; bottom: 15px; right: 15px; }
             .currency-dropdown { font-size: 9px; padding: 3px 8px; }
-            .currency-row { margin-left: 55px; }
+            .currency-row { margin-left: 50px; }
         }
     </style>
 </head>
 <body>
 
 <div class="header-3d">
-    <!-- First row: Menu + GLOBALBAZAAR + Logo -->
+    <!-- First row: Menu + Logo + GLOBALBAZAAR (ek line me) -->
     <div class="header-row">
         <button class="menu-icon-3d" id="menuBtn">☰</button>
-        <div class="brand-3d">GLOBALBAZAAR</div>
         <div class="logo-3d">🌍</div>
+        <div class="brand-3d">GLOBALBAZAAR</div>
     </div>
-    <!-- Second row: Currency dropdown (logo ke niche, chota) -->
+    <!-- Second row: Currency dropdown (logo ke thik niche) -->
     <div class="currency-row">
         <select id="currencySelect" class="currency-dropdown">
             <option value="SAR">🇸🇦 SAR</option>
@@ -240,7 +237,7 @@
     </div>
 </div>
 
-<!-- Shipping Country Dropdown (Saudi Arabia text ki jagah - yahan se hata diya, ab drawer mein hai) -->
+<!-- Shipping Country Dropdown -->
 <div style="max-width: 560px; margin: 10px auto 0; padding: 0 16px;">
     <select id="globalCountrySelect" class="country-selector">
         <option value="SA">🇸🇦 Saudi Arabia</option>
@@ -294,7 +291,6 @@
     <div class="drawer-item" data-mode="seller">🏪 Seller Dashboard</div>
     <div class="drawer-item" id="drawerWishlist">❤️ My Wishlist</div>
     <div class="drawer-item" id="drawerSupport">📞 Support</div>
-    <!-- Saudi Arabia text yahan drawer mein hai - screen se hata diya -->
     <div class="drawer-item" id="drawerCountry">🇸🇦 Saudi Arabia</div>
     <div class="drawer-item" id="drawerLogout">🚪 Logout</div>
 </div>
