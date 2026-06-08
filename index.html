@@ -16,29 +16,24 @@
             background: linear-gradient(145deg, #ffffff, #f0f4fa);
             padding: 12px 20px;
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
             position: sticky;
             top: 0;
             z-index: 100;
             box-shadow: 0 10px 25px -8px rgba(0,0,0,0.15);
             border-bottom: 1px solid rgba(59,130,246,0.15);
+            flex-wrap: wrap;
+            gap: 10px;
         }
         
-        /* First row: Menu + Logo + GLOBALBAZAAR (ek line me) */
-        .header-row {
+        /* ALL ITEMS IN ONE HORIZONTAL LINE: Menu + GLOBALBAZAAR + Logo + SAR dropdown */
+        .header-items {
             display: flex;
             align-items: center;
             gap: 15px;
             flex-wrap: wrap;
-        }
-        
-        /* Second row: Currency dropdown (logo ke thik niche) */
-        .currency-row {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            margin-top: 5px;
-            margin-left: 58px; /* logo ke niche align karne ke liye */
+            width: 100%;
         }
         
         .menu-icon-3d {
@@ -69,14 +64,14 @@
             padding: 5px; 
         }
         
-        /* Currency Dropdown - chhota, logo ke niche */
+        /* Currency Dropdown - SAR and other currencies */
         .currency-dropdown {
             background: linear-gradient(145deg, #1e2a4a, #0f172f);
             border: none;
-            padding: 4px 10px;
-            border-radius: 30px;
+            padding: 6px 12px;
+            border-radius: 40px;
             color: #FFD966;
-            font-size: 11px;
+            font-size: 13px;
             font-weight: bold;
             cursor: pointer;
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -199,22 +194,19 @@
             .brand-3d { font-size: 24px; }
             .logo-3d { font-size: 28px; }
             .fixed-cart { padding: 12px 20px; font-size: 14px; bottom: 15px; right: 15px; }
-            .currency-dropdown { font-size: 9px; padding: 3px 8px; }
-            .currency-row { margin-left: 50px; }
+            .currency-dropdown { font-size: 10px; padding: 4px 8px; }
+            .header-items { gap: 8px; }
         }
     </style>
 </head>
 <body>
 
 <div class="header-3d">
-    <!-- First row: Menu + Logo + GLOBALBAZAAR (ek line me) -->
-    <div class="header-row">
+    <!-- All in one line: Menu + GLOBALBAZAAR + Logo + SAR dropdown -->
+    <div class="header-items">
         <button class="menu-icon-3d" id="menuBtn">☰</button>
-        <div class="logo-3d">🌍</div>
         <div class="brand-3d">GLOBALBAZAAR</div>
-    </div>
-    <!-- Second row: Currency dropdown (logo ke thik niche) -->
-    <div class="currency-row">
+        <div class="logo-3d">🌍</div>
         <select id="currencySelect" class="currency-dropdown">
             <option value="SAR">🇸🇦 SAR</option>
             <option value="USD">🇺🇸 USD $</option>
@@ -237,7 +229,7 @@
     </div>
 </div>
 
-<!-- Shipping Country Dropdown -->
+<!-- Shipping Country Dropdown (for delivery location) -->
 <div style="max-width: 560px; margin: 10px auto 0; padding: 0 16px;">
     <select id="globalCountrySelect" class="country-selector">
         <option value="SA">🇸🇦 Saudi Arabia</option>
@@ -291,6 +283,7 @@
     <div class="drawer-item" data-mode="seller">🏪 Seller Dashboard</div>
     <div class="drawer-item" id="drawerWishlist">❤️ My Wishlist</div>
     <div class="drawer-item" id="drawerSupport">📞 Support</div>
+    <!-- Saudi Arabia is now inside drawer only -->
     <div class="drawer-item" id="drawerCountry">🇸🇦 Saudi Arabia</div>
     <div class="drawer-item" id="drawerLogout">🚪 Logout</div>
 </div>
