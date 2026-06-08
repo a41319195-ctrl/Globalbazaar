@@ -32,71 +32,6 @@
         .left-group { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
         .right-group { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
         
-        .menu-buttons {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .menu-btn {
-            background: linear-gradient(145deg, #1e293b, #0f172a);
-            border: none;
-            padding: 8px 16px;
-            border-radius: 40px;
-            color: white;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .menu-btn:hover {
-            transform: translateY(-2px);
-            background: #3b82f6;
-        }
-        .menu-btn-outline {
-            background: transparent;
-            border: 1px solid #3b82f6;
-            color: #1e3a8a;
-        }
-        .menu-btn-outline:hover {
-            background: #3b82f6;
-            color: white;
-        }
-        
-        .mode-btn {
-            font-size: 15px !important;
-            font-weight: 600;
-        }
-        
-        .country-selector {
-            background: #f1f5f9;
-            padding: 6px 12px;
-            border-radius: 40px;
-            border: 1px solid #e2e8f0;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-        }
-        
-        .phone-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 14px;
-        }
-        .phone-group select {
-            width: 35%;
-            padding: 14px;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            font-size: 14px;
-        }
-        .phone-group input {
-            width: 65%;
-            padding: 14px;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            font-size: 14px;
-        }
-        
         .menu-icon-3d {
             background: linear-gradient(145deg, #1e293b, #0f172a);
             border: none;
@@ -124,7 +59,7 @@
         
         .container { max-width: 560px; margin: 0 auto; padding: 16px; }
         .mode-tabs { display: flex; background: #e2e8f0; padding: 6px; border-radius: 60px; margin-bottom: 20px; gap: 6px; flex-wrap: wrap; }
-        .mode-btn { flex: 1; border: none; background: none; padding: 12px; font-weight: 700; border-radius: 50px; cursor: pointer; }
+        .mode-btn { flex: 1; border: none; background: none; padding: 12px; font-weight: 700; border-radius: 50px; cursor: pointer; font-size: 15px; }
         .mode-btn.active { background: white; color: #2563eb; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
         .section { display: none; }
         .section.active { display: block; }
@@ -195,11 +130,41 @@
             color: #1e3a8a;
         }
         
+        .country-selector {
+            background: #f1f5f9;
+            padding: 6px 12px;
+            border-radius: 40px;
+            border: 1px solid #e2e8f0;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .phone-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .phone-group select {
+            width: 35%;
+            padding: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 14px;
+        }
+        .phone-group input {
+            width: 65%;
+            padding: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 14px;
+        }
+        
         @media (max-width: 600px) {
             .brand-3d { font-size: 16px; }
             .logo-3d { font-size: 28px; }
             .fixed-cart { padding: 12px 20px; font-size: 14px; bottom: 15px; right: 15px; }
-            .menu-btn { padding: 5px 10px; font-size: 10px; }
         }
     </style>
 </head>
@@ -212,13 +177,6 @@
         <div class="brand-3d">GlobalBazaar</div>
     </div>
     <div class="right-group">
-        <!-- ===== MENU BUTTONS: Sign Up, Login, Admin, Profile ===== -->
-        <div class="menu-buttons">
-            <button class="menu-btn menu-btn-outline" id="headerSignupBtn">Sign Up</button>
-            <button class="menu-btn menu-btn-outline" id="headerLoginBtn">Login</button>
-            <button class="menu-btn" id="headerAdminBtn">Admin</button>
-            <button class="menu-btn" id="headerProfileBtn">Profile</button>
-        </div>
         <div class="currency-3d">
             <select id="currencySelect">
                 <option value="SAR">🇸🇦 SAR</option>
@@ -240,9 +198,9 @@
     </div>
 </div>
 
-<!-- ===== COUNTRY DROPDOWN (Saudi Arabia text ki jagah) ===== -->
+<!-- Country Dropdown (Saudi Arabia text ki jagah) -->
 <div style="max-width: 560px; margin: 10px auto 0; padding: 0 16px;">
-    <select id="globalCountrySelect" class="country-selector" style="width: 100%;">
+    <select id="globalCountrySelect" class="country-selector">
         <option value="SA">🇸🇦 Saudi Arabia</option>
         <option value="IN">🇮🇳 India</option>
         <option value="US">🇺🇸 United States</option>
@@ -259,6 +217,11 @@
 <div class="drawer-overlay" id="drawerOverlay"></div>
 <div class="drawer" id="drawer">
     <div class="drawer-header"><h2>GlobalBazaar 🌍</h2><p style="font-size:12px;">Multi‑Seller Hub</p></div>
+    <!-- ===== MENU KE ANDAR (YAHAN ADD KIYA) ===== -->
+    <div class="drawer-item" id="drawerSignup">📝 Sign Up</div>
+    <div class="drawer-item" id="drawerLogin">🔐 Login</div>
+    <div class="drawer-item" id="drawerAdmin">⚙️ Admin Panel</div>
+    <div class="drawer-item" id="drawerProfile">👤 My Profile</div>
     <div class="drawer-item" data-mode="buyer">🛒 Buyer Shopping</div>
     <div class="drawer-item" data-mode="seller">🏪 Seller Dashboard</div>
     <div class="drawer-item" id="drawerWishlist">❤️ My Wishlist</div>
@@ -267,7 +230,7 @@
 </div>
 
 <div class="container">
-    <!-- ===== DASHBOARD TABS: Sirf Buyer aur Seller (Profile aur Admin hata diye) ===== -->
+    <!-- ===== DASHBOARD MEIN SIRF BUYER AUR SELLER (PROFILE AUR ADMIN HATA DIYE) ===== -->
     <div class="mode-tabs">
         <button class="mode-btn active" data-tab="buyer">🛒 Buyer</button>
         <button class="mode-btn" data-tab="seller">🏪 Seller</button>
@@ -288,6 +251,7 @@
                 <input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required>
                 <input type="email" id="sellerEmail" placeholder="Email" class="input" required>
                 
+                <!-- Phone with Country Code -->
                 <div class="phone-group">
                     <select id="sellerCountryCode">
                         <option value="+966">🇸🇦 +966</option>
@@ -314,6 +278,7 @@
                 <input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required>
                 <input type="text" id="sellerCountryReg" placeholder="Country" class="input" required>
                 
+                <!-- International KYC Documents (Aadhaar/PAN ki jagah) -->
                 <div class="doc-section">
                     <div class="doc-title">🌍 International KYC Documents</div>
                     <div id="internationalDocsContainer">
@@ -343,6 +308,7 @@
         <div id="sellerDashboard" style="display:none;"></div>
     </div>
 
+    <!-- Profile Section -->
     <div id="profileSection" class="section">
         <div id="profileAuthBox" class="premium-card">
             <div id="loginFormDiv">
@@ -430,6 +396,7 @@
     </div>
 </div>
 
+<!-- Legal Modals -->
 <div id="termsModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeTermsModal()">&times;</span><h2>Terms & Conditions</h2><p>By using GlobalBazaar, you agree to these terms. You must be 18+.</p><button class="btn-primary" onclick="closeTermsModal()">Close</button></div></div>
 <div id="privacyModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closePrivacyModal()">&times;</span><h2>Privacy Policy</h2><p>We collect name, email, phone, address for order processing.</p><button class="btn-primary" onclick="closePrivacyModal()">Close</button></div></div>
 <div id="sellerAgreementModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSellerAgreementModal()">&times;</span><h2>Seller Agreement</h2><p>5% commission + 2.5% gateway fee. Payments released after delivery confirmation.</p><button class="btn-primary" onclick="closeSellerAgreementModal()">Close</button></div></div>
@@ -445,6 +412,7 @@
     const GATEWAY_FEE = 0.025;
     const HANDLING_FEE = 2;
     
+    // Razorpay Configuration (Admin se set hoga)
     let razorpayConfig = JSON.parse(localStorage.getItem('razorpay_config')) || {
         key: "rzp_test_YourKey",
         secret: ""
@@ -456,6 +424,7 @@
     let selectedCurr = "SAR";
     let buyerCountry = "SA";
     
+    // EmailJS Configuration (Register at emailjs.com)
     emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
     
     function sendEmailNotification(toEmail, subject, message) {
@@ -522,6 +491,7 @@
         return { total: basePrice + commission + gateway + shipping + HANDLING_FEE, shipping, commission, gateway, basePrice };
     }
     
+    // Razorpay Payment Function
     function processRazorpayPayment(amountINR, orderId, buyerEmail, buyerPhone, buyerName, callback) {
         if(!razorpayConfig.key || razorpayConfig.key === "rzp_test_YourKey") {
             showToast("⚠️ Razorpay not configured! Admin please set Razorpay Key in Admin panel.", true);
@@ -579,6 +549,7 @@
         localStorage.setItem('razorpay_config', JSON.stringify(razorpayConfig));
     }
     
+    // Save Razorpay Settings
     document.getElementById('saveRazorpaySettings')?.addEventListener('click', () => {
         razorpayConfig.key = document.getElementById('razorpayKey').value;
         razorpayConfig.secret = document.getElementById('razorpaySecret').value;
@@ -659,6 +630,7 @@
     function updateCartUI() { document.getElementById('cartCountBadge').innerText = cart.reduce((a,b)=>a+b.qty,0); }
     function toggleWish(id) { if(wishlist.includes(id)) wishlist = wishlist.filter(i=>i!==id); else wishlist.push(id); saveAll(); renderProducts(); }
     
+    // Checkout with Razorpay
     document.getElementById('cartFloatBtn')?.addEventListener('click', () => {
         if(cart.length === 0) { showToast("Cart empty!", true); return; }
         if(!currentUser) { showToast("Login first!", true); return; }
@@ -837,24 +809,28 @@
     }
     
     // ===== HEADER BUTTONS (Menu ke andar) =====
-    document.getElementById('headerSignupBtn')?.addEventListener('click', () => {
+    document.getElementById('drawerSignup')?.addEventListener('click', () => {
         document.querySelector('.mode-btn[data-tab="profile"]').click();
         document.getElementById('signupFormDiv').style.display = 'block';
         document.getElementById('loginFormDiv').style.display = 'none';
+        closeDrawer();
     });
-    document.getElementById('headerLoginBtn')?.addEventListener('click', () => {
+    document.getElementById('drawerLogin')?.addEventListener('click', () => {
         document.querySelector('.mode-btn[data-tab="profile"]').click();
         document.getElementById('loginFormDiv').style.display = 'block';
         document.getElementById('signupFormDiv').style.display = 'none';
+        closeDrawer();
     });
-    document.getElementById('headerAdminBtn')?.addEventListener('click', () => {
+    document.getElementById('drawerAdmin')?.addEventListener('click', () => {
         document.querySelector('.mode-btn[data-tab="admin"]').click();
+        closeDrawer();
     });
-    document.getElementById('headerProfileBtn')?.addEventListener('click', () => {
+    document.getElementById('drawerProfile')?.addEventListener('click', () => {
         document.querySelector('.mode-btn[data-tab="profile"]').click();
+        closeDrawer();
     });
     
-    // ===== DASHBOARD TABS (Sirf Buyer, Seller) =====
+    // Dashboard tabs ke liye event listener (sirf Buyer aur Seller)
     document.querySelectorAll('.mode-btn').forEach(btn => btn.addEventListener('click', () => {
         let tab = btn.dataset.tab;
         document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
@@ -953,6 +929,7 @@
     if(currentUser?.role === 'seller') { document.getElementById('sellerRegisterBox').style.display='none'; document.getElementById('sellerDashboard').style.display='block'; renderSellerDashboard(); }
     if(currentUser) { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = currentUser.name; document.getElementById('profileRoleBadge').innerText = currentUser.role || 'Buyer'; displaySavedAddress(); renderBuyerOrders(); }
     
+    // Country dropdown change event
     document.getElementById('globalCountrySelect')?.addEventListener('change', (e) => {
         buyerCountry = e.target.value;
         renderProducts();
