@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>GlobalBazaar - Premium Commerce Hub</title>
+    <title>GlobalBazaar - Complete E-commerce</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -11,7 +11,6 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Plus Jakarta Sans', sans-serif;
-            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -20,7 +19,6 @@
             padding-bottom: 80px;
         }
 
-        /* HEADER: Left Menu | Center Logo | Right Currency */
         header {
             background: #ffffff;
             padding: 12px 16px;
@@ -33,29 +31,31 @@
             z-index: 100;
         }
 
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         .menu-icon {
             font-size: 28px;
             cursor: pointer;
             background: none;
             border: none;
-            line-height: 1;
             padding: 6px 10px;
             border-radius: 12px;
-            transition: 0.2s;
         }
 
-        .menu-icon:hover {
-            background: #f1f5f9;
-        }
-
-        .logo-center {
-            font-size: 20px;
+        .brand-name {
+            font-size: 18px;
             font-weight: 700;
             color: #1e3a8a;
-            letter-spacing: -0.3px;
         }
 
-        /* Currency dropdown in header (right side) */
+        .brand-logo {
+            font-size: 24px;
+        }
+
         .header-currency {
             background: #f1f5f9;
             border: 1px solid #cbd5e1;
@@ -64,17 +64,31 @@
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
-            outline: none;
         }
 
-        .live-node-badge {
-            background: #e0f2fe;
-            color: #0369a1;
+        .header-icons {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .wishlist-count, .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ef4444;
+            color: white;
             font-size: 10px;
-            padding: 4px 8px;
+            padding: 2px 6px;
             border-radius: 20px;
-            font-weight: 600;
-            margin-left: 6px;
         }
 
         .container {
@@ -83,8 +97,7 @@
             padding: 16px;
         }
 
-        /* Mode Switcher */
-        .mode-switcher-container {
+        .mode-switcher {
             display: flex;
             background: #e2e8f0;
             padding: 6px;
@@ -98,478 +111,666 @@
             border: none;
             background: none;
             padding: 12px;
-            font-size: 14px;
             font-weight: 700;
-            color: #475569;
             border-radius: 10px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
         }
 
-        .mode-btn.active-mode {
-            background: #ffffff;
+        .mode-btn.active {
+            background: white;
             color: #2563eb;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
 
         .app-section { display: none; }
-        .active-section { display: block; animation: fadeIn 0.25s ease-in-out; }
+        .active-section { display: block; }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Category Pills */
+        .category-container {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 10px 0;
+            margin-bottom: 16px;
         }
 
-        .premium-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01);
-        }
-
-        .app-input {
-            width: 100%;
-            background: #f8fafc;
-            border: 1px solid #cbd5e1;
-            padding: 12px 14px;
-            border-radius: 10px;
-            font-size: 14px;
-            color: #334155;
-            margin-bottom: 14px;
-        }
-
-        .app-btn {
-            background: linear-gradient(135deg, #1e3a8a, #2563eb);
-            color: white;
-            border: none;
-            width: 100%;
-            padding: 14px;
-            border-radius: 12px;
-            font-size: 14px;
+        .category-pill {
+            background: #f1f5f9;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
+            white-space: nowrap;
         }
 
-        .market-grid {
+        .category-pill.active-cat {
+            background: #1e3a8a;
+            color: white;
+        }
+
+        /* Product Grid */
+        .product-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 14px;
         }
-        .catalog-card {
+
+        .product-card {
             background: white;
             border: 1px solid #e2e8f0;
-            border-radius: 12px;
+            border-radius: 16px;
             padding: 12px;
-            transition: all 0.2s;
+            cursor: pointer;
+            transition: 0.2s;
         }
-        .catalog-card img {
+
+        .product-card img {
             width: 100%;
-            height: 110px;
+            height: 120px;
             object-fit: cover;
-            border-radius: 8px;
-            margin-bottom: 8px;
+            border-radius: 10px;
         }
-        .catalog-card h4 {
+
+        .product-card h4 {
             font-size: 13px;
-            font-weight: 600;
-            color: #1e293b;
+            margin: 8px 0 4px;
         }
-        .catalog-card .price {
+
+        .product-price {
             color: #2563eb;
             font-weight: 700;
             font-size: 14px;
-            margin: 4px 0;
-        }
-        .flex-inputs { display: flex; gap: 10px; }
-        .saved-card-badge {
-            background: #f1f5f9;
-            border: 1px dashed #cbd5e1;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 12px;
-            margin-bottom: 12px;
-            display: none;
-            justify-content: space-between;
-        }
-        .invoice-line {
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-            padding: 10px 0;
-            border-bottom: 1px dashed #e2e8f0;
-        }
-        .invoice-total {
-            font-weight: 700;
-            color: #10b981;
-            font-size: 16px;
-            border-bottom: none;
-            padding-top: 14px;
         }
 
-        /* FIXED CART BUTTON - BOTTOM RIGHT CORNER */
+        .product-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .btn-buy, .btn-wishlist {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-buy {
+            background: #0f172a;
+            color: white;
+        }
+
+        .btn-wishlist {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .btn-wishlist.active-wish {
+            background: #fecaca;
+            color: #dc2626;
+        }
+
+        /* Product Detail Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 50px 16px;
+            border-radius: 24px;
+            padding: 20px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .modal-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 16px;
+        }
+
+        .rating-stars {
+            color: #fbbf24;
+            font-size: 20px;
+            margin: 8px 0;
+        }
+
+        .review-item {
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .close-modal {
+            float: right;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* Auth Forms */
+        .auth-card {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .auth-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .auth-toggle button {
+            flex: 1;
+            padding: 10px;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .auth-toggle .active-auth {
+            background: #1e3a8a;
+            color: white;
+        }
+
+        .order-card {
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
         .fixed-cart-btn {
             position: fixed;
-            bottom: 24px;
-            right: 24px;
+            bottom: 20px;
+            right: 20px;
             background: #1e3a8a;
             color: white;
             border: none;
-            border-radius: 60px;
-            padding: 16px 24px;
+            border-radius: 50px;
+            padding: 14px 20px;
             display: flex;
-            align-items: center;
-            gap: 12px;
+            gap: 8px;
             font-weight: 700;
-            font-size: 16px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
             cursor: pointer;
-            z-index: 1000;
-            transition: 0.2s;
-        }
-        .fixed-cart-btn:hover {
-            background: #2563eb;
-            transform: scale(1.02);
-        }
-        .cart-fixed-counter {
-            background: #ef4444;
-            color: white;
-            font-size: 13px;
-            font-weight: bold;
-            padding: 4px 10px;
-            border-radius: 40px;
+            z-index: 99;
         }
 
-        .seller-search-cat-row {
-            display: flex;
-            gap: 12px;
+        .premium-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
             margin-bottom: 20px;
-            flex-wrap: wrap;
+            border: 1px solid #e2e8f0;
         }
-        .seller-search-cat-row input {
-            flex: 2;
-            margin-bottom: 0;
-        }
-        .seller-search-cat-row select {
-            flex: 1;
-            background: #f8fafc;
+
+        .app-input {
+            width: 100%;
+            padding: 12px;
             border: 1px solid #cbd5e1;
             border-radius: 10px;
-            padding: 12px;
-            font-size: 13px;
+            margin-bottom: 12px;
         }
-        .badge-verified {
-            background: #dcfce7;
-            color: #15803d;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 12px;
+
+        .app-btn {
+            background: #1e3a8a;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
 
-<!-- HEADER: Left Menu | Center Logo | Right Currency -->
 <header>
-    <button class="menu-icon" id="globalMenuBtn" onclick="alert('📱 Navigation\n• Buyer Mode\n• Seller Mode\n• Global Settlement')">☰</button>
-    <div class="logo-center">GlobalBazaar 🌍</div>
-    <select id="headerCurrencySelect" class="header-currency" onchange="applyGlobalCurrencyConversion()">
-        <option value="SAR">🇸🇦 SAR</option>
-        <option value="AED">🇦🇪 AED</option>
-        <option value="KWD">🇰🇼 KWD</option>
-        <option value="QAR">🇶🇦 QAR</option>
-        <option value="OMR">🇴🇲 OMR</option>
-        <option value="BHD">🇧🇭 BHD</option>
-        <option value="USD">🇺🇸 USD</option>
-        <option value="EUR">🇪🇺 EUR</option>
-        <option value="GBP">🇬🇧 GBP</option>
-        <option value="INR">🇮🇳 INR</option>
-        <option value="PKR">🇵🇰 PKR</option>
-    </select>
+    <div class="header-left">
+        <button class="menu-icon" onclick="toggleSideMenu()">☰</button>
+        <span class="brand-name">GlobalBazaar</span>
+        <span class="brand-logo">🌍</span>
+    </div>
+    <div class="header-icons">
+        <button class="icon-btn" onclick="showWishlist()">
+            ❤️ <span class="wishlist-count" id="wishlistCount">0</span>
+        </button>
+        <select id="headerCurrencySelect" class="header-currency" onchange="applyCurrencyConversion()">
+            <option value="SAR">SAR</option><option value="USD">USD</option><option value="EUR">EUR</option>
+            <option value="GBP">GBP</option><option value="INR">INR</option>
+        </select>
+    </div>
 </header>
 
 <div class="container">
-    <!-- MODE SWITCHER -->
-    <div class="mode-switcher-container">
-        <button class="mode-btn active-mode" id="toggleBuyerBtn" onclick="switchDashboardMode('buyer')">🛒 Buyer Shopping</button>
-        <button class="mode-btn" id="toggleSellerBtn" onclick="switchDashboardMode('seller')">🏪 Seller Panel</button>
+    <div class="mode-switcher">
+        <button class="mode-btn active" id="buyerModeBtn" onclick="switchMode('buyer')">🛒 Buyer</button>
+        <button class="mode-btn" id="sellerModeBtn" onclick="switchMode('seller')">🏪 Seller</button>
+        <button class="mode-btn" id="profileModeBtn" onclick="switchMode('profile')">👤 Profile</button>
     </div>
 
-    <!-- =============== BUYER SECTION =============== -->
-    <div id="panelBuyerSpace" class="app-section active-section">
-        <div class="search-bar-container">
-            <input type="text" id="productSearchField" class="app-input" placeholder="🔍 Search products instantly..." oninput="triggerLiveSearch()">
-        </div>
-        <div class="market-grid" id="globalContainerCatalog">
-            <div class="catalog-card" data-base-usd="50.00">
-                <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500" alt="Watch">
-                <h4>Luxury Smart Watch</h4>
-                <div class="price class-converted-price"></div>
-                <button class="app-btn" style="padding:8px; font-size:12px; background:#0f172a;" onclick="addItemToCart('Luxury Smart Watch', 50.00)">Buy Now</button>
-            </div>
-            <div class="catalog-card" data-base-usd="120.00">
-                <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500" alt="Headphones">
-                <h4>Premium Headphones</h4>
-                <div class="price class-converted-price"></div>
-                <button class="app-btn" style="padding:8px; font-size:12px; background:#0f172a;" onclick="addItemToCart('Premium Headphones', 120.00)">Buy Now</button>
-            </div>
-        </div>
+    <!-- BUYER MODE -->
+    <div id="buyerSection" class="app-section active-section">
+        <!-- Categories -->
+        <div class="category-container" id="categoryList"></div>
 
-        <div id="checkoutFormBlock" style="display: none;">
-            <div class="premium-card" style="border-left:4px solid #10b981;">
-                <h2>📋 Localized Invoice</h2>
-                <div id="invoiceBreakdownContainer"></div>
-            </div>
-            <div class="premium-card">
-                <h2>💳 Secure Checkout</h2>
-                <div id="savedCardBox" class="saved-card-badge"><span>🔒 Vault: <strong id="savedCardDetail">None</strong></span><button onclick="clearSavedBuyerCard()" style="background:none;border:none;color:#ef4444;">Remove</button></div>
-                <form id="buyerPaymentCheckoutForm" onsubmit="executeEscrowPayment(event)">
-                    <input type="text" id="buyerCardName" placeholder="Cardholder Name" class="app-input" required>
-                    <input type="text" id="buyerCardNumber" placeholder="Card Number" class="app-input" required>
-                    <div class="flex-inputs">
-                        <input type="text" id="buyerCardExpiry" placeholder="MM/YY" class="app-input" required>
-                        <input type="password" id="buyerCardCvv" placeholder="CVV" class="app-input" required>
-                    </div>
-                    <input type="text" id="buyerShippingAddr" placeholder="Address" class="app-input" required>
-                    <div class="flex-inputs">
-                        <input type="text" id="buyerCity" placeholder="City" class="app-input" required>
-                        <input type="text" id="buyerZip" placeholder="Zip" class="app-input" required>
-                    </div>
-                    <div style="display:flex; gap:8px; margin-bottom:14px;"><input type="checkbox" id="saveCardCheckbox"><label>Save card</label></div>
-                    <button type="submit" class="app-btn" id="payButtonText">Pay</button>
-                </form>
-            </div>
+        <!-- Search -->
+        <input type="text" id="searchInput" class="app-input" placeholder="🔍 Search products..." oninput="filterProducts()">
+
+        <!-- Products Grid -->
+        <div class="product-grid" id="productsGrid"></div>
+    </div>
+
+    <!-- SELLER MODE -->
+    <div id="sellerSection" class="app-section">
+        <div class="premium-card">
+            <h2>➕ Add New Product</h2>
+            <input type="text" id="prodName" placeholder="Product Name" class="app-input">
+            <input type="number" id="prodPrice" placeholder="Price (USD)" class="app-input">
+            <select id="prodCategory" class="app-input">
+                <option value="Electronics">Electronics</option><option value="Fashion">Fashion</option>
+                <option value="Home">Home</option><option value="Beauty">Beauty</option>
+            </select>
+            <input type="url" id="prodImage" placeholder="Image URL" class="app-input">
+            <textarea id="prodDesc" placeholder="Product Description" class="app-input" rows="3"></textarea>
+            <button class="app-btn" onclick="addProduct()">Publish Product</button>
+        </div>
+        <div class="premium-card">
+            <h2>📦 My Products</h2>
+            <div id="sellerProductsList"></div>
         </div>
     </div>
 
-    <!-- =============== SELLER SECTION =============== -->
-    <div id="panelSellerSpace" class="app-section">
-        <div id="kycVerificationGate" class="premium-card">
-            <h2>Merchant KYC & Bank Node</h2>
-            <form id="kycSubmissionForm" onsubmit="handleKycVerification(event)">
-                <input type="file" id="kycAvatarInput" class="app-input" accept="image/*" required>
-                <input type="text" id="kycFullName" placeholder="Full Name" class="app-input" required>
-                <input type="text" id="kycShopName" placeholder="Shop Name" class="app-input" required>
-                <select class="app-input" required><option>National ID / Iqama</option><option>Passport</option></select>
-                <input type="text" placeholder="ID Number" class="app-input" required>
-                <input type="text" placeholder="Bank Name" class="app-input" required>
-                <input type="text" placeholder="IBAN" class="app-input" required>
-                <button type="submit" class="app-btn">Verify & Sync Node</button>
-            </form>
+    <!-- PROFILE MODE (Login/Signup + Order History) -->
+    <div id="profileSection" class="app-section">
+        <div id="authContainer">
+            <div class="auth-card">
+                <div class="auth-toggle">
+                    <button id="loginTabBtn" class="active-auth" onclick="showLoginTab()">Login</button>
+                    <button id="signupTabBtn" onclick="showSignupTab()">Sign Up</button>
+                </div>
+                <div id="loginForm">
+                    <input type="email" id="loginEmail" placeholder="Email" class="app-input">
+                    <input type="password" id="loginPassword" placeholder="Password" class="app-input">
+                    <button class="app-btn" onclick="loginUser()">Login</button>
+                </div>
+                <div id="signupForm" style="display:none;">
+                    <input type="text" id="signupName" placeholder="Full Name" class="app-input">
+                    <input type="email" id="signupEmail" placeholder="Email" class="app-input">
+                    <input type="password" id="signupPassword" placeholder="Password" class="app-input">
+                    <button class="app-btn" onclick="signupUser()">Create Account</button>
+                </div>
+            </div>
         </div>
-
-        <div id="sellerDashboardContent" style="display: none;">
-            <div class="premium-card" style="background:#1e293b; color:white;">
-                <div style="display:flex; gap:12px; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:12px;">
-                    <img id="displaySellerAvatar" style="width:50px; height:50px; border-radius:50%; object-fit:cover;" src="">
-                    <div><h3 id="displayShopName">Merchant Hub</h3><p id="displayMerchantName"></p></div>
-                </div>
-                <p>Unified Revenue</p>
-                <h1 id="merchantLedgerBalanceString" style="color:#34d399;">$540.00</h1>
-                <button onclick="alert('Payout triggered')" style="background:#3b82f6; padding:8px; border-radius:8px; color:white; border:none;">Withdraw</button>
-            </div>
-
+        <div id="userDashboard" style="display:none;">
             <div class="premium-card">
-                <h2>📦 Create New Product</h2>
-                <form id="merchantInventoryForm">
-                    <input type="text" id="mProdName" placeholder="Product Name" class="app-input" required>
-                    <input type="number" id="mProdPrice" placeholder="Price (USD)" class="app-input" required>
-                    <input type="url" id="mProdImg" placeholder="Image URL" class="app-input" required>
-                    <button type="submit" class="app-btn">Publish Globally</button>
-                </form>
+                <h2>👋 Welcome, <span id="userNameDisplay"></span></h2>
+                <button class="app-btn" onclick="logoutUser()" style="background:#ef4444;">Logout</button>
             </div>
-
             <div class="premium-card">
-                <h2>🔎 Seller Tools: Search & Category Filter</h2>
-                <div class="seller-search-cat-row">
-                    <input type="text" id="sellerProductSearch" class="app-input" placeholder="Search in your products..." oninput="filterSellerProducts()">
-                    <select id="sellerCategoryFilter" onchange="filterSellerProducts()">
-                        <option value="all">All Categories</option>
-                        <option value="electronics">Electronics</option>
-                        <option value="luxury">Luxury</option>
-                        <option value="accessories">Accessories</option>
-                    </select>
-                </div>
-                <div id="sellerProductListPreview" style="font-size:13px; color:#334155; background:#f8fafc; padding:10px; border-radius:10px;">
-                    ⚡ Use search + category to filter your live catalog.
-                </div>
+                <h2>📜 Order History</h2>
+                <div id="orderHistoryList"></div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- FIXED CART BUTTON - BOTTOM RIGHT CORNER -->
-<button class="fixed-cart-btn" onclick="scrollToCheckout()">
-    🛒 Cart
-    <span class="cart-fixed-counter" id="globalCartCount">0</span>
+<button class="fixed-cart-btn" onclick="showCart()">
+    🛒 Cart <span class="cart-count" id="cartCount">0</span>
 </button>
 
+<!-- Product Detail Modal -->
+<div id="productModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <img id="modalImg" class="modal-img" src="">
+        <h2 id="modalTitle"></h2>
+        <p id="modalCategory" style="color:#64748b; font-size:12px;"></p>
+        <div class="rating-stars" id="modalStars">★★★★★</div>
+        <p id="modalDesc"></p>
+        <h3 id="modalPrice"></h3>
+        
+        <h4>⭐ Reviews & Ratings</h4>
+        <div id="reviewsList"></div>
+        
+        <div style="margin-top:16px;">
+            <select id="ratingSelect">
+                <option value="5">⭐⭐⭐⭐⭐</option><option value="4">⭐⭐⭐⭐</option>
+                <option value="3">⭐⭐⭐</option><option value="2">⭐⭐</option><option value="1">⭐</option>
+            </select>
+            <input type="text" id="reviewText" placeholder="Write a review..." class="app-input" style="margin-top:8px;">
+            <button class="app-btn" onclick="submitReview()">Submit Review</button>
+        </div>
+        
+        <div style="display:flex; gap:10px; margin-top:16px;">
+            <button class="app-btn" onclick="addToCartFromModal()">Add to Cart</button>
+            <button class="app-btn" onclick="addToWishlistFromModal()" style="background:#64748b;">❤️ Wishlist</button>
+        </div>
+    </div>
+</div>
+
 <script>
-    const FX_MATRIX = { SAR:3.75, AED:3.67, KWD:0.31, QAR:3.64, OMR:0.38, BHD:0.38, USD:1.0, EUR:0.92, GBP:0.78, INR:83.50, PKR:278.20 };
-    const SYMBOLS = { SAR:"SAR ", AED:"AED ", KWD:"KWD ", QAR:"QAR ", OMR:"OMR ", BHD:"BHD ", USD:"$", EUR:"€", GBP:"£", INR:"₹", PKR:"₨" };
+    // ---------- DATA ----------
+    let products = JSON.parse(localStorage.getItem('products')) || [
+        { id:1, name:"Luxury Smart Watch", price:50, category:"Electronics", image:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500", description:"Premium smart watch with health tracking", rating:4.5, reviews:[] },
+        { id:2, name:"Premium Headphones", price:120, category:"Electronics", image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500", description:"Noise cancellation headphones", rating:4.8, reviews:[] },
+        { id:3, name:"Designer T-Shirt", price:35, category:"Fashion", image:"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500", description:"Cotton comfortable t-shirt", rating:4.2, reviews:[] },
+        { id:4, name:"Leather Jacket", price:180, category:"Fashion", image:"https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500", description:"Genuine leather jacket", rating:4.7, reviews:[] }
+    ];
     
-    let globalSelectedCurrency = "SAR";
-    let cartItemsCount = 0;
-    let currentActiveItemName = "", currentActiveItemPriceUSD = 0;
-    let finalizedCheckoutPriceString = "";
-
-    window.onload = () => {
-        document.getElementById('headerCurrencySelect').value = "SAR";
-        applyGlobalCurrencyConversion();
-        checkSavedCardsInVault();
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+    let users = JSON.parse(localStorage.getItem('users')) || [];
+    let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+    let orders = JSON.parse(localStorage.getItem('orders')) || [];
+    
+    let currentCategory = "All";
+    let currentProduct = null;
+    let currencyRates = { SAR:3.75, USD:1, EUR:0.92, GBP:0.78, INR:83.5 };
+    let currencySymbols = { SAR:"SAR ", USD:"$", EUR:"€", GBP:"£", INR:"₹" };
+    let selectedCurrency = "SAR";
+    
+    function saveData() {
+        localStorage.setItem('products', JSON.stringify(products));
+        localStorage.setItem('cart', JSON.stringify(cart));
+        localStorage.setItem('wishlist', JSON.stringify(wishlist));
+        localStorage.setItem('users', JSON.stringify(users));
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        localStorage.setItem('orders', JSON.stringify(orders));
+    }
+    
+    function applyCurrencyConversion() {
+        selectedCurrency = document.getElementById('headerCurrencySelect').value;
+        renderProducts();
         updateCartUI();
-    };
-
-    function updateCartUI() {
-        document.getElementById('globalCartCount').innerText = cartItemsCount;
-    }
-
-    function switchDashboardMode(mode) {
-        document.querySelectorAll('.app-section').forEach(sec => sec.classList.remove('active-section'));
-        document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active-mode'));
-        if(mode === 'buyer') {
-            document.getElementById('panelBuyerSpace').classList.add('active-section');
-            document.getElementById('toggleBuyerBtn').classList.add('active-mode');
-        } else {
-            document.getElementById('panelSellerSpace').classList.add('active-section');
-            document.getElementById('toggleSellerBtn').classList.add('active-mode');
-            applyGlobalCurrencyConversion();
-        }
-    }
-
-    function applyGlobalCurrencyConversion() {
-        globalSelectedCurrency = document.getElementById('headerCurrencySelect').value;
-        const rate = FX_MATRIX[globalSelectedCurrency];
-        const symbol = SYMBOLS[globalSelectedCurrency];
-        document.querySelectorAll('.catalog-card').forEach(card => {
-            const usd = parseFloat(card.getAttribute('data-base-usd'));
-            const local = (usd * rate).toFixed(2);
-            card.querySelector('.class-converted-price').innerText = `${symbol}${local}`;
-        });
-        const merchantUSD = 540.00;
-        const merchantBalanceElem = document.getElementById('merchantLedgerBalanceString');
-        if(merchantBalanceElem) merchantBalanceElem.innerHTML = `${symbol}${(merchantUSD * rate).toFixed(2)}`;
-        if(document.getElementById('checkoutFormBlock').style.display === 'block') renderInvoiceBreakdown();
-    }
-
-    function triggerLiveSearch() {
-        const q = document.getElementById('productSearchField').value.toLowerCase();
-        document.querySelectorAll('.catalog-card').forEach(card => {
-            const title = card.querySelector('h4').innerText.toLowerCase();
-            card.style.display = title.includes(q) ? "block" : "none";
-        });
-    }
-
-    function filterSellerProducts() {
-        const searchVal = document.getElementById('sellerProductSearch').value.toLowerCase();
-        const category = document.getElementById('sellerCategoryFilter').value;
-        let previewHtml = `<strong>Filtered results (${category}) :</strong><br>`;
-        let anyMatch = false;
-        document.querySelectorAll('.catalog-card').forEach(card => {
-            const title = card.querySelector('h4').innerText.toLowerCase();
-            const matchesSearch = title.includes(searchVal);
-            const fakeCatCheck = (category === 'all') || (category === 'electronics' && title.includes('headphone')) || (category === 'luxury' && title.includes('luxury')) || (category === 'accessories');
-            if(matchesSearch && (category === 'all' || fakeCatCheck)) {
-                previewHtml += `✅ ${card.querySelector('h4').innerText}<br>`;
-                anyMatch = true;
-            }
-        });
-        if(!anyMatch) previewHtml += "⚠️ No matching products in this view.";
-        document.getElementById('sellerProductListPreview').innerHTML = previewHtml;
-    }
-
-    function addItemToCart(name, priceUSD) {
-        cartItemsCount++;
-        updateCartUI();
-        currentActiveItemName = name;
-        currentActiveItemPriceUSD = priceUSD;
-        renderInvoiceBreakdown();
-        document.getElementById('checkoutFormBlock').style.display = 'block';
-    }
-
-    function renderInvoiceBreakdown() {
-        const rate = FX_MATRIX[globalSelectedCurrency];
-        const symbol = SYMBOLS[globalSelectedCurrency];
-        const freightUSD = 12.50, surchargeUSD = 6.00;
-        const totalUSD = currentActiveItemPriceUSD + freightUSD + surchargeUSD;
-        const localTotal = (totalUSD * rate).toFixed(2);
-        finalizedCheckoutPriceString = `${symbol}${localTotal}`;
-        document.getElementById('payButtonText').innerHTML = `Pay ${finalizedCheckoutPriceString}`;
-        document.getElementById('invoiceBreakdownContainer').innerHTML = `
-            <div class="invoice-line"><span>${currentActiveItemName}</span><span>${symbol}${(currentActiveItemPriceUSD*rate).toFixed(2)}</span></div>
-            <div class="invoice-line"><span>Logistics</span><span>${symbol}${(freightUSD*rate).toFixed(2)}</span></div>
-            <div class="invoice-line"><span>Surcharge</span><span>${symbol}${(surchargeUSD*rate).toFixed(2)}</span></div>
-            <div class="invoice-line invoice-total"><span>Total</span><span>${finalizedCheckoutPriceString}</span></div>
-        `;
-    }
-
-    function scrollToCheckout() { 
-        if(cartItemsCount>0) {
-            document.getElementById('checkoutFormBlock').scrollIntoView({behavior:'smooth'});
-        } else {
-            alert("Cart is empty! Add a product first.");
-        }
-    }
-
-    function executeEscrowPayment(e) {
-        e.preventDefault();
-        if(document.getElementById('saveCardCheckbox').checked) localStorage.setItem('vault_card_num', document.getElementById('buyerCardNumber').value);
-        alert(`✅ Payment successful: ${finalizedCheckoutPriceString} (Escrow secured)`);
-        document.getElementById('checkoutFormBlock').style.display = 'none';
-        cartItemsCount = 0;
-        updateCartUI();
-        checkSavedCardsInVault();
     }
     
-    function checkSavedCardsInVault() { 
-        if(localStorage.getItem('vault_card_num')) {
-            document.getElementById('savedCardBox').style.display = 'flex';
-            document.getElementById('savedCardDetail').innerText = "Card saved";
-        }
+    function convertPrice(usd) {
+        let rate = currencyRates[selectedCurrency] || 1;
+        return (usd * rate).toFixed(2);
     }
     
-    function clearSavedBuyerCard() { 
-        localStorage.clear(); 
-        document.getElementById('savedCardBox').style.display = 'none'; 
-        alert("Cleared");
+    function getSymbol() { return currencySymbols[selectedCurrency] || "$"; }
+    
+    function renderCategories() {
+        let cats = ["All", ...new Set(products.map(p => p.category))];
+        document.getElementById('categoryList').innerHTML = cats.map(cat => 
+            `<div class="category-pill ${currentCategory===cat?'active-cat':''}" onclick="setCategory('${cat}')">${cat}</div>`
+        ).join('');
     }
     
-    function handleKycVerification(e) {
-        e.preventDefault();
-        const name = document.getElementById('kycFullName').value;
-        const shop = document.getElementById('kycShopName').value;
-        const file = document.getElementById('kycAvatarInput').files[0];
-        if(file) { const reader = new FileReader(); reader.onload = ev => document.getElementById('displaySellerAvatar').src = ev.target.result; reader.readAsDataURL(file); }
-        document.getElementById('displayShopName').innerText = shop;
-        document.getElementById('displayMerchantName').innerText = "Operator: "+name;
-        document.getElementById('kycVerificationGate').style.display = 'none';
-        document.getElementById('sellerDashboardContent').style.display = 'block';
-        applyGlobalCurrencyConversion();
+    function setCategory(cat) {
+        currentCategory = cat;
+        renderCategories();
+        renderProducts();
     }
     
-    document.getElementById('merchantInventoryForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const name = document.getElementById('mProdName').value;
-        const price = parseFloat(document.getElementById('mProdPrice').value);
-        const img = document.getElementById('mProdImg').value;
-        document.getElementById('globalContainerCatalog').insertAdjacentHTML('beforeend', `
-            <div class="catalog-card" data-base-usd="${price}">
-                <img src="${img}" alt="${name}">
-                <h4>${name}</h4>
-                <div class="price class-converted-price"></div>
-                <button class="app-btn" style="padding:8px;font-size:12px;background:#0f172a;" onclick="addItemToCart('${name}', ${price})">Buy Now</button>
+    function renderProducts() {
+        let searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+        let filtered = products.filter(p => 
+            (currentCategory === "All" || p.category === currentCategory) &&
+            p.name.toLowerCase().includes(searchTerm)
+        );
+        document.getElementById('productsGrid').innerHTML = filtered.map(p => `
+            <div class="product-card" onclick="openProductDetail(${p.id})">
+                <img src="${p.image}" onerror="this.src='https://placehold.co/200x200?text=Product'">
+                <h4>${p.name}</h4>
+                <div class="product-price">${getSymbol()}${convertPrice(p.price)}</div>
+                <div class="product-actions">
+                    <button class="btn-buy" onclick="event.stopPropagation(); addToCart(${p.id})">Buy</button>
+                    <button class="btn-wishlist ${wishlist.includes(p.id)?'active-wish':''}" onclick="event.stopPropagation(); toggleWishlist(${p.id})">❤️</button>
+                </div>
             </div>
-        `);
-        alert("Product published to global feed!");
-        document.getElementById('merchantInventoryForm').reset();
-        applyGlobalCurrencyConversion();
-        switchDashboardMode('buyer');
-    });
+        `).join('');
+        renderSellerProducts();
+        updateWishlistUI();
+    }
+    
+    function filterProducts() { renderProducts(); }
+    
+    function openProductDetail(id) {
+        currentProduct = products.find(p => p.id === id);
+        if(!currentProduct) return;
+        document.getElementById('modalImg').src = currentProduct.image;
+        document.getElementById('modalTitle').innerText = currentProduct.name;
+        document.getElementById('modalCategory').innerText = currentProduct.category;
+        document.getElementById('modalDesc').innerText = currentProduct.description;
+        document.getElementById('modalPrice').innerHTML = `${getSymbol()}${convertPrice(currentProduct.price)}`;
+        let stars = "★".repeat(Math.floor(currentProduct.rating)) + "☆".repeat(5-Math.floor(currentProduct.rating));
+        document.getElementById('modalStars').innerHTML = stars;
+        
+        let reviewsHtml = currentProduct.reviews.map(r => `<div class="review-item">⭐${r.rating}/5 - ${r.text}<br><small>${r.user}</small></div>`).join('');
+        if(!reviewsHtml) reviewsHtml = "<p>No reviews yet. Be the first!</p>";
+        document.getElementById('reviewsList').innerHTML = reviewsHtml;
+        document.getElementById('productModal').style.display = 'block';
+    }
+    
+    function submitReview() {
+        if(!currentUser) { alert("Please login to review"); return; }
+        let rating = parseInt(document.getElementById('ratingSelect').value);
+        let text = document.getElementById('reviewText').value;
+        if(!text) { alert("Write a review"); return; }
+        currentProduct.reviews.push({ user: currentUser.name, rating, text });
+        let total = currentProduct.reviews.reduce((a,b)=>a+b.rating,0);
+        currentProduct.rating = total / currentProduct.reviews.length;
+        saveData();
+        openProductDetail(currentProduct.id);
+        document.getElementById('reviewText').value = '';
+        renderProducts();
+    }
+    
+    function addToCart(id) {
+        let product = products.find(p => p.id === id);
+        if(!product) return;
+        let existing = cart.find(i => i.id === id);
+        if(existing) { existing.quantity++; }
+        else { cart.push({ id: product.id, name: product.name, price: product.price, quantity: 1 }); }
+        saveData();
+        updateCartUI();
+        alert(`✅ ${product.name} added to cart`);
+    }
+    
+    function addToCartFromModal() { if(currentProduct) addToCart(currentProduct.id); }
+    
+    function toggleWishlist(id) {
+        if(wishlist.includes(id)) { wishlist = wishlist.filter(i => i !== id); }
+        else { wishlist.push(id); }
+        saveData();
+        renderProducts();
+        updateWishlistUI();
+    }
+    
+    function addToWishlistFromModal() { if(currentProduct) toggleWishlist(currentProduct.id); }
+    
+    function updateCartUI() {
+        let count = cart.reduce((a,b)=>a+b.quantity,0);
+        document.getElementById('cartCount').innerText = count;
+    }
+    
+    function updateWishlistUI() {
+        document.getElementById('wishlistCount').innerText = wishlist.length;
+    }
+    
+    function showCart() {
+        if(cart.length === 0) { alert("Cart is empty"); return; }
+        let totalUSD = cart.reduce((a,i)=> a + (i.price * i.quantity), 0);
+        let msg = "🛒 Your Cart:\n";
+        cart.forEach(i => { msg += `${i.name} x${i.quantity} = ${getSymbol()}${convertPrice(i.price * i.quantity)}\n`; });
+        msg += `\nTotal: ${getSymbol()}${convertPrice(totalUSD)}`;
+        if(confirm(msg + "\n\nProceed to Checkout?")) {
+            if(!currentUser) { alert("Please login to place order"); switchMode('profile'); return; }
+            let order = { id: Date.now(), userId: currentUser.email, items: [...cart], total: totalUSD, date: new Date().toLocaleString() };
+            orders.push(order);
+            cart = [];
+            saveData();
+            updateCartUI();
+            alert("🎉 Order placed successfully!");
+            renderOrderHistory();
+        }
+    }
+    
+    function renderOrderHistory() {
+        let userOrders = orders.filter(o => o.userId === currentUser?.email);
+        if(!userOrders.length) { document.getElementById('orderHistoryList').innerHTML = "<p>No orders yet</p>"; return; }
+        document.getElementById('orderHistoryList').innerHTML = userOrders.map(o => `
+            <div class="order-card">
+                <strong>Order #${o.id}</strong><br>
+                Date: ${o.date}<br>
+                Total: ${getSymbol()}${convertPrice(o.total)}<br>
+                Items: ${o.items.map(i=>`${i.name}(x${i.quantity})`).join(', ')}
+            </div>
+        `).join('');
+    }
+    
+    function renderSellerProducts() {
+        let sellerProds = products;
+        document.getElementById('sellerProductsList').innerHTML = sellerProds.map(p => `
+            <div class="order-card" style="display:flex; justify-content:space-between;">
+                <span>${p.name} - ${getSymbol()}${convertPrice(p.price)}</span>
+                <button onclick="deleteProduct(${p.id})" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:6px;">Delete</button>
+            </div>
+        `).join('');
+    }
+    
+    function addProduct() {
+        let name = document.getElementById('prodName').value;
+        let price = parseFloat(document.getElementById('prodPrice').value);
+        let category = document.getElementById('prodCategory').value;
+        let image = document.getElementById('prodImage').value;
+        let desc = document.getElementById('prodDesc').value;
+        if(!name || !price) { alert("Fill all fields"); return; }
+        let newId = Date.now();
+        products.push({ id:newId, name, price, category, image: image || "https://placehold.co/200x200", description: desc, rating:0, reviews:[] });
+        saveData();
+        renderProducts();
+        document.getElementById('prodName').value = '';
+        document.getElementById('prodPrice').value = '';
+        document.getElementById('prodImage').value = '';
+        document.getElementById('prodDesc').value = '';
+        alert("Product added!");
+    }
+    
+    function deleteProduct(id) {
+        products = products.filter(p => p.id !== id);
+        saveData();
+        renderProducts();
+    }
+    
+    // AUTH
+    function showLoginTab() {
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('signupForm').style.display = 'none';
+        document.getElementById('loginTabBtn').classList.add('active-auth');
+        document.getElementById('signupTabBtn').classList.remove('active-auth');
+    }
+    function showSignupTab() {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('signupForm').style.display = 'block';
+        document.getElementById('signupTabBtn').classList.add('active-auth');
+        document.getElementById('loginTabBtn').classList.remove('active-auth');
+    }
+    function loginUser() {
+        let email = document.getElementById('loginEmail').value;
+        let pwd = document.getElementById('loginPassword').value;
+        let user = users.find(u => u.email === email && u.password === pwd);
+        if(user) {
+            currentUser = user;
+            saveData();
+            document.getElementById('authContainer').style.display = 'none';
+            document.getElementById('userDashboard').style.display = 'block';
+            document.getElementById('userNameDisplay').innerText = user.name;
+            renderOrderHistory();
+            alert("Login successful!");
+        } else { alert("Invalid credentials"); }
+    }
+    function signupUser() {
+        let name = document.getElementById('signupName').value;
+        let email = document.getElementById('signupEmail').value;
+        let pwd = document.getElementById('signupPassword').value;
+        if(users.find(u => u.email === email)) { alert("Email exists"); return; }
+        let newUser = { name, email, password: pwd };
+        users.push(newUser);
+        currentUser = newUser;
+        saveData();
+        document.getElementById('authContainer').style.display = 'none';
+        document.getElementById('userDashboard').style.display = 'block';
+        document.getElementById('userNameDisplay').innerText = name;
+        alert("Signup successful!");
+    }
+    function logoutUser() {
+        currentUser = null;
+        saveData();
+        document.getElementById('authContainer').style.display = 'block';
+        document.getElementById('userDashboard').style.display = 'none';
+        switchMode('buyer');
+    }
+    
+    function switchMode(mode) {
+        document.querySelectorAll('.app-section').forEach(sec => sec.classList.remove('active-section'));
+        document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+        if(mode === 'buyer') {
+            document.getElementById('buyerSection').classList.add('active-section');
+            document.getElementById('buyerModeBtn').classList.add('active');
+        } else if(mode === 'seller') {
+            document.getElementById('sellerSection').classList.add('active-section');
+            document.getElementById('sellerModeBtn').classList.add('active');
+        } else {
+            document.getElementById('profileSection').classList.add('active-section');
+            document.getElementById('profileModeBtn').classList.add('active');
+            if(currentUser) {
+                document.getElementById('authContainer').style.display = 'none';
+                document.getElementById('userDashboard').style.display = 'block';
+                document.getElementById('userNameDisplay').innerText = currentUser.name;
+                renderOrderHistory();
+            } else {
+                document.getElementById('authContainer').style.display = 'block';
+                document.getElementById('userDashboard').style.display = 'none';
+            }
+        }
+    }
+    
+    function showWishlist() {
+        if(wishlist.length === 0) { alert("Wishlist is empty"); return; }
+        let wishProducts = products.filter(p => wishlist.includes(p.id));
+        let msg = "❤️ Wishlist:\n";
+        wishProducts.forEach(p => { msg += `${p.name} - ${getSymbol()}${convertPrice(p.price)}\n`; });
+        alert(msg);
+    }
+    
+    function closeModal() { document.getElementById('productModal').style.display = 'none'; }
+    function toggleSideMenu() { alert("📱 Menu\n- Buyer\n- Seller\n- Profile\n- Wishlist\n- Orders"); }
+    
+    // Initialize
+    window.onload = () => {
+        renderCategories();
+        renderProducts();
+        updateCartUI();
+        updateWishlistUI();
+        if(currentUser) {
+            document.getElementById('authContainer').style.display = 'none';
+            document.getElementById('userDashboard').style.display = 'block';
+            document.getElementById('userNameDisplay').innerText = currentUser.name;
+        }
+    };
 </script>
 </body>
 </html>
