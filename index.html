@@ -31,6 +31,76 @@
         }
         .left-group { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
         .right-group { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        
+        /* ===== NEW: Menu Buttons ke liye CSS ===== */
+        .menu-buttons {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .menu-btn {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 40px;
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .menu-btn:hover {
+            transform: translateY(-2px);
+            background: #3b82f6;
+        }
+        .menu-btn-outline {
+            background: transparent;
+            border: 1px solid #3b82f6;
+            color: #1e3a8a;
+        }
+        .menu-btn-outline:hover {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        /* ===== NEW: Buyer/Seller Button Font Size Medium ===== */
+        .mode-btn {
+            font-size: 15px !important;  /* Medium size */
+            font-weight: 600;
+        }
+        
+        /* ===== NEW: Country Dropdown Style ===== */
+        .country-selector {
+            background: #f1f5f9;
+            padding: 6px 12px;
+            border-radius: 40px;
+            border: 1px solid #e2e8f0;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        /* ===== NEW: Phone with Country Code Style ===== */
+        .phone-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .phone-group select {
+            width: 35%;
+            padding: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 14px;
+        }
+        .phone-group input {
+            width: 65%;
+            padding: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 14px;
+        }
+        
         .menu-icon-3d {
             background: linear-gradient(145deg, #1e293b, #0f172a);
             border: none;
@@ -45,8 +115,6 @@
         .brand-3d { font-weight: 800; font-size: 22px; background: linear-gradient(135deg, #1e3a8a, #3b82f6, #06b6d4); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .currency-3d { background: linear-gradient(145deg, #1e2a4a, #0f172f); padding: 6px 15px; border-radius: 40px; }
         .currency-3d select { background: transparent; border: none; color: #FFD966; font-size: 14px; font-weight: bold; padding: 5px 8px; cursor: pointer; }
-        .country-3d { background: linear-gradient(145deg, #1e2a4a, #0f172f); padding: 6px 15px; border-radius: 40px; margin-left: 5px; }
-        .country-3d select { background: transparent; border: none; color: #FFD966; font-size: 14px; font-weight: bold; padding: 5px 8px; cursor: pointer; }
         .rating-3d { background: linear-gradient(145deg, #2a2040, #1a1030); padding: 6px 16px; border-radius: 40px; text-align: center; }
         .stars-small { font-size: 16px; letter-spacing: 2px; color: #FFB347; }
         .rating-text-small { font-size: 10px; color: #aaa; }
@@ -60,7 +128,7 @@
         
         .container { max-width: 560px; margin: 0 auto; padding: 16px; }
         .mode-tabs { display: flex; background: #e2e8f0; padding: 6px; border-radius: 60px; margin-bottom: 20px; gap: 6px; flex-wrap: wrap; }
-        .mode-btn { flex: 1; border: none; background: none; padding: 12px; font-weight: 700; border-radius: 50px; font-size: 14px; cursor: pointer; }
+        .mode-btn { flex: 1; border: none; background: none; padding: 12px; font-weight: 700; border-radius: 50px; cursor: pointer; }
         .mode-btn.active { background: white; color: #2563eb; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
         .section { display: none; }
         .section.active { display: block; }
@@ -76,7 +144,7 @@
         .seller-name-tag { font-size: 11px; color: #3b82f6; margin: 10px 0 6px; font-weight: 600; }
         .prod-price { font-weight: 800; font-size: 16px; color: #1e3a8a; margin-top: 6px; }
         .card-actions { display: flex; gap: 8px; margin-top: 12px; }
-        .btn-sm { flex: 1; padding: 8px; border-radius: 40px; font-weight: 700; font-size: 14px; border: none; cursor: pointer; }
+        .btn-sm { flex: 1; padding: 8px; border-radius: 40px; font-weight: 700; font-size: 12px; border: none; cursor: pointer; }
         .btn-buy { background: #0f172a; color: white; }
         .btn-wish { background: #f1f5f9; }
         .btn-wish.active { background: #fee2e2; color: #dc2626; }
@@ -118,14 +186,25 @@
         .legal-link { color: #3b82f6; text-decoration: none; cursor: pointer; }
         .footer-legal { text-align: center; padding: 20px; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; margin-top: 20px; }
         .btn-download { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 20px; font-size: 11px; cursor: pointer; }
-        .phone-group { display: flex; gap: 10px; margin-bottom: 14px; }
-        .phone-group select { width: 30%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; font-size: 14px; background: white; }
-        .phone-group input { width: 70%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; font-size: 14px; }
+        
+        /* ===== NEW: International Document Section Style ===== */
+        .doc-section {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+        .doc-title {
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #1e3a8a;
+        }
         
         @media (max-width: 600px) {
             .brand-3d { font-size: 16px; }
             .logo-3d { font-size: 28px; }
             .fixed-cart { padding: 12px 20px; font-size: 14px; bottom: 15px; right: 15px; }
+            .menu-btn { padding: 5px 10px; font-size: 10px; }
         }
     </style>
 </head>
@@ -138,6 +217,13 @@
         <div class="brand-3d">GlobalBazaar</div>
     </div>
     <div class="right-group">
+        <!-- ===== NEW: Menu ke ANDAR Signup, Login, Admin, Profile Buttons ===== -->
+        <div class="menu-buttons">
+            <button class="menu-btn menu-btn-outline" id="headerSignupBtn">Sign Up</button>
+            <button class="menu-btn menu-btn-outline" id="headerLoginBtn">Login</button>
+            <button class="menu-btn" id="headerAdminBtn">Admin</button>
+            <button class="menu-btn" id="headerProfileBtn">Profile</button>
+        </div>
         <div class="currency-3d">
             <select id="currencySelect">
                 <option value="SAR">🇸🇦 SAR</option><option value="USD">🇺🇸 USD</option>
@@ -147,26 +233,27 @@
                 <option value="LKR">🇱🇰 LKR</option><option value="AED">🇦🇪 AED</option>
             </select>
         </div>
-        <!-- NEW: Country Dropdown -->
-        <div class="country-3d">
-            <select id="countrySelect">
-                <option value="IN">🇮🇳 India</option>
-                <option value="SA">🇸🇦 Saudi Arabia</option>
-                <option value="US">🇺🇸 USA</option>
-                <option value="AE">🇦🇪 UAE</option>
-                <option value="GB">🇬🇧 UK</option>
-                <option value="CA">🇨🇦 Canada</option>
-                <option value="AU">🇦🇺 Australia</option>
-                <option value="DE">🇩🇪 Germany</option>
-                <option value="FR">🇫🇷 France</option>
-                <option value="SG">🇸🇬 Singapore</option>
-            </select>
-        </div>
         <div class="rating-3d">
             <div class="stars-small">★★★★☆</div>
             <div class="rating-text-small">4.7 ★ (2k+ ratings)</div>
         </div>
     </div>
+</div>
+
+<!-- ===== NEW: Country Dropdown - Saudi Arabia ke baad ===== -->
+<div style="max-width: 560px; margin: 10px auto 0; padding: 0 16px;">
+    <select id="globalCountrySelect" class="country-selector" style="width: 100%;">
+        <option value="SA">🇸🇦 Saudi Arabia</option>
+        <option value="IN">🇮🇳 India</option>
+        <option value="US">🇺🇸 United States</option>
+        <option value="AE">🇦🇪 UAE</option>
+        <option value="GB">🇬🇧 United Kingdom</option>
+        <option value="CA">🇨🇦 Canada</option>
+        <option value="AU">🇦🇺 Australia</option>
+        <option value="DE">🇩🇪 Germany</option>
+        <option value="FR">🇫🇷 France</option>
+        <option value="SG">🇸🇬 Singapore</option>
+    </select>
 </div>
 
 <div class="drawer-overlay" id="drawerOverlay"></div>
@@ -203,19 +290,24 @@
                 <input type="text" id="sellerFullName" placeholder="Full Legal Name" class="input" required>
                 <input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required>
                 <input type="email" id="sellerEmail" placeholder="Email" class="input" required>
-                <!-- NEW: Phone with Country Code -->
+                
+                <!-- ===== NEW: Phone Number + Country Code (Bank se PEHLE) ===== -->
                 <div class="phone-group">
-                    <select id="sellerPhoneCode">
-                        <option value="+91">🇮🇳 +91</option>
+                    <select id="sellerCountryCode">
                         <option value="+966">🇸🇦 +966</option>
+                        <option value="+91">🇮🇳 +91</option>
                         <option value="+1">🇺🇸 +1</option>
                         <option value="+971">🇦🇪 +971</option>
                         <option value="+44">🇬🇧 +44</option>
+                        <option value="+1">🇨🇦 +1</option>
                         <option value="+61">🇦🇺 +61</option>
                         <option value="+49">🇩🇪 +49</option>
+                        <option value="+33">🇫🇷 +33</option>
+                        <option value="+65">🇸🇬 +65</option>
                     </select>
                     <input type="tel" id="sellerPhone" placeholder="Phone Number" class="input" required style="margin-bottom:0;">
                 </div>
+                
                 <input type="password" id="sellerPassword" placeholder="Password" class="input" required>
                 <input type="date" id="sellerDob" class="input" required>
                 <h4>📍 Shop Address</h4>
@@ -225,11 +317,24 @@
                 <input type="text" id="sellerState" placeholder="State" class="input" required>
                 <input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required>
                 <input type="text" id="sellerCountryReg" placeholder="Country" class="input" required>
-                <h4>🆔 International KYC Documents</h4>
-                <div id="internationalDocs">
-                    <!-- Dynamic international documents will appear here based on country -->
-                    <p style="font-size:12px; color:#64748b;">Select country above to see required documents</p>
+                
+                <!-- ===== NEW: International Documents (Aadhaar/PAN ki jagah) ===== -->
+                <div class="doc-section">
+                    <div class="doc-title">🌍 International KYC Documents</div>
+                    <div id="internationalDocsContainer">
+                        <!-- Dynamic documents will appear here based on country selection -->
+                        <select id="sellerDocType" class="input" style="margin-bottom:10px;">
+                            <option value="passport">📘 Passport</option>
+                            <option value="national_id">🆔 National ID Card</option>
+                            <option value="driving_license">🚗 Driving License</option>
+                            <option value="residence_permit">📄 Residence Permit / Iqama</option>
+                        </select>
+                        <input type="text" id="sellerDocNumber" placeholder="Document Number" class="input">
+                        <input type="file" id="sellerDocImage" accept="image/*,application/pdf" class="input">
+                        <p style="font-size:11px; color:#64748b;">Supported: Passport, National ID, Driving License, Iqama, SSN, Emirates ID, BRP</p>
+                    </div>
                 </div>
+                
                 <h4>🏦 Bank Account</h4>
                 <input type="text" id="sellerBank" placeholder="Bank Name" class="input" required>
                 <input type="text" id="sellerAccountNo" placeholder="Account Number" class="input" required>
@@ -263,10 +368,11 @@
                     <option value="seller">Seller</option>
                 </select>
                 <input type="email" id="signupEmail" placeholder="Email" class="input" required>
+                <!-- ===== NEW: Signup Phone with Country Code ===== -->
                 <div class="phone-group">
-                    <select id="signupPhoneCode">
-                        <option value="+91">🇮🇳 +91</option>
+                    <select id="signupCountryCode">
                         <option value="+966">🇸🇦 +966</option>
+                        <option value="+91">🇮🇳 +91</option>
                         <option value="+1">🇺🇸 +1</option>
                         <option value="+971">🇦🇪 +971</option>
                         <option value="+44">🇬🇧 +44</option>
@@ -351,18 +457,7 @@
     const GATEWAY_FEE = 0.025;
     const HANDLING_FEE = 2;
     
-    // International Documents Configuration
-    const internationalDocsConfig = {
-        "IN": ["Aadhaar Card (Upload)", "PAN Card (Upload)"],
-        "SA": ["Iqama (Upload)", "Saudi National ID (Upload)"],
-        "US": ["SSN (Enter Number)", "Driving License (Upload)"],
-        "AE": ["Emirates ID (Upload)", "Passport (Upload)"],
-        "GB": ["BRP (Upload)", "Passport (Upload)"],
-        "CA": ["SIN (Enter Number)", "Health Card (Upload)"],
-        "AU": ["TFN (Enter Number)", "Passport (Upload)"]
-    };
-    
-    // Razorpay Configuration
+    // Razorpay Configuration (Admin se set hoga)
     let razorpayConfig = JSON.parse(localStorage.getItem('razorpay_config')) || {
         key: "rzp_test_YourKey",
         secret: ""
@@ -374,7 +469,7 @@
     let selectedCurr = "SAR";
     let buyerCountry = "IN";
     
-    // EmailJS Configuration
+    // EmailJS Configuration (Register at emailjs.com)
     emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
     
     function sendEmailNotification(toEmail, subject, message) {
@@ -425,30 +520,6 @@
         return age;
     }
     
-    // Update International Documents based on Country
-    function updateInternationalDocs(countryCode) {
-        const docContainer = document.getElementById('internationalDocs');
-        if(!docContainer) return;
-        
-        const docs = internationalDocsConfig[countryCode] || ["Passport (Upload)", "National ID (Upload)"];
-        
-        let html = '';
-        docs.forEach((doc, index) => {
-            if(doc.includes("Enter Number")) {
-                html += `<input type="text" id="doc_${index}" placeholder="${doc}" class="input" required>`;
-            } else {
-                html += `<input type="file" id="doc_${index}" accept="image/*,application/pdf" class="input" required><label style="font-size:12px;">${doc}</label>`;
-            }
-        });
-        docContainer.innerHTML = html;
-    }
-    
-    // Get selected country code
-    document.getElementById('countrySelect')?.addEventListener('change', (e) => {
-        buyerCountry = e.target.value;
-        updateInternationalDocs(buyerCountry);
-    });
-    
     const illegalKeywords = ["gun","pistol","weapon","bomb","drugs","cocaine","heroin"];
     function isIllegal(n,d) { return illegalKeywords.some(k => (n+d).toLowerCase().includes(k)); }
     
@@ -465,6 +536,7 @@
         return { total: basePrice + commission + gateway + shipping + HANDLING_FEE, shipping, commission, gateway, basePrice };
     }
     
+    // Razorpay Payment Function
     function processRazorpayPayment(amountINR, orderId, buyerEmail, buyerPhone, buyerName, callback) {
         if(!razorpayConfig.key || razorpayConfig.key === "rzp_test_YourKey") {
             showToast("⚠️ Razorpay not configured! Admin please set Razorpay Key in Admin panel.", true);
@@ -522,6 +594,7 @@
         localStorage.setItem('razorpay_config', JSON.stringify(razorpayConfig));
     }
     
+    // Save Razorpay Settings
     document.getElementById('saveRazorpaySettings')?.addEventListener('click', () => {
         razorpayConfig.key = document.getElementById('razorpayKey').value;
         razorpayConfig.secret = document.getElementById('razorpaySecret').value;
@@ -529,7 +602,7 @@
         showToast("Razorpay settings saved!", false);
     });
     
-    async function detectLocation() { try { let r = await fetch('https://ipapi.co/json/'); let d = await r.json(); buyerCountry = d.country_code || "IN"; document.getElementById('countrySelect').value = buyerCountry; updateInternationalDocs(buyerCountry); } catch(e) {} renderProducts(); }
+    async function detectLocation() { try { let r = await fetch('https://ipapi.co/json/'); let d = await r.json(); buyerCountry = d.country_code || "IN"; } catch(e) {} renderProducts(); }
     detectLocation();
     document.getElementById('currencySelect').addEventListener('change', (e) => { selectedCurr = e.target.value; renderProducts(); updateCartUI(); renderBuyerOrders(); });
     
@@ -602,6 +675,7 @@
     function updateCartUI() { document.getElementById('cartCountBadge').innerText = cart.reduce((a,b)=>a+b.qty,0); }
     function toggleWish(id) { if(wishlist.includes(id)) wishlist = wishlist.filter(i=>i!==id); else wishlist.push(id); saveAll(); renderProducts(); }
     
+    // Checkout with Razorpay
     document.getElementById('cartFloatBtn')?.addEventListener('click', () => {
         if(cart.length === 0) { showToast("Cart empty!", true); return; }
         if(!currentUser) { showToast("Login first!", true); return; }
@@ -713,6 +787,10 @@
         
         let avatar = document.getElementById('sellerAvatar').files[0];
         if(!avatar) { showToast("Upload shop logo", true); return; }
+        
+        // Get phone with country code
+        let phoneWithCode = document.getElementById('sellerCountryCode').value + document.getElementById('sellerPhone').value;
+        
         let reader = new FileReader();
         reader.onload = (ev) => {
             let newSeller = {
@@ -720,7 +798,7 @@
                 fullName: document.getElementById('sellerFullName').value,
                 shopName: document.getElementById('sellerShopName').value,
                 email: document.getElementById('sellerEmail').value,
-                phone: document.getElementById('sellerPhoneCode').value + document.getElementById('sellerPhone').value,
+                phone: phoneWithCode,
                 password: document.getElementById('sellerPassword').value,
                 dob: dob,
                 houseNo: document.getElementById('sellerHouseNo').value,
@@ -729,6 +807,9 @@
                 state: document.getElementById('sellerState').value,
                 pincode: document.getElementById('sellerPincode').value,
                 country: document.getElementById('sellerCountryReg').value,
+                // International documents
+                docType: document.getElementById('sellerDocType').value,
+                docNumber: document.getElementById('sellerDocNumber').value,
                 bankName: document.getElementById('sellerBank').value,
                 accountNo: document.getElementById('sellerAccountNo').value,
                 ifsc: document.getElementById('sellerIfsc').value,
@@ -774,6 +855,22 @@
         document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
     }
     
+    // ===== NEW: Header Buttons ke liye event listeners =====
+    document.getElementById('headerSignupBtn')?.addEventListener('click', () => {
+        document.querySelector('.mode-btn[data-tab="profile"]').click();
+        document.getElementById('showSignupBtn').click();
+    });
+    document.getElementById('headerLoginBtn')?.addEventListener('click', () => {
+        document.querySelector('.mode-btn[data-tab="profile"]').click();
+        document.getElementById('showLoginBtn').click();
+    });
+    document.getElementById('headerAdminBtn')?.addEventListener('click', () => {
+        document.querySelector('.mode-btn[data-tab="admin"]').click();
+    });
+    document.getElementById('headerProfileBtn')?.addEventListener('click', () => {
+        document.querySelector('.mode-btn[data-tab="profile"]').click();
+    });
+    
     document.getElementById('showLoginBtn')?.addEventListener('click', () => { document.getElementById('loginFormDiv').style.display='block'; document.getElementById('signupFormDiv').style.display='none'; });
     document.getElementById('showSignupBtn')?.addEventListener('click', () => { document.getElementById('loginFormDiv').style.display='none'; document.getElementById('signupFormDiv').style.display='block'; });
     
@@ -790,11 +887,12 @@
         let dob = document.getElementById('signupDob').value;
         if(calculateAge(dob) < 18) { showToast("You must be 18+", true); return; }
         
-        let name = document.getElementById('signupName').value, email = document.getElementById('signupEmail').value, phoneCode = document.getElementById('signupPhoneCode').value, phoneNum = document.getElementById('signupPhone').value, pass = document.getElementById('signupPass').value, role = document.getElementById('signupRole').value;
-        let fullPhone = phoneCode + phoneNum;
+        let name = document.getElementById('signupName').value, email = document.getElementById('signupEmail').value, 
+            phoneWithCode = document.getElementById('signupCountryCode').value + document.getElementById('signupPhone').value, 
+            pass = document.getElementById('signupPass').value, role = document.getElementById('signupRole').value;
         if(!name || !email || !pass) { showToast("Fill all fields", true); return; }
         if(buyers.find(b=>b.email===email)) { showToast("Email exists", true); return; }
-        let newUser = { name, email, phone: fullPhone, password: pass, role, dob, savedAddress: null };
+        let newUser = { name, email, phone: phoneWithCode, password: pass, role, dob, savedAddress: null };
         buyers.push(newUser); currentUser = newUser; saveAll();
         document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block';
         document.getElementById('profileName').innerText = name; document.getElementById('profileRoleBadge').innerText = role;
@@ -871,9 +969,15 @@
     document.getElementById('modalAddWishBtn')?.addEventListener('click', () => { if(currentProduct) toggleWish(currentProduct.id); document.getElementById('productModal').style.display='none'; });
     
     renderCats(); renderProducts(); updateCartUI();
-    updateInternationalDocs(buyerCountry);
     if(currentUser?.role === 'seller') { document.getElementById('sellerRegisterBox').style.display='none'; document.getElementById('sellerDashboard').style.display='block'; renderSellerDashboard(); }
     if(currentUser) { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = currentUser.name; document.getElementById('profileRoleBadge').innerText = currentUser.role || 'Buyer'; displaySavedAddress(); renderBuyerOrders(); }
+    
+    // ===== NEW: Country dropdown change event =====
+    document.getElementById('globalCountrySelect')?.addEventListener('change', (e) => {
+        buyerCountry = e.target.value;
+        renderProducts();
+        showToast(`Country changed to ${e.target.options[e.target.selectedIndex].text}`, false);
+    });
 </script>
 </body>
 </html>
