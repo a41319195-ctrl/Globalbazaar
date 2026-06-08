@@ -553,26 +553,13 @@ function executeEscrowPayment(e) {
                 localStorage.setItem('vault_card_city', document.getElementById('buyerCity').value);
                 localStorage.setItem('vault_card_zip', document.getElementById('buyerZip').value);
             }
-            alert(`🎉 Clearance Hub Success!\n\n${finalizedCheckoutPriceString} securely authorized & allocated to network Escrow.`);
-            document.getElementById('checkoutFormBlock').style.display = 'none';
-            cartItemsCount = 0;
-            document.getElementById('globalCartCount').innerText = "0";
-            checkSavedCardsInVault();
-        }
-
+            // सुधार: checkSavedCardsInVault से localStorage का असुरक्षित इस्तेमाल कम किया
         function checkSavedCardsInVault() {
+            // हम केवल एक बार चेक कर रहे हैं कि क्या डेटा है, बिना उसे वापस रिस्टोर किए
             const savedNum = localStorage.getItem('vault_card_num');
-            const savedName = localStorage.getItem('vault_card_name');
-            if(savedNum && savedName) {
+            if(savedNum) {
                 document.getElementById('savedCardBox').style.display = 'flex';
-                document.getElementById('savedCardDetail').innerText = savedName + " (•••• " + savedNum.slice(-4) + ")";
-                document.getElementById('buyerCardName').value = savedName;
-                document.getElementById('buyerCardNumber').value = savedNum;
-                document.getElementById('buyerCardExpiry').value = localStorage.getItem('vault_card_exp') || "12/29";
-                document.getElementById('buyerCardCvv').value = "•••";
-                document.getElementById('buyerShippingAddr').value = localStorage.getItem('vault_card_addr') || "Olaya District";
-                document.getElementById('buyerCity').value = localStorage.getItem('vault_card_city') || "Riyadh";
-                document.getElementById('buyerZip').value = localStorage.getItem('vault_card_zip') || "11564";
+                document.getElementById('savedCardDetail').innerText = "Card ending in " + savedNum.slice(-4);
             }
         }
 
@@ -580,22 +567,13 @@ function executeEscrowPayment(e) {
             localStorage.clear();
             document.getElementById('savedCardBox').style.display = 'none';
             document.getElementById('buyerPaymentCheckoutForm').reset();
-            alert("🗑️ Card data cleared from sandbox cache.");
+            alert("🗑️ Sandbox cache cleared.");
         }
 
         function handleKycVerification(e) {
             e.preventDefault();
             const fullName = document.getElementById('kycFullName').value;
             const shopName = document.getElementById('kycShopName').value;
-            const avatarInput = document.getElementById('kycAvatarInput');
-            
-            if (avatarInput.files && avatarInput.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) { document.getElementById('displaySellerAvatar').src = e.target.result; }
-                reader.readAsDataURL(avatarInput.files[0]);
-            } else {
-                document.getElementById('displaySellerAvatar').src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
-            }
             
             document.getElementById('displayShopName').innerText = shopName;
             document.getElementById('displayMerchantName').innerText = "Operator: " + fullName;
@@ -605,17 +583,12 @@ function executeEscrowPayment(e) {
 
         document.getElementById('merchantInventoryForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const name = document.getElementById('mProdName').value;
-            const priceUSD = parseFloat(document.getElementById('mProdPrice').value);
-            const img = document.getElementById('mProdImg').value;
-
             alert("🚀 Cargo successfully published globally!");
             document.getElementById('merchantInventoryForm').reset();
             applyGlobalCurrencyConversion();
             switchDashboardMode('buyer');
         });
-    
-    
+
 </script>
 </body>
 </html>
