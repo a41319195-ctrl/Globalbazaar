@@ -5,11 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>GlobalBazaar - Complete Marketplace</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Razorpay CDN -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <!-- EmailJS CDN -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <!-- jsPDF CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -30,22 +27,13 @@
             gap: 10px;
         }
         
-        /* LEFT SECTION: Menu + Logo + Brand */
-        .left-section {
+        /* ALL ITEMS IN ONE HORIZONTAL LINE */
+        .header-items {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
             flex-wrap: wrap;
-        }
-        
-        /* RIGHT SECTION: SAR + Rating */
-        .right-section {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            background: linear-gradient(145deg, #1e2a4a, #0f172f);
-            padding: 6px 16px;
-            border-radius: 40px;
+            width: 100%;
         }
         
         .menu-icon-3d {
@@ -58,13 +46,35 @@
             color: white;
             box-shadow: 0 8px 12px rgba(0,0,0,0.2);
         }
-        .logo-3d { font-size: 38px; background: radial-gradient(circle at 35% 35%, #ffdd77, #ffaa33); border-radius: 50%; padding: 5px; }
-        .brand-3d { font-weight: 800; font-size: 22px; background: linear-gradient(135deg, #1e3a8a, #3b82f6, #06b6d4); -webkit-background-clip: text; background-clip: text; color: transparent; }
         
-        .stats-currency select { background: transparent; border: none; color: #FFD966; font-size: 14px; font-weight: bold; padding: 5px 8px; cursor: pointer; }
-        .stats-rating { text-align: center; }
-        .stats-rating .stars-small { font-size: 14px; letter-spacing: 2px; color: #FFB347; }
-        .stats-rating .rating-text-small { font-size: 10px; color: #aaa; }
+        .brand-3d { 
+            font-weight: 800; 
+            font-size: 22px; 
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6, #06b6d4); 
+            -webkit-background-clip: text; 
+            background-clip: text; 
+            color: transparent;
+            letter-spacing: 1px;
+        }
+        
+        .logo-3d { 
+            font-size: 38px; 
+            background: radial-gradient(circle at 35% 35%, #ffdd77, #ffaa33); 
+            border-radius: 50%; 
+            padding: 5px; 
+        }
+        
+        /* Heart and Dollar symbols */
+        .heart-symbol {
+            font-size: 28px;
+            color: #ff3366;
+        }
+        
+        .dollar-symbol {
+            font-size: 28px;
+            color: #FFD966;
+            font-weight: bold;
+        }
         
         .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); z-index: 200; display: none; }
         .drawer { position: fixed; top: 0; left: -85%; width: 75%; max-width: 280px; height: 100%; background: white; z-index: 201; transition: left 0.3s ease; border-radius: 0 24px 24px 0; padding: 20px 0; overflow-y: auto; }
@@ -155,6 +165,7 @@
             font-weight: 500;
             cursor: pointer;
             width: 100%;
+            margin-top: 10px;
         }
         
         .phone-group {
@@ -181,43 +192,20 @@
             .brand-3d { font-size: 16px; }
             .logo-3d { font-size: 28px; }
             .fixed-cart { padding: 12px 20px; font-size: 14px; bottom: 15px; right: 15px; }
-            .right-section { padding: 4px 10px; }
-            .stats-currency select { font-size: 10px; }
-            .stats-rating .stars-small { font-size: 10px; }
-            .stats-rating .rating-text-small { font-size: 8px; }
+            .heart-symbol, .dollar-symbol { font-size: 22px; }
+            .header-items { gap: 10px; }
         }
     </style>
 </head>
 <body>
 
 <div class="header-3d">
-    <!-- LEFT SECTION: Menu + Logo + GlobalBazaar -->
-    <div class="left-section">
+    <div class="header-items">
         <button class="menu-icon-3d" id="menuBtn">☰</button>
+        <div class="brand-3d">GLOBALBAZAAR</div>
         <div class="logo-3d">🌍</div>
-        <div class="brand-3d">GlobalBazaar</div>
-    </div>
-    
-    <!-- RIGHT SECTION: SAR + Rating -->
-    <div class="right-section">
-        <div class="stats-currency">
-            <select id="currencySelect">
-                <option value="SAR">🇸🇦 SAR</option>
-                <option value="USD">🇺🇸 USD</option>
-                <option value="EUR">🇪🇺 EUR</option>
-                <option value="GBP">🇬🇧 GBP</option>
-                <option value="INR">🇮🇳 INR</option>
-                <option value="PKR">🇵🇰 PKR</option>
-                <option value="NPR">🇳🇵 NPR</option>
-                <option value="BDT">🇧🇩 BDT</option>
-                <option value="LKR">🇱🇰 LKR</option>
-                <option value="AED">🇦🇪 AED</option>
-            </select>
-        </div>
-        <div class="stats-rating">
-            <div class="stars-small">★★★★☆</div>
-            <div class="rating-text-small">4.7 ★ (2k+ ratings)</div>
-        </div>
+        <div class="heart-symbol">💜</div>
+        <div class="dollar-symbol">$</div>
     </div>
 </div>
 
@@ -497,7 +485,7 @@
     let fx = { SAR:3.75, USD:1, EUR:0.92, GBP:0.78, INR:83.5, PKR:278, NPR:133.5, BDT:117, LKR:305, AED:3.67 };
     let sym = { SAR:"SAR ", USD:"$", EUR:"€", GBP:"£", INR:"₹", PKR:"₨", NPR:"रू ", BDT:"৳", LKR:"Rs ", AED:"د.إ" };
     
-    let selectedCurr = "SAR";
+    let selectedCurr = "USD";
     let buyerCountry = "SA";
     
     emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
@@ -521,7 +509,7 @@
         doc.text(`Order ID: ${order.trackingNumber}`, 20, 40);
         doc.text(`Date: ${order.date}`, 20, 50);
         doc.text(`Product: ${order.productName} x${order.qty}`, 20, 60);
-        doc.text(`Amount: ${getSym()}${convert(order.amount)}`, 20, 70);
+        doc.text(`Amount: $${convert(order.amount)}`, 20, 70);
         doc.text(`Status: ${order.status}`, 20, 80);
         doc.text(`Address: ${order.address}`, 20, 90);
         doc.save(`invoice_${order.trackingNumber}.pdf`);
@@ -529,7 +517,7 @@
     }
     
     function convert(usd) { return (usd * fx[selectedCurr]).toFixed(2); }
-    function getSym() { return sym[selectedCurr]; }
+    function getSym() { return "$"; }
     function showToast(msg, isError) { let t = document.getElementById('toast'); t.innerText = msg; t.style.backgroundColor = isError ? '#dc2626' : '#10b981'; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
     
     function showTerms() { document.getElementById('termsModal').style.display = 'block'; }
@@ -632,7 +620,7 @@
     
     async function detectLocation() { try { let r = await fetch('https://ipapi.co/json/'); let d = await r.json(); buyerCountry = d.country_code || "SA"; } catch(e) {} renderProducts(); }
     detectLocation();
-    document.getElementById('currencySelect').addEventListener('change', (e) => { selectedCurr = e.target.value; renderProducts(); updateCartUI(); renderBuyerOrders(); });
+    document.getElementById('currencySelect')?.addEventListener('change', (e) => { selectedCurr = e.target.value; renderProducts(); updateCartUI(); renderBuyerOrders(); });
     
     function getAddressLineByLine() {
         let h = prompt("House No.:"); if(!h) return null;
@@ -665,7 +653,7 @@
         let html = filtered.map(p => {
             let seller = sellerMap.get(p.sellerId) || {shopName:"GlobalBazaar", country:"SA"};
             let final = calculateFinalPrice(p.price, seller.country);
-            return `<div class="product-card" data-id="${p.id}"><img src="${p.image}"><div class="seller-name-tag">🏪 ${seller.shopName}</div><h4>${p.name}</h4><div class="prod-price">${getSym()}${convert(final.total)}</div><div class="card-actions"><button class="btn-sm btn-buy addCartBtn" data-id="${p.id}">Buy</button><button class="btn-sm btn-wish wishBtn ${wishlist.includes(p.id)?'active':''}" data-id="${p.id}">❤️</button></div></div>`;
+            return `<div class="product-card" data-id="${p.id}"><img src="${p.image}"><div class="seller-name-tag">🏪 ${seller.shopName}</div><h4>${p.name}</h4><div class="prod-price">$${convert(final.total)}</div><div class="card-actions"><button class="btn-sm btn-buy addCartBtn" data-id="${p.id}">Buy</button><button class="btn-sm btn-wish wishBtn ${wishlist.includes(p.id)?'active':''}" data-id="${p.id}">❤️</button></div></div>`;
         }).join('');
         document.getElementById('productsGrid').innerHTML = html;
         document.querySelectorAll('.addCartBtn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); addToCart(parseInt(btn.dataset.id)); }));
@@ -684,8 +672,8 @@
         document.getElementById('modalTitle').innerText = p.name;
         document.getElementById('modalSellerName').innerHTML = `🏪 ${seller.shopName}`;
         document.getElementById('modalDesc').innerText = p.description;
-        document.getElementById('priceBreakdownModal').innerHTML = `Base: ${getSym()}${convert(p.price)}<br>+ Shipping: ${getSym()}${convert(final.shipping)}<br>+ Fees: ${getSym()}${convert(final.commission+final.gateway+HANDLING_FEE)}<br><strong>Total: ${getSym()}${convert(final.total)}</strong>`;
-        document.getElementById('modalPrice').innerHTML = `${getSym()}${convert(final.total)}`;
+        document.getElementById('priceBreakdownModal').innerHTML = `Base: $${convert(p.price)}<br>+ Shipping: $${convert(final.shipping)}<br>+ Fees: $${convert(final.commission+final.gateway+HANDLING_FEE)}<br><strong>Total: $${convert(final.total)}</strong>`;
+        document.getElementById('modalPrice').innerHTML = `$${convert(final.total)}`;
         document.getElementById('productModal').style.display = 'block';
     }
     
@@ -735,7 +723,7 @@
                     platformEarnings += final.commission * item.qty;
                 });
                 cart = []; saveAll(); updateCartUI();
-                sendEmailNotification(currentUser.email, "Order Confirmed", `Your order ${tracking} has been confirmed. Total: ${getSym()}${convert(totalUSD)}`);
+                sendEmailNotification(currentUser.email, "Order Confirmed", `Your order ${tracking} has been confirmed. Total: $${convert(totalUSD)}`);
                 sendWhatsAppNotification(currentUser.phone, `Order ${tracking} confirmed! Thank you for shopping at GlobalBazaar.`);
                 showToast(`Order Confirmed! Tracking: ${tracking}`, false);
                 if(currentUser?.role === 'buyer') renderBuyerOrders();
@@ -765,7 +753,7 @@
                         seller.earnings = (seller.earnings || 0) + (sellerEarning * ord.qty);
                         ord.sellerReleased = true;
                         saveAll();
-                        sendEmailNotification(seller.email, "Payment Released", `Payment of ${getSym()}${convert(sellerEarning * ord.qty)} has been released for order ${ord.trackingNumber}`);
+                        sendEmailNotification(seller.email, "Payment Released", `Payment of $${convert(sellerEarning * ord.qty)} has been released for order ${ord.trackingNumber}`);
                         showToast(`Payment released to seller`, false);
                         renderSellerDashboard();
                     }
@@ -800,7 +788,7 @@
             });
             seller.earnings = 0;
             saveAll();
-            sendEmailNotification(seller.email, "Withdrawal Request", `Your withdrawal request of ${getSym()}${convert(pendingWithdrawals[pendingWithdrawals.length-1].amount)} has been submitted.`);
+            sendEmailNotification(seller.email, "Withdrawal Request", `Your withdrawal request of $${convert(pendingWithdrawals[pendingWithdrawals.length-1].amount)} has been submitted.`);
             showToast(`Withdrawal request submitted!`, false);
             renderSellerDashboard();
         } else { showToast("No balance to withdraw", true); }
@@ -859,7 +847,7 @@
         let myOrders = orders.filter(o=>o.sellerId === seller.id);
         let addressHtml = `${seller.houseNo}, ${seller.street}, ${seller.city}, ${seller.state} - ${seller.pincode}, ${seller.country}`;
         document.getElementById('sellerDashboard').innerHTML = `
-            <div class="premium-card"><div class="flex-between"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📍 ${addressHtml}</p></div><span class="role-badge">Seller</span></div><div class="flex-between"><span>🏦 ${seller.bankName} - ${seller.accountNo}</span><span>💰 ${getSym()}${convert(seller.earnings)}</span></div><button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Request Withdrawal</button></div>
+            <div class="premium-card"><div class="flex-between"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📍 ${addressHtml}</p></div><span class="role-badge">Seller</span></div><div class="flex-between"><span>🏦 ${seller.bankName} - ${seller.accountNo}</span><span>💰 $${convert(seller.earnings)}</span></div><button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Request Withdrawal</button></div>
             <div class="premium-card"><h3>➕ Add Product</h3><input type="text" id="prodName" placeholder="Product Name" class="input"><input type="number" id="prodPrice" placeholder="Price (USD)" class="input"><select id="prodCat" class="input"><option>Electronics</option><option>Fashion</option><option>Home</option></select><input type="url" id="prodImg" placeholder="Image URL" class="input"><textarea id="prodDesc" placeholder="Description" class="input"></textarea><button id="publishBtn" class="btn-primary">Publish</button></div>
             <div class="premium-card"><h3>📋 My Products</h3><div id="myProductsList"></div></div>
             <div class="premium-card"><h3>📦 Orders Received</h3><div id="ordersList"></div></div>
@@ -873,9 +861,9 @@
             products.push({ id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, name, price, category: document.getElementById('prodCat').value, image: document.getElementById('prodImg').value || "https://placehold.co/200x200", description: desc, rating: 0, reviews: [], sellerCountry: seller.country });
             saveAll(); renderSellerDashboard(); renderProducts(); showToast("Product published!", false);
         });
-        document.getElementById('myProductsList').innerHTML = myProducts.map(p => `<div class="flex-between"><span>${p.name} - ${getSym()}${convert(p.price)}</span><button class="delProd" data-id="${p.id}" style="background:#dc2626; border:none; padding:6px 14px; border-radius:30px;">Delete</button></div>`).join('');
+        document.getElementById('myProductsList').innerHTML = myProducts.map(p => `<div class="flex-between"><span>${p.name} - $${convert(p.price)}</span><button class="delProd" data-id="${p.id}" style="background:#dc2626; border:none; padding:6px 14px; border-radius:30px;">Delete</button></div>`).join('');
         document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', () => { products = products.filter(p=>p.id!==parseInt(btn.dataset.id)); saveAll(); renderSellerDashboard(); renderProducts(); showToast("Product deleted", false); }));
-        document.getElementById('ordersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>Buyer: ${o.buyerName}<br>Product: ${o.productName} x${o.qty}<br>Amount: ${getSym()}${convert(o.amount)}<br>Status: ${o.status}<br>Address: ${o.address}${o.status === "Confirmed" ? `<br><button class="shipBtn" data-id="${o.id}" style="background:#3b82f6; margin-top:10px; padding:8px 16px; border-radius:30px; border:none; color:white;">Mark as Shipped</button>` : ''}</div>`).join('');
+        document.getElementById('ordersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>Buyer: ${o.buyerName}<br>Product: ${o.productName} x${o.qty}<br>Amount: $${convert(o.amount)}<br>Status: ${o.status}<br>Address: ${o.address}${o.status === "Confirmed" ? `<br><button class="shipBtn" data-id="${o.id}" style="background:#3b82f6; margin-top:10px; padding:8px 16px; border-radius:30px; border:none; color:white;">Mark as Shipped</button>` : ''}</div>`).join('');
         document.querySelectorAll('.shipBtn').forEach(btn => btn.addEventListener('click', () => { let track = prompt("Enter tracking number:"); if(track) markOrderShipped(parseFloat(btn.dataset.id), track); }));
         document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
     }
@@ -942,7 +930,7 @@
     function renderBuyerOrders() {
         if(!currentUser) return;
         let myOrders = orders.filter(o=>o.buyerEmail===currentUser.email);
-        document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty} - ${getSym()}${convert(o.amount)}<br>📍 ${o.address}<br>Status: ${o.status}<br>Date: ${o.date}<br><button class="btn-download" onclick="generatePDFInvoice(${JSON.stringify(o).replace(/"/g, '&quot;')})">📄 Download Invoice</button>${o.status === "Shipped" ? `<br><button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981; margin-top:10px; padding:8px 16px; border-radius:30px; border:none; color:white;">I have received the product</button>` : ''}</div>`).join('');
+        document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty} - $${convert(o.amount)}<br>📍 ${o.address}<br>Status: ${o.status}<br>Date: ${o.date}<br><button class="btn-download" onclick="generatePDFInvoice(${JSON.stringify(o).replace(/"/g, '&quot;')})">📄 Download Invoice</button>${o.status === "Shipped" ? `<br><button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981; margin-top:10px; padding:8px 16px; border-radius:30px; border:none; color:white;">I have received the product</button>` : ''}</div>`).join('');
         document.querySelectorAll('.confirmReceivedBtn').forEach(btn => btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id))));
     }
     
@@ -960,9 +948,9 @@
     });
     
     function loadAdminData() {
-        document.getElementById('adminSellersList').innerHTML = sellers.map(s => `<div class="order-card"><strong>${s.shopName}</strong><br>${s.email}<br>📞 ${s.phone}<br>🏦 ${s.bankName} - ${s.accountNo}<br>💰 ${getSym()}${convert(s.earnings)}</div>`).join('');
-        document.getElementById('platformEarnings').innerHTML = `<h2>${getSym()}${convert(platformEarnings)}</h2>`;
-        document.getElementById('pendingWithdrawals').innerHTML = pendingWithdrawals.map(w => `<div class="flex-between order-card"><span>💰 ${getSym()}${convert(w.amount)} - ${w.sellerName}<br>🏦 ${w.bank} - ${w.account}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981; padding:8px 16px; border-radius:30px; border:none; color:white;">Approve & Transfer</button></div>`).join('');
+        document.getElementById('adminSellersList').innerHTML = sellers.map(s => `<div class="order-card"><strong>${s.shopName}</strong><br>${s.email}<br>📞 ${s.phone}<br>🏦 ${s.bankName} - ${s.accountNo}<br>💰 $${convert(s.earnings)}</div>`).join('');
+        document.getElementById('platformEarnings').innerHTML = `<h2>$${convert(platformEarnings)}</h2>`;
+        document.getElementById('pendingWithdrawals').innerHTML = pendingWithdrawals.map(w => `<div class="flex-between order-card"><span>💰 $${convert(w.amount)} - ${w.sellerName}<br>🏦 ${w.bank} - ${w.account}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981; padding:8px 16px; border-radius:30px; border:none; color:white;">Approve & Transfer</button></div>`).join('');
         document.querySelectorAll('.approveBtn').forEach(btn => btn.addEventListener('click', () => {
             let w = pendingWithdrawals.find(w=>w.id===parseInt(btn.dataset.id));
             if(w) {
@@ -971,10 +959,10 @@
                 saveAll();
                 let seller = sellers.find(s=>s.id===w.sellerId);
                 if(seller) {
-                    sendEmailNotification(seller.email, "Withdrawal Approved", `Your withdrawal request of ${getSym()}${convert(w.amount)} has been approved. Amount will be credited to ${seller.bankName} - ${seller.accountNo} within 2-3 business days.`);
+                    sendEmailNotification(seller.email, "Withdrawal Approved", `Your withdrawal request of $${convert(w.amount)} has been approved. Amount will be credited to ${seller.bankName} - ${seller.accountNo} within 2-3 business days.`);
                 }
                 loadAdminData();
-                showToast(`Approved ${getSym()}${convert(w.amount)} payout`, false);
+                showToast(`Approved $${convert(w.amount)} payout`, false);
             }
         }));
         document.getElementById('adminOrdersList').innerHTML = orders.map(o => `<div class="order-card">🔖 ${o.trackingNumber}<br>${o.productName} x${o.qty} - ${o.buyerName}<br>Status: ${o.status} | Payment ID: ${o.paymentId || 'N/A'}</div>`).join('');
