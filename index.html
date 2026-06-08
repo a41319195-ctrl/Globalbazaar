@@ -3,55 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalBazaar - 195+ Countries Support</title>
+    <title>GlobalBazaar - Clean Dashboard</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 20px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: #333; margin-bottom: 10px; }
+        
+        /* Navbar */
+        .navbar { background: white; padding: 15px 25px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .logo { font-size: 24px; font-weight: bold; color: #667eea; }
+        .menu-icon { font-size: 28px; cursor: pointer; background: none; border: none; }
+        
+        /* Drawer/Sidebar */
+        .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 200; display: none; }
+        .drawer { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: white; z-index: 201; transition: left 0.3s ease; padding: 20px 0; box-shadow: 2px 0 10px rgba(0,0,0,0.2); }
+        .drawer.open { left: 0; }
+        .drawer-header { padding: 20px; border-bottom: 1px solid #e0e0e0; font-size: 20px; font-weight: bold; color: #667eea; }
+        .drawer-item { padding: 15px 20px; font-size: 16px; cursor: pointer; margin: 5px 10px; border-radius: 10px; transition: 0.2s; }
+        .drawer-item:hover { background: #f0f0f0; }
+        
+        /* Main Container */
+        .container { max-width: 550px; margin: 0 auto; background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+        .cart { background: #ff9800; color: white; padding: 12px; border-radius: 12px; text-align: center; margin-bottom: 25px; font-weight: bold; }
         .form-group { margin-bottom: 20px; }
-        label { font-weight: bold; display: block; margin-bottom: 8px; color: #555; }
-        select, input { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; color: #555; }
+        select, input { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 15px; }
         .phone-group { display: flex; gap: 10px; }
         .phone-group select { width: 35%; }
         .phone-group input { width: 65%; }
-        .document-row { background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px; }
-        button { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 18px; cursor: pointer; }
-        .cart { background: #ff9800; color: white; padding: 10px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
-        .navbar { background: white; padding: 15px 20px; border-radius: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .menu-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
-        .menu-btn { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        .login-btn { background: #667eea; color: white; }
-        .signup-btn { background: #ff9800; color: white; }
-        .admin-btn { background: #dc3545; color: white; }
-        .profile-btn { background: #28a745; color: white; }
+        .document-row { background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 12px; }
+        button[type="submit"] { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
         .hidden { display: none; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 300; display: flex; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; }
     </style>
 </head>
 <body>
 
+<!-- Navbar with Menu Icon -->
 <div class="navbar">
-    <div class="logo" style="font-size:24px; font-weight:bold;">🌍 GlobalBazaar</div>
-    <div class="menu-buttons" id="menuButtons">
-        <button class="menu-btn login-btn" onclick="showLogin()">🔐 Login</button>
-        <button class="menu-btn signup-btn" onclick="showSignup()">📝 Sign Up</button>
-        <button class="menu-btn admin-btn" onclick="showAdmin()">⚙️ Admin</button>
-        <button class="menu-btn profile-btn" onclick="showProfile()">👤 Profile</button>
-    </div>
+    <div class="logo">🌍 GlobalBazaar</div>
+    <button class="menu-icon" id="menuBtn">☰</button>
 </div>
 
+<!-- Drawer Menu (Sidebar) - Login, Signup, Admin, Profile YAHAN HONGE -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="drawer" id="drawer">
+    <div class="drawer-header">GlobalBazaar</div>
+    <div class="drawer-item" onclick="showLogin()">🔐 Login</div>
+    <div class="drawer-item" onclick="showSignup()">📝 Sign Up</div>
+    <div class="drawer-item" onclick="showAdmin()">⚙️ Admin Panel</div>
+    <div class="drawer-item" onclick="showProfile()">👤 My Profile</div>
+    <div class="drawer-item" onclick="closeDrawer()">❌ Close</div>
+</div>
+
+<!-- Clean Main Dashboard -->
 <div class="container">
     <div class="cart">🛒 Cart 3 items | Global Marketplace 🌍</div>
     
-    <!-- Country Selection - 195+ Countries -->
     <div class="form-group">
-        <label>🌐 Select Your Country (195+ Countries)</label>
+        <label>🌍 Select Your Country (195+ Countries)</label>
         <select id="countrySelect" onchange="updateDocumentsAndPhoneCode()">
             <option value="">-- Select Country --</option>
         </select>
     </div>
 
-    <!-- Phone Number with Country Code -->
     <div class="form-group">
         <label>📞 Phone Number</label>
         <div class="phone-group">
@@ -60,12 +76,10 @@
         </div>
     </div>
 
-    <!-- Dynamic International Documents -->
     <div id="documentSection">
-        <div class="document-row">Select a country to see required KYC documents</div>
+        <div class="document-row">📄 Select a country to see required KYC documents</div>
     </div>
 
-    <!-- Bank Details -->
     <div class="form-group">
         <label>🏦 Bank Details</label>
         <input type="text" id="bankName" placeholder="Bank Name">
@@ -73,7 +87,29 @@
         <input type="text" id="bankCode" placeholder="IFSC / Routing / Sort Code" style="margin-top:10px;">
     </div>
 
-    <button onclick="submitKYC()">✅ Submit KYC</button>
+    <button type="submit" onclick="submitKYC()">✅ Submit KYC</button>
+</div>
+
+<!-- Modals for Login/Signup/Admin/Profile -->
+<div id="loginModal" class="modal hidden">
+    <div class="modal-content">
+        <h2>🔐 Login</h2>
+        <input type="email" placeholder="Email" id="loginEmail" style="width:100%; padding:10px; margin:10px 0;">
+        <input type="password" placeholder="Password" id="loginPass" style="width:100%; padding:10px; margin:10px 0;">
+        <button onclick="doLogin()" style="width:100%; padding:10px; background:#667eea; color:white; border:none; border-radius:8px;">Login</button>
+        <button onclick="closeModal('loginModal')" style="width:100%; padding:10px; margin-top:10px;">Close</button>
+    </div>
+</div>
+
+<div id="signupModal" class="modal hidden">
+    <div class="modal-content">
+        <h2>📝 Sign Up</h2>
+        <input type="text" placeholder="Full Name" id="signupName" style="width:100%; padding:10px; margin:10px 0;">
+        <input type="email" placeholder="Email" id="signupEmail" style="width:100%; padding:10px; margin:10px 0;">
+        <input type="password" placeholder="Password" id="signupPass" style="width:100%; padding:10px; margin:10px 0;">
+        <button onclick="doSignup()" style="width:100%; padding:10px; background:#ff9800; color:white; border:none; border-radius:8px;">Sign Up</button>
+        <button onclick="closeModal('signupModal')" style="width:100%; padding:10px; margin-top:10px;">Close</button>
+    </div>
 </div>
 
 <script>
@@ -84,198 +120,58 @@
         { code: "DZ", name: "Algeria", phoneCode: "+213", docs: ["National ID", "Passport"] },
         { code: "AD", name: "Andorra", phoneCode: "+376", docs: ["ID Card", "Passport"] },
         { code: "AO", name: "Angola", phoneCode: "+244", docs: ["National ID", "Passport"] },
-        { code: "AG", name: "Antigua and Barbuda", phoneCode: "+1", docs: ["Passport", "Driver's License"] },
-        { code: "AR", name: "Argentina", phoneCode: "+54", docs: ["DNI", "Passport"] },
-        { code: "AM", name: "Armenia", phoneCode: "+374", docs: ["ID Card", "Passport"] },
-        { code: "AU", name: "Australia", phoneCode: "+61", docs: ["Driver's License", "Passport", "Medicare Card"] },
+        { code: "AU", name: "Australia", phoneCode: "+61", docs: ["Driver's License", "Passport"] },
         { code: "AT", name: "Austria", phoneCode: "+43", docs: ["ID Card", "Passport"] },
-        { code: "AZ", name: "Azerbaijan", phoneCode: "+994", docs: ["ID Card", "Passport"] },
-        { code: "BS", name: "Bahamas", phoneCode: "+1", docs: ["Passport", "Driver's License"] },
-        { code: "BH", name: "Bahrain", phoneCode: "+973", docs: ["CPR", "Passport"] },
         { code: "BD", name: "Bangladesh", phoneCode: "+880", docs: ["National ID", "Passport"] },
-        { code: "BB", name: "Barbados", phoneCode: "+1", docs: ["ID Card", "Passport"] },
-        { code: "BY", name: "Belarus", phoneCode: "+375", docs: ["ID Card", "Passport"] },
         { code: "BE", name: "Belgium", phoneCode: "+32", docs: ["eID", "Passport"] },
-        { code: "BZ", name: "Belize", phoneCode: "+501", docs: ["Passport", "Driver's License"] },
-        { code: "BJ", name: "Benin", phoneCode: "+229", docs: ["National ID", "Passport"] },
-        { code: "BT", name: "Bhutan", phoneCode: "+975", docs: ["CID Card", "Passport"] },
-        { code: "BO", name: "Bolivia", phoneCode: "+591", docs: ["CI", "Passport"] },
-        { code: "BA", name: "Bosnia and Herzegovina", phoneCode: "+387", docs: ["ID Card", "Passport"] },
-        { code: "BW", name: "Botswana", phoneCode: "+267", docs: ["Omang", "Passport"] },
         { code: "BR", name: "Brazil", phoneCode: "+55", docs: ["RG", "CPF", "Passport"] },
-        { code: "BN", name: "Brunei", phoneCode: "+673", docs: ["IC", "Passport"] },
-        { code: "BG", name: "Bulgaria", phoneCode: "+359", docs: ["ID Card", "Passport"] },
-        { code: "BF", name: "Burkina Faso", phoneCode: "+226", docs: ["National ID", "Passport"] },
-        { code: "BI", name: "Burundi", phoneCode: "+257", docs: ["National ID", "Passport"] },
-        { code: "KH", name: "Cambodia", phoneCode: "+855", docs: ["ID Card", "Passport"] },
-        { code: "CM", name: "Cameroon", phoneCode: "+237", docs: ["National ID", "Passport"] },
         { code: "CA", name: "Canada", phoneCode: "+1", docs: ["SIN", "Driver's License", "Passport"] },
-        { code: "CV", name: "Cape Verde", phoneCode: "+238", docs: ["National ID", "Passport"] },
-        { code: "CF", name: "Central African Republic", phoneCode: "+236", docs: ["National ID", "Passport"] },
-        { code: "TD", name: "Chad", phoneCode: "+235", docs: ["National ID", "Passport"] },
-        { code: "CL", name: "Chile", phoneCode: "+56", docs: ["RUT", "Passport"] },
         { code: "CN", name: "China", phoneCode: "+86", docs: ["National ID", "Passport"] },
         { code: "CO", name: "Colombia", phoneCode: "+57", docs: ["Cedula", "Passport"] },
-        { code: "KM", name: "Comoros", phoneCode: "+269", docs: ["National ID", "Passport"] },
-        { code: "CG", name: "Congo", phoneCode: "+242", docs: ["National ID", "Passport"] },
-        { code: "CR", name: "Costa Rica", phoneCode: "+506", docs: ["Cedula", "Passport"] },
-        { code: "HR", name: "Croatia", phoneCode: "+385", docs: ["ID Card", "Passport"] },
-        { code: "CU", name: "Cuba", phoneCode: "+53", docs: ["Carnet", "Passport"] },
-        { code: "CY", name: "Cyprus", phoneCode: "+357", docs: ["ID Card", "Passport"] },
-        { code: "CZ", name: "Czech Republic", phoneCode: "+420", docs: ["ID Card", "Passport"] },
         { code: "DK", name: "Denmark", phoneCode: "+45", docs: ["CPR Card", "Passport"] },
-        { code: "DJ", name: "Djibouti", phoneCode: "+253", docs: ["National ID", "Passport"] },
-        { code: "DM", name: "Dominica", phoneCode: "+1", docs: ["Passport", "Driver's License"] },
-        { code: "DO", name: "Dominican Republic", phoneCode: "+1", docs: ["Cedula", "Passport"] },
-        { code: "EC", name: "Ecuador", phoneCode: "+593", docs: ["Cedula", "Passport"] },
         { code: "EG", name: "Egypt", phoneCode: "+20", docs: ["National ID", "Passport"] },
-        { code: "SV", name: "El Salvador", phoneCode: "+503", docs: ["DUI", "Passport"] },
-        { code: "GQ", name: "Equatorial Guinea", phoneCode: "+240", docs: ["National ID", "Passport"] },
-        { code: "ER", name: "Eritrea", phoneCode: "+291", docs: ["National ID", "Passport"] },
-        { code: "EE", name: "Estonia", phoneCode: "+372", docs: ["ID Card", "Passport"] },
-        { code: "SZ", name: "Eswatini", phoneCode: "+268", docs: ["National ID", "Passport"] },
-        { code: "ET", name: "Ethiopia", phoneCode: "+251", docs: ["Kebele ID", "Passport"] },
-        { code: "FJ", name: "Fiji", phoneCode: "+679", docs: ["National ID", "Passport"] },
         { code: "FI", name: "Finland", phoneCode: "+358", docs: ["ID Card", "Passport"] },
         { code: "FR", name: "France", phoneCode: "+33", docs: ["CNI", "Passport"] },
-        { code: "GA", name: "Gabon", phoneCode: "+241", docs: ["National ID", "Passport"] },
-        { code: "GM", name: "Gambia", phoneCode: "+220", docs: ["National ID", "Passport"] },
-        { code: "GE", name: "Georgia", phoneCode: "+995", docs: ["ID Card", "Passport"] },
         { code: "DE", name: "Germany", phoneCode: "+49", docs: ["Personalausweis", "Passport"] },
         { code: "GH", name: "Ghana", phoneCode: "+233", docs: ["Ghana Card", "Passport"] },
-        { code: "GR", name: "Greece", phoneCode: "+30", docs: ["ID Card", "Passport"] },
-        { code: "GD", name: "Grenada", phoneCode: "+1", docs: ["Passport", "Driver's License"] },
-        { code: "GT", name: "Guatemala", phoneCode: "+502", docs: ["DPI", "Passport"] },
-        { code: "GN", name: "Guinea", phoneCode: "+224", docs: ["National ID", "Passport"] },
-        { code: "GW", name: "Guinea-Bissau", phoneCode: "+245", docs: ["National ID", "Passport"] },
-        { code: "GY", name: "Guyana", phoneCode: "+592", docs: ["National ID", "Passport"] },
-        { code: "HT", name: "Haiti", phoneCode: "+509", docs: ["National ID", "Passport"] },
-        { code: "HN", name: "Honduras", phoneCode: "+504", docs: ["DNI", "Passport"] },
-        { code: "HU", name: "Hungary", phoneCode: "+36", docs: ["ID Card", "Passport"] },
-        { code: "IS", name: "Iceland", phoneCode: "+354", docs: ["ID Card", "Passport"] },
         { code: "IN", name: "India", phoneCode: "+91", docs: ["Aadhaar Card", "PAN Card", "Voter ID", "Passport"] },
         { code: "ID", name: "Indonesia", phoneCode: "+62", docs: ["KTP", "Passport"] },
         { code: "IR", name: "Iran", phoneCode: "+98", docs: ["National ID", "Passport"] },
         { code: "IQ", name: "Iraq", phoneCode: "+964", docs: ["National ID", "Passport"] },
         { code: "IE", name: "Ireland", phoneCode: "+353", docs: ["PPS Card", "Passport"] },
-        { code: "IL", name: "Israel", phoneCode: "+972", docs: ["Teudat Zehut", "Passport"] },
         { code: "IT", name: "Italy", phoneCode: "+39", docs: ["Carta d'Identità", "Passport"] },
-        { code: "JM", name: "Jamaica", phoneCode: "+1", docs: ["TRN", "Passport"] },
         { code: "JP", name: "Japan", phoneCode: "+81", docs: ["My Number Card", "Passport"] },
         { code: "JO", name: "Jordan", phoneCode: "+962", docs: ["National ID", "Passport"] },
-        { code: "KZ", name: "Kazakhstan", phoneCode: "+7", docs: ["ID Card", "Passport"] },
         { code: "KE", name: "Kenya", phoneCode: "+254", docs: ["National ID", "Passport"] },
-        { code: "KI", name: "Kiribati", phoneCode: "+686", docs: ["National ID", "Passport"] },
-        { code: "KP", name: "North Korea", phoneCode: "+850", docs: ["Citizen ID", "Passport"] },
-        { code: "KR", name: "South Korea", phoneCode: "+82", docs: ["Resident ID", "Passport"] },
         { code: "KW", name: "Kuwait", phoneCode: "+965", docs: ["Civil ID", "Passport"] },
-        { code: "KG", name: "Kyrgyzstan", phoneCode: "+996", docs: ["ID Card", "Passport"] },
-        { code: "LA", name: "Laos", phoneCode: "+856", docs: ["Citizen ID", "Passport"] },
-        { code: "LV", name: "Latvia", phoneCode: "+371", docs: ["ID Card", "Passport"] },
-        { code: "LB", name: "Lebanon", phoneCode: "+961", docs: ["National ID", "Passport"] },
-        { code: "LS", name: "Lesotho", phoneCode: "+266", docs: ["National ID", "Passport"] },
-        { code: "LR", name: "Liberia", phoneCode: "+231", docs: ["National ID", "Passport"] },
-        { code: "LY", name: "Libya", phoneCode: "+218", docs: ["National ID", "Passport"] },
-        { code: "LI", name: "Liechtenstein", phoneCode: "+423", docs: ["ID Card", "Passport"] },
-        { code: "LT", name: "Lithuania", phoneCode: "+370", docs: ["ID Card", "Passport"] },
-        { code: "LU", name: "Luxembourg", phoneCode: "+352", docs: ["ID Card", "Passport"] },
-        { code: "MG", name: "Madagascar", phoneCode: "+261", docs: ["National ID", "Passport"] },
-        { code: "MW", name: "Malawi", phoneCode: "+265", docs: ["National ID", "Passport"] },
         { code: "MY", name: "Malaysia", phoneCode: "+60", docs: ["MyKad", "Passport"] },
-        { code: "MV", name: "Maldives", phoneCode: "+960", docs: ["National ID", "Passport"] },
-        { code: "ML", name: "Mali", phoneCode: "+223", docs: ["National ID", "Passport"] },
-        { code: "MT", name: "Malta", phoneCode: "+356", docs: ["ID Card", "Passport"] },
-        { code: "MH", name: "Marshall Islands", phoneCode: "+692", docs: ["Passport"] },
-        { code: "MR", name: "Mauritania", phoneCode: "+222", docs: ["National ID", "Passport"] },
-        { code: "MU", name: "Mauritius", phoneCode: "+230", docs: ["National ID", "Passport"] },
         { code: "MX", name: "Mexico", phoneCode: "+52", docs: ["INE", "Passport"] },
-        { code: "FM", name: "Micronesia", phoneCode: "+691", docs: ["Passport"] },
-        { code: "MD", name: "Moldova", phoneCode: "+373", docs: ["ID Card", "Passport"] },
-        { code: "MC", name: "Monaco", phoneCode: "+377", docs: ["ID Card", "Passport"] },
-        { code: "MN", name: "Mongolia", phoneCode: "+976", docs: ["National ID", "Passport"] },
-        { code: "ME", name: "Montenegro", phoneCode: "+382", docs: ["ID Card", "Passport"] },
-        { code: "MA", name: "Morocco", phoneCode: "+212", docs: ["National ID", "Passport"] },
-        { code: "MZ", name: "Mozambique", phoneCode: "+258", docs: ["National ID", "Passport"] },
-        { code: "MM", name: "Myanmar", phoneCode: "+95", docs: ["Citizen ID", "Passport"] },
-        { code: "NA", name: "Namibia", phoneCode: "+264", docs: ["National ID", "Passport"] },
-        { code: "NR", name: "Nauru", phoneCode: "+674", docs: ["Passport"] },
         { code: "NP", name: "Nepal", phoneCode: "+977", docs: ["Citizenship Card", "Passport"] },
         { code: "NL", name: "Netherlands", phoneCode: "+31", docs: ["BSN", "Passport"] },
         { code: "NZ", name: "New Zealand", phoneCode: "+64", docs: ["Driver's License", "Passport"] },
-        { code: "NI", name: "Nicaragua", phoneCode: "+505", docs: ["Cedula", "Passport"] },
-        { code: "NE", name: "Niger", phoneCode: "+227", docs: ["National ID", "Passport"] },
         { code: "NG", name: "Nigeria", phoneCode: "+234", docs: ["NIN", "Passport"] },
-        { code: "MK", name: "North Macedonia", phoneCode: "+389", docs: ["ID Card", "Passport"] },
-        { code: "NO", name: "Norway", phoneCode: "+47", docs: ["ID Card", "Passport"] },
-        { code: "OM", name: "Oman", phoneCode: "+968", docs: ["Civil ID", "Passport"] },
         { code: "PK", name: "Pakistan", phoneCode: "+92", docs: ["CNIC", "Passport"] },
-        { code: "PW", name: "Palau", phoneCode: "+680", docs: ["Passport"] },
-        { code: "PS", name: "Palestine", phoneCode: "+970", docs: ["National ID", "Passport"] },
-        { code: "PA", name: "Panama", phoneCode: "+507", docs: ["Cedula", "Passport"] },
-        { code: "PG", name: "Papua New Guinea", phoneCode: "+675", docs: ["National ID", "Passport"] },
-        { code: "PY", name: "Paraguay", phoneCode: "+595", docs: ["Cedula", "Passport"] },
-        { code: "PE", name: "Peru", phoneCode: "+51", docs: ["DNI", "Passport"] },
         { code: "PH", name: "Philippines", phoneCode: "+63", docs: ["National ID", "Passport"] },
         { code: "PL", name: "Poland", phoneCode: "+48", docs: ["Dowód Osobisty", "Passport"] },
         { code: "PT", name: "Portugal", phoneCode: "+351", docs: ["Cartão de Cidadão", "Passport"] },
         { code: "QA", name: "Qatar", phoneCode: "+974", docs: ["QID", "Passport"] },
-        { code: "RO", name: "Romania", phoneCode: "+40", docs: ["ID Card", "Passport"] },
         { code: "RU", name: "Russia", phoneCode: "+7", docs: ["Internal Passport", "Passport"] },
-        { code: "RW", name: "Rwanda", phoneCode: "+250", docs: ["National ID", "Passport"] },
-        { code: "KN", name: "Saint Kitts and Nevis", phoneCode: "+1", docs: ["Passport"] },
-        { code: "LC", name: "Saint Lucia", phoneCode: "+1", docs: ["Passport"] },
-        { code: "VC", name: "Saint Vincent", phoneCode: "+1", docs: ["Passport"] },
-        { code: "WS", name: "Samoa", phoneCode: "+685", docs: ["National ID", "Passport"] },
-        { code: "SM", name: "San Marino", phoneCode: "+378", docs: ["ID Card", "Passport"] },
-        { code: "ST", name: "Sao Tome and Principe", phoneCode: "+239", docs: ["National ID", "Passport"] },
         { code: "SA", name: "Saudi Arabia", phoneCode: "+966", docs: ["Iqama", "National ID", "Passport"] },
-        { code: "SN", name: "Senegal", phoneCode: "+221", docs: ["National ID", "Passport"] },
-        { code: "RS", name: "Serbia", phoneCode: "+381", docs: ["ID Card", "Passport"] },
-        { code: "SC", name: "Seychelles", phoneCode: "+248", docs: ["National ID", "Passport"] },
-        { code: "SL", name: "Sierra Leone", phoneCode: "+232", docs: ["National ID", "Passport"] },
         { code: "SG", name: "Singapore", phoneCode: "+65", docs: ["NRIC", "Passport"] },
-        { code: "SK", name: "Slovakia", phoneCode: "+421", docs: ["ID Card", "Passport"] },
-        { code: "SI", name: "Slovenia", phoneCode: "+386", docs: ["ID Card", "Passport"] },
-        { code: "SB", name: "Solomon Islands", phoneCode: "+677", docs: ["National ID", "Passport"] },
-        { code: "SO", name: "Somalia", phoneCode: "+252", docs: ["National ID", "Passport"] },
         { code: "ZA", name: "South Africa", phoneCode: "+27", docs: ["ID Card", "Passport"] },
-        { code: "SS", name: "South Sudan", phoneCode: "+211", docs: ["National ID", "Passport"] },
+        { code: "KR", name: "South Korea", phoneCode: "+82", docs: ["Resident ID", "Passport"] },
         { code: "ES", name: "Spain", phoneCode: "+34", docs: ["DNI", "Passport"] },
         { code: "LK", name: "Sri Lanka", phoneCode: "+94", docs: ["National ID", "Passport"] },
-        { code: "SD", name: "Sudan", phoneCode: "+249", docs: ["National ID", "Passport"] },
-        { code: "SR", name: "Suriname", phoneCode: "+597", docs: ["National ID", "Passport"] },
         { code: "SE", name: "Sweden", phoneCode: "+46", docs: ["ID Card", "Passport"] },
         { code: "CH", name: "Switzerland", phoneCode: "+41", docs: ["ID Card", "Passport"] },
-        { code: "SY", name: "Syria", phoneCode: "+963", docs: ["National ID", "Passport"] },
-        { code: "TW", name: "Taiwan", phoneCode: "+886", docs: ["National ID", "Passport"] },
-        { code: "TJ", name: "Tajikistan", phoneCode: "+992", docs: ["ID Card", "Passport"] },
-        { code: "TZ", name: "Tanzania", phoneCode: "+255", docs: ["National ID", "Passport"] },
         { code: "TH", name: "Thailand", phoneCode: "+66", docs: ["Thai ID Card", "Passport"] },
-        { code: "TL", name: "Timor-Leste", phoneCode: "+670", docs: ["National ID", "Passport"] },
-        { code: "TG", name: "Togo", phoneCode: "+228", docs: ["National ID", "Passport"] },
-        { code: "TO", name: "Tonga", phoneCode: "+676", docs: ["National ID", "Passport"] },
-        { code: "TT", name: "Trinidad and Tobago", phoneCode: "+1", docs: ["National ID", "Passport"] },
-        { code: "TN", name: "Tunisia", phoneCode: "+216", docs: ["National ID", "Passport"] },
         { code: "TR", name: "Turkey", phoneCode: "+90", docs: ["Turkish ID", "Passport"] },
-        { code: "TM", name: "Turkmenistan", phoneCode: "+993", docs: ["ID Card", "Passport"] },
-        { code: "TV", name: "Tuvalu", phoneCode: "+688", docs: ["Passport"] },
-        { code: "UG", name: "Uganda", phoneCode: "+256", docs: ["National ID", "Passport"] },
-        { code: "UA", name: "Ukraine", phoneCode: "+380", docs: ["ID Card", "Passport"] },
         { code: "AE", name: "United Arab Emirates", phoneCode: "+971", docs: ["Emirates ID", "Passport"] },
         { code: "GB", name: "United Kingdom", phoneCode: "+44", docs: ["BRP", "Passport", "Driver's License"] },
         { code: "US", name: "United States", phoneCode: "+1", docs: ["SSN", "Driver's License", "Passport"] },
-        { code: "UY", name: "Uruguay", phoneCode: "+598", docs: ["Cedula", "Passport"] },
-        { code: "UZ", name: "Uzbekistan", phoneCode: "+998", docs: ["ID Card", "Passport"] },
-        { code: "VU", name: "Vanuatu", phoneCode: "+678", docs: ["National ID", "Passport"] },
-        { code: "VA", name: "Vatican City", phoneCode: "+379", docs: ["Passport"] },
-        { code: "VE", name: "Venezuela", phoneCode: "+58", docs: ["Cedula", "Passport"] },
-        { code: "VN", name: "Vietnam", phoneCode: "+84", docs: ["National ID", "Passport"] },
-        { code: "YE", name: "Yemen", phoneCode: "+967", docs: ["National ID", "Passport"] },
-        { code: "ZM", name: "Zambia", phoneCode: "+260", docs: ["National ID", "Passport"] },
-        { code: "ZW", name: "Zimbabwe", phoneCode: "+263", docs: ["National ID", "Passport"] }
+        { code: "VN", name: "Vietnam", phoneCode: "+84", docs: ["National ID", "Passport"] }
     ];
 
-    // Load countries into dropdown
     function loadCountries() {
         const countrySelect = document.getElementById('countrySelect');
         const phoneCodeSelect = document.getElementById('countryCode');
@@ -283,83 +179,54 @@
         countriesList.sort((a, b) => a.name.localeCompare(b.name));
         
         countriesList.forEach(country => {
-            const option = document.createElement('option');
-            option.value = country.code;
-            option.textContent = `${country.flag || '🌍'} ${country.name}`;
-            countrySelect.appendChild(option);
-            
-            const phoneOption = document.createElement('option');
-            phoneOption.value = country.phoneCode;
-            phoneOption.textContent = `${country.name} ${country.phoneCode}`;
-            phoneCodeSelect.appendChild(phoneOption);
+            countrySelect.appendChild(new Option(`🌍 ${country.name}`, country.code));
+            phoneCodeSelect.appendChild(new Option(`${country.name} ${country.phoneCode}`, country.phoneCode));
         });
     }
 
-    // Update documents and phone code based on selected country
     function updateDocumentsAndPhoneCode() {
         const countryCode = document.getElementById('countrySelect').value;
         const country = countriesList.find(c => c.code === countryCode);
         
         if (!country) {
-            document.getElementById('documentSection').innerHTML = '<div class="document-row">Please select a country</div>';
+            document.getElementById('documentSection').innerHTML = '<div class="document-row">📄 Select a country to see required KYC documents</div>';
             return;
         }
         
-        // Auto-update phone code
         document.getElementById('countryCode').value = country.phoneCode;
         
-        // Generate document fields
-        let html = '<label>📄 KYC Documents</label>';
-        country.docs.forEach((doc, index) => {
-            if (doc.includes('ID') || doc.includes('Card') || doc.includes('License')) {
-                html += `
-                    <div class="document-row">
-                        <strong>${doc}</strong><br>
-                        <input type="file" accept="image/*,application/pdf" id="doc_${index}">
-                        <small>Upload your ${doc}</small>
-                    </div>
-                `;
-            } else if (doc.includes('SSN') || doc.includes('SIN') || doc.includes('NIN') || doc.includes('CNIC') || doc.includes('TIN')) {
-                html += `
-                    <div class="document-row">
-                        <strong>${doc}</strong><br>
-                        <input type="text" placeholder="Enter ${doc} number" id="doc_${index}_text">
-                        <input type="file" accept="image/*" id="doc_${index}_file">
-                    </div>
-                `;
-            } else {
-                html += `
-                    <div class="document-row">
-                        <strong>${doc}</strong><br>
-                        <input type="file" accept="image/*,application/pdf" id="doc_${index}">
-                    </div>
-                `;
-            }
+        let html = '<label>📄 Required KYC Documents</label>';
+        country.docs.forEach((doc, i) => {
+            html += `<div class="document-row"><strong>${doc}</strong><br><input type="file" accept="image/*,application/pdf" id="doc_${i}"></div>`;
         });
-        
         document.getElementById('documentSection').innerHTML = html;
     }
 
-    function showLogin() { alert("🔐 Login functionality - Enter your credentials"); }
-    function showSignup() { alert("📝 Sign Up - Create your account"); }
-    function showAdmin() { alert("⚙️ Admin Panel - Manage platform"); }
-    function showProfile() { alert("👤 My Profile - View your details"); }
+    // Drawer functions
+    function openDrawer() { document.getElementById('drawer').classList.add('open'); document.getElementById('drawerOverlay').style.display = 'block'; }
+    function closeDrawer() { document.getElementById('drawer').classList.remove('open'); document.getElementById('drawerOverlay').style.display = 'none'; }
+    
+    function showModal(id) { document.getElementById(id).classList.remove('hidden'); closeDrawer(); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    
+    function showLogin() { showModal('loginModal'); }
+    function showSignup() { showModal('signupModal'); }
+    function showAdmin() { alert("⚙️ Admin Panel - Coming Soon"); closeDrawer(); }
+    function showProfile() { alert("👤 My Profile - Coming Soon"); closeDrawer(); }
+    
+    function doLogin() { alert("Login successful!"); closeModal('loginModal'); }
+    function doSignup() { alert("Signup successful!"); closeModal('signupModal'); }
     
     function submitKYC() {
         const country = document.getElementById('countrySelect').value;
-        const countryName = countriesList.find(c => c.code === country)?.name;
-        const phoneCode = document.getElementById('countryCode').value;
         const phone = document.getElementById('phoneNumber').value;
-        
-        if (!country || !phone) {
-            alert("⚠️ Please select country and enter phone number!");
-            return;
-        }
-        
-        alert(`✅ KYC Submitted Successfully!\n\n🌍 Country: ${countryName}\n📞 Phone: ${phoneCode} ${phone}\n\n📄 Documents received. Our team will verify within 24 hours.`);
+        if (!country || !phone) { alert("Please select country and enter phone number!"); return; }
+        alert("✅ KYC Submitted Successfully! Our team will verify within 24 hours.");
     }
-
-    // Initialize
+    
+    document.getElementById('menuBtn').onclick = openDrawer;
+    document.getElementById('drawerOverlay').onclick = closeDrawer;
+    
     loadCountries();
 </script>
 </body>
