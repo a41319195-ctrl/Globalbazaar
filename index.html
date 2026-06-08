@@ -5,13 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>GlobalBazaar - Complete Marketplace</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Razorpay CDN -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <!-- EmailJS CDN -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <!-- jsPDF CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: linear-gradient(135deg, #f5f7fb 0%, #eef2f8 100%); padding-bottom: 90px; }
         
         .header-3d {
             background: linear-gradient(145deg, #ffffff, #f0f4fa);
-            padding: 12px 24px;
+            padding: 12px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -20,42 +26,39 @@
             z-index: 100;
             box-shadow: 0 10px 25px -8px rgba(0,0,0,0.15);
             border-bottom: 1px solid rgba(59,130,246,0.15);
-            transform: perspective(800px) translateZ(2px);
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 10px;
         }
-        .left-group { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
-        .right-group { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+        .left-group { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .right-group { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
         .menu-icon-3d {
             background: linear-gradient(145deg, #1e293b, #0f172a);
             border: none;
-            font-size: 28px;
+            font-size: 26px;
             cursor: pointer;
-            padding: 10px 16px;
-            border-radius: 20px;
+            padding: 8px 14px;
+            border-radius: 18px;
             color: white;
             box-shadow: 0 8px 12px rgba(0,0,0,0.2);
-            transition: 0.1s;
         }
-        .menu-icon-3d:active { transform: translateY(2px); }
-        .logo-3d { font-size: 42px; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.2)); background: radial-gradient(circle at 35% 35%, #ffdd77, #ffaa33); border-radius: 50%; padding: 6px; transform: rotateY(4deg); }
-        .brand-3d { font-weight: 800; font-size: 26px; background: linear-gradient(135deg, #1e3a8a, #3b82f6, #06b6d4); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .currency-3d { background: linear-gradient(145deg, #1e2a4a, #0f172f); padding: 8px 18px; border-radius: 50px; box-shadow: 0 8px 14px rgba(0,0,0,0.2); }
-        .currency-3d select { background: transparent; border: none; color: #FFD966; font-size: 15px; font-weight: bold; padding: 6px 8px; cursor: pointer; outline: none; }
-        .rating-3d { background: linear-gradient(145deg, #2a2040, #1a1030); padding: 8px 20px; border-radius: 50px; text-align: center; box-shadow: 0 8px 14px rgba(0,0,0,0.2); }
-        .stars-small { font-size: 18px; letter-spacing: 2px; color: #FFB347; }
-        .rating-text-small { font-size: 11px; color: #aaa; }
+        .logo-3d { font-size: 38px; background: radial-gradient(circle at 35% 35%, #ffdd77, #ffaa33); border-radius: 50%; padding: 5px; }
+        .brand-3d { font-weight: 800; font-size: 22px; background: linear-gradient(135deg, #1e3a8a, #3b82f6, #06b6d4); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .currency-3d { background: linear-gradient(145deg, #1e2a4a, #0f172f); padding: 6px 15px; border-radius: 40px; }
+        .currency-3d select { background: transparent; border: none; color: #FFD966; font-size: 14px; font-weight: bold; padding: 5px 8px; cursor: pointer; }
+        .rating-3d { background: linear-gradient(145deg, #2a2040, #1a1030); padding: 6px 16px; border-radius: 40px; text-align: center; }
+        .stars-small { font-size: 16px; letter-spacing: 2px; color: #FFB347; }
+        .rating-text-small { font-size: 10px; color: #aaa; }
         
         .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); z-index: 200; display: none; }
         .drawer { position: fixed; top: 0; left: -85%; width: 75%; max-width: 280px; height: 100%; background: white; z-index: 201; transition: left 0.3s ease; border-radius: 0 24px 24px 0; padding: 20px 0; overflow-y: auto; }
         .drawer.open { left: 0; }
         .drawer-header { padding: 20px; border-bottom: 1px solid #eef2f8; }
-        .drawer-item { display: flex; align-items: center; gap: 14px; padding: 14px 20px; font-weight: 600; font-size: 17px; cursor: pointer; margin: 4px 12px; border-radius: 14px; }
+        .drawer-item { display: flex; align-items: center; gap: 14px; padding: 14px 20px; font-weight: 600; font-size: 16px; cursor: pointer; margin: 4px 12px; border-radius: 14px; }
         .drawer-item:hover { background: #f1f5f9; }
         
         .container { max-width: 560px; margin: 0 auto; padding: 16px; }
         .mode-tabs { display: flex; background: #e2e8f0; padding: 6px; border-radius: 60px; margin-bottom: 20px; gap: 6px; flex-wrap: wrap; }
-        .mode-btn { flex: 1; border: none; background: none; padding: 12px; font-weight: 700; border-radius: 50px; font-size: 14px; cursor: pointer; min-width: 80px; }
+        .mode-btn { flex: 1; border: none; background: none; padding: 12px; font-weight: 700; border-radius: 50px; font-size: 14px; cursor: pointer; }
         .mode-btn.active { background: white; color: #2563eb; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
         .section { display: none; }
         .section.active { display: block; }
@@ -75,42 +78,49 @@
         .btn-buy { background: #0f172a; color: white; }
         .btn-wish { background: #f1f5f9; }
         .btn-wish.active { background: #fee2e2; color: #dc2626; }
-        .btn-success { background: #10b981; color: white; }
-        .btn-warning { background: #f59e0b; color: white; }
+        
+        .fixed-cart {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: linear-gradient(145deg, #1e3a8a, #1e2a5a);
+            color: white;
+            border: none;
+            border-radius: 60px;
+            padding: 16px 28px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 800;
+            font-size: 18px;
+            z-index: 99;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+        }
+        .cart-badge { background: #ef4444; color: white; font-size: 13px; padding: 2px 10px; border-radius: 40px; }
         
         .input { width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; margin-bottom: 14px; font-size: 14px; }
-        .btn-primary { background: #1e3a8a; color: white; border: none; padding: 14px; border-radius: 60px; font-weight: 700; font-size: 15px; width: 100%; cursor: pointer; transition: 0.2s; }
+        .btn-primary { background: #1e3a8a; color: white; border: none; padding: 14px; border-radius: 60px; font-weight: 700; font-size: 15px; width: 100%; cursor: pointer; }
         .premium-card { background: white; border-radius: 24px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
         .flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .order-card { background: #f8fafc; border-radius: 16px; padding: 14px; margin-bottom: 12px; font-size: 13px; border-left: 4px solid #cbd5e1; }
-        .order-card.status-confirmed { border-left-color: #3b82f6; }
-        .order-card.status-shipped { border-left-color: #f59e0b; }
-        .order-card.status-delivered { border-left-color: #10b981; }
-        .order-card.status-completed { border-left-color: #8b5cf6; }
-        .fixed-cart { position: fixed; bottom: 20px; right: 20px; background: #1e3a8a; color: white; border: none; border-radius: 50px; padding: 14px 22px; display: flex; gap: 10px; font-weight: 800; z-index: 99; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .badge { position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; font-size: 10px; padding: 2px 6px; border-radius: 20px; }
-        .cart-float { position: relative; }
         
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 300; overflow-y: auto; }
         .modal-card { background: white; margin: 50px 20px; border-radius: 28px; padding: 24px; max-width: 500px; margin-left: auto; margin-right: auto; }
         .close-modal { float: right; font-size: 28px; cursor: pointer; }
         
         .seller-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #3b82f6; }
-        .price-breakdown { background: #f0f9ff; padding: 12px; border-radius: 16px; margin: 10px 0; font-size: 13px; }
         .role-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; background: #dbeafe; color: #1e40af; }
-        .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; z-index: 1000; display: none; font-size: 14px; white-space: nowrap; }
-        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-        .status-confirmed { background: #dbeafe; color: #1e40af; }
-        .status-shipped { background: #fed7aa; color: #9a3412; }
-        .status-delivered { background: #d1fae5; color: #065f46; }
-        .status-completed { background: #ede9fe; color: #5b21b6; }
-        .address-card { background: #f1f5f9; padding: 12px; border-radius: 16px; margin-top: 10px; font-size: 13px; }
+        .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; z-index: 1000; display: none; font-size: 14px; }
+        .checkbox-group { display: flex; align-items: center; gap: 10px; margin: 15px 0; font-size: 13px; flex-wrap: wrap; }
+        .legal-link { color: #3b82f6; text-decoration: none; cursor: pointer; }
+        .footer-legal { text-align: center; padding: 20px; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; margin-top: 20px; }
+        .btn-download { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 20px; font-size: 11px; cursor: pointer; }
         
         @media (max-width: 600px) {
-            .header-3d { padding: 12px 16px; }
-            .brand-3d { font-size: 18px; }
-            .logo-3d { font-size: 32px; }
-            .toast { white-space: normal; text-align: center; width: 90%; }
+            .brand-3d { font-size: 16px; }
+            .logo-3d { font-size: 28px; }
+            .fixed-cart { padding: 12px 20px; font-size: 14px; bottom: 15px; right: 15px; }
         }
     </style>
 </head>
@@ -130,7 +140,6 @@
                 <option value="INR">🇮🇳 INR</option><option value="PKR">🇵🇰 PKR</option>
                 <option value="NPR">🇳🇵 NPR</option><option value="BDT">🇧🇩 BDT</option>
                 <option value="LKR">🇱🇰 LKR</option><option value="AED">🇦🇪 AED</option>
-                <option value="QAR">🇶🇦 QAR</option>
             </select>
         </div>
         <div class="rating-3d">
@@ -148,6 +157,7 @@
     <div class="drawer-item" data-mode="profile">👤 My Profile</div>
     <div class="drawer-item" id="drawerWishlist">❤️ My Wishlist</div>
     <div class="drawer-item" data-mode="admin">⚙️ Admin Panel</div>
+    <div class="drawer-item" id="drawerSupport">📞 Support</div>
     <div class="drawer-item" id="drawerLogout">🚪 Logout</div>
 </div>
 
@@ -159,14 +169,12 @@
         <button class="mode-btn" data-tab="admin">⚙️ Admin</button>
     </div>
 
-    <!-- BUYER SECTION -->
     <div id="buyerSection" class="section active">
         <div class="cat-scroll" id="catList"></div>
         <input type="text" id="searchInput" class="input" placeholder="🔍 Search products...">
         <div class="product-grid" id="productsGrid"></div>
     </div>
 
-    <!-- SELLER SECTION -->
     <div id="sellerSection" class="section">
         <div id="sellerRegisterBox" class="premium-card">
             <h2>🏪 Open Your Shop</h2>
@@ -177,14 +185,15 @@
                 <input type="email" id="sellerEmail" placeholder="Email" class="input" required>
                 <input type="tel" id="sellerPhone" placeholder="Phone Number" class="input" required>
                 <input type="password" id="sellerPassword" placeholder="Password" class="input" required>
-                <h4>📍 Shop Address (Line by Line)</h4>
+                <input type="date" id="sellerDob" class="input" required>
+                <h4>📍 Shop Address</h4>
                 <input type="text" id="sellerHouseNo" placeholder="House No." class="input" required>
                 <input type="text" id="sellerStreet" placeholder="Street" class="input" required>
                 <input type="text" id="sellerCity" placeholder="City" class="input" required>
                 <input type="text" id="sellerState" placeholder="State" class="input" required>
                 <input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required>
                 <input type="text" id="sellerCountryReg" placeholder="Country" class="input" required>
-                <h4>🆔 KYC (Aadhaar & PAN)</h4>
+                <h4>🆔 KYC</h4>
                 <input type="text" id="sellerAadhaar" placeholder="Aadhaar Number" class="input">
                 <input type="file" id="sellerAadhaarImage" accept="image/*" class="input">
                 <input type="text" id="sellerPan" placeholder="PAN Number" class="input">
@@ -193,13 +202,16 @@
                 <input type="text" id="sellerBank" placeholder="Bank Name" class="input" required>
                 <input type="text" id="sellerAccountNo" placeholder="Account Number" class="input" required>
                 <input type="text" id="sellerIfsc" placeholder="IFSC Code" class="input" required>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="sellerAgreement" required>
+                    <label>I agree to the <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span> and confirm that I am 18+ years old.</label>
+                </div>
                 <button type="submit" class="btn-primary">✅ Register Shop</button>
             </form>
         </div>
         <div id="sellerDashboard" style="display:none;"></div>
     </div>
 
-    <!-- PROFILE SECTION -->
     <div id="profileSection" class="section">
         <div id="profileAuthBox" class="premium-card">
             <div style="display:flex; gap:12px; margin-bottom:20px;">
@@ -212,14 +224,23 @@
                 <button class="btn-primary" id="doLoginBtn">Login</button>
             </div>
             <div id="signupFormDiv" style="display:none;">
-                <input type="text" id="signupName" placeholder="Full Name" class="input">
+                <input type="text" id="signupName" placeholder="Full Name" class="input" required>
+                <input type="date" id="signupDob" class="input" required>
                 <select id="signupRole" class="input">
                     <option value="buyer">Buyer</option>
                     <option value="seller">Seller</option>
                 </select>
-                <input type="email" id="signupEmail" placeholder="Email" class="input">
-                <input type="tel" id="signupPhone" placeholder="Phone" class="input">
-                <input type="password" id="signupPass" placeholder="Password" class="input">
+                <input type="email" id="signupEmail" placeholder="Email" class="input" required>
+                <input type="tel" id="signupPhone" placeholder="Phone" class="input" required>
+                <input type="password" id="signupPass" placeholder="Password" class="input" required>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="termsCheckbox" required>
+                    <label>I accept the <span class="legal-link" onclick="showTerms()">Terms & Conditions</span> and <span class="legal-link" onclick="showPrivacy()">Privacy Policy</span></label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="ageCheckbox" required>
+                    <label>I confirm that I am 18 years or older.</label>
+                </div>
                 <button class="btn-primary" id="doSignupBtn">Create Account</button>
             </div>
         </div>
@@ -230,10 +251,10 @@
                 <button class="btn-primary" id="logoutBuyerBtn" style="background:#dc2626; margin-top:10px;">Logout</button>
             </div>
             <div class="premium-card"><h3>📜 My Orders</h3><div id="buyerOrdersList"></div></div>
+            <div class="premium-card"><h3>📄 Refund & Cancellation Policy</h3><p style="font-size:12px; color:#64748b;">Cancellation within 24 hours of order. Refund processed within 7-10 business days after product return verification.</p></div>
         </div>
     </div>
 
-    <!-- ADMIN SECTION -->
     <div id="adminSection" class="section">
         <div id="adminPanel" class="premium-card">
             <h2>⚙️ Admin Dashboard</h2>
@@ -244,12 +265,19 @@
                 <h3>💰 Platform Earnings</h3><div id="platformEarnings"></div>
                 <h3>💸 Pending Withdrawals</h3><div id="pendingWithdrawals"></div>
                 <h3>📊 All Orders</h3><div id="adminOrdersList"></div>
+                <h3>⚙️ Razorpay Settings</h3>
+                <div class="premium-card">
+                    <input type="text" id="razorpayKey" class="input" placeholder="Razorpay Key ID (rzp_test_xxx)" value="rzp_test_YourKey">
+                    <input type="text" id="razorpaySecret" class="input" placeholder="Razorpay Key Secret">
+                    <button id="saveRazorpaySettings" class="btn-primary">Save Settings</button>
+                    <p style="font-size:11px; margin-top:10px;">Get keys from <a href="https://dashboard.razorpay.com/" target="_blank">Razorpay Dashboard</a></p>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<button class="fixed-cart cart-float" id="cartFloatBtn">🛒 Cart <span class="badge" id="cartCountBadge">0</span></button>
+<button class="fixed-cart" id="cartFloatBtn">🛒 Cart <span class="cart-badge" id="cartCountBadge">0</span></button>
 <div class="toast" id="toast"></div>
 
 <div id="productModal" class="modal">
@@ -266,21 +294,88 @@
     </div>
 </div>
 
+<!-- Legal Modals -->
+<div id="termsModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeTermsModal()">&times;</span><h2>Terms & Conditions</h2><p>By using GlobalBazaar, you agree to these terms. You must be 18+.</p><button class="btn-primary" onclick="closeTermsModal()">Close</button></div></div>
+<div id="privacyModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closePrivacyModal()">&times;</span><h2>Privacy Policy</h2><p>We collect name, email, phone, address for order processing.</p><button class="btn-primary" onclick="closePrivacyModal()">Close</button></div></div>
+<div id="sellerAgreementModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSellerAgreementModal()">&times;</span><h2>Seller Agreement</h2><p>5% commission + 2.5% gateway fee. Payments released after delivery confirmation.</p><button class="btn-primary" onclick="closeSellerAgreementModal()">Close</button></div></div>
+<div id="supportModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSupportModal()">&times;</span><h2>📞 Support</h2><p>Email: support@globalbazaar.com<br>WhatsApp: +966 123 456 789</p><button class="btn-primary" onclick="closeSupportModal()">Close</button></div></div>
+
+<div class="footer-legal">
+    © 2026 GlobalBazaar Marketplace | <span class="legal-link" onclick="showTerms()">Terms</span> | <span class="legal-link" onclick="showPrivacy()">Privacy</span> | <span class="legal-link" onclick="showSupport()">Support</span>
+</div>
+
 <script>
     // ============ CONSTANTS ============
     const PLATFORM_COMMISSION = 0.05;
     const GATEWAY_FEE = 0.025;
     const HANDLING_FEE = 2;
     
-    let fx = { SAR:3.75, USD:1, EUR:0.92, GBP:0.78, INR:83.5, PKR:278, NPR:133.5, BDT:117, LKR:305, AED:3.67, QAR:3.64 };
-    let sym = { SAR:"SAR ", USD:"$", EUR:"€", GBP:"£", INR:"₹", PKR:"₨", NPR:"रू ", BDT:"৳", LKR:"Rs ", AED:"د.إ", QAR:"QR" };
+    // Razorpay Configuration (Admin se set hoga)
+    let razorpayConfig = JSON.parse(localStorage.getItem('razorpay_config')) || {
+        key: "rzp_test_YourKey",
+        secret: ""
+    };
+    
+    let fx = { SAR:3.75, USD:1, EUR:0.92, GBP:0.78, INR:83.5, PKR:278, NPR:133.5, BDT:117, LKR:305, AED:3.67 };
+    let sym = { SAR:"SAR ", USD:"$", EUR:"€", GBP:"£", INR:"₹", PKR:"₨", NPR:"रू ", BDT:"৳", LKR:"Rs ", AED:"د.إ" };
     
     let selectedCurr = "SAR";
     let buyerCountry = "IN";
     
+    // EmailJS Configuration (Register at emailjs.com)
+    emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
+    
+    function sendEmailNotification(toEmail, subject, message) {
+        // Demo: Console log
+        console.log(`📧 Email to ${toEmail}: ${subject} - ${message}`);
+        showToast(`📧 Email sent to ${toEmail}`, false);
+        // Real implementation:
+        // emailjs.send("service_id", "template_id", { to_email: toEmail, subject: subject, message: message });
+    }
+    
+    function sendWhatsAppNotification(phone, message) {
+        console.log(`💬 WhatsApp to ${phone}: ${message}`);
+        // Real: Twilio API
+        showToast(`💬 WhatsApp notification sent`, false);
+    }
+    
+    function generatePDFInvoice(order) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFontSize(18);
+        doc.text("GlobalBazaar Invoice", 20, 20);
+        doc.setFontSize(12);
+        doc.text(`Order ID: ${order.trackingNumber}`, 20, 40);
+        doc.text(`Date: ${order.date}`, 20, 50);
+        doc.text(`Product: ${order.productName} x${order.qty}`, 20, 60);
+        doc.text(`Amount: ${getSym()}${convert(order.amount)}`, 20, 70);
+        doc.text(`Status: ${order.status}`, 20, 80);
+        doc.text(`Address: ${order.address}`, 20, 90);
+        doc.save(`invoice_${order.trackingNumber}.pdf`);
+        showToast("Invoice downloaded!", false);
+    }
+    
     function convert(usd) { return (usd * fx[selectedCurr]).toFixed(2); }
     function getSym() { return sym[selectedCurr]; }
-    function showToast(msg, isError = false) { let t = document.getElementById('toast'); t.innerText = msg; t.style.backgroundColor = isError ? '#dc2626' : '#10b981'; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
+    function showToast(msg, isError) { let t = document.getElementById('toast'); t.innerText = msg; t.style.backgroundColor = isError ? '#dc2626' : '#10b981'; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
+    
+    function showTerms() { document.getElementById('termsModal').style.display = 'block'; }
+    function closeTermsModal() { document.getElementById('termsModal').style.display = 'none'; }
+    function showPrivacy() { document.getElementById('privacyModal').style.display = 'block'; }
+    function closePrivacyModal() { document.getElementById('privacyModal').style.display = 'none'; }
+    function showSellerAgreement() { document.getElementById('sellerAgreementModal').style.display = 'block'; }
+    function closeSellerAgreementModal() { document.getElementById('sellerAgreementModal').style.display = 'none'; }
+    function showSupport() { document.getElementById('supportModal').style.display = 'block'; }
+    function closeSupportModal() { document.getElementById('supportModal').style.display = 'none'; }
+    
+    function calculateAge(dob) {
+        let today = new Date();
+        let birthDate = new Date(dob);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        let m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+        return age;
+    }
     
     const illegalKeywords = ["gun","pistol","weapon","bomb","drugs","cocaine","heroin"];
     function isIllegal(n,d) { return illegalKeywords.some(k => (n+d).toLowerCase().includes(k)); }
@@ -298,11 +393,40 @@
         return { total: basePrice + commission + gateway + shipping + HANDLING_FEE, shipping, commission, gateway, basePrice };
     }
     
-    // ============ DATA ============
+    // Razorpay Payment Function
+    function processRazorpayPayment(amountINR, orderId, buyerEmail, buyerPhone, buyerName, callback) {
+        if(!razorpayConfig.key || razorpayConfig.key === "rzp_test_YourKey") {
+            showToast("⚠️ Razorpay not configured! Admin please set Razorpay Key in Admin panel.", true);
+            callback(false, null);
+            return;
+        }
+        
+        var options = {
+            key: razorpayConfig.key,
+            amount: Math.round(amountINR * 100),
+            currency: "INR",
+            name: "GlobalBazaar",
+            description: `Order ${orderId}`,
+            prefill: {
+                name: buyerName,
+                email: buyerEmail,
+                contact: buyerPhone
+            },
+            theme: { color: "#1e3a8a" },
+            handler: function(response) {
+                showToast("✅ Payment successful!", false);
+                sendEmailNotification(buyerEmail, "Payment Successful", `Your payment of ₹${amountINR} for order ${orderId} is successful. Payment ID: ${response.razorpay_payment_id}`);
+                callback(true, response.razorpay_payment_id);
+            }
+        };
+        var rzp = new Razorpay(options);
+        rzp.open();
+    }
+    
     let sellers = JSON.parse(localStorage.getItem('gb_sellers')) || [];
     let products = JSON.parse(localStorage.getItem('gb_products')) || [
-        {id:1, sellerId:0, sellerName:"GlobalBazaar", name:"Smart Watch", price:50, category:"Electronics", image:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400", description:"Premium watch", rating:4.5, reviews:[], sellerCountry:"IN"},
-        {id:2, sellerId:0, sellerName:"GlobalBazaar", name:"Headphones", price:120, category:"Electronics", image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", description:"Noise cancellation", rating:4.8, reviews:[], sellerCountry:"IN"}
+        {id:1, sellerId:0, sellerName:"GlobalBazaar", name:"Luxury Smart Watch", price:50, category:"Electronics", image:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400", description:"Premium smart watch", rating:4.5, reviews:[], sellerCountry:"IN"},
+        {id:2, sellerId:0, sellerName:"GlobalBazaar", name:"Premium Headphones", price:120, category:"Electronics", image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", description:"Noise cancellation", rating:4.8, reviews:[], sellerCountry:"IN"}
     ];
     let buyers = JSON.parse(localStorage.getItem('gb_buyers')) || [];
     let currentUser = JSON.parse(localStorage.getItem('gb_current_user')) || null;
@@ -324,19 +448,28 @@
         localStorage.setItem('gb_platform_earnings', JSON.stringify(platformEarnings));
         localStorage.setItem('gb_pending_withdrawals', JSON.stringify(pendingWithdrawals));
         localStorage.setItem('gb_payouts', JSON.stringify(payouts));
+        localStorage.setItem('razorpay_config', JSON.stringify(razorpayConfig));
     }
+    
+    // Save Razorpay Settings
+    document.getElementById('saveRazorpaySettings')?.addEventListener('click', () => {
+        razorpayConfig.key = document.getElementById('razorpayKey').value;
+        razorpayConfig.secret = document.getElementById('razorpaySecret').value;
+        saveAll();
+        showToast("Razorpay settings saved!", false);
+    });
     
     async function detectLocation() { try { let r = await fetch('https://ipapi.co/json/'); let d = await r.json(); buyerCountry = d.country_code || "IN"; } catch(e) {} renderProducts(); }
     detectLocation();
-    document.getElementById('currencySelect').addEventListener('change', (e) => { selectedCurr = e.target.value; renderProducts(); updateCartUI(); renderBuyerOrders(); renderSellerDashboard(); });
+    document.getElementById('currencySelect').addEventListener('change', (e) => { selectedCurr = e.target.value; renderProducts(); updateCartUI(); renderBuyerOrders(); });
     
     function getAddressLineByLine() {
-        let h = prompt("🏠 House No.:"); if(!h) return null;
-        let s = prompt("📌 Street:"); if(!s) return null;
-        let c = prompt("🏙️ City:"); if(!c) return null;
-        let st = prompt("🗺️ State:"); if(!st) return null;
-        let p = prompt("📮 PIN Code:"); if(!p) return null;
-        let co = prompt("🌍 Country:", "India"); if(!co) return null;
+        let h = prompt("House No.:"); if(!h) return null;
+        let s = prompt("Street:"); if(!s) return null;
+        let c = prompt("City:"); if(!c) return null;
+        let st = prompt("State:"); if(!st) return null;
+        let p = prompt("PIN Code:"); if(!p) return null;
+        let co = prompt("Country:", "India"); if(!co) return null;
         let addr = `${h}, ${s}, ${c}, ${st} - ${p}, ${co}`;
         if(currentUser) { currentUser.savedAddress = { house:h, street:s, city:c, state:st, pincode:p, country:co, fullAddress:addr }; saveAll(); displaySavedAddress(); }
         return addr;
@@ -344,7 +477,7 @@
     
     function displaySavedAddress() {
         if(currentUser?.savedAddress) document.getElementById('savedAddressDisplay').innerHTML = `🏠 ${currentUser.savedAddress.house}<br>📌 ${currentUser.savedAddress.street}<br>🏙️ ${currentUser.savedAddress.city}<br>🗺️ ${currentUser.savedAddress.state}<br>📮 ${currentUser.savedAddress.pincode}<br>🌍 ${currentUser.savedAddress.country}`;
-        else document.getElementById('savedAddressDisplay').innerHTML = "No address saved. Add during checkout.";
+        else document.getElementById('savedAddressDisplay').innerHTML = "No address saved.";
     }
     
     let currentCategory = "All";
@@ -393,51 +526,65 @@
         else cart.push({id:p.id, name:p.name, price:p.price, sellerId:p.sellerId, sellerCountry:p.sellerCountry || "IN", qty:1});
         saveAll();
         updateCartUI();
-        showToast("✅ Added to cart");
+        showToast("Added to cart", false);
     }
     
     function updateCartUI() { document.getElementById('cartCountBadge').innerText = cart.reduce((a,b)=>a+b.qty,0); }
     function toggleWish(id) { if(wishlist.includes(id)) wishlist = wishlist.filter(i=>i!==id); else wishlist.push(id); saveAll(); renderProducts(); }
     
-    // ============ ORDER FLOW (Confirmed → Shipped → Delivered → Completed) ============
+    // Checkout with Razorpay
     document.getElementById('cartFloatBtn')?.addEventListener('click', () => {
         if(cart.length === 0) { showToast("Cart empty!", true); return; }
         if(!currentUser) { showToast("Login first!", true); return; }
         let address = currentUser.savedAddress?.fullAddress || getAddressLineByLine();
         if(!address) return;
         
-        let tracking = "GB" + Date.now();
-        cart.forEach(item => {
+        let totalUSD = cart.reduce((sum, item) => {
             let seller = sellers.find(s=>s.id===item.sellerId);
             let final = calculateFinalPrice(item.price, seller?.country || "IN");
-            orders.push({
-                id: Date.now()+Math.random(), trackingNumber: tracking,
-                sellerId: item.sellerId, sellerName: item.sellerName,
-                buyerEmail: currentUser.email, buyerName: currentUser.name,
-                productName: item.name, amount: final.total, basePrice: item.price,
-                address: address, date: new Date().toLocaleString(), 
-                status: "Confirmed", qty: item.qty, shippingCost: final.shipping,
-                commission: final.commission, sellerReleased: false
-            });
-            platformEarnings += final.commission * item.qty;
+            return sum + (final.total * item.qty);
+        }, 0);
+        let totalINR = totalUSD * fx.INR;
+        
+        let tracking = "GB" + Date.now();
+        
+        processRazorpayPayment(totalINR, tracking, currentUser.email, currentUser.phone, currentUser.name, (success, paymentId) => {
+            if(success) {
+                cart.forEach(item => {
+                    let seller = sellers.find(s=>s.id===item.sellerId);
+                    let final = calculateFinalPrice(item.price, seller?.country || "IN");
+                    orders.push({
+                        id: Date.now()+Math.random(), trackingNumber: tracking, paymentId: paymentId,
+                        sellerId: item.sellerId, sellerName: item.sellerName,
+                        buyerEmail: currentUser.email, buyerName: currentUser.name,
+                        productName: item.name, amount: final.total, basePrice: item.price,
+                        address: address, date: new Date().toLocaleString(), 
+                        status: "Confirmed", qty: item.qty, shippingCost: final.shipping,
+                        commission: final.commission, sellerReleased: false
+                    });
+                    platformEarnings += final.commission * item.qty;
+                });
+                cart = []; saveAll(); updateCartUI();
+                sendEmailNotification(currentUser.email, "Order Confirmed", `Your order ${tracking} has been confirmed. Total: ${getSym()}${convert(totalUSD)}`);
+                sendWhatsAppNotification(currentUser.phone, `Order ${tracking} confirmed! Thank you for shopping at GlobalBazaar.`);
+                showToast(`Order Confirmed! Tracking: ${tracking}`, false);
+                if(currentUser?.role === 'buyer') renderBuyerOrders();
+                if(currentUser?.role === 'seller') renderSellerDashboard();
+            } else {
+                showToast("Payment failed!", true);
+            }
         });
-        cart = []; saveAll(); updateCartUI();
-        showToast(`✅ Order Confirmed! Tracking: ${tracking}`);
-        if(currentUser?.role === 'buyer') renderBuyerOrders();
-        if(currentUser?.role === 'seller') renderSellerDashboard();
     });
     
-    // Buyer confirms order received
     function confirmOrderReceived(orderId) {
         let order = orders.find(o => o.id === orderId);
         if(order && order.status === "Shipped") {
             order.status = "Delivered";
             saveAll();
-            showToast("✅ Thank you! Order marked as Delivered. Seller will be paid after 24hrs.");
+            sendEmailNotification(order.buyerEmail, "Order Delivered", `Your order ${order.trackingNumber} has been delivered. Thank you!`);
+            showToast("Order marked as Delivered!", false);
             renderBuyerOrders();
             renderSellerDashboard();
-            
-            // Auto complete after 5 seconds (demo) - in production change to 24 hours (86400000 ms)
             setTimeout(() => {
                 let ord = orders.find(o => o.id === orderId);
                 if(ord && ord.status === "Delivered") {
@@ -448,31 +595,31 @@
                         seller.earnings = (seller.earnings || 0) + (sellerEarning * ord.qty);
                         ord.sellerReleased = true;
                         saveAll();
-                        showToast(`💰 Payment of ${getSym()}${convert(sellerEarning * ord.qty)} released to seller ${seller.shopName}`);
+                        sendEmailNotification(seller.email, "Payment Released", `Payment of ${getSym()}${convert(sellerEarning * ord.qty)} has been released for order ${ord.trackingNumber}`);
+                        showToast(`Payment released to seller`, false);
                         renderSellerDashboard();
                     }
                     renderBuyerOrders();
                 }
-            }, 5000); // 5 seconds for demo (change to 86400000 for 24 hours)
+            }, 5000);
         } else {
-            showToast("Order not shipped yet! Wait for seller to ship.", true);
+            showToast("Order not shipped yet!", true);
         }
     }
     
-    // Seller marks order as shipped
     function markOrderShipped(orderId, trackingNum) {
         let order = orders.find(o => o.id === orderId);
         if(order && order.status === "Confirmed") {
             order.status = "Shipped";
             order.trackingNumber = trackingNum;
             saveAll();
-            showToast("📦 Order marked as Shipped!");
+            sendEmailNotification(order.buyerEmail, "Order Shipped", `Your order ${order.trackingNumber} has been shipped. Tracking: ${trackingNum}`);
+            showToast("Order marked as Shipped!", false);
             renderSellerDashboard();
             renderBuyerOrders();
         }
     }
     
-    // Seller requests withdrawal
     function requestWithdrawal(sellerId) {
         let seller = sellers.find(s => s.id === sellerId);
         if(seller && seller.earnings > 0) {
@@ -483,14 +630,18 @@
             });
             seller.earnings = 0;
             saveAll();
-            showToast(`💰 Withdrawal request of ${getSym()}${convert(pendingWithdrawals[pendingWithdrawals.length-1].amount)} submitted!`);
+            sendEmailNotification(seller.email, "Withdrawal Request", `Your withdrawal request of ${getSym()}${convert(pendingWithdrawals[pendingWithdrawals.length-1].amount)} has been submitted.`);
+            showToast(`Withdrawal request submitted!`, false);
             renderSellerDashboard();
         } else { showToast("No balance to withdraw", true); }
     }
     
-    // ============ SELLER REGISTRATION ============
     document.getElementById('sellerRegForm')?.addEventListener('submit', (e) => {
         e.preventDefault();
+        if(!document.getElementById('sellerAgreement').checked) { showToast("Accept Seller Agreement", true); return; }
+        let dob = document.getElementById('sellerDob').value;
+        if(calculateAge(dob) < 18) { showToast("You must be 18+", true); return; }
+        
         let avatar = document.getElementById('sellerAvatar').files[0];
         if(!avatar) { showToast("Upload shop logo", true); return; }
         let reader = new FileReader();
@@ -502,6 +653,7 @@
                 email: document.getElementById('sellerEmail').value,
                 phone: document.getElementById('sellerPhone').value,
                 password: document.getElementById('sellerPassword').value,
+                dob: dob,
                 houseNo: document.getElementById('sellerHouseNo').value,
                 street: document.getElementById('sellerStreet').value,
                 city: document.getElementById('sellerCity').value,
@@ -521,7 +673,7 @@
             document.getElementById('sellerRegisterBox').style.display = 'none';
             document.getElementById('sellerDashboard').style.display = 'block';
             renderSellerDashboard();
-            showToast("✅ Shop Registered Successfully!");
+            showToast("Shop Registered!", false);
         };
         reader.readAsDataURL(avatar);
     });
@@ -532,92 +684,106 @@
         if(!seller) return;
         let myProducts = products.filter(p=>p.sellerId === seller.id);
         let myOrders = orders.filter(o=>o.sellerId === seller.id);
-        
         let addressHtml = `${seller.houseNo}, ${seller.street}, ${seller.city}, ${seller.state} - ${seller.pincode}, ${seller.country}`;
         document.getElementById('sellerDashboard').innerHTML = `
             <div class="premium-card"><div class="flex-between"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📍 ${addressHtml}</p></div><span class="role-badge">Seller</span></div><div class="flex-between"><span>🏦 ${seller.bankName} - ${seller.accountNo}</span><span>💰 ${getSym()}${convert(seller.earnings)}</span></div><button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Request Withdrawal</button></div>
-            <div class="premium-card"><h3>➕ Add Product</h3><div id="illegalWarn" class="illegal-warning" style="display:none; background:#fee2e2; padding:10px; border-radius:12px; margin-bottom:10px;">🚫 Illegal product detected!</div><input type="text" id="prodName" placeholder="Product Name" class="input"><input type="number" id="prodPrice" placeholder="Price (USD)" class="input"><select id="prodCat" class="input"><option>Electronics</option><option>Fashion</option><option>Home</option></select><input type="url" id="prodImg" placeholder="Image URL" class="input"><textarea id="prodDesc" placeholder="Description" class="input"></textarea><button id="publishBtn" class="btn-primary">Publish</button></div>
+            <div class="premium-card"><h3>➕ Add Product</h3><input type="text" id="prodName" placeholder="Product Name" class="input"><input type="number" id="prodPrice" placeholder="Price (USD)" class="input"><select id="prodCat" class="input"><option>Electronics</option><option>Fashion</option><option>Home</option></select><input type="url" id="prodImg" placeholder="Image URL" class="input"><textarea id="prodDesc" placeholder="Description" class="input"></textarea><button id="publishBtn" class="btn-primary">Publish</button></div>
             <div class="premium-card"><h3>📋 My Products</h3><div id="myProductsList"></div></div>
             <div class="premium-card"><h3>📦 Orders Received</h3><div id="ordersList"></div></div>
         `;
-        
         document.getElementById('publishBtn')?.addEventListener('click', () => {
             let name = document.getElementById('prodName').value;
             let desc = document.getElementById('prodDesc').value;
-            if(isIllegal(name, desc)) { document.getElementById('illegalWarn').style.display = 'block'; showToast("Illegal product blocked!", true); return; }
-            document.getElementById('illegalWarn').style.display = 'none';
+            if(isIllegal(name, desc)) { showToast("Illegal product blocked!", true); return; }
             let price = parseFloat(document.getElementById('prodPrice').value);
             if(!name || !price) { showToast("Fill name & price", true); return; }
             products.push({ id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, name, price, category: document.getElementById('prodCat').value, image: document.getElementById('prodImg').value || "https://placehold.co/200x200", description: desc, rating: 0, reviews: [], sellerCountry: seller.country });
-            saveAll(); renderSellerDashboard(); renderProducts(); showToast("Product published!");
+            saveAll(); renderSellerDashboard(); renderProducts(); showToast("Product published!", false);
         });
-        
         document.getElementById('myProductsList').innerHTML = myProducts.map(p => `<div class="flex-between"><span>${p.name} - ${getSym()}${convert(p.price)}</span><button class="delProd" data-id="${p.id}" style="background:#dc2626; border:none; padding:6px 14px; border-radius:30px;">Delete</button></div>`).join('');
-        document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', () => { products = products.filter(p=>p.id!==parseInt(btn.dataset.id)); saveAll(); renderSellerDashboard(); renderProducts(); showToast("Product deleted"); }));
-        
-        document.getElementById('ordersList').innerHTML = myOrders.map(o => `<div class="order-card status-${o.status.toLowerCase()}"><strong>🔖 ${o.trackingNumber}</strong><br>Buyer: ${o.buyerName}<br>Product: ${o.productName} x${o.qty}<br>Amount: ${getSym()}${convert(o.amount)}<br>Status: <span class="status-badge status-${o.status.toLowerCase()}">${o.status}</span><br>Address: ${o.address}${o.status === "Confirmed" ? `<br><button class="shipBtn" data-id="${o.id}" style="background:#3b82f6; margin-top:10px; padding:8px 16px; border-radius:30px; border:none; color:white;">📦 Mark as Shipped</button>` : ''}</div>`).join('');
+        document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', () => { products = products.filter(p=>p.id!==parseInt(btn.dataset.id)); saveAll(); renderSellerDashboard(); renderProducts(); showToast("Product deleted", false); }));
+        document.getElementById('ordersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>Buyer: ${o.buyerName}<br>Product: ${o.productName} x${o.qty}<br>Amount: ${getSym()}${convert(o.amount)}<br>Status: ${o.status}<br>Address: ${o.address}${o.status === "Confirmed" ? `<br><button class="shipBtn" data-id="${o.id}" style="background:#3b82f6; margin-top:10px; padding:8px 16px; border-radius:30px; border:none; color:white;">Mark as Shipped</button>` : ''}</div>`).join('');
         document.querySelectorAll('.shipBtn').forEach(btn => btn.addEventListener('click', () => { let track = prompt("Enter tracking number:"); if(track) markOrderShipped(parseFloat(btn.dataset.id), track); }));
-        
         document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
     }
     
-    // ============ BUYER AUTH ============
     document.getElementById('showLoginBtn')?.addEventListener('click', () => { document.getElementById('loginFormDiv').style.display='block'; document.getElementById('signupFormDiv').style.display='none'; });
     document.getElementById('showSignupBtn')?.addEventListener('click', () => { document.getElementById('loginFormDiv').style.display='none'; document.getElementById('signupFormDiv').style.display='block'; });
+    
     document.getElementById('doLoginBtn')?.addEventListener('click', () => {
         let email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPass').value;
         let user = buyers.find(b=>b.email===email && b.password===pass);
-        if(user) { currentUser = user; saveAll(); document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = user.name; document.getElementById('profileRoleBadge').innerText = user.role || 'Buyer'; displaySavedAddress(); renderBuyerOrders(); showToast("Login successful!"); }
+        if(user) { currentUser = user; saveAll(); document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = user.name; document.getElementById('profileRoleBadge').innerText = user.role || 'Buyer'; displaySavedAddress(); renderBuyerOrders(); showToast("Login successful!", false); }
         else showToast("Invalid credentials", true);
     });
+    
     document.getElementById('doSignupBtn')?.addEventListener('click', () => {
+        if(!document.getElementById('termsCheckbox').checked) { showToast("Accept Terms & Conditions", true); return; }
+        if(!document.getElementById('ageCheckbox').checked) { showToast("Confirm you are 18+", true); return; }
+        let dob = document.getElementById('signupDob').value;
+        if(calculateAge(dob) < 18) { showToast("You must be 18+", true); return; }
+        
         let name = document.getElementById('signupName').value, email = document.getElementById('signupEmail').value, phone = document.getElementById('signupPhone').value, pass = document.getElementById('signupPass').value, role = document.getElementById('signupRole').value;
         if(!name || !email || !pass) { showToast("Fill all fields", true); return; }
         if(buyers.find(b=>b.email===email)) { showToast("Email exists", true); return; }
-        let newUser = { name, email, phone, password: pass, role, savedAddress: null };
+        let newUser = { name, email, phone, password: pass, role, dob, savedAddress: null };
         buyers.push(newUser); currentUser = newUser; saveAll();
         document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block';
         document.getElementById('profileName').innerText = name; document.getElementById('profileRoleBadge').innerText = role;
-        displaySavedAddress(); renderBuyerOrders(); showToast("Signup successful!");
+        displaySavedAddress(); renderBuyerOrders(); showToast("Signup successful!", false);
+        sendEmailNotification(email, "Welcome to GlobalBazaar", `Hi ${name}, welcome to GlobalBazaar! Start shopping now.`);
     });
+    
     document.getElementById('logoutBuyerBtn')?.addEventListener('click', () => { currentUser = null; saveAll(); location.reload(); });
     
     function renderBuyerOrders() {
         if(!currentUser) return;
         let myOrders = orders.filter(o=>o.buyerEmail===currentUser.email);
-        document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card status-${o.status.toLowerCase()}"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty} - ${getSym()}${convert(o.amount)}<br>📍 ${o.address}<br>Status: <span class="status-badge status-${o.status.toLowerCase()}">${o.status}</span><br>Date: ${o.date}${o.status === "Shipped" ? `<br><button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981; margin-top:10px; padding:8px 16px; border-radius:30px; border:none; color:white;">✅ I have received the product</button>` : ''}${o.status === "Delivered" ? `<br><span style="color:#10b981;">⏳ Payment will be released to seller in 24 hours</span>` : ''}${o.status === "Completed" ? `<br><span style="color:#8b5cf6;">✅ Order Completed! Thank you for shopping.</span>` : ''}</div>`).join('');
+        document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty} - ${getSym()}${convert(o.amount)}<br>📍 ${o.address}<br>Status: ${o.status}<br>Date: ${o.date}<br><button class="btn-download" onclick="generatePDFInvoice(${JSON.stringify(o).replace(/"/g, '&quot;')})">📄 Download Invoice</button>${o.status === "Shipped" ? `<br><button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981; margin-top:10px; padding:8px 16px; border-radius:30px; border:none; color:white;">I have received the product</button>` : ''}</div>`).join('');
         document.querySelectorAll('.confirmReceivedBtn').forEach(btn => btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id))));
     }
     
-    // ============ ADMIN ============
     let adminLoggedIn = false;
     document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
         if(document.getElementById('adminKey').value === 'admin123') {
             adminLoggedIn = true;
             document.getElementById('adminLoginBox').style.display = 'none';
             document.getElementById('adminContent').style.display = 'block';
+            document.getElementById('razorpayKey').value = razorpayConfig.key;
+            document.getElementById('razorpaySecret').value = razorpayConfig.secret;
             loadAdminData();
-            showToast("Admin logged in");
-        } else showToast("Wrong admin key (use: admin123)", true);
+            showToast("Admin logged in", false);
+        } else showToast("Wrong admin key (admin123)", true);
     });
     
     function loadAdminData() {
         document.getElementById('adminSellersList').innerHTML = sellers.map(s => `<div class="order-card"><strong>${s.shopName}</strong><br>${s.email}<br>📞 ${s.phone}<br>🏦 ${s.bankName} - ${s.accountNo}<br>💰 ${getSym()}${convert(s.earnings)}</div>`).join('');
-        document.getElementById('platformEarnings').innerHTML = `<h2>${getSym()}${convert(platformEarnings)}</h2><p>Total platform revenue from commissions</p>`;
-        document.getElementById('pendingWithdrawals').innerHTML = pendingWithdrawals.map(w => `<div class="flex-between order-card"><span>💰 ${getSym()}${convert(w.amount)} - ${w.sellerName}<br>🏦 ${w.bank} - ${w.account}<br>IFSC: ${w.ifsc}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981; padding:8px 16px; border-radius:30px; border:none; color:white;">Approve & Transfer</button></div>`).join('');
+        document.getElementById('platformEarnings').innerHTML = `<h2>${getSym()}${convert(platformEarnings)}</h2>`;
+        document.getElementById('pendingWithdrawals').innerHTML = pendingWithdrawals.map(w => `<div class="flex-between order-card"><span>💰 ${getSym()}${convert(w.amount)} - ${w.sellerName}<br>🏦 ${w.bank} - ${w.account}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981; padding:8px 16px; border-radius:30px; border:none; color:white;">Approve & Transfer</button></div>`).join('');
         document.querySelectorAll('.approveBtn').forEach(btn => btn.addEventListener('click', () => {
             let w = pendingWithdrawals.find(w=>w.id===parseInt(btn.dataset.id));
-            if(w) { payouts.push({...w, status:"Approved", approvedDate:new Date().toLocaleString()}); pendingWithdrawals = pendingWithdrawals.filter(w=>w.id!==parseInt(btn.dataset.id)); saveAll(); loadAdminData(); showToast(`✅ Approved ${getSym()}${convert(w.amount)} payout to ${w.sellerName}`); }
+            if(w) {
+                payouts.push({...w, status:"Approved", approvedDate:new Date().toLocaleString()});
+                pendingWithdrawals = pendingWithdrawals.filter(w=>w.id!==parseInt(btn.dataset.id));
+                saveAll();
+                let seller = sellers.find(s=>s.id===w.sellerId);
+                if(seller) {
+                    sendEmailNotification(seller.email, "Withdrawal Approved", `Your withdrawal request of ${getSym()}${convert(w.amount)} has been approved. Amount will be credited to ${seller.bankName} - ${seller.accountNo} within 2-3 business days.`);
+                }
+                loadAdminData();
+                showToast(`Approved ${getSym()}${convert(w.amount)} payout`, false);
+            }
         }));
-        document.getElementById('adminOrdersList').innerHTML = orders.map(o => `<div class="order-card">🔖 ${o.trackingNumber}<br>${o.productName} x${o.qty} - ${o.buyerName}<br>Status: ${o.status} | Amount: ${getSym()}${convert(o.amount)}</div>`).join('');
+        document.getElementById('adminOrdersList').innerHTML = orders.map(o => `<div class="order-card">🔖 ${o.trackingNumber}<br>${o.productName} x${o.qty} - ${o.buyerName}<br>Status: ${o.status} | Payment ID: ${o.paymentId || 'N/A'}</div>`).join('');
     }
     document.getElementById('refreshAdminBtn')?.addEventListener('click', loadAdminData);
     
-    // ============ UI EVENTS ============
     function openDrawer() { document.getElementById('drawer').classList.add('open'); document.getElementById('drawerOverlay').style.display = 'block'; }
     function closeDrawer() { document.getElementById('drawer').classList.remove('open'); document.getElementById('drawerOverlay').style.display = 'none'; }
     document.getElementById('menuBtn').onclick = openDrawer;
     document.getElementById('drawerOverlay').onclick = closeDrawer;
+    document.getElementById('drawerSupport')?.addEventListener('click', () => { showSupport(); closeDrawer(); });
+    
     document.querySelectorAll('.mode-btn').forEach(btn => btn.addEventListener('click', () => {
         let tab = btn.dataset.tab;
         document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
@@ -626,18 +792,16 @@
         document.getElementById(tab + "Section").classList.add('active');
         if(tab === 'seller' && currentUser?.role === 'seller') { document.getElementById('sellerRegisterBox').style.display='none'; document.getElementById('sellerDashboard').style.display='block'; renderSellerDashboard(); }
         if(tab === 'profile' && currentUser) { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; displaySavedAddress(); renderBuyerOrders(); }
-        if(tab === 'admin' && adminLoggedIn) { loadAdminData(); }
         closeDrawer();
     }));
     document.querySelectorAll('.drawer-item[data-mode]').forEach(el => el.addEventListener('click', () => { document.querySelector(`.mode-btn[data-tab="${el.dataset.mode}"]`).click(); closeDrawer(); }));
-    document.getElementById('drawerWishlist')?.addEventListener('click', () => { let wp = products.filter(p=>wishlist.includes(p.id)); alert("❤️ Wishlist:\n"+wp.map(p=>p.name).join("\n")); closeDrawer(); });
+    document.getElementById('drawerWishlist')?.addEventListener('click', () => { let wp = products.filter(p=>wishlist.includes(p.id)); alert("Wishlist:\n"+wp.map(p=>p.name).join("\n")); closeDrawer(); });
     document.getElementById('drawerLogout')?.addEventListener('click', () => { currentUser=null; saveAll(); location.reload(); });
-    document.getElementById('editAddressBtn')?.addEventListener('click', () => { getAddressLineByLine(); displaySavedAddress(); showToast("Address updated!"); });
+    document.getElementById('editAddressBtn')?.addEventListener('click', () => { getAddressLineByLine(); displaySavedAddress(); });
     document.getElementById('closeModalBtn')?.addEventListener('click', () => document.getElementById('productModal').style.display='none');
     document.getElementById('modalAddCartBtn')?.addEventListener('click', () => { if(currentProduct) addToCart(currentProduct.id); document.getElementById('productModal').style.display='none'; });
     document.getElementById('modalAddWishBtn')?.addEventListener('click', () => { if(currentProduct) toggleWish(currentProduct.id); document.getElementById('productModal').style.display='none'; });
     
-    // INIT
     renderCats(); renderProducts(); updateCartUI();
     if(currentUser?.role === 'seller') { document.getElementById('sellerRegisterBox').style.display='none'; document.getElementById('sellerDashboard').style.display='block'; renderSellerDashboard(); }
     if(currentUser) { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = currentUser.name; document.getElementById('profileRoleBadge').innerText = currentUser.role || 'Buyer'; displaySavedAddress(); renderBuyerOrders(); }
