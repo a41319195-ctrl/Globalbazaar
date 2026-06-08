@@ -32,7 +32,6 @@
         .left-group { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
         .right-group { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
         
-        /* ===== NEW: Menu Buttons ke liye CSS ===== */
         .menu-buttons {
             display: flex;
             align-items: center;
@@ -63,13 +62,11 @@
             color: white;
         }
         
-        /* ===== NEW: Buyer/Seller Button Font Size Medium ===== */
         .mode-btn {
-            font-size: 15px !important;  /* Medium size */
+            font-size: 15px !important;
             font-weight: 600;
         }
         
-        /* ===== NEW: Country Dropdown Style ===== */
         .country-selector {
             background: #f1f5f9;
             padding: 6px 12px;
@@ -80,7 +77,6 @@
             cursor: pointer;
         }
         
-        /* ===== NEW: Phone with Country Code Style ===== */
         .phone-group {
             display: flex;
             gap: 10px;
@@ -187,7 +183,6 @@
         .footer-legal { text-align: center; padding: 20px; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; margin-top: 20px; }
         .btn-download { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 20px; font-size: 11px; cursor: pointer; }
         
-        /* ===== NEW: International Document Section Style ===== */
         .doc-section {
             background: #f8fafc;
             padding: 15px;
@@ -217,7 +212,7 @@
         <div class="brand-3d">GlobalBazaar</div>
     </div>
     <div class="right-group">
-        <!-- ===== NEW: Menu ke ANDAR Signup, Login, Admin, Profile Buttons ===== -->
+        <!-- Menu Buttons: Sign Up, Login, Admin, Profile -->
         <div class="menu-buttons">
             <button class="menu-btn menu-btn-outline" id="headerSignupBtn">Sign Up</button>
             <button class="menu-btn menu-btn-outline" id="headerLoginBtn">Login</button>
@@ -240,7 +235,7 @@
     </div>
 </div>
 
-<!-- ===== NEW: Country Dropdown - Saudi Arabia ke baad ===== -->
+<!-- Country Dropdown -->
 <div style="max-width: 560px; margin: 10px auto 0; padding: 0 16px;">
     <select id="globalCountrySelect" class="country-selector" style="width: 100%;">
         <option value="SA">🇸🇦 Saudi Arabia</option>
@@ -261,19 +256,16 @@
     <div class="drawer-header"><h2>GlobalBazaar 🌍</h2><p style="font-size:12px;">Multi‑Seller Hub</p></div>
     <div class="drawer-item" data-mode="buyer">🛒 Buyer Shopping</div>
     <div class="drawer-item" data-mode="seller">🏪 Seller Dashboard</div>
-    <div class="drawer-item" data-mode="profile">👤 My Profile</div>
     <div class="drawer-item" id="drawerWishlist">❤️ My Wishlist</div>
-    <div class="drawer-item" data-mode="admin">⚙️ Admin Panel</div>
     <div class="drawer-item" id="drawerSupport">📞 Support</div>
     <div class="drawer-item" id="drawerLogout">🚪 Logout</div>
 </div>
 
 <div class="container">
+    <!-- Dashboard Tabs: Sirf Buyer aur Seller (Profile aur Admin hata diye) -->
     <div class="mode-tabs">
         <button class="mode-btn active" data-tab="buyer">🛒 Buyer</button>
         <button class="mode-btn" data-tab="seller">🏪 Seller</button>
-        <button class="mode-btn" data-tab="profile">👤 Profile</button>
-        <button class="mode-btn" data-tab="admin">⚙️ Admin</button>
     </div>
 
     <div id="buyerSection" class="section active">
@@ -291,7 +283,7 @@
                 <input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required>
                 <input type="email" id="sellerEmail" placeholder="Email" class="input" required>
                 
-                <!-- ===== NEW: Phone Number + Country Code (Bank se PEHLE) ===== -->
+                <!-- Phone with Country Code -->
                 <div class="phone-group">
                     <select id="sellerCountryCode">
                         <option value="+966">🇸🇦 +966</option>
@@ -318,11 +310,10 @@
                 <input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required>
                 <input type="text" id="sellerCountryReg" placeholder="Country" class="input" required>
                 
-                <!-- ===== NEW: International Documents (Aadhaar/PAN ki jagah) ===== -->
+                <!-- International KYC Documents (Aadhaar/PAN ki jagah) -->
                 <div class="doc-section">
                     <div class="doc-title">🌍 International KYC Documents</div>
                     <div id="internationalDocsContainer">
-                        <!-- Dynamic documents will appear here based on country selection -->
                         <select id="sellerDocType" class="input" style="margin-bottom:10px;">
                             <option value="passport">📘 Passport</option>
                             <option value="national_id">🆔 National ID Card</option>
@@ -349,12 +340,9 @@
         <div id="sellerDashboard" style="display:none;"></div>
     </div>
 
+    <!-- Profile Section: Sirf Forms (Login/Signup buttons hata diye) -->
     <div id="profileSection" class="section">
         <div id="profileAuthBox" class="premium-card">
-            <div style="display:flex; gap:12px; margin-bottom:20px;">
-                <button id="showLoginBtn" class="btn-primary" style="background:#e2e8f0; color:#1e293b;">Login</button>
-                <button id="showSignupBtn" class="btn-primary" style="background:#e2e8f0; color:#1e293b;">Sign Up</button>
-            </div>
             <div id="loginFormDiv">
                 <input type="email" id="loginEmail" placeholder="Email" class="input">
                 <input type="password" id="loginPass" placeholder="Password" class="input">
@@ -368,7 +356,6 @@
                     <option value="seller">Seller</option>
                 </select>
                 <input type="email" id="signupEmail" placeholder="Email" class="input" required>
-                <!-- ===== NEW: Signup Phone with Country Code ===== -->
                 <div class="phone-group">
                     <select id="signupCountryCode">
                         <option value="+966">🇸🇦 +966</option>
@@ -788,7 +775,6 @@
         let avatar = document.getElementById('sellerAvatar').files[0];
         if(!avatar) { showToast("Upload shop logo", true); return; }
         
-        // Get phone with country code
         let phoneWithCode = document.getElementById('sellerCountryCode').value + document.getElementById('sellerPhone').value;
         
         let reader = new FileReader();
@@ -807,7 +793,6 @@
                 state: document.getElementById('sellerState').value,
                 pincode: document.getElementById('sellerPincode').value,
                 country: document.getElementById('sellerCountryReg').value,
-                // International documents
                 docType: document.getElementById('sellerDocType').value,
                 docNumber: document.getElementById('sellerDocNumber').value,
                 bankName: document.getElementById('sellerBank').value,
@@ -855,14 +840,16 @@
         document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
     }
     
-    // ===== NEW: Header Buttons ke liye event listeners =====
+    // ===== HEADER BUTTONS (Menu ke andar) =====
     document.getElementById('headerSignupBtn')?.addEventListener('click', () => {
         document.querySelector('.mode-btn[data-tab="profile"]').click();
-        document.getElementById('showSignupBtn').click();
+        document.getElementById('signupFormDiv').style.display = 'block';
+        document.getElementById('loginFormDiv').style.display = 'none';
     });
     document.getElementById('headerLoginBtn')?.addEventListener('click', () => {
         document.querySelector('.mode-btn[data-tab="profile"]').click();
-        document.getElementById('showLoginBtn').click();
+        document.getElementById('loginFormDiv').style.display = 'block';
+        document.getElementById('signupFormDiv').style.display = 'none';
     });
     document.getElementById('headerAdminBtn')?.addEventListener('click', () => {
         document.querySelector('.mode-btn[data-tab="admin"]').click();
@@ -871,8 +858,16 @@
         document.querySelector('.mode-btn[data-tab="profile"]').click();
     });
     
-    document.getElementById('showLoginBtn')?.addEventListener('click', () => { document.getElementById('loginFormDiv').style.display='block'; document.getElementById('signupFormDiv').style.display='none'; });
-    document.getElementById('showSignupBtn')?.addEventListener('click', () => { document.getElementById('loginFormDiv').style.display='none'; document.getElementById('signupFormDiv').style.display='block'; });
+    // Dashboard tabs ke liye event listener (sirf Buyer aur Seller)
+    document.querySelectorAll('.mode-btn').forEach(btn => btn.addEventListener('click', () => {
+        let tab = btn.dataset.tab;
+        document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+        document.getElementById(tab + "Section").classList.add('active');
+        if(tab === 'seller' && currentUser?.role === 'seller') { document.getElementById('sellerRegisterBox').style.display='none'; document.getElementById('sellerDashboard').style.display='block'; renderSellerDashboard(); }
+        if(tab === 'profile' && currentUser) { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; displaySavedAddress(); renderBuyerOrders(); }
+    }));
     
     document.getElementById('doLoginBtn')?.addEventListener('click', () => {
         let email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPass').value;
@@ -950,16 +945,6 @@
     document.getElementById('drawerOverlay').onclick = closeDrawer;
     document.getElementById('drawerSupport')?.addEventListener('click', () => { showSupport(); closeDrawer(); });
     
-    document.querySelectorAll('.mode-btn').forEach(btn => btn.addEventListener('click', () => {
-        let tab = btn.dataset.tab;
-        document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
-        btn.classList.add('active');
-        document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-        document.getElementById(tab + "Section").classList.add('active');
-        if(tab === 'seller' && currentUser?.role === 'seller') { document.getElementById('sellerRegisterBox').style.display='none'; document.getElementById('sellerDashboard').style.display='block'; renderSellerDashboard(); }
-        if(tab === 'profile' && currentUser) { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; displaySavedAddress(); renderBuyerOrders(); }
-        closeDrawer();
-    }));
     document.querySelectorAll('.drawer-item[data-mode]').forEach(el => el.addEventListener('click', () => { document.querySelector(`.mode-btn[data-tab="${el.dataset.mode}"]`).click(); closeDrawer(); }));
     document.getElementById('drawerWishlist')?.addEventListener('click', () => { let wp = products.filter(p=>wishlist.includes(p.id)); alert("Wishlist:\n"+wp.map(p=>p.name).join("\n")); closeDrawer(); });
     document.getElementById('drawerLogout')?.addEventListener('click', () => { currentUser=null; saveAll(); location.reload(); });
@@ -972,7 +957,7 @@
     if(currentUser?.role === 'seller') { document.getElementById('sellerRegisterBox').style.display='none'; document.getElementById('sellerDashboard').style.display='block'; renderSellerDashboard(); }
     if(currentUser) { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = currentUser.name; document.getElementById('profileRoleBadge').innerText = currentUser.role || 'Buyer'; displaySavedAddress(); renderBuyerOrders(); }
     
-    // ===== NEW: Country dropdown change event =====
+    // Country dropdown change event
     document.getElementById('globalCountrySelect')?.addEventListener('change', (e) => {
         buyerCountry = e.target.value;
         renderProducts();
