@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>GlobalBazaar - Complete E-commerce</title>
+    <title>GlobalBazaar - Multi-Seller Marketplace</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -14,7 +14,7 @@
         }
 
         body {
-            background-color: #f8fafc;
+            background-color: #f0f4f8;
             color: #0f172a;
             padding-bottom: 80px;
         }
@@ -34,16 +34,14 @@
         .header-left {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
         .menu-icon {
-            font-size: 28px;
+            font-size: 26px;
             cursor: pointer;
             background: none;
             border: none;
-            padding: 6px 10px;
-            border-radius: 12px;
         }
 
         .brand-name {
@@ -53,10 +51,16 @@
         }
 
         .brand-logo {
-            font-size: 24px;
+            font-size: 22px;
         }
 
-        .header-currency {
+        .header-right {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .currency-select {
             background: #f1f5f9;
             border: 1px solid #cbd5e1;
             padding: 8px 12px;
@@ -64,12 +68,6 @@
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
-        }
-
-        .header-icons {
-            display: flex;
-            gap: 12px;
-            align-items: center;
         }
 
         .icon-btn {
@@ -80,7 +78,7 @@
             position: relative;
         }
 
-        .wishlist-count, .cart-count {
+        .badge-count {
             position: absolute;
             top: -8px;
             right: -8px;
@@ -119,12 +117,12 @@
         .mode-btn.active {
             background: white;
             color: #2563eb;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
         .app-section { display: none; }
         .active-section { display: block; }
 
-        /* Category Pills */
         .category-container {
             display: flex;
             gap: 10px;
@@ -135,7 +133,7 @@
 
         .category-pill {
             background: #f1f5f9;
-            padding: 8px 16px;
+            padding: 8px 18px;
             border-radius: 30px;
             font-size: 13px;
             font-weight: 600;
@@ -148,7 +146,6 @@
             color: white;
         }
 
-        /* Product Grid */
         .product-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -168,12 +165,18 @@
             width: 100%;
             height: 120px;
             object-fit: cover;
-            border-radius: 10px;
+            border-radius: 12px;
         }
 
         .product-card h4 {
-            font-size: 13px;
+            font-size: 14px;
             margin: 8px 0 4px;
+        }
+
+        .seller-name {
+            font-size: 10px;
+            color: #64748b;
+            margin-bottom: 4px;
         }
 
         .product-price {
@@ -213,89 +216,46 @@
             color: #dc2626;
         }
 
-        /* Product Detail Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 1000;
-            overflow-y: auto;
-        }
-
-        .modal-content {
-            background: white;
-            margin: 50px 16px;
-            border-radius: 24px;
-            padding: 20px;
-            max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .modal-img {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 16px;
-        }
-
-        .rating-stars {
-            color: #fbbf24;
-            font-size: 20px;
-            margin: 8px 0;
-        }
-
-        .review-item {
-            background: #f8fafc;
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 8px;
-        }
-
-        .close-modal {
-            float: right;
-            font-size: 24px;
-            cursor: pointer;
-        }
-
-        /* Auth Forms */
-        .auth-card {
+        .premium-card {
             background: white;
             border-radius: 20px;
-            padding: 24px;
+            padding: 20px;
             margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
         }
 
-        .auth-toggle {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+        .app-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            font-size: 14px;
         }
 
-        .auth-toggle button {
-            flex: 1;
-            padding: 10px;
-            background: #f1f5f9;
+        .app-btn {
+            background: #1e3a8a;
+            color: white;
             border: none;
-            border-radius: 10px;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 600;
+            width: 100%;
             cursor: pointer;
         }
 
-        .auth-toggle .active-auth {
-            background: #1e3a8a;
-            color: white;
+        .seller-profile-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #2563eb;
         }
 
-        .order-card {
-            background: white;
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 12px;
-            border: 1px solid #e2e8f0;
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .fixed-cart-btn {
@@ -314,49 +274,72 @@
             z-index: 99;
         }
 
-        .premium-card {
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal-content {
             background: white;
-            border-radius: 16px;
+            margin: 40px 16px;
+            border-radius: 24px;
             padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid #e2e8f0;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
-        .app-input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 10px;
-            margin-bottom: 12px;
-        }
-
-        .app-btn {
-            background: #1e3a8a;
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 12px;
-            font-weight: 600;
-            width: 100%;
+        .close-modal {
+            float: right;
+            font-size: 24px;
             cursor: pointer;
         }
+
+        .review-item {
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .order-card {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .kyc-status {
+            font-size: 11px;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+        .kyc-approved { background: #dcfce7; color: #15803d; }
     </style>
 </head>
 <body>
 
 <header>
     <div class="header-left">
-        <button class="menu-icon" onclick="toggleSideMenu()">☰</button>
+        <button class="menu-icon" onclick="alert('🌍 GlobalBazaar\n• Multi-Seller Marketplace\n• Shop from any seller\n• Sell your products worldwide')">☰</button>
         <span class="brand-name">GlobalBazaar</span>
         <span class="brand-logo">🌍</span>
     </div>
-    <div class="header-icons">
+    <div class="header-right">
         <button class="icon-btn" onclick="showWishlist()">
-            ❤️ <span class="wishlist-count" id="wishlistCount">0</span>
+            ❤️ <span class="badge-count" id="wishlistCount">0</span>
         </button>
-        <select id="headerCurrencySelect" class="header-currency" onchange="applyCurrencyConversion()">
-            <option value="SAR">SAR</option><option value="USD">USD</option><option value="EUR">EUR</option>
-            <option value="GBP">GBP</option><option value="INR">INR</option>
+        <select id="globalCurrency" class="currency-select" onchange="applyCurrency()">
+            <option value="SAR">🇸🇦 SAR</option><option value="USD">🇺🇸 USD</option>
+            <option value="EUR">🇪🇺 EUR</option><option value="GBP">🇬🇧 GBP</option>
+            <option value="INR">🇮🇳 INR</option><option value="PKR">🇵🇰 PKR</option>
         </select>
     </div>
 </header>
@@ -368,99 +351,94 @@
         <button class="mode-btn" id="profileModeBtn" onclick="switchMode('profile')">👤 Profile</button>
     </div>
 
-    <!-- BUYER MODE -->
+    <!-- BUYER SECTION -->
     <div id="buyerSection" class="app-section active-section">
-        <!-- Categories -->
         <div class="category-container" id="categoryList"></div>
-
-        <!-- Search -->
-        <input type="text" id="searchInput" class="app-input" placeholder="🔍 Search products..." oninput="filterProducts()">
-
-        <!-- Products Grid -->
+        <input type="text" id="searchInput" class="app-input" placeholder="🔍 Search products..." oninput="renderProducts()">
         <div class="product-grid" id="productsGrid"></div>
     </div>
 
-    <!-- SELLER MODE -->
+    <!-- SELLER SECTION -->
     <div id="sellerSection" class="app-section">
-        <div class="premium-card">
-            <h2>➕ Add New Product</h2>
-            <input type="text" id="prodName" placeholder="Product Name" class="app-input">
-            <input type="number" id="prodPrice" placeholder="Price (USD)" class="app-input">
-            <select id="prodCategory" class="app-input">
-                <option value="Electronics">Electronics</option><option value="Fashion">Fashion</option>
-                <option value="Home">Home</option><option value="Beauty">Beauty</option>
-            </select>
-            <input type="url" id="prodImage" placeholder="Image URL" class="app-input">
-            <textarea id="prodDesc" placeholder="Product Description" class="app-input" rows="3"></textarea>
-            <button class="app-btn" onclick="addProduct()">Publish Product</button>
+        <div id="sellerKycPanel" class="premium-card">
+            <h2>🏪 Open Your Shop</h2>
+            <form id="sellerKycForm" onsubmit="registerSeller(event)">
+                <h3>📸 Profile Picture</h3>
+                <input type="file" id="sellerAvatar" accept="image/*" class="app-input" required>
+                <input type="text" id="sellerFullName" placeholder="Full Legal Name" class="app-input" required>
+                <input type="text" id="sellerShopName" placeholder="Shop / Brand Name" class="app-input" required>
+                <input type="email" id="sellerEmail" placeholder="Email" class="app-input" required>
+                <input type="password" id="sellerPassword" placeholder="Password" class="app-input" required>
+                <h3>🆔 KYC Documents</h3>
+                <select id="sellerIdType" class="app-input"><option>National ID / Iqama</option><option>Passport</option></select>
+                <input type="text" id="sellerIdNumber" placeholder="ID Number" class="app-input" required>
+                <input type="file" id="sellerIdImage" accept="image/*" class="app-input" required>
+                <h3>🏦 Local Bank Account</h3>
+                <input type="text" id="sellerBankName" placeholder="Bank Name" class="app-input" required>
+                <input type="text" id="sellerIban" placeholder="IBAN" class="app-input" required>
+                <input type="text" id="sellerSwift" placeholder="Swift Code" class="app-input" required>
+                <input type="text" id="sellerCountry" placeholder="Country" class="app-input" required>
+                <button type="submit" class="app-btn">✅ Register Shop</button>
+            </form>
         </div>
-        <div class="premium-card">
-            <h2>📦 My Products</h2>
-            <div id="sellerProductsList"></div>
+        <div id="sellerDashboardPanel" style="display:none;">
+            <div class="premium-card">
+                <div class="flex-between">
+                    <div><img id="sellerAvatarDisplay" class="seller-profile-img" src=""><h2 id="sellerShopNameDisplay"></h2><p id="sellerNameDisplay"></p></div>
+                    <span class="kyc-status kyc-approved">✅ KYC Approved</span>
+                </div>
+                <div class="flex-between" style="margin-top:16px; padding-top:16px; border-top:1px solid #e2e8f0;">
+                    <span>🏦 <strong id="bankNameDisplay"></strong></span>
+                    <span>💰 Earnings: <strong id="sellerEarningsDisplay">$0</strong></span>
+                </div>
+                <button class="app-btn" onclick="withdrawEarnings()" style="margin-top:12px; background:#10b981;">💸 Withdraw</button>
+            </div>
+            <div class="premium-card">
+                <h2>📦 Add Product</h2>
+                <input type="text" id="prodName" placeholder="Product Name" class="app-input">
+                <input type="number" id="prodPrice" placeholder="Price (USD)" class="app-input">
+                <select id="prodCategory" class="app-input"><option>Electronics</option><option>Fashion</option><option>Home</option><option>Beauty</option></select>
+                <input type="url" id="prodImage" placeholder="Image URL" class="app-input">
+                <textarea id="prodDesc" placeholder="Description" class="app-input" rows="3"></textarea>
+                <button class="app-btn" onclick="addSellerProduct()">Publish</button>
+            </div>
+            <div class="premium-card"><h2>📋 My Products</h2><div id="sellerProductsList"></div></div>
+            <div class="premium-card"><h2>📦 Orders</h2><div id="sellerOrdersList"></div></div>
         </div>
     </div>
 
-    <!-- PROFILE MODE (Login/Signup + Order History) -->
+    <!-- PROFILE SECTION -->
     <div id="profileSection" class="app-section">
-        <div id="authContainer">
-            <div class="auth-card">
-                <div class="auth-toggle">
-                    <button id="loginTabBtn" class="active-auth" onclick="showLoginTab()">Login</button>
-                    <button id="signupTabBtn" onclick="showSignupTab()">Sign Up</button>
-                </div>
-                <div id="loginForm">
-                    <input type="email" id="loginEmail" placeholder="Email" class="app-input">
-                    <input type="password" id="loginPassword" placeholder="Password" class="app-input">
-                    <button class="app-btn" onclick="loginUser()">Login</button>
-                </div>
-                <div id="signupForm" style="display:none;">
-                    <input type="text" id="signupName" placeholder="Full Name" class="app-input">
-                    <input type="email" id="signupEmail" placeholder="Email" class="app-input">
-                    <input type="password" id="signupPassword" placeholder="Password" class="app-input">
-                    <button class="app-btn" onclick="signupUser()">Create Account</button>
-                </div>
+        <div id="buyerAuthPanel" class="premium-card">
+            <div style="display:flex; gap:10px; margin-bottom:20px;">
+                <button class="app-btn" style="background:#e2e8f0; color:#1e293b;" onclick="showBuyerLogin()">Login</button>
+                <button class="app-btn" style="background:#e2e8f0; color:#1e293b;" onclick="showBuyerSignup()">Sign Up</button>
             </div>
+            <div id="buyerLoginForm"><input type="email" id="buyerLoginEmail" placeholder="Email" class="app-input"><input type="password" id="buyerLoginPassword" placeholder="Password" class="app-input"><button class="app-btn" onclick="buyerLogin()">Login</button></div>
+            <div id="buyerSignupForm" style="display:none;"><input type="text" id="buyerSignupName" placeholder="Full Name" class="app-input"><input type="email" id="buyerSignupEmail" placeholder="Email" class="app-input"><input type="password" id="buyerSignupPassword" placeholder="Password" class="app-input"><button class="app-btn" onclick="buyerSignup()">Create Account</button></div>
         </div>
-        <div id="userDashboard" style="display:none;">
-            <div class="premium-card">
-                <h2>👋 Welcome, <span id="userNameDisplay"></span></h2>
-                <button class="app-btn" onclick="logoutUser()" style="background:#ef4444;">Logout</button>
-            </div>
-            <div class="premium-card">
-                <h2>📜 Order History</h2>
-                <div id="orderHistoryList"></div>
-            </div>
+        <div id="buyerDashboardPanel" style="display:none;">
+            <div class="premium-card"><h2>👋 Welcome, <span id="buyerNameDisplay"></span></h2><button class="app-btn" onclick="buyerLogout()" style="background:#ef4444;">Logout</button></div>
+            <div class="premium-card"><h2>📜 Order History</h2><div id="buyerOrderHistory"></div></div>
         </div>
     </div>
 </div>
 
-<button class="fixed-cart-btn" onclick="showCart()">
-    🛒 Cart <span class="cart-count" id="cartCount">0</span>
-</button>
+<button class="fixed-cart-btn" onclick="showCart()">🛒 Cart <span class="badge-count" id="cartCount">0</span></button>
 
-<!-- Product Detail Modal -->
 <div id="productModal" class="modal">
     <div class="modal-content">
         <span class="close-modal" onclick="closeModal()">&times;</span>
-        <img id="modalImg" class="modal-img" src="">
+        <img id="modalImg" style="width:100%; border-radius:16px;">
         <h2 id="modalTitle"></h2>
-        <p id="modalCategory" style="color:#64748b; font-size:12px;"></p>
-        <div class="rating-stars" id="modalStars">★★★★★</div>
+        <p id="modalSeller" style="color:#64748b;"></p>
         <p id="modalDesc"></p>
         <h3 id="modalPrice"></h3>
-        
-        <h4>⭐ Reviews & Ratings</h4>
-        <div id="reviewsList"></div>
-        
-        <div style="margin-top:16px;">
-            <select id="ratingSelect">
-                <option value="5">⭐⭐⭐⭐⭐</option><option value="4">⭐⭐⭐⭐</option>
-                <option value="3">⭐⭐⭐</option><option value="2">⭐⭐</option><option value="1">⭐</option>
-            </select>
-            <input type="text" id="reviewText" placeholder="Write a review..." class="app-input" style="margin-top:8px;">
-            <button class="app-btn" onclick="submitReview()">Submit Review</button>
-        </div>
-        
+        <div id="modalRating"></div>
+        <div id="modalReviews"></div>
+        <select id="ratingSelect"><option value="5">⭐⭐⭐⭐⭐</option><option value="4">⭐⭐⭐⭐</option><option value="3">⭐⭐⭐</option><option value="2">⭐⭐</option><option value="1">⭐</option></select>
+        <input type="text" id="reviewText" placeholder="Write a review..." class="app-input">
+        <button class="app-btn" onclick="submitProductReview()">Submit Review</button>
         <div style="display:flex; gap:10px; margin-top:16px;">
             <button class="app-btn" onclick="addToCartFromModal()">Add to Cart</button>
             <button class="app-btn" onclick="addToWishlistFromModal()" style="background:#64748b;">❤️ Wishlist</button>
@@ -469,308 +447,173 @@
 </div>
 
 <script>
-    // ---------- DATA ----------
+    let sellers = JSON.parse(localStorage.getItem('sellers')) || [];
     let products = JSON.parse(localStorage.getItem('products')) || [
-        { id:1, name:"Luxury Smart Watch", price:50, category:"Electronics", image:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500", description:"Premium smart watch with health tracking", rating:4.5, reviews:[] },
-        { id:2, name:"Premium Headphones", price:120, category:"Electronics", image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500", description:"Noise cancellation headphones", rating:4.8, reviews:[] },
-        { id:3, name:"Designer T-Shirt", price:35, category:"Fashion", image:"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500", description:"Cotton comfortable t-shirt", rating:4.2, reviews:[] },
-        { id:4, name:"Leather Jacket", price:180, category:"Fashion", image:"https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500", description:"Genuine leather jacket", rating:4.7, reviews:[] }
+        {id:1, sellerId:0, sellerName:"GlobalShop", name:"Luxury Watch", price:50, category:"Electronics", image:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500", description:"Smart watch", rating:4.5, reviews:[]},
+        {id:2, sellerId:0, sellerName:"GlobalShop", name:"Headphones", price:120, category:"Electronics", image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500", description:"Noise cancellation", rating:4.8, reviews:[]}
     ];
-    
+    let buyers = JSON.parse(localStorage.getItem('buyers')) || [];
+    let currentBuyer = JSON.parse(localStorage.getItem('currentBuyer')) || null;
+    let currentSeller = JSON.parse(localStorage.getItem('currentSeller')) || null;
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
     let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
-    let users = JSON.parse(localStorage.getItem('users')) || [];
-    let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
     let orders = JSON.parse(localStorage.getItem('orders')) || [];
     
-    let currentCategory = "All";
-    let currentProduct = null;
-    let currencyRates = { SAR:3.75, USD:1, EUR:0.92, GBP:0.78, INR:83.5 };
-    let currencySymbols = { SAR:"SAR ", USD:"$", EUR:"€", GBP:"£", INR:"₹" };
+    let fxRates = { SAR:3.75, USD:1, EUR:0.92, GBP:0.78, INR:83.5, PKR:278 };
+    let symbols = { SAR:"SAR ", USD:"$", EUR:"€", GBP:"£", INR:"₹", PKR:"₨" };
     let selectedCurrency = "SAR";
+    let currentProduct = null;
+    let currentCategory = "All";
     
-    function saveData() {
+    function saveAll() {
+        localStorage.setItem('sellers', JSON.stringify(sellers));
         localStorage.setItem('products', JSON.stringify(products));
+        localStorage.setItem('buyers', JSON.stringify(buyers));
+        localStorage.setItem('currentBuyer', JSON.stringify(currentBuyer));
+        localStorage.setItem('currentSeller', JSON.stringify(currentSeller));
         localStorage.setItem('cart', JSON.stringify(cart));
         localStorage.setItem('wishlist', JSON.stringify(wishlist));
-        localStorage.setItem('users', JSON.stringify(users));
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
         localStorage.setItem('orders', JSON.stringify(orders));
     }
     
-    function applyCurrencyConversion() {
-        selectedCurrency = document.getElementById('headerCurrencySelect').value;
+    function applyCurrency() { selectedCurrency = document.getElementById('globalCurrency').value; renderProducts(); updateCartUI(); }
+    function convertPrice(usd) { return (usd * fxRates[selectedCurrency]).toFixed(2); }
+    function getSymbol() { return symbols[selectedCurrency]; }
+    
+    function registerSeller(e) {
+        e.preventDefault();
+        let avatarFile = document.getElementById('sellerAvatar').files[0];
+        let idFile = document.getElementById('sellerIdImage').files[0];
+        if(!avatarFile || !idFile) { alert("Upload photo & ID"); return; }
+        let reader = new FileReader();
+        reader.onload = function(ev) {
+            let avatarUrl = ev.target.result;
+            let reader2 = new FileReader();
+            reader2.onload = function(ev2) {
+                let newSeller = {
+                    id: Date.now(), avatar: avatarUrl, idDocument: ev2.target.result,
+                    fullName: document.getElementById('sellerFullName').value,
+                    shopName: document.getElementById('sellerShopName').value,
+                    email: document.getElementById('sellerEmail').value,
+                    password: document.getElementById('sellerPassword').value,
+                    idType: document.getElementById('sellerIdType').value,
+                    idNumber: document.getElementById('sellerIdNumber').value,
+                    bankName: document.getElementById('sellerBankName').value,
+                    iban: document.getElementById('sellerIban').value,
+                    swift: document.getElementById('sellerSwift').value,
+                    country: document.getElementById('sellerCountry').value,
+                    earnings: 0, products: []
+                };
+                sellers.push(newSeller);
+                currentSeller = newSeller;
+                saveAll();
+                document.getElementById('sellerKycPanel').style.display = 'none';
+                document.getElementById('sellerDashboardPanel').style.display = 'block';
+                loadSellerDashboard();
+                alert("✅ Shop Registered!");
+            };
+            reader2.readAsDataURL(idFile);
+        };
+        reader.readAsDataURL(avatarFile);
+    }
+    
+    function loadSellerDashboard() {
+        if(!currentSeller) return;
+        document.getElementById('sellerAvatarDisplay').src = currentSeller.avatar;
+        document.getElementById('sellerShopNameDisplay').innerText = currentSeller.shopName;
+        document.getElementById('sellerNameDisplay').innerText = currentSeller.fullName;
+        document.getElementById('bankNameDisplay').innerText = currentSeller.bankName;
+        document.getElementById('sellerEarningsDisplay').innerHTML = `${getSymbol()}${convertPrice(currentSeller.earnings)}`;
+        renderSellerProducts();
+        renderSellerOrders();
+    }
+    
+    function addSellerProduct() {
+        let name = document.getElementById('prodName').value;
+        let price = parseFloat(document.getElementById('prodPrice').value);
+        if(!name || !price) { alert("Fill fields"); return; }
+        let newProduct = {
+            id: Date.now(), sellerId: currentSeller.id, sellerName: currentSeller.shopName,
+            name, price, category: document.getElementById('prodCategory').value,
+            image: document.getElementById('prodImage').value || "https://placehold.co/200x200",
+            description: document.getElementById('prodDesc').value, rating: 0, reviews: []
+        };
+        products.push(newProduct);
+        saveAll();
+        renderSellerProducts();
         renderProducts();
-        updateCartUI();
+        document.getElementById('prodName').value = ''; document.getElementById('prodPrice').value = '';
+        alert("Product Published!");
     }
     
-    function convertPrice(usd) {
-        let rate = currencyRates[selectedCurrency] || 1;
-        return (usd * rate).toFixed(2);
+    function renderSellerProducts() {
+        let sellerProds = products.filter(p => p.sellerId === currentSeller?.id);
+        document.getElementById('sellerProductsList').innerHTML = sellerProds.map(p => `<div class="order-card flex-between"><span>${p.name} - ${getSymbol()}${convertPrice(p.price)}</span><button onclick="deleteProduct(${p.id})" style="background:#ef4444; color:white; border:none; padding:4px 12px; border-radius:8px;">Delete</button></div>`).join('');
     }
     
-    function getSymbol() { return currencySymbols[selectedCurrency] || "$"; }
+    function deleteProduct(id) { products = products.filter(p => p.id !== id); saveAll(); renderSellerProducts(); renderProducts(); }
+    
+    function renderSellerOrders() {
+        let sellerOrders = orders.filter(o => o.sellerId === currentSeller?.id);
+        document.getElementById('sellerOrdersList').innerHTML = sellerOrders.map(o => `<div class="order-card"><strong>Order #${o.id}</strong><br>Buyer: ${o.buyerName}<br>Product: ${o.productName}<br>Amount: ${getSymbol()}${convertPrice(o.amount)}</div>`).join('');
+    }
+    
+    function withdrawEarnings() { if(currentSeller.earnings<=0) alert("No earnings"); else { alert(`Withdraw ${getSymbol()}${convertPrice(currentSeller.earnings)} to ${currentSeller.bankName}`); currentSeller.earnings=0; saveAll(); loadSellerDashboard(); } }
     
     function renderCategories() {
         let cats = ["All", ...new Set(products.map(p => p.category))];
-        document.getElementById('categoryList').innerHTML = cats.map(cat => 
-            `<div class="category-pill ${currentCategory===cat?'active-cat':''}" onclick="setCategory('${cat}')">${cat}</div>`
-        ).join('');
+        document.getElementById('categoryList').innerHTML = cats.map(cat => `<div class="category-pill ${currentCategory===cat?'active-cat':''}" onclick="setCategory('${cat}')">${cat}</div>`).join('');
     }
-    
-    function setCategory(cat) {
-        currentCategory = cat;
-        renderCategories();
-        renderProducts();
-    }
+    function setCategory(cat) { currentCategory=cat; renderCategories(); renderProducts(); }
     
     function renderProducts() {
-        let searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
-        let filtered = products.filter(p => 
-            (currentCategory === "All" || p.category === currentCategory) &&
-            p.name.toLowerCase().includes(searchTerm)
-        );
+        let search = document.getElementById('searchInput')?.value.toLowerCase() || '';
+        let filtered = products.filter(p => (currentCategory==="All" || p.category===currentCategory) && p.name.toLowerCase().includes(search));
         document.getElementById('productsGrid').innerHTML = filtered.map(p => `
             <div class="product-card" onclick="openProductDetail(${p.id})">
-                <img src="${p.image}" onerror="this.src='https://placehold.co/200x200?text=Product'">
-                <h4>${p.name}</h4>
-                <div class="product-price">${getSymbol()}${convertPrice(p.price)}</div>
+                <img src="${p.image}"><div class="seller-name">🏪 ${p.sellerName}</div>
+                <h4>${p.name}</h4><div class="product-price">${getSymbol()}${convertPrice(p.price)}</div>
                 <div class="product-actions">
                     <button class="btn-buy" onclick="event.stopPropagation(); addToCart(${p.id})">Buy</button>
                     <button class="btn-wishlist ${wishlist.includes(p.id)?'active-wish':''}" onclick="event.stopPropagation(); toggleWishlist(${p.id})">❤️</button>
                 </div>
-            </div>
-        `).join('');
-        renderSellerProducts();
+            </div>`).join('');
         updateWishlistUI();
     }
     
-    function filterProducts() { renderProducts(); }
+    function openProductDetail(id) { currentProduct = products.find(p=>p.id===id); if(!currentProduct) return; document.getElementById('modalImg').src=currentProduct.image; document.getElementById('modalTitle').innerText=currentProduct.name; document.getElementById('modalSeller').innerHTML=`🏪 Seller: ${currentProduct.sellerName}`; document.getElementById('modalDesc').innerText=currentProduct.description; document.getElementById('modalPrice').innerHTML=`${getSymbol()}${convertPrice(currentProduct.price)}`; let stars="★".repeat(Math.floor(currentProduct.rating))+"☆".repeat(5-Math.floor(currentProduct.rating)); document.getElementById('modalRating').innerHTML=`<div style="color:#fbbf24;">${stars} (${currentProduct.rating.toFixed(1)})</div>`; document.getElementById('modalReviews').innerHTML=currentProduct.reviews.map(r=>`<div class="review-item">⭐${r.rating}/5 - ${r.text}<br><small>${r.user}</small></div>`).join('')||"<p>No reviews</p>"; document.getElementById('productModal').style.display='block'; }
     
-    function openProductDetail(id) {
-        currentProduct = products.find(p => p.id === id);
-        if(!currentProduct) return;
-        document.getElementById('modalImg').src = currentProduct.image;
-        document.getElementById('modalTitle').innerText = currentProduct.name;
-        document.getElementById('modalCategory').innerText = currentProduct.category;
-        document.getElementById('modalDesc').innerText = currentProduct.description;
-        document.getElementById('modalPrice').innerHTML = `${getSymbol()}${convertPrice(currentProduct.price)}`;
-        let stars = "★".repeat(Math.floor(currentProduct.rating)) + "☆".repeat(5-Math.floor(currentProduct.rating));
-        document.getElementById('modalStars').innerHTML = stars;
-        
-        let reviewsHtml = currentProduct.reviews.map(r => `<div class="review-item">⭐${r.rating}/5 - ${r.text}<br><small>${r.user}</small></div>`).join('');
-        if(!reviewsHtml) reviewsHtml = "<p>No reviews yet. Be the first!</p>";
-        document.getElementById('reviewsList').innerHTML = reviewsHtml;
-        document.getElementById('productModal').style.display = 'block';
-    }
+    function submitProductReview() { if(!currentBuyer) { alert("Login to review"); return; } let rating=parseInt(document.getElementById('ratingSelect').value); let text=document.getElementById('reviewText').value; if(!text) { alert("Write review"); return; } currentProduct.reviews.push({user:currentBuyer.name, rating, text}); let total=currentProduct.reviews.reduce((a,b)=>a+b.rating,0); currentProduct.rating=total/currentProduct.reviews.length; saveAll(); openProductDetail(currentProduct.id); document.getElementById('reviewText').value=''; renderProducts(); }
     
-    function submitReview() {
-        if(!currentUser) { alert("Please login to review"); return; }
-        let rating = parseInt(document.getElementById('ratingSelect').value);
-        let text = document.getElementById('reviewText').value;
-        if(!text) { alert("Write a review"); return; }
-        currentProduct.reviews.push({ user: currentUser.name, rating, text });
-        let total = currentProduct.reviews.reduce((a,b)=>a+b.rating,0);
-        currentProduct.rating = total / currentProduct.reviews.length;
-        saveData();
-        openProductDetail(currentProduct.id);
-        document.getElementById('reviewText').value = '';
-        renderProducts();
-    }
-    
-    function addToCart(id) {
-        let product = products.find(p => p.id === id);
-        if(!product) return;
-        let existing = cart.find(i => i.id === id);
-        if(existing) { existing.quantity++; }
-        else { cart.push({ id: product.id, name: product.name, price: product.price, quantity: 1 }); }
-        saveData();
-        updateCartUI();
-        alert(`✅ ${product.name} added to cart`);
-    }
-    
+    function addToCart(id) { let p=products.find(p=>p.id===id); if(!p) return; let existing=cart.find(i=>i.id===id); if(existing) existing.quantity++; else cart.push({id:p.id, name:p.name, price:p.price, sellerId:p.sellerId, sellerName:p.sellerName, quantity:1}); saveAll(); updateCartUI(); alert(`✅ ${p.name} added`); }
     function addToCartFromModal() { if(currentProduct) addToCart(currentProduct.id); }
-    
-    function toggleWishlist(id) {
-        if(wishlist.includes(id)) { wishlist = wishlist.filter(i => i !== id); }
-        else { wishlist.push(id); }
-        saveData();
-        renderProducts();
-        updateWishlistUI();
-    }
-    
+    function toggleWishlist(id) { if(wishlist.includes(id)) wishlist=wishlist.filter(i=>i!==id); else wishlist.push(id); saveAll(); renderProducts(); updateWishlistUI(); }
     function addToWishlistFromModal() { if(currentProduct) toggleWishlist(currentProduct.id); }
+    function updateCartUI() { document.getElementById('cartCount').innerText = cart.reduce((a,b)=>a+b.quantity,0); }
+    function updateWishlistUI() { document.getElementById('wishlistCount').innerText = wishlist.length; }
     
-    function updateCartUI() {
-        let count = cart.reduce((a,b)=>a+b.quantity,0);
-        document.getElementById('cartCount').innerText = count;
-    }
+    function showCart() { if(cart.length===0){ alert("Empty cart"); return; } let total=cart.reduce((a,i)=>a+(i.price*i.quantity),0); let msg="🛒 Cart:\n"; cart.forEach(i=>{ msg+=`${i.name} x${i.quantity} - ${i.sellerName}\n`; }); msg+=`\nTotal: ${getSymbol()}${convertPrice(total)}`; if(confirm(msg+"\n\nCheckout?")){ if(!currentBuyer){ alert("Login as buyer"); switchMode('profile'); return; } cart.forEach(item=>{ orders.push({id:Date.now()+Math.random(), sellerId:item.sellerId, sellerName:item.sellerName, buyerEmail:currentBuyer.email, buyerName:currentBuyer.name, productName:item.name, amount:item.price*item.quantity, date:new Date().toLocaleString()}); let seller=sellers.find(s=>s.id===item.sellerId); if(seller) seller.earnings+=(item.price*item.quantity); }); cart=[]; saveAll(); updateCartUI(); if(currentSeller) loadSellerDashboard(); renderBuyerOrders(); alert("Order placed!"); } }
     
-    function updateWishlistUI() {
-        document.getElementById('wishlistCount').innerText = wishlist.length;
-    }
+    function showWishlist() { let wishProds=products.filter(p=>wishlist.includes(p.id)); if(wishProds.length===0) alert("Wishlist empty"); else alert("❤️ Wishlist:\n"+wishProds.map(p=>`${p.name} - ${getSymbol()}${convertPrice(p.price)}`).join("\n")); }
     
-    function showCart() {
-        if(cart.length === 0) { alert("Cart is empty"); return; }
-        let totalUSD = cart.reduce((a,i)=> a + (i.price * i.quantity), 0);
-        let msg = "🛒 Your Cart:\n";
-        cart.forEach(i => { msg += `${i.name} x${i.quantity} = ${getSymbol()}${convertPrice(i.price * i.quantity)}\n`; });
-        msg += `\nTotal: ${getSymbol()}${convertPrice(totalUSD)}`;
-        if(confirm(msg + "\n\nProceed to Checkout?")) {
-            if(!currentUser) { alert("Please login to place order"); switchMode('profile'); return; }
-            let order = { id: Date.now(), userId: currentUser.email, items: [...cart], total: totalUSD, date: new Date().toLocaleString() };
-            orders.push(order);
-            cart = [];
-            saveData();
-            updateCartUI();
-            alert("🎉 Order placed successfully!");
-            renderOrderHistory();
-        }
-    }
-    
-    function renderOrderHistory() {
-        let userOrders = orders.filter(o => o.userId === currentUser?.email);
-        if(!userOrders.length) { document.getElementById('orderHistoryList').innerHTML = "<p>No orders yet</p>"; return; }
-        document.getElementById('orderHistoryList').innerHTML = userOrders.map(o => `
-            <div class="order-card">
-                <strong>Order #${o.id}</strong><br>
-                Date: ${o.date}<br>
-                Total: ${getSymbol()}${convertPrice(o.total)}<br>
-                Items: ${o.items.map(i=>`${i.name}(x${i.quantity})`).join(', ')}
-            </div>
-        `).join('');
-    }
-    
-    function renderSellerProducts() {
-        let sellerProds = products;
-        document.getElementById('sellerProductsList').innerHTML = sellerProds.map(p => `
-            <div class="order-card" style="display:flex; justify-content:space-between;">
-                <span>${p.name} - ${getSymbol()}${convertPrice(p.price)}</span>
-                <button onclick="deleteProduct(${p.id})" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:6px;">Delete</button>
-            </div>
-        `).join('');
-    }
-    
-    function addProduct() {
-        let name = document.getElementById('prodName').value;
-        let price = parseFloat(document.getElementById('prodPrice').value);
-        let category = document.getElementById('prodCategory').value;
-        let image = document.getElementById('prodImage').value;
-        let desc = document.getElementById('prodDesc').value;
-        if(!name || !price) { alert("Fill all fields"); return; }
-        let newId = Date.now();
-        products.push({ id:newId, name, price, category, image: image || "https://placehold.co/200x200", description: desc, rating:0, reviews:[] });
-        saveData();
-        renderProducts();
-        document.getElementById('prodName').value = '';
-        document.getElementById('prodPrice').value = '';
-        document.getElementById('prodImage').value = '';
-        document.getElementById('prodDesc').value = '';
-        alert("Product added!");
-    }
-    
-    function deleteProduct(id) {
-        products = products.filter(p => p.id !== id);
-        saveData();
-        renderProducts();
-    }
-    
-    // AUTH
-    function showLoginTab() {
-        document.getElementById('loginForm').style.display = 'block';
-        document.getElementById('signupForm').style.display = 'none';
-        document.getElementById('loginTabBtn').classList.add('active-auth');
-        document.getElementById('signupTabBtn').classList.remove('active-auth');
-    }
-    function showSignupTab() {
-        document.getElementById('loginForm').style.display = 'none';
-        document.getElementById('signupForm').style.display = 'block';
-        document.getElementById('signupTabBtn').classList.add('active-auth');
-        document.getElementById('loginTabBtn').classList.remove('active-auth');
-    }
-    function loginUser() {
-        let email = document.getElementById('loginEmail').value;
-        let pwd = document.getElementById('loginPassword').value;
-        let user = users.find(u => u.email === email && u.password === pwd);
-        if(user) {
-            currentUser = user;
-            saveData();
-            document.getElementById('authContainer').style.display = 'none';
-            document.getElementById('userDashboard').style.display = 'block';
-            document.getElementById('userNameDisplay').innerText = user.name;
-            renderOrderHistory();
-            alert("Login successful!");
-        } else { alert("Invalid credentials"); }
-    }
-    function signupUser() {
-        let name = document.getElementById('signupName').value;
-        let email = document.getElementById('signupEmail').value;
-        let pwd = document.getElementById('signupPassword').value;
-        if(users.find(u => u.email === email)) { alert("Email exists"); return; }
-        let newUser = { name, email, password: pwd };
-        users.push(newUser);
-        currentUser = newUser;
-        saveData();
-        document.getElementById('authContainer').style.display = 'none';
-        document.getElementById('userDashboard').style.display = 'block';
-        document.getElementById('userNameDisplay').innerText = name;
-        alert("Signup successful!");
-    }
-    function logoutUser() {
-        currentUser = null;
-        saveData();
-        document.getElementById('authContainer').style.display = 'block';
-        document.getElementById('userDashboard').style.display = 'none';
-        switchMode('buyer');
-    }
+    function showBuyerLogin() { document.getElementById('buyerLoginForm').style.display='block'; document.getElementById('buyerSignupForm').style.display='none'; }
+    function showBuyerSignup() { document.getElementById('buyerLoginForm').style.display='none'; document.getElementById('buyerSignupForm').style.display='block'; }
+    function buyerSignup() { let name=document.getElementById('buyerSignupName').value, email=document.getElementById('buyerSignupEmail').value, pwd=document.getElementById('buyerSignupPassword').value; if(buyers.find(b=>b.email===email)){ alert("Email exists"); return; } let newBuyer={name,email,password:pwd}; buyers.push(newBuyer); currentBuyer=newBuyer; saveAll(); document.getElementById('buyerAuthPanel').style.display='none'; document.getElementById('buyerDashboardPanel').style.display='block'; document.getElementById('buyerNameDisplay').innerText=name; renderBuyerOrders(); alert("Signup success!"); }
+    function buyerLogin() { let email=document.getElementById('buyerLoginEmail').value, pwd=document.getElementById('buyerLoginPassword').value; let buyer=buyers.find(b=>b.email===email && b.password===pwd); if(buyer){ currentBuyer=buyer; saveAll(); document.getElementById('buyerAuthPanel').style.display='none'; document.getElementById('buyerDashboardPanel').style.display='block'; document.getElementById('buyerNameDisplay').innerText=buyer.name; renderBuyerOrders(); alert("Login success!"); } else alert("Invalid"); }
+    function buyerLogout() { currentBuyer=null; saveAll(); document.getElementById('buyerAuthPanel').style.display='block'; document.getElementById('buyerDashboardPanel').style.display='none'; switchMode('buyer'); }
+    function renderBuyerOrders() { let buyerOrders=orders.filter(o=>o.buyerEmail===currentBuyer?.email); document.getElementById('buyerOrderHistory').innerHTML=buyerOrders.map(o=>`<div class="order-card"><strong>Order #${o.id}</strong><br>From: ${o.sellerName}<br>Product: ${o.productName}<br>Total: ${getSymbol()}${convertPrice(o.amount)}<br>Date: ${o.date}</div>`).join(''); }
     
     function switchMode(mode) {
-        document.querySelectorAll('.app-section').forEach(sec => sec.classList.remove('active-section'));
-        document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
-        if(mode === 'buyer') {
-            document.getElementById('buyerSection').classList.add('active-section');
-            document.getElementById('buyerModeBtn').classList.add('active');
-        } else if(mode === 'seller') {
-            document.getElementById('sellerSection').classList.add('active-section');
-            document.getElementById('sellerModeBtn').classList.add('active');
-        } else {
-            document.getElementById('profileSection').classList.add('active-section');
-            document.getElementById('profileModeBtn').classList.add('active');
-            if(currentUser) {
-                document.getElementById('authContainer').style.display = 'none';
-                document.getElementById('userDashboard').style.display = 'block';
-                document.getElementById('userNameDisplay').innerText = currentUser.name;
-                renderOrderHistory();
-            } else {
-                document.getElementById('authContainer').style.display = 'block';
-                document.getElementById('userDashboard').style.display = 'none';
-            }
-        }
+        document.querySelectorAll('.app-section').forEach(sec=>sec.classList.remove('active-section'));
+        document.querySelectorAll('.mode-btn').forEach(btn=>btn.classList.remove('active'));
+        if(mode==='buyer') { document.getElementById('buyerSection').classList.add('active-section'); document.getElementById('buyerModeBtn').classList.add('active'); }
+        else if(mode==='seller') { document.getElementById('sellerSection').classList.add('active-section'); document.getElementById('sellerModeBtn').classList.add('active'); if(currentSeller){ document.getElementById('sellerKycPanel').style.display='none'; document.getElementById('sellerDashboardPanel').style.display='block'; loadSellerDashboard(); } }
+        else { document.getElementById('profileSection').classList.add('active-section'); document.getElementById('profileModeBtn').classList.add('active'); if(currentBuyer){ document.getElementById('buyerAuthPanel').style.display='none'; document.getElementById('buyerDashboardPanel').style.display='block'; document.getElementById('buyerNameDisplay').innerText=currentBuyer.name; renderBuyerOrders(); } else { document.getElementById('buyerAuthPanel').style.display='block'; document.getElementById('buyerDashboardPanel').style.display='none'; } }
     }
     
-    function showWishlist() {
-        if(wishlist.length === 0) { alert("Wishlist is empty"); return; }
-        let wishProducts = products.filter(p => wishlist.includes(p.id));
-        let msg = "❤️ Wishlist:\n";
-        wishProducts.forEach(p => { msg += `${p.name} - ${getSymbol()}${convertPrice(p.price)}\n`; });
-        alert(msg);
-    }
+    function closeModal() { document.getElementById('productModal').style.display='none'; }
     
-    function closeModal() { document.getElementById('productModal').style.display = 'none'; }
-    function toggleSideMenu() { alert("📱 Menu\n- Buyer\n- Seller\n- Profile\n- Wishlist\n- Orders"); }
-    
-    // Initialize
-    window.onload = () => {
-        renderCategories();
-        renderProducts();
-        updateCartUI();
-        updateWishlistUI();
-        if(currentUser) {
-            document.getElementById('authContainer').style.display = 'none';
-            document.getElementById('userDashboard').style.display = 'block';
-            document.getElementById('userNameDisplay').innerText = currentUser.name;
-        }
-    };
+    window.onload = () => { renderCategories(); renderProducts(); updateCartUI(); updateWishlistUI(); if(currentSeller) { document.getElementById('sellerKycPanel').style.display='none'; document.getElementById('sellerDashboardPanel').style.display='block'; loadSellerDashboard(); } };
 </script>
 </body>
 </html>
