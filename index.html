@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>GlobalBazaar - Complete Marketplace</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Razorpay CDN -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <!-- EmailJS CDN -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <!-- jsPDF CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -36,20 +39,22 @@
             width: 100%;
         }
         
+        /* Menu button - size chota */
         .menu-icon-3d {
             background: linear-gradient(145deg, #1e293b, #0f172a);
             border: none;
-            font-size: 26px;
+            font-size: 22px;
             cursor: pointer;
-            padding: 8px 14px;
+            padding: 6px 12px;
             border-radius: 18px;
             color: white;
             box-shadow: 0 8px 12px rgba(0,0,0,0.2);
         }
         
+        /* GLOBALBAZAAR - font size bada */
         .brand-3d { 
             font-weight: 800; 
-            font-size: 22px; 
+            font-size: 28px; 
             background: linear-gradient(135deg, #1e3a8a, #3b82f6, #06b6d4); 
             -webkit-background-clip: text; 
             background-clip: text; 
@@ -64,16 +69,28 @@
             padding: 5px; 
         }
         
-        /* Heart and Dollar symbols */
+        /* Heart symbol */
         .heart-symbol {
-            font-size: 28px;
+            font-size: 32px;
             color: #ff3366;
         }
         
-        .dollar-symbol {
-            font-size: 28px;
+        /* Currency Dropdown - $ ke andar saari currencies */
+        .currency-dropdown {
+            background: linear-gradient(145deg, #1e2a4a, #0f172f);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 40px;
             color: #FFD966;
+            font-size: 16px;
             font-weight: bold;
+            cursor: pointer;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        
+        .currency-dropdown option {
+            background: #1e2a4a;
+            color: white;
         }
         
         .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); z-index: 200; display: none; }
@@ -189,10 +206,11 @@
         }
         
         @media (max-width: 600px) {
-            .brand-3d { font-size: 16px; }
+            .brand-3d { font-size: 20px; }
             .logo-3d { font-size: 28px; }
             .fixed-cart { padding: 12px 20px; font-size: 14px; bottom: 15px; right: 15px; }
-            .heart-symbol, .dollar-symbol { font-size: 22px; }
+            .heart-symbol { font-size: 24px; }
+            .currency-dropdown { font-size: 12px; padding: 4px 10px; }
             .header-items { gap: 10px; }
         }
     </style>
@@ -201,15 +219,38 @@
 
 <div class="header-3d">
     <div class="header-items">
+        <!-- Menu button - size chota -->
         <button class="menu-icon-3d" id="menuBtn">☰</button>
+        <!-- GLOBALBAZAAR - font size bada -->
         <div class="brand-3d">GLOBALBAZAAR</div>
+        <!-- Logo -->
         <div class="logo-3d">🌍</div>
+        <!-- Heart symbol -->
         <div class="heart-symbol">💜</div>
-        <div class="dollar-symbol">$</div>
+        <!-- Currency Dropdown - $ ke andar saari currencies -->
+        <select id="currencySelect" class="currency-dropdown">
+            <option value="SAR">🇸🇦 SAR</option>
+            <option value="USD">🇺🇸 USD $</option>
+            <option value="EUR">🇪🇺 EUR €</option>
+            <option value="GBP">🇬🇧 GBP £</option>
+            <option value="INR">🇮🇳 INR ₹</option>
+            <option value="PKR">🇵🇰 PKR ₨</option>
+            <option value="NPR">🇳🇵 NPR रू</option>
+            <option value="BDT">🇧🇩 BDT ৳</option>
+            <option value="LKR">🇱🇰 LKR Rs</option>
+            <option value="AED">🇦🇪 AED د.إ</option>
+            <option value="CAD">🇨🇦 CAD $</option>
+            <option value="AUD">🇦🇺 AUD $</option>
+            <option value="SGD">🇸🇬 SGD $</option>
+            <option value="MYR">🇲🇾 MYR RM</option>
+            <option value="THB">🇹🇭 THB ฿</option>
+            <option value="JPY">🇯🇵 JPY ¥</option>
+            <option value="CNY">🇨🇳 CNY ¥</option>
+        </select>
     </div>
 </div>
 
-<!-- Country Dropdown -->
+<!-- Country Dropdown (Saudi Arabia text hata diya, ab drawer mein dalenge) -->
 <div style="max-width: 560px; margin: 10px auto 0; padding: 0 16px;">
     <select id="globalCountrySelect" class="country-selector">
         <option value="SA">🇸🇦 Saudi Arabia</option>
@@ -263,6 +304,8 @@
     <div class="drawer-item" data-mode="seller">🏪 Seller Dashboard</div>
     <div class="drawer-item" id="drawerWishlist">❤️ My Wishlist</div>
     <div class="drawer-item" id="drawerSupport">📞 Support</div>
+    <!-- Saudi Arabia text ko yahan drawer mein dal diya -->
+    <div class="drawer-item" id="drawerCountry">🇸🇦 Saudi Arabia</div>
     <div class="drawer-item" id="drawerLogout">🚪 Logout</div>
 </div>
 
@@ -358,7 +401,7 @@
                 <h4>🏦 Bank Account</h4>
                 <input type="text" id="sellerBank" placeholder="Bank Name" class="input" required>
                 <input type="text" id="sellerAccountNo" placeholder="Account Number" class="input" required>
-                <input type="text" id="sellerIfsc" placeholder="SWIFT Code" class="input" required>
+                <input type="text" id="sellerIfsc" placeholder="IFSC / SWIFT Code" class="input" required>
                 <div class="checkbox-group">
                     <input type="checkbox" id="sellerAgreement" required>
                     <label>I agree to the <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span> and confirm that I am 18+ years old.</label>
@@ -477,13 +520,53 @@
     const GATEWAY_FEE = 0.025;
     const HANDLING_FEE = 2;
     
+    // Razorpay Configuration
     let razorpayConfig = JSON.parse(localStorage.getItem('razorpay_config')) || {
         key: "rzp_test_YourKey",
         secret: ""
     };
     
-    let fx = { SAR:3.75, USD:1, EUR:0.92, GBP:0.78, INR:83.5, PKR:278, NPR:133.5, BDT:117, LKR:305, AED:3.67 };
-    let sym = { SAR:"SAR ", USD:"$", EUR:"€", GBP:"£", INR:"₹", PKR:"₨", NPR:"रू ", BDT:"৳", LKR:"Rs ", AED:"د.إ" };
+    // Exchange rates (base USD)
+    let fx = {
+        SAR: 3.75,
+        USD: 1,
+        EUR: 0.92,
+        GBP: 0.78,
+        INR: 83.5,
+        PKR: 278,
+        NPR: 133.5,
+        BDT: 117,
+        LKR: 305,
+        AED: 3.67,
+        CAD: 1.36,
+        AUD: 1.52,
+        SGD: 1.35,
+        MYR: 4.70,
+        THB: 36.5,
+        JPY: 150.2,
+        CNY: 7.25
+    };
+    
+    // Currency symbols
+    let sym = {
+        SAR: "SAR ",
+        USD: "$",
+        EUR: "€",
+        GBP: "£",
+        INR: "₹",
+        PKR: "₨",
+        NPR: "रू ",
+        BDT: "৳",
+        LKR: "Rs ",
+        AED: "د.إ ",
+        CAD: "$",
+        AUD: "$",
+        SGD: "$",
+        MYR: "RM ",
+        THB: "฿",
+        JPY: "¥",
+        CNY: "¥"
+    };
     
     let selectedCurr = "USD";
     let buyerCountry = "SA";
@@ -509,7 +592,7 @@
         doc.text(`Order ID: ${order.trackingNumber}`, 20, 40);
         doc.text(`Date: ${order.date}`, 20, 50);
         doc.text(`Product: ${order.productName} x${order.qty}`, 20, 60);
-        doc.text(`Amount: $${convert(order.amount)}`, 20, 70);
+        doc.text(`Amount: ${getSym()}${convert(order.amount)}`, 20, 70);
         doc.text(`Status: ${order.status}`, 20, 80);
         doc.text(`Address: ${order.address}`, 20, 90);
         doc.save(`invoice_${order.trackingNumber}.pdf`);
@@ -517,7 +600,7 @@
     }
     
     function convert(usd) { return (usd * fx[selectedCurr]).toFixed(2); }
-    function getSym() { return "$"; }
+    function getSym() { return sym[selectedCurr]; }
     function showToast(msg, isError) { let t = document.getElementById('toast'); t.innerText = msg; t.style.backgroundColor = isError ? '#dc2626' : '#10b981'; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
     
     function showTerms() { document.getElementById('termsModal').style.display = 'block'; }
@@ -620,7 +703,23 @@
     
     async function detectLocation() { try { let r = await fetch('https://ipapi.co/json/'); let d = await r.json(); buyerCountry = d.country_code || "SA"; } catch(e) {} renderProducts(); }
     detectLocation();
-    document.getElementById('currencySelect')?.addEventListener('change', (e) => { selectedCurr = e.target.value; renderProducts(); updateCartUI(); renderBuyerOrders(); });
+    
+    // Currency selection event
+    document.getElementById('currencySelect').addEventListener('change', (e) => { 
+        selectedCurr = e.target.value; 
+        renderProducts(); 
+        updateCartUI(); 
+        renderBuyerOrders();
+        if(currentUser?.role === 'seller') renderSellerDashboard();
+        if(currentUser) renderBuyerOrders();
+    });
+    
+    // Country selection for shipping
+    document.getElementById('globalCountrySelect')?.addEventListener('change', (e) => {
+        buyerCountry = e.target.value;
+        renderProducts();
+        showToast(`Country changed to ${e.target.options[e.target.selectedIndex].text}`, false);
+    });
     
     function getAddressLineByLine() {
         let h = prompt("House No.:"); if(!h) return null;
@@ -653,7 +752,7 @@
         let html = filtered.map(p => {
             let seller = sellerMap.get(p.sellerId) || {shopName:"GlobalBazaar", country:"SA"};
             let final = calculateFinalPrice(p.price, seller.country);
-            return `<div class="product-card" data-id="${p.id}"><img src="${p.image}"><div class="seller-name-tag">🏪 ${seller.shopName}</div><h4>${p.name}</h4><div class="prod-price">$${convert(final.total)}</div><div class="card-actions"><button class="btn-sm btn-buy addCartBtn" data-id="${p.id}">Buy</button><button class="btn-sm btn-wish wishBtn ${wishlist.includes(p.id)?'active':''}" data-id="${p.id}">❤️</button></div></div>`;
+            return `<div class="product-card" data-id="${p.id}"><img src="${p.image}"><div class="seller-name-tag">🏪 ${seller.shopName}</div><h4>${p.name}</h4><div class="prod-price">${getSym()}${convert(final.total)}</div><div class="card-actions"><button class="btn-sm btn-buy addCartBtn" data-id="${p.id}">Buy</button><button class="btn-sm btn-wish wishBtn ${wishlist.includes(p.id)?'active':''}" data-id="${p.id}">❤️</button></div></div>`;
         }).join('');
         document.getElementById('productsGrid').innerHTML = html;
         document.querySelectorAll('.addCartBtn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); addToCart(parseInt(btn.dataset.id)); }));
@@ -672,8 +771,8 @@
         document.getElementById('modalTitle').innerText = p.name;
         document.getElementById('modalSellerName').innerHTML = `🏪 ${seller.shopName}`;
         document.getElementById('modalDesc').innerText = p.description;
-        document.getElementById('priceBreakdownModal').innerHTML = `Base: $${convert(p.price)}<br>+ Shipping: $${convert(final.shipping)}<br>+ Fees: $${convert(final.commission+final.gateway+HANDLING_FEE)}<br><strong>Total: $${convert(final.total)}</strong>`;
-        document.getElementById('modalPrice').innerHTML = `$${convert(final.total)}`;
+        document.getElementById('priceBreakdownModal').innerHTML = `Base: ${getSym()}${convert(p.price)}<br>+ Shipping: ${getSym()}${convert(final.shipping)}<br>+ Fees: ${getSym()}${convert(final.commission+final.gateway+HANDLING_FEE)}<br><strong>Total: ${getSym()}${convert(final.total)}</strong>`;
+        document.getElementById('modalPrice').innerHTML = `${getSym()}${convert(final.total)}`;
         document.getElementById('productModal').style.display = 'block';
     }
     
@@ -723,7 +822,7 @@
                     platformEarnings += final.commission * item.qty;
                 });
                 cart = []; saveAll(); updateCartUI();
-                sendEmailNotification(currentUser.email, "Order Confirmed", `Your order ${tracking} has been confirmed. Total: $${convert(totalUSD)}`);
+                sendEmailNotification(currentUser.email, "Order Confirmed", `Your order ${tracking} has been confirmed. Total: ${getSym()}${convert(totalUSD)}`);
                 sendWhatsAppNotification(currentUser.phone, `Order ${tracking} confirmed! Thank you for shopping at GlobalBazaar.`);
                 showToast(`Order Confirmed! Tracking: ${tracking}`, false);
                 if(currentUser?.role === 'buyer') renderBuyerOrders();
@@ -753,7 +852,7 @@
                         seller.earnings = (seller.earnings || 0) + (sellerEarning * ord.qty);
                         ord.sellerReleased = true;
                         saveAll();
-                        sendEmailNotification(seller.email, "Payment Released", `Payment of $${convert(sellerEarning * ord.qty)} has been released for order ${ord.trackingNumber}`);
+                        sendEmailNotification(seller.email, "Payment Released", `Payment of ${getSym()}${convert(sellerEarning * ord.qty)} has been released for order ${ord.trackingNumber}`);
                         showToast(`Payment released to seller`, false);
                         renderSellerDashboard();
                     }
@@ -788,7 +887,7 @@
             });
             seller.earnings = 0;
             saveAll();
-            sendEmailNotification(seller.email, "Withdrawal Request", `Your withdrawal request of $${convert(pendingWithdrawals[pendingWithdrawals.length-1].amount)} has been submitted.`);
+            sendEmailNotification(seller.email, "Withdrawal Request", `Your withdrawal request of ${getSym()}${convert(pendingWithdrawals[pendingWithdrawals.length-1].amount)} has been submitted.`);
             showToast(`Withdrawal request submitted!`, false);
             renderSellerDashboard();
         } else { showToast("No balance to withdraw", true); }
@@ -847,7 +946,7 @@
         let myOrders = orders.filter(o=>o.sellerId === seller.id);
         let addressHtml = `${seller.houseNo}, ${seller.street}, ${seller.city}, ${seller.state} - ${seller.pincode}, ${seller.country}`;
         document.getElementById('sellerDashboard').innerHTML = `
-            <div class="premium-card"><div class="flex-between"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📍 ${addressHtml}</p></div><span class="role-badge">Seller</span></div><div class="flex-between"><span>🏦 ${seller.bankName} - ${seller.accountNo}</span><span>💰 $${convert(seller.earnings)}</span></div><button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Request Withdrawal</button></div>
+            <div class="premium-card"><div class="flex-between"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📍 ${addressHtml}</p></div><span class="role-badge">Seller</span></div><div class="flex-between"><span>🏦 ${seller.bankName} - ${seller.accountNo}</span><span>💰 ${getSym()}${convert(seller.earnings)}</span></div><button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Request Withdrawal</button></div>
             <div class="premium-card"><h3>➕ Add Product</h3><input type="text" id="prodName" placeholder="Product Name" class="input"><input type="number" id="prodPrice" placeholder="Price (USD)" class="input"><select id="prodCat" class="input"><option>Electronics</option><option>Fashion</option><option>Home</option></select><input type="url" id="prodImg" placeholder="Image URL" class="input"><textarea id="prodDesc" placeholder="Description" class="input"></textarea><button id="publishBtn" class="btn-primary">Publish</button></div>
             <div class="premium-card"><h3>📋 My Products</h3><div id="myProductsList"></div></div>
             <div class="premium-card"><h3>📦 Orders Received</h3><div id="ordersList"></div></div>
@@ -861,9 +960,9 @@
             products.push({ id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, name, price, category: document.getElementById('prodCat').value, image: document.getElementById('prodImg').value || "https://placehold.co/200x200", description: desc, rating: 0, reviews: [], sellerCountry: seller.country });
             saveAll(); renderSellerDashboard(); renderProducts(); showToast("Product published!", false);
         });
-        document.getElementById('myProductsList').innerHTML = myProducts.map(p => `<div class="flex-between"><span>${p.name} - $${convert(p.price)}</span><button class="delProd" data-id="${p.id}" style="background:#dc2626; border:none; padding:6px 14px; border-radius:30px;">Delete</button></div>`).join('');
+        document.getElementById('myProductsList').innerHTML = myProducts.map(p => `<div class="flex-between"><span>${p.name} - ${getSym()}${convert(p.price)}</span><button class="delProd" data-id="${p.id}" style="background:#dc2626; border:none; padding:6px 14px; border-radius:30px;">Delete</button></div>`).join('');
         document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', () => { products = products.filter(p=>p.id!==parseInt(btn.dataset.id)); saveAll(); renderSellerDashboard(); renderProducts(); showToast("Product deleted", false); }));
-        document.getElementById('ordersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>Buyer: ${o.buyerName}<br>Product: ${o.productName} x${o.qty}<br>Amount: $${convert(o.amount)}<br>Status: ${o.status}<br>Address: ${o.address}${o.status === "Confirmed" ? `<br><button class="shipBtn" data-id="${o.id}" style="background:#3b82f6; margin-top:10px; padding:8px 16px; border-radius:30px; border:none; color:white;">Mark as Shipped</button>` : ''}</div>`).join('');
+        document.getElementById('ordersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>Buyer: ${o.buyerName}<br>Product: ${o.productName} x${o.qty}<br>Amount: ${getSym()}${convert(o.amount)}<br>Status: ${o.status}<br>Address: ${o.address}${o.status === "Confirmed" ? `<br><button class="shipBtn" data-id="${o.id}" style="background:#3b82f6; margin-top:10px; padding:8px 16px; border-radius:30px; border:none; color:white;">Mark as Shipped</button>` : ''}</div>`).join('');
         document.querySelectorAll('.shipBtn').forEach(btn => btn.addEventListener('click', () => { let track = prompt("Enter tracking number:"); if(track) markOrderShipped(parseFloat(btn.dataset.id), track); }));
         document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
     }
@@ -930,7 +1029,7 @@
     function renderBuyerOrders() {
         if(!currentUser) return;
         let myOrders = orders.filter(o=>o.buyerEmail===currentUser.email);
-        document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty} - $${convert(o.amount)}<br>📍 ${o.address}<br>Status: ${o.status}<br>Date: ${o.date}<br><button class="btn-download" onclick="generatePDFInvoice(${JSON.stringify(o).replace(/"/g, '&quot;')})">📄 Download Invoice</button>${o.status === "Shipped" ? `<br><button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981; margin-top:10px; padding:8px 16px; border-radius:30px; border:none; color:white;">I have received the product</button>` : ''}</div>`).join('');
+        document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty} - ${getSym()}${convert(o.amount)}<br>📍 ${o.address}<br>Status: ${o.status}<br>Date: ${o.date}<br><button class="btn-download" onclick="generatePDFInvoice(${JSON.stringify(o).replace(/"/g, '&quot;')})">📄 Download Invoice</button>${o.status === "Shipped" ? `<br><button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981; margin-top:10px; padding:8px 16px; border-radius:30px; border:none; color:white;">I have received the product</button>` : ''}</div>`).join('');
         document.querySelectorAll('.confirmReceivedBtn').forEach(btn => btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id))));
     }
     
@@ -948,9 +1047,9 @@
     });
     
     function loadAdminData() {
-        document.getElementById('adminSellersList').innerHTML = sellers.map(s => `<div class="order-card"><strong>${s.shopName}</strong><br>${s.email}<br>📞 ${s.phone}<br>🏦 ${s.bankName} - ${s.accountNo}<br>💰 $${convert(s.earnings)}</div>`).join('');
-        document.getElementById('platformEarnings').innerHTML = `<h2>$${convert(platformEarnings)}</h2>`;
-        document.getElementById('pendingWithdrawals').innerHTML = pendingWithdrawals.map(w => `<div class="flex-between order-card"><span>💰 $${convert(w.amount)} - ${w.sellerName}<br>🏦 ${w.bank} - ${w.account}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981; padding:8px 16px; border-radius:30px; border:none; color:white;">Approve & Transfer</button></div>`).join('');
+        document.getElementById('adminSellersList').innerHTML = sellers.map(s => `<div class="order-card"><strong>${s.shopName}</strong><br>${s.email}<br>📞 ${s.phone}<br>🏦 ${s.bankName} - ${s.accountNo}<br>💰 ${getSym()}${convert(s.earnings)}</div>`).join('');
+        document.getElementById('platformEarnings').innerHTML = `<h2>${getSym()}${convert(platformEarnings)}</h2>`;
+        document.getElementById('pendingWithdrawals').innerHTML = pendingWithdrawals.map(w => `<div class="flex-between order-card"><span>💰 ${getSym()}${convert(w.amount)} - ${w.sellerName}<br>🏦 ${w.bank} - ${w.account}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981; padding:8px 16px; border-radius:30px; border:none; color:white;">Approve & Transfer</button></div>`).join('');
         document.querySelectorAll('.approveBtn').forEach(btn => btn.addEventListener('click', () => {
             let w = pendingWithdrawals.find(w=>w.id===parseInt(btn.dataset.id));
             if(w) {
@@ -959,10 +1058,10 @@
                 saveAll();
                 let seller = sellers.find(s=>s.id===w.sellerId);
                 if(seller) {
-                    sendEmailNotification(seller.email, "Withdrawal Approved", `Your withdrawal request of $${convert(w.amount)} has been approved. Amount will be credited to ${seller.bankName} - ${seller.accountNo} within 2-3 business days.`);
+                    sendEmailNotification(seller.email, "Withdrawal Approved", `Your withdrawal request of ${getSym()}${convert(w.amount)} has been approved. Amount will be credited to ${seller.bankName} - ${seller.accountNo} within 2-3 business days.`);
                 }
                 loadAdminData();
-                showToast(`Approved $${convert(w.amount)} payout`, false);
+                showToast(`Approved ${getSym()}${convert(w.amount)} payout`, false);
             }
         }));
         document.getElementById('adminOrdersList').innerHTML = orders.map(o => `<div class="order-card">🔖 ${o.trackingNumber}<br>${o.productName} x${o.qty} - ${o.buyerName}<br>Status: ${o.status} | Payment ID: ${o.paymentId || 'N/A'}</div>`).join('');
@@ -978,6 +1077,7 @@
     document.querySelectorAll('.drawer-item[data-mode]').forEach(el => el.addEventListener('click', () => { document.querySelector(`.mode-btn[data-tab="${el.dataset.mode}"]`).click(); closeDrawer(); }));
     document.getElementById('drawerWishlist')?.addEventListener('click', () => { let wp = products.filter(p=>wishlist.includes(p.id)); alert("Wishlist:\n"+wp.map(p=>p.name).join("\n")); closeDrawer(); });
     document.getElementById('drawerLogout')?.addEventListener('click', () => { currentUser=null; saveAll(); location.reload(); });
+    document.getElementById('drawerCountry')?.addEventListener('click', () => { closeDrawer(); });
     document.getElementById('editAddressBtn')?.addEventListener('click', () => { getAddressLineByLine(); displaySavedAddress(); });
     document.getElementById('closeModalBtn')?.addEventListener('click', () => document.getElementById('productModal').style.display='none');
     document.getElementById('modalAddCartBtn')?.addEventListener('click', () => { if(currentProduct) addToCart(currentProduct.id); document.getElementById('productModal').style.display='none'; });
@@ -986,12 +1086,6 @@
     renderCats(); renderProducts(); updateCartUI();
     if(currentUser?.role === 'seller') { document.getElementById('sellerRegisterBox').style.display='none'; document.getElementById('sellerDashboard').style.display='block'; renderSellerDashboard(); }
     if(currentUser) { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = currentUser.name; document.getElementById('profileRoleBadge').innerText = currentUser.role || 'Buyer'; displaySavedAddress(); renderBuyerOrders(); }
-    
-    document.getElementById('globalCountrySelect')?.addEventListener('change', (e) => {
-        buyerCountry = e.target.value;
-        renderProducts();
-        showToast(`Country changed to ${e.target.options[e.target.selectedIndex].text}`, false);
-    });
 </script>
 </body>
 </html>
