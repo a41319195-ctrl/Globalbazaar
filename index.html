@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>GlobalBazaar - Complete Marketplace with 195+ Countries</title>
+    <title>GlobalBazaar - Complete Marketplace</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -12,597 +12,100 @@
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
-        body {
-            background: linear-gradient(135deg, #f5f7fb 0%, #eef2f8 100%);
-            padding-bottom: 90px;
-        }
-        .header-3d {
-            background: linear-gradient(145deg, #ffffff, #f0f4fa);
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 10px 25px -8px rgba(0,0,0,0.15);
-            border-bottom: 1px solid rgba(59,130,246,0.15);
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .menu-icon-3d {
-            background: linear-gradient(145deg, #1e293b, #0f172a);
-            border: none;
-            font-size: 22px;
-            cursor: pointer;
-            padding: 8px 14px;
-            border-radius: 18px;
-            color: white;
-            box-shadow: 0 8px 12px rgba(0,0,0,0.2);
-        }
-        .brand-3d {
-            font-weight: 800;
-            font-size: 28px;
-            background: linear-gradient(135deg, #1e3a8a, #3b82f6, #06b6d4);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        .logo-3d {
-            font-size: 32px;
-            background: radial-gradient(circle at 35% 35%, #ffdd77, #ffaa33);
-            border-radius: 50%;
-            padding: 5px;
-        }
-        .currency-dropdown {
-            background: linear-gradient(145deg, #1e2a4a, #0f172f);
-            border: none;
-            padding: 8px 14px;
-            border-radius: 40px;
-            color: #FFD966;
-            font-size: 13px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .drawer-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(3px);
-            z-index: 200;
-            display: none;
-        }
-        .drawer {
-            position: fixed;
-            top: 0;
-            left: -85%;
-            width: 75%;
-            max-width: 280px;
-            height: 100%;
-            background: white;
-            z-index: 201;
-            transition: left 0.3s ease;
-            border-radius: 0 24px 24px 0;
-            padding: 20px 0;
-            overflow-y: auto;
-        }
-        .drawer.open {
-            left: 0;
-        }
-        .drawer-header {
-            padding: 20px;
-            border-bottom: 1px solid #eef2f8;
-        }
-        .drawer-item {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 14px 20px;
-            font-weight: 600;
-            font-size: 16px;
-            cursor: pointer;
-            margin: 4px 12px;
-            border-radius: 14px;
-        }
-        .drawer-item:hover {
-            background: #f1f5f9;
-        }
-        .container {
-            max-width: 560px;
-            margin: 0 auto;
-            padding: 16px;
-        }
-        .section {
-            display: none;
-        }
-        .section.active {
-            display: block;
-        }
-        .cat-scroll {
-            display: flex;
-            gap: 10px;
-            overflow-x: auto;
-            padding: 8px 0 16px;
-        }
-        .cat-pill {
-            background: white;
-            padding: 8px 22px;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 14px;
-            border: 1px solid #e2e8f0;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        .cat-pill.active {
-            background: #1e3a8a;
-            color: white;
-        }
-        .search-container {
-            position: relative;
-            margin-bottom: 16px;
-        }
-        .search-container input {
-            width: 100%;
-            padding: 14px 40px 14px 16px;
-            border: 1px solid #e2e8f0;
-            border-radius: 40px;
-            font-size: 14px;
-        }
-        .product-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-            margin-top: 10px;
-        }
-        .product-card {
-            background: white;
-            border-radius: 20px;
-            padding: 12px;
-            cursor: pointer;
-            border: 1px solid #eef2f8;
-            transition: 0.2s;
-        }
-        .product-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-        }
-        .product-card .main-img {
-            width: 100%;
-            height: 140px;
-            object-fit: cover;
-            border-radius: 16px;
-        }
-        .product-thumbnails {
-            display: flex;
-            gap: 6px;
-            margin-top: 8px;
-        }
-        .product-thumbnails img {
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
-            border-radius: 10px;
-            cursor: pointer;
-            border: 1px solid #e2e8f0;
-        }
-        .product-thumbnails img:hover {
-            border-color: #3b82f6;
-        }
-        .seller-name-tag {
-            font-size: 11px;
-            color: #3b82f6;
-            margin: 10px 0 6px;
-            font-weight: 600;
-        }
-        .prod-price {
-            font-weight: 800;
-            font-size: 16px;
-            color: #1e3a8a;
-            margin-top: 6px;
-        }
-        .card-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
-        }
-        .btn-sm {
-            flex: 1;
-            padding: 8px;
-            border-radius: 40px;
-            font-weight: 700;
-            font-size: 12px;
-            border: none;
-            cursor: pointer;
-        }
-        .btn-buy {
-            background: #0f172a;
-            color: white;
-        }
-        .btn-wish {
-            background: #f1f5f9;
-        }
-        .btn-wish.active {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-        .fixed-cart {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            background: linear-gradient(145deg, #1e3a8a, #1e2a5a);
-            color: white;
-            border: none;
-            border-radius: 60px;
-            padding: 16px 28px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 800;
-            font-size: 18px;
-            z-index: 99;
-            cursor: pointer;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-        }
-        .cart-badge {
-            background: #ef4444;
-            color: white;
-            font-size: 13px;
-            padding: 2px 10px;
-            border-radius: 40px;
-        }
-        .input {
-            width: 100%;
-            padding: 14px;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            margin-bottom: 14px;
-            font-size: 14px;
-        }
-        .btn-primary {
-            background: #1e3a8a;
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 60px;
-            font-weight: 700;
-            font-size: 15px;
-            width: 100%;
-            cursor: pointer;
-        }
-        .btn-secondary {
-            background: #64748b;
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 60px;
-            font-weight: 700;
-            font-size: 15px;
-            width: 100%;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .premium-card {
-            background: white;
-            border-radius: 24px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-        }
-        .flex-between {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .order-card {
-            background: #f8fafc;
-            border-radius: 16px;
-            padding: 14px;
-            margin-bottom: 12px;
-            font-size: 13px;
-            border-left: 4px solid #cbd5e1;
-        }
-        .chart-container {
-            background: white;
-            border-radius: 24px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-        }
-        .chart-container canvas {
-            max-height: 250px;
-            width: 100%;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 300;
-            overflow-y: auto;
-        }
-        .modal-card {
-            background: white;
-            margin: 50px 20px;
-            border-radius: 28px;
-            padding: 24px;
-            max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .close-modal {
-            float: right;
-            font-size: 28px;
-            cursor: pointer;
-        }
-        .modal-main-img {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 16px;
-        }
-        .modal-thumbnails {
-            display: flex;
-            gap: 10px;
-            margin: 15px 0;
-            overflow-x: auto;
-        }
-        .modal-thumbnails img {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 10px;
-            cursor: pointer;
-            border: 2px solid #e2e8f0;
-        }
-        .modal-thumbnails img:hover {
-            border-color: #3b82f6;
-        }
-        .seller-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #3b82f6;
-        }
-        .role-badge {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            background: #dbeafe;
-            color: #1e40af;
-        }
-        .toast {
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1e293b;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 50px;
-            z-index: 1000;
-            display: none;
-            font-size: 14px;
-        }
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 15px 0;
-            flex-wrap: wrap;
-        }
-        .legal-link {
-            color: #3b82f6;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .footer-legal {
-            text-align: center;
-            padding: 20px;
-            font-size: 11px;
-            color: #64748b;
-            border-top: 1px solid #e2e8f0;
-            margin-top: 20px;
-        }
-        .doc-section {
-            background: #f8fafc;
-            padding: 15px;
-            border-radius: 16px;
-            margin-bottom: 20px;
-        }
-        .doc-title {
-            font-weight: 700;
-            margin-bottom: 12px;
-            color: #1e3a8a;
-        }
-        .phone-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 14px;
-            position: relative;
-        }
-        .phone-group select {
-            width: 35%;
-            padding: 14px;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-        }
-        .phone-group input {
-            width: 65%;
-            padding: 14px;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            margin-bottom: 0;
-        }
-        .country-search-select {
-            position: relative;
-            width: 35%;
-        }
-        .country-search-select input {
-            width: 100%;
-            padding: 14px;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            font-size: 14px;
-        }
-        .country-dropdown-list {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            max-height: 200px;
-            overflow-y: auto;
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            z-index: 1000;
-            display: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        .country-dropdown-list div {
-            padding: 10px 14px;
-            cursor: pointer;
-            font-size: 13px;
-            border-bottom: 1px solid #f1f5f9;
-        }
-        .country-dropdown-list div:hover {
-            background: #f1f5f9;
-        }
-        .kyc-status {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-        .kyc-pending {
-            background: #fef3c7;
-            color: #d97706;
-        }
-        .kyc-verified {
-            background: #d1fae5;
-            color: #059669;
-        }
-        .kyc-rejected {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-        .cart-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #eef2f8;
-        }
-        .cart-item-controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        .cart-qty-btn {
-            background: #e2e8f0;
-            border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 30px;
-            font-size: 18px;
-            cursor: pointer;
-        }
-        .cart-remove {
-            background: #dc2626;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        .delivery-form-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 14px;
-        }
-        .delivery-form-row input,
-        .delivery-form-row select {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-        }
-        .otp-section {
-            display: none;
-            margin-top: 10px;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: linear-gradient(135deg, #f5f7fb 0%, #eef2f8 100%); padding-bottom: 90px; }
+        .header-3d { background: linear-gradient(145deg, #ffffff, #f0f4fa); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 10px 25px -8px rgba(0,0,0,0.15); border-bottom: 1px solid rgba(59,130,246,0.15); flex-wrap: wrap; gap: 10px; }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .menu-icon-3d { background: linear-gradient(145deg, #1e293b, #0f172a); border: none; font-size: 22px; cursor: pointer; padding: 8px 14px; border-radius: 18px; color: white; box-shadow: 0 8px 12px rgba(0,0,0,0.2); }
+        .brand-3d { font-weight: 800; font-size: 28px; background: linear-gradient(135deg, #1e3a8a, #3b82f6, #06b6d4); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .logo-3d { font-size: 32px; background: radial-gradient(circle at 35% 35%, #ffdd77, #ffaa33); border-radius: 50%; padding: 5px; }
+        .currency-dropdown { background: linear-gradient(145deg, #1e2a4a, #0f172f); border: none; padding: 8px 14px; border-radius: 40px; color: #FFD966; font-size: 13px; font-weight: bold; cursor: pointer; }
+        .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); z-index: 200; display: none; }
+        .drawer { position: fixed; top: 0; left: -85%; width: 75%; max-width: 280px; height: 100%; background: white; z-index: 201; transition: left 0.3s ease; border-radius: 0 24px 24px 0; padding: 20px 0; overflow-y: auto; }
+        .drawer.open { left: 0; }
+        .drawer-header { padding: 20px; border-bottom: 1px solid #eef2f8; }
+        .drawer-item { display: flex; align-items: center; gap: 14px; padding: 14px 20px; font-weight: 600; font-size: 16px; cursor: pointer; margin: 4px 12px; border-radius: 14px; }
+        .drawer-item:hover { background: #f1f5f9; }
+        .container { max-width: 560px; margin: 0 auto; padding: 16px; }
+        .section { display: none; }
+        .section.active { display: block; }
+        .cat-scroll { display: flex; gap: 10px; overflow-x: auto; padding: 8px 0 16px; }
+        .cat-pill { background: white; padding: 8px 22px; border-radius: 40px; font-weight: 600; font-size: 14px; border: 1px solid #e2e8f0; cursor: pointer; white-space: nowrap; }
+        .cat-pill.active { background: #1e3a8a; color: white; }
+        .search-container { position: relative; margin-bottom: 16px; }
+        .search-container input { width: 100%; padding: 14px 40px 14px 16px; border: 1px solid #e2e8f0; border-radius: 40px; font-size: 14px; }
+        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
+        .product-card { background: white; border-radius: 20px; padding: 12px; cursor: pointer; border: 1px solid #eef2f8; transition: 0.2s; }
+        .product-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .product-card .main-img { width: 100%; height: 140px; object-fit: cover; border-radius: 16px; }
+        .product-thumbnails { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+        .product-thumbnails img { width: 50px; height: 50px; object-fit: cover; border-radius: 10px; cursor: pointer; border: 1px solid #e2e8f0; }
+        .product-thumbnails img:hover { border-color: #3b82f6; }
+        .seller-name-tag { font-size: 11px; color: #3b82f6; margin: 10px 0 6px; font-weight: 600; }
+        .prod-price { font-weight: 800; font-size: 16px; color: #1e3a8a; margin-top: 6px; }
+        .card-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .btn-sm { flex: 1; padding: 8px; border-radius: 40px; font-weight: 700; font-size: 12px; border: none; cursor: pointer; }
+        .btn-buy { background: #0f172a; color: white; }
+        .btn-wish { background: #f1f5f9; }
+        .btn-wish.active { background: #fee2e2; color: #dc2626; }
+        .fixed-cart { position: fixed; bottom: 25px; right: 25px; background: linear-gradient(145deg, #1e3a8a, #1e2a5a); color: white; border: none; border-radius: 60px; padding: 16px 28px; display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 18px; z-index: 99; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.25); }
+        .cart-badge { background: #ef4444; color: white; font-size: 13px; padding: 2px 10px; border-radius: 40px; }
+        .input { width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; margin-bottom: 14px; font-size: 14px; }
+        .btn-primary { background: #1e3a8a; color: white; border: none; padding: 14px; border-radius: 60px; font-weight: 700; font-size: 15px; width: 100%; cursor: pointer; }
+        .btn-secondary { background: #64748b; color: white; border: none; padding: 14px; border-radius: 60px; font-weight: 700; font-size: 15px; width: 100%; cursor: pointer; margin-top: 10px; }
+        .premium-card { background: white; border-radius: 24px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .order-card { background: #f8fafc; border-radius: 16px; padding: 14px; margin-bottom: 12px; font-size: 13px; border-left: 4px solid #cbd5e1; }
+        .chart-container { background: white; border-radius: 24px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+        .chart-container canvas { max-height: 250px; width: 100%; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 300; overflow-y: auto; }
+        .modal-card { background: white; margin: 50px 20px; border-radius: 28px; padding: 24px; max-width: 500px; margin-left: auto; margin-right: auto; }
+        .close-modal { float: right; font-size: 28px; cursor: pointer; }
+        .modal-main-img { width: 100%; height: 200px; object-fit: cover; border-radius: 16px; }
+        .modal-thumbnails { display: flex; gap: 10px; margin: 15px 0; overflow-x: auto; }
+        .modal-thumbnails img { width: 60px; height: 60px; object-fit: cover; border-radius: 10px; cursor: pointer; border: 2px solid #e2e8f0; }
+        .modal-thumbnails img:hover { border-color: #3b82f6; }
+        .seller-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #3b82f6; }
+        .role-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; background: #dbeafe; color: #1e40af; }
+        .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; z-index: 1000; display: none; font-size: 14px; }
+        .checkbox-group { display: flex; align-items: center; gap: 10px; margin: 15px 0; flex-wrap: wrap; }
+        .legal-link { color: #3b82f6; text-decoration: none; cursor: pointer; }
+        .footer-legal { text-align: center; padding: 20px; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; margin-top: 20px; }
+        .doc-section { background: #f8fafc; padding: 15px; border-radius: 16px; margin-bottom: 20px; }
+        .doc-title { font-weight: 700; margin-bottom: 12px; color: #1e3a8a; }
+        .phone-group { display: flex; gap: 10px; margin-bottom: 14px; position: relative; }
+        .phone-group select { width: 35%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; }
+        .phone-group input { width: 65%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; margin-bottom: 0; }
+        .country-search-select { position: relative; width: 35%; }
+        .country-search-select input { width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; font-size: 14px; }
+        .country-dropdown-list { position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #e2e8f0; border-radius: 12px; z-index: 1000; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .country-dropdown-list div { padding: 10px 14px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
+        .country-dropdown-list div:hover { background: #f1f5f9; }
+        .kyc-status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .kyc-pending { background: #fef3c7; color: #d97706; }
+        .kyc-verified { background: #d1fae5; color: #059669; }
+        .kyc-rejected { background: #fee2e2; color: #dc2626; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eef2f8; }
+        .cart-item-controls { display: flex; gap: 10px; align-items: center; }
+        .cart-qty-btn { background: #e2e8f0; border: none; width: 30px; height: 30px; border-radius: 30px; font-size: 18px; cursor: pointer; }
+        .cart-remove { background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 12px; }
+        .delivery-form-row { display: flex; gap: 10px; margin-bottom: 14px; }
+        .delivery-form-row input, .delivery-form-row select { flex: 1; padding: 12px; border: 1px solid #e2e8f0; border-radius: 16px; }
+        .otp-section { display: none; margin-top: 10px; }
         @media (max-width: 600px) {
-            .brand-3d {
-                font-size: 18px;
-            }
-            .logo-3d {
-                font-size: 24px;
-            }
-            .fixed-cart {
-                padding: 12px 20px;
-                font-size: 14px;
-                bottom: 15px;
-                right: 15px;
-            }
-            .currency-dropdown {
-                font-size: 10px;
-                padding: 4px 8px;
-            }
-            .phone-group {
-                flex-direction: column;
-            }
-            .country-search-select {
-                width: 100%;
-            }
-            .phone-group select,
-            .phone-group input {
-                width: 100%;
-            }
-            .delivery-form-row {
-                flex-direction: column;
-            }
-            .product-thumbnails img {
-                width: 40px;
-                height: 40px;
-            }
-            .product-card .main-img {
-                height: 120px;
-            }
-            .modal-main-img {
-                height: 180px;
-            }
-            .modal-thumbnails img {
-                width: 50px;
-                height: 50px;
-            }
+            .brand-3d { font-size: 18px; }
+            .logo-3d { font-size: 24px; }
+            .fixed-cart { padding: 12px 20px; font-size: 14px; bottom: 15px; right: 15px; }
+            .currency-dropdown { font-size: 10px; padding: 4px 8px; }
+            .phone-group { flex-direction: column; }
+            .country-search-select { width: 100%; }
+            .phone-group select, .phone-group input { width: 100%; }
+            .delivery-form-row { flex-direction: column; }
+            .product-thumbnails img { width: 40px; height: 40px; }
+            .product-card .main-img { height: 120px; }
+            .modal-main-img { height: 180px; }
+            .modal-thumbnails img { width: 50px; height: 50px; }
         }
     </style>
 </head>
@@ -639,10 +142,7 @@
 
 <div class="drawer-overlay" id="drawerOverlay"></div>
 <div class="drawer" id="drawer">
-    <div class="drawer-header">
-        <h2>GlobalBazaar 🌍</h2>
-        <p style="font-size:12px;">Multi‑Seller Hub</p>
-    </div>
+    <div class="drawer-header"><h2>GlobalBazaar 🌍</h2><p style="font-size:12px;">Multi‑Seller Hub</p></div>
     <div class="drawer-item" id="drawerBuyer">🛒 Buyer Shopping</div>
     <div class="drawer-item" id="drawerSeller">🏪 Seller Dashboard</div>
     <div class="drawer-item" id="drawerProfile">👤 My Profile</div>
@@ -713,10 +213,7 @@
                 <input type="text" id="sellerAccountNo" placeholder="Account Number" class="input" required>
                 <input type="text" id="sellerIfsc" placeholder="IFSC / SWIFT Code" class="input" required>
                 <input type="text" id="sellerAccountHolder" placeholder="Account Holder Full Name" class="input" required>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="sellerAgreement" required>
-                    <label>I agree to <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label>
-                </div>
+                <div class="checkbox-group"><input type="checkbox" id="sellerAgreement" required><label>I agree to <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label></div>
                 <button type="submit" class="btn-primary" id="sellerSubmitBtn" disabled>✅ Register Shop (Verify Phone First)</button>
             </form>
         </div>
@@ -735,10 +232,7 @@
             <div id="signupFormDiv" style="display:none;">
                 <input type="text" id="signupName" placeholder="Full Name" class="input">
                 <input type="date" id="signupDob" class="input">
-                <select id="signupRole" class="input">
-                    <option value="buyer">Buyer</option>
-                    <option value="seller">Seller</option>
-                </select>
+                <select id="signupRole" class="input"><option value="buyer">Buyer</option><option value="seller">Seller</option></select>
                 <input type="email" id="signupEmail" placeholder="Email" class="input">
                 <div class="phone-group">
                     <div class="country-search-select" id="signupCountrySearchContainer">
@@ -753,34 +247,19 @@
                     <button type="button" id="signupVerifyOtpBtn" class="btn-secondary">Verify OTP</button>
                 </div>
                 <input type="password" id="signupPass" placeholder="Password" class="input">
-                <div class="checkbox-group">
-                    <input type="checkbox" id="termsCheckbox" required>
-                    <label>Accept <span class="legal-link" onclick="showTerms()">Terms & Conditions</span></label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="ageCheckbox" required>
-                    <label>I am 18 years or older</label>
-                </div>
+                <div class="checkbox-group"><input type="checkbox" id="termsCheckbox" required><label>Accept <span class="legal-link" onclick="showTerms()">Terms & Conditions</span></label></div>
+                <div class="checkbox-group"><input type="checkbox" id="ageCheckbox" required><label>I am 18 years or older</label></div>
                 <button class="btn-primary" id="doSignupBtn" disabled>Create Account (Verify Phone First)</button>
                 <p style="text-align:center; margin-top:10px;"><span class="legal-link" onclick="showLogin()">Already have an account? Login</span></p>
             </div>
         </div>
         <div id="buyerProfilePanel" style="display:none;">
             <div class="premium-card">
-                <div class="flex-between">
-                    <h2>👋 Welcome, <span id="profileName"></span></h2>
-                    <span class="role-badge" id="profileRoleBadge">Buyer</span>
-                </div>
+                <div class="flex-between"><h2>👋 Welcome, <span id="profileName"></span></h2><span class="role-badge" id="profileRoleBadge">Buyer</span></div>
                 <button class="btn-primary" id="logoutBuyerBtn" style="background:#dc2626;">Logout</button>
             </div>
-            <div class="premium-card">
-                <h3>📜 My Orders</h3>
-                <div id="buyerOrdersList"></div>
-            </div>
-            <div class="premium-card">
-                <h3>❤️ My Wishlist</h3>
-                <div id="buyerWishlistList"></div>
-            </div>
+            <div class="premium-card"><h3>📜 My Orders</h3><div id="buyerOrdersList"></div></div>
+            <div class="premium-card"><h3>❤️ My Wishlist</h3><div id="buyerWishlistList"></div></div>
         </div>
     </div>
 
@@ -788,22 +267,13 @@
     <div id="adminSection" class="section">
         <div id="adminPanel" class="premium-card">
             <h2>⚙️ Admin Dashboard</h2>
-            <div id="adminLoginBox">
-                <input type="password" id="adminKey" class="input" placeholder="Enter Admin Key">
-                <button class="btn-primary" id="adminLoginBtn">Login</button>
-            </div>
+            <div id="adminLoginBox"><input type="password" id="adminKey" class="input" placeholder="Enter Admin Key"><button class="btn-primary" id="adminLoginBtn">Login</button></div>
             <div id="adminContent" style="display:none;">
-                <div class="flex-between">
-                    <h3>📋 Sellers (KYC Verification)</h3>
-                    <button id="refreshAdminBtn" style="background:#64748b; padding:8px 16px; border-radius:30px;">Refresh</button>
-                </div>
+                <div class="flex-between"><h3>📋 Sellers (KYC Verification)</h3><button id="refreshAdminBtn" style="background:#64748b; padding:8px 16px; border-radius:30px;">Refresh</button></div>
                 <div id="adminSellersList"></div>
-                <h3>💰 Platform Earnings</h3>
-                <div id="platformEarnings"></div>
-                <h3>💸 Pending Withdrawals</h3>
-                <div id="pendingWithdrawals"></div>
-                <h3>📊 All Orders</h3>
-                <div id="adminOrdersList"></div>
+                <h3>💰 Platform Earnings</h3><div id="platformEarnings"></div>
+                <h3>💸 Pending Withdrawals</h3><div id="pendingWithdrawals"></div>
+                <h3>📊 All Orders</h3><div id="adminOrdersList"></div>
             </div>
         </div>
     </div>
@@ -813,10 +283,7 @@
         <div class="premium-card">
             <h2>🛍️ My Cart</h2>
             <div id="cartItemsList"></div>
-            <div id="cartTotal" class="flex-between" style="margin-top:20px; padding-top:20px; border-top:2px solid #e2e8f0;">
-                <h3>Total:</h3>
-                <h3 id="cartTotalAmount">SAR 0.00</h3>
-            </div>
+            <div id="cartTotal" class="flex-between" style="margin-top:20px; padding-top:20px; border-top:2px solid #e2e8f0;"><h3>Total:</h3><h3 id="cartTotalAmount">SAR 0.00</h3></div>
             <button id="proceedToCheckoutBtn" class="btn-primary" style="margin-top:20px;">Proceed to Checkout</button>
         </div>
     </div>
@@ -842,10 +309,7 @@
                 <input type="text" id="deliveryPostcode" placeholder="Post Code / ZIP *" class="input">
                 <input type="text" id="deliveryStreet" placeholder="Street Address *" class="input">
                 <input type="text" id="deliveryHouseNo" placeholder="House No. (Optional)" class="input">
-                <div class="checkbox-group">
-                    <input type="checkbox" id="saveAddressCheckbox">
-                    <label>Save this address for future</label>
-                </div>
+                <div class="checkbox-group"><input type="checkbox" id="saveAddressCheckbox"> <label>Save this address for future</label></div>
                 <button id="confirmDeliveryBtn" class="btn-primary">Continue to Payment</button>
             </div>
         </div>
@@ -862,10 +326,7 @@
                     <input type="text" id="expiryDate" placeholder="MM/YY *" maxlength="5">
                     <input type="password" id="cvv" placeholder="CVV *" maxlength="4">
                 </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="saveCardCheckbox">
-                    <label>Save card for next time</label>
-                </div>
+                <div class="checkbox-group"><input type="checkbox" id="saveCardCheckbox"> <label>Save card for next time</label></div>
                 <button id="payNowBtn" class="btn-primary">Pay Now</button>
             </div>
             <div id="savedCardsSection" style="margin-top:20px; display:none;">
@@ -893,36 +354,11 @@
     </div>
 </div>
 
-<div id="termsModal" class="modal">
-    <div class="modal-card">
-        <span class="close-modal" onclick="closeTermsModal()">&times;</span>
-        <h2>Terms & Conditions</h2>
-        <p>By using GlobalBazaar, you agree to our terms. You must be 18+ years old.</p>
-        <button class="btn-primary" onclick="closeTermsModal()">Close</button>
-    </div>
-</div>
+<div id="termsModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeTermsModal()">&times;</span><h2>Terms & Conditions</h2><p>By using GlobalBazaar, you agree to our terms. You must be 18+ years old.</p><button class="btn-primary" onclick="closeTermsModal()">Close</button></div></div>
+<div id="sellerAgreementModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSellerAgreementModal()">&times;</span><h2>Seller Agreement</h2><p>Commission: 5% | Gateway Fee: 2.5% | Handling Fee: $2<br>Payments released after delivery confirmation.<br>Weekly withdrawal available (Monday & Friday).</p><button class="btn-primary" onclick="closeSellerAgreementModal()">Close</button></div></div>
+<div id="supportModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSupportModal()">&times;</span><h2>📞 Support</h2><p>Email: support@globalbazaar.com<br>WhatsApp: +966 123 456 789<br>24/7 Customer Support</p><button class="btn-primary" onclick="closeSupportModal()">Close</button></div></div>
 
-<div id="sellerAgreementModal" class="modal">
-    <div class="modal-card">
-        <span class="close-modal" onclick="closeSellerAgreementModal()">&times;</span>
-        <h2>Seller Agreement</h2>
-        <p>Commission: 5% | Gateway Fee: 2.5% | Handling Fee: $2<br>Payments released after delivery confirmation.<br>Weekly withdrawal available (Monday & Friday).</p>
-        <button class="btn-primary" onclick="closeSellerAgreementModal()">Close</button>
-    </div>
-</div>
-
-<div id="supportModal" class="modal">
-    <div class="modal-card">
-        <span class="close-modal" onclick="closeSupportModal()">&times;</span>
-        <h2>📞 Support</h2>
-        <p>Email: support@globalbazaar.com<br>WhatsApp: +966 123 456 789<br>24/7 Customer Support</p>
-        <button class="btn-primary" onclick="closeSupportModal()">Close</button>
-    </div>
-</div>
-
-<div class="footer-legal">
-    © 2026 GlobalBazaar Marketplace | <span class="legal-link" onclick="showTerms()">Terms</span> | <span class="legal-link" onclick="showPrivacy()">Privacy</span> | <span class="legal-link" onclick="showSupport()">Support</span>
-</div>
+<div class="footer-legal">© 2026 GlobalBazaar Marketplace | <span class="legal-link" onclick="showTerms()">Terms</span> | <span class="legal-link" onclick="showPrivacy()">Privacy</span> | <span class="legal-link" onclick="showSupport()">Support</span></div>
 
 <script>
     // ============ FIREBASE CONFIGURATION ============
@@ -1024,7 +460,7 @@
         { code: "+263", name: "Zimbabwe", flag: "🇿🇼" }
     ];
 
-    // 195+ Shipping Countries for Delivery
+    // Shipping Countries for Delivery
     const shippingCountries = [
         "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua", "Argentina", "Armenia", "Australia", "Austria",
         "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan",
@@ -1047,20 +483,12 @@
         "Vatican", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
     ];
 
-    // Initialize country search dropdowns
     function initCountrySearch(inputId, dropdownId, selectId) {
         const input = document.getElementById(inputId);
         const dropdown = document.getElementById(dropdownId);
         const select = document.getElementById(selectId);
         if(!input || !dropdown) return;
-        
-        countryCodes.forEach(c => { 
-            let opt = document.createElement('option'); 
-            opt.value = c.code; 
-            opt.text = `${c.flag} ${c.name} (${c.code})`; 
-            select.appendChild(opt); 
-        });
-        
+        countryCodes.forEach(c => { let opt = document.createElement('option'); opt.value = c.code; opt.text = `${c.flag} ${c.name} (${c.code})`; select.appendChild(opt); });
         function showDropdown() {
             const search = input.value.toLowerCase();
             const filtered = countryCodes.filter(c => c.name.toLowerCase().includes(search) || c.code.includes(search));
@@ -1076,39 +504,19 @@
         }
         input.addEventListener('focus', showDropdown);
         input.addEventListener('input', showDropdown);
-        document.addEventListener('click', (e) => { 
-            if(!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.style.display = 'none'; 
-        });
+        document.addEventListener('click', (e) => { if(!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.style.display = 'none'; });
     }
 
-    // Populate all dropdowns
     initCountrySearch('sellerCountrySearch', 'sellerCountryDropdown', 'sellerCountryCode');
     initCountrySearch('signupCountrySearch', 'signupCountryDropdown', 'signupCountryCode');
     initCountrySearch('deliveryCountrySearch', 'deliveryCountryDropdown', 'deliveryCountryCode');
 
-    // Populate delivery country dropdown
     const deliveryCountrySelect = document.getElementById('deliveryCountry');
-    if(deliveryCountrySelect) {
-        shippingCountries.forEach(country => {
-            let opt = document.createElement('option');
-            opt.value = country;
-            opt.textContent = country;
-            deliveryCountrySelect.appendChild(opt);
-        });
-    }
-
-    // Populate seller country registration dropdown
+    if(deliveryCountrySelect) { shippingCountries.forEach(country => { let opt = document.createElement('option'); opt.value = country; opt.textContent = country; deliveryCountrySelect.appendChild(opt); }); }
     const sellerCountryReg = document.getElementById('sellerCountryReg');
-    if(sellerCountryReg) {
-        shippingCountries.forEach(country => {
-            let opt = document.createElement('option');
-            opt.value = country;
-            opt.textContent = country;
-            sellerCountryReg.appendChild(opt);
-        });
-    }
+    if(sellerCountryReg) { shippingCountries.forEach(country => { let opt = document.createElement('option'); opt.value = country; opt.textContent = country; sellerCountryReg.appendChild(opt); }); }
 
-    // ============ DUMMY PHONE VERIFICATION (OTP: 123456) ============
+    // ============ PHONE VERIFICATION (DUMMY OTP: 123456) ============
     let sellerPhoneVerified = false;
     let signupPhoneVerified = false;
     
@@ -1143,7 +551,6 @@
         }
     }
 
-    // Phone number blur events
     document.getElementById('sellerPhone')?.addEventListener('blur', function() {
         let phone = this.value;
         let countryCode = document.getElementById('sellerCountryCode').value;
@@ -1210,21 +617,7 @@
         return { total: basePrice + commission + gateway + shipping + HANDLING_FEE, basePrice, shipping, commission, gateway };
     }
     
-    // ============ FIREBASE DATA ============
-    let sellers = [];
-    let products = [];
-    let buyers = [];
-    let currentUser = null;
-    let cart = JSON.parse(localStorage.getItem('gb_cart')) || [];
-    let wishlist = JSON.parse(localStorage.getItem('gb_wishlist')) || [];
-    let orders = [];
-    let platformEarnings = 0;
-    let pendingWithdrawals = [];
-    let savedCards = JSON.parse(localStorage.getItem('gb_saved_cards')) || [];
-    let savedAddresses = JSON.parse(localStorage.getItem('gb_saved_addresses')) || [];
-    let sellerRevenueChart = null;
-    
-    // ============ DUMMY PRODUCTS WITH MULTIPLE PHOTOS ============
+    // ============ 3 DUMMY PRODUCTS (3 Different Categories) ============
     const dummyProducts = [
         {
             id: 101, sellerId: 0, sellerName: "GlobalBazaar", name: "Wireless Noise Cancelling Headphones", price: 89.99, 
@@ -1249,29 +642,7 @@
             description: "Soft, breathable 100% combed cotton t-shirt. Available in multiple colors. Perfect for everyday wear."
         },
         {
-            id: 103, sellerId: 0, sellerName: "GlobalBazaar", name: "Smart LED Smartwatch", price: 149.99, 
-            category: "Electronics", sellerCountry: "SA", rating: 4.7,
-            mainImage: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400",
-            images: [
-                "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400",
-                "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=400",
-                "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9?w=400"
-            ],
-            description: "Feature-rich smartwatch with heart rate monitor, GPS, sleep tracking, and 7-day battery life. Compatible with iOS and Android."
-        },
-        {
-            id: 104, sellerId: 0, sellerName: "GlobalBazaar", name: "Women's Silk Scarf", price: 34.99, 
-            category: "Textile", sellerCountry: "SA", rating: 4.6,
-            mainImage: "https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=400",
-            images: [
-                "https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=400",
-                "https://images.unsplash.com/photo-1582418702059-97ebafb35d09?w=400",
-                "https://images.unsplash.com/photo-1596275175352-ec7f1b39bac6?w=400"
-            ],
-            description: "Luxurious 100% silk scarf with elegant floral design. Perfect accessory for any outfit."
-        },
-        {
-            id: 105, sellerId: 0, sellerName: "GlobalBazaar", name: "Matte Lipstick Set (6 Colors)", price: 29.99, 
+            id: 103, sellerId: 0, sellerName: "GlobalBazaar", name: "Matte Lipstick Set (6 Colors)", price: 29.99, 
             category: "Cosmetic", sellerCountry: "SA", rating: 4.9,
             mainImage: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400",
             images: [
@@ -1280,42 +651,23 @@
                 "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400"
             ],
             description: "Long-lasting matte lipstick set with 6 stunning shades. Vitamin E enriched for smooth application."
-        },
-        {
-            id: 106, sellerId: 0, sellerName: "GlobalBazaar", name: "Vitamin C Face Serum", price: 42.99, 
-            category: "Cosmetic", sellerCountry: "SA", rating: 4.8,
-            mainImage: "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=400",
-            images: [
-                "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=400",
-                "https://images.unsplash.com/photo-1570194065650-d99fb4b8ccb0?w=400",
-                "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=400"
-            ],
-            description: "20% Vitamin C face serum with Hyaluronic Acid. Reduces dark spots and brightens skin."
-        },
-        {
-            id: 107, sellerId: 0, sellerName: "GlobalBazaar", name: "Men's Denim Jeans", price: 59.99, 
-            category: "Textile", sellerCountry: "SA", rating: 4.4,
-            mainImage: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400",
-            images: [
-                "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400",
-                "https://images.unsplash.com/photo-1555689502-c4b22d76c56f?w=400",
-                "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=400"
-            ],
-            description: "Classic fit denim jeans with stretch comfort. Durable fabric and stylish design."
-        },
-        {
-            id: 108, sellerId: 0, sellerName: "GlobalBazaar", name: "Portable Bluetooth Speaker", price: 79.99, 
-            category: "Electronics", sellerCountry: "SA", rating: 4.7,
-            mainImage: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400",
-            images: [
-                "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400",
-                "https://images.unsplash.com/photo-1589256469067-ea99122bbd75?w=400",
-                "https://images.unsplash.com/photo-1614149162883-504ce4d13909?w=400"
-            ],
-            description: "Waterproof portable speaker with 20-hour playtime, deep bass, and built-in microphone."
         }
     ];
 
+    // ============ FIREBASE DATA ============
+    let sellers = [];
+    let products = [];
+    let buyers = [];
+    let currentUser = null;
+    let cart = JSON.parse(localStorage.getItem('gb_cart')) || [];
+    let wishlist = JSON.parse(localStorage.getItem('gb_wishlist')) || [];
+    let orders = [];
+    let platformEarnings = 0;
+    let pendingWithdrawals = [];
+    let savedCards = JSON.parse(localStorage.getItem('gb_saved_cards')) || [];
+    let savedAddresses = JSON.parse(localStorage.getItem('gb_saved_addresses')) || [];
+    let sellerRevenueChart = null;
+    
     function loadFromFirebase() {
         database.ref('sellers').on('value', (snapshot) => {
             sellers = snapshot.val() ? Object.values(snapshot.val()) : [];
@@ -1328,7 +680,6 @@
             if(data && Object.keys(data).length > 0) {
                 products = Object.values(data);
             } else {
-                // Add dummy products to Firebase if empty
                 products = dummyProducts;
                 products.forEach(p => database.ref('products/' + p.id).set(p));
             }
@@ -1441,7 +792,6 @@
         document.getElementById('modalPriceBreakdown').innerHTML = `Base: ${getCurrencySymbol()}${convertPrice(p.price)}<br>+ Shipping: ${getCurrencySymbol()}${convertPrice(final.shipping)}<br>+ Fees: ${getCurrencySymbol()}${convertPrice(final.commission+final.gateway+HANDLING_FEE)}`;
         document.getElementById('modalPrice').innerHTML = `<strong>Total: ${getCurrencySymbol()}${convertPrice(final.total)}</strong>`;
         
-        // Add thumbnails to modal
         const thumbContainer = document.getElementById('modalThumbnails');
         if(thumbContainer && p.images && p.images.length > 0) {
             thumbContainer.innerHTML = p.images.map(img => `<img src="${img}" onclick="changeProductImage(${p.id}, '${img}')">`).join('');
@@ -1938,7 +1288,7 @@
     loadProductsFromFirebase();
     updateCartUI();
     
-    console.log("✅ GlobalBazaar with 8 Products (Electronics, Textile, Cosmetic) and Multiple Photos is Ready!");
+    console.log("✅ GlobalBazaar with 3 Products (Electronics, Textile, Cosmetic) and Multiple Photos is Ready!");
 </script>
 </body>
 </html>
