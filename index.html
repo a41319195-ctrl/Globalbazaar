@@ -27,12 +27,16 @@
             gap: 10px;
         }
         
-        .header-items {
+        .header-left {
             display: flex;
             align-items: center;
             gap: 15px;
-            flex-wrap: wrap;
-            width: 100%;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .menu-icon-3d {
@@ -48,7 +52,7 @@
         
         .brand-3d { 
             font-weight: 800; 
-            font-size: 32px; 
+            font-size: 28px; 
             background: linear-gradient(135deg, #1e3a8a, #3b82f6, #06b6d4); 
             -webkit-background-clip: text; 
             background-clip: text; 
@@ -57,7 +61,7 @@
         }
         
         .logo-3d { 
-            font-size: 38px; 
+            font-size: 32px; 
             background: radial-gradient(circle at 35% 35%, #ffdd77, #ffaa33); 
             border-radius: 50%; 
             padding: 5px; 
@@ -66,7 +70,7 @@
         .currency-dropdown {
             background: linear-gradient(145deg, #1e2a4a, #0f172f);
             border: none;
-            padding: 6px 12px;
+            padding: 8px 14px;
             border-radius: 40px;
             color: #FFD966;
             font-size: 13px;
@@ -200,21 +204,24 @@
         .kyc-rejected { background: #fee2e2; color: #dc2626; }
         
         @media (max-width: 600px) {
-            .brand-3d { font-size: 24px; }
-            .logo-3d { font-size: 28px; }
+            .brand-3d { font-size: 18px; }
+            .logo-3d { font-size: 24px; }
             .fixed-cart { padding: 12px 20px; font-size: 14px; bottom: 15px; right: 15px; }
             .currency-dropdown { font-size: 10px; padding: 4px 8px; }
-            .header-items { gap: 8px; }
+            .header-left { gap: 8px; }
+            .header-right { gap: 5px; }
         }
     </style>
 </head>
 <body>
 
 <div class="header-3d">
-    <div class="header-items">
+    <div class="header-left">
         <button class="menu-icon-3d" id="menuBtn">☰</button>
         <div class="brand-3d">GLOBALBAZAAR</div>
         <div class="logo-3d">🌍</div>
+    </div>
+    <div class="header-right">
         <select id="currencySelect" class="currency-dropdown">
             <option value="SAR">🇸🇦 SAR</option>
             <option value="USD">🇺🇸 USD $</option>
@@ -237,11 +244,12 @@
     </div>
 </div>
 
+<!-- Shipping Country Dropdown - All countries including Saudi Arabia -->
 <div style="max-width: 560px; margin: 10px auto 0; padding: 0 16px;">
     <select id="globalCountrySelect" class="country-selector">
         <option value="SA">🇸🇦 Saudi Arabia</option>
-        <option value="IN">🇮🇳 India</option>
         <option value="US">🇺🇸 United States</option>
+        <option value="IN">🇮🇳 India</option>
         <option value="AE">🇦🇪 UAE</option>
         <option value="GB">🇬🇧 United Kingdom</option>
         <option value="CA">🇨🇦 Canada</option>
@@ -284,13 +292,11 @@
     <div class="drawer-header"><h2>GlobalBazaar 🌍</h2><p style="font-size:12px;">Multi‑Seller Hub</p></div>
     <div class="drawer-item" id="drawerSignup">📝 Sign Up</div>
     <div class="drawer-item" id="drawerLogin">🔐 Login</div>
-    <div class="drawer-item" id="drawerAdmin">⚙️ Admin Panel</div>
     <div class="drawer-item" id="drawerProfile">👤 My Profile</div>
     <div class="drawer-item" data-mode="buyer">🛒 Buyer Shopping</div>
     <div class="drawer-item" data-mode="seller">🏪 Seller Dashboard</div>
     <div class="drawer-item" id="drawerWishlist">❤️ My Wishlist</div>
     <div class="drawer-item" id="drawerSupport">📞 Support</div>
-    <div class="drawer-item" id="drawerCountry">🇸🇦 Saudi Arabia</div>
     <div class="drawer-item" id="drawerLogout">🚪 Logout</div>
 </div>
 
@@ -299,7 +305,6 @@
         <button class="mode-btn active" data-tab="buyer">🛒 Buyer</button>
         <button class="mode-btn" data-tab="seller">🏪 Seller</button>
         <button class="mode-btn" data-tab="profile">👤 Profile</button>
-        <button class="mode-btn" data-tab="admin">⚙️ Admin</button>
     </div>
 
     <div id="buyerSection" class="section active">
@@ -320,8 +325,8 @@
                 <div class="phone-group">
                     <select id="sellerCountryCode">
                         <option value="+966">🇸🇦 +966</option>
-                        <option value="+91">🇮🇳 +91</option>
                         <option value="+1">🇺🇸 +1</option>
+                        <option value="+91">🇮🇳 +91</option>
                         <option value="+971">🇦🇪 +971</option>
                         <option value="+44">🇬🇧 +44</option>
                         <option value="+1">🇨🇦 +1</option>
@@ -417,8 +422,8 @@
                 <div class="phone-group">
                     <select id="signupCountryCode">
                         <option value="+966">🇸🇦 +966</option>
-                        <option value="+91">🇮🇳 +91</option>
                         <option value="+1">🇺🇸 +1</option>
+                        <option value="+91">🇮🇳 +91</option>
                         <option value="+971">🇦🇪 +971</option>
                         <option value="+44">🇬🇧 +44</option>
                         <option value="+61">🇦🇺 +61</option>
@@ -450,27 +455,6 @@
             </div>
             <div class="premium-card"><h3>📜 My Orders</h3><div id="buyerOrdersList"></div></div>
             <div class="premium-card"><h3>📄 Refund & Cancellation Policy</h3><p style="font-size:12px; color:#64748b;">Cancellation within 24 hours of order. Refund processed within 7-10 business days after product return verification.</p></div>
-        </div>
-    </div>
-
-    <div id="adminSection" class="section">
-        <div id="adminPanel" class="premium-card">
-            <h2>⚙️ Admin Dashboard</h2>
-            <div id="adminLoginBox"><input type="password" id="adminKey" class="input" placeholder="Enter Admin Key"><button class="btn-primary" id="adminLoginBtn">Login</button></div>
-            <div id="adminContent" style="display:none;">
-                <div class="flex-between"><h3>📋 All Sellers (KYC Verification)</h3><button id="refreshAdminBtn" style="background:#64748b; padding:8px 16px; border-radius:30px; border:none; color:white;">Refresh</button></div>
-                <div id="adminSellersList"></div>
-                <h3>💰 Platform Earnings</h3><div id="platformEarnings"></div>
-                <h3>💸 Pending Withdrawals</h3><div id="pendingWithdrawals"></div>
-                <h3>📊 All Orders</h3><div id="adminOrdersList"></div>
-                <h3>⚙️ Razorpay Settings</h3>
-                <div class="premium-card">
-                    <input type="text" id="razorpayKey" class="input" placeholder="Razorpay Key ID (rzp_test_xxx)" value="rzp_test_YourKey">
-                    <input type="text" id="razorpaySecret" class="input" placeholder="Razorpay Key Secret">
-                    <button id="saveRazorpaySettings" class="btn-primary">Save Settings</button>
-                    <p style="font-size:11px; margin-top:10px;">Get keys from <a href="https://dashboard.razorpay.com/" target="_blank">Razorpay Dashboard</a></p>
-                </div>
-            </div>
         </div>
     </div>
 </div>
@@ -586,7 +570,7 @@
     
     function getShippingCost(sellerCountry, buyerCountry) {
         if(sellerCountry === buyerCountry) return 5;
-        let nearby = ["SA","AE","IN","PK","BD","LK","NP"];
+        let nearby = ["SA","AE","US","IN","PK","BD","LK","NP"];
         return nearby.includes(sellerCountry) && nearby.includes(buyerCountry) ? 12 : 25;
     }
     
@@ -599,7 +583,7 @@
     
     function processRazorpayPayment(amountINR, orderId, buyerEmail, buyerPhone, buyerName, callback) {
         if(!razorpayConfig.key || razorpayConfig.key === "rzp_test_YourKey") {
-            showToast("⚠️ Razorpay not configured! Admin please set Razorpay Key in Admin panel.", true);
+            showToast("⚠️ Razorpay not configured! Please set Razorpay Key.", true);
             callback(false, null);
             return;
         }
@@ -653,13 +637,6 @@
         localStorage.setItem('gb_payouts', JSON.stringify(payouts));
         localStorage.setItem('razorpay_config', JSON.stringify(razorpayConfig));
     }
-    
-    document.getElementById('saveRazorpaySettings')?.addEventListener('click', () => {
-        razorpayConfig.key = document.getElementById('razorpayKey').value;
-        razorpayConfig.secret = document.getElementById('razorpaySecret').value;
-        saveAll();
-        showToast("Razorpay settings saved!", false);
-    });
     
     async function detectLocation() { try { let r = await fetch('https://ipapi.co/json/'); let d = await r.json(); buyerCountry = d.country_code || "SA"; } catch(e) {} renderProducts(); }
     detectLocation();
@@ -956,10 +933,6 @@
         document.getElementById('signupFormDiv').style.display = 'none';
         closeDrawer();
     });
-    document.getElementById('drawerAdmin')?.addEventListener('click', () => {
-        document.querySelector('.mode-btn[data-tab="admin"]').click();
-        closeDrawer();
-    });
     document.getElementById('drawerProfile')?.addEventListener('click', () => {
         document.querySelector('.mode-btn[data-tab="profile"]').click();
         closeDrawer();
@@ -1011,69 +984,6 @@
         document.querySelectorAll('.confirmReceivedBtn').forEach(btn => btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id))));
     }
     
-    let adminLoggedIn = false;
-    document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
-        if(document.getElementById('adminKey').value === 'admin123') {
-            adminLoggedIn = true;
-            document.getElementById('adminLoginBox').style.display = 'none';
-            document.getElementById('adminContent').style.display = 'block';
-            document.getElementById('razorpayKey').value = razorpayConfig.key;
-            document.getElementById('razorpaySecret').value = razorpayConfig.secret;
-            loadAdminData();
-            showToast("Admin logged in", false);
-        } else showToast("Wrong admin key (admin123)", true);
-    });
-    
-    function loadAdminData() {
-        document.getElementById('adminSellersList').innerHTML = sellers.map(s => `<div class="order-card"><strong>${s.shopName}</strong><br>${s.email}<br>📞 ${s.phone}<br>🏦 ${s.bankName} - ${s.accountNo}<br>💰 ${getSym()}${convert(s.earnings || 0)}<br><span class="kyc-status ${s.kycStatus === 'pending' ? 'kyc-pending' : (s.kycStatus === 'verified' ? 'kyc-verified' : 'kyc-rejected')}">KYC: ${s.kycStatus}</span><br>${s.kycStatus === 'pending' ? `<button class="verifyKycBtn" data-id="${s.id}" style="background:#10b981; margin-top:10px; margin-right:10px; padding:6px 12px; border-radius:20px; border:none; color:white;">✅ Verify</button><button class="rejectKycBtn" data-id="${s.id}" style="background:#dc2626; margin-top:10px; padding:6px 12px; border-radius:20px; border:none; color:white;">❌ Reject</button>` : ''}</div>`).join('');
-        
-        document.querySelectorAll('.verifyKycBtn').forEach(btn => btn.addEventListener('click', () => {
-            let seller = sellers.find(s => s.id === parseInt(btn.dataset.id));
-            if(seller) {
-                seller.kycStatus = "verified";
-                seller.verificationDate = new Date().toLocaleString();
-                saveAll();
-                sendEmailNotification(seller.email, "KYC Verified", "Congratulations! Your KYC has been verified. You can now add products and withdraw earnings.");
-                showToast(`${seller.shopName} KYC Verified!`, false);
-                loadAdminData();
-            }
-        }));
-        
-        document.querySelectorAll('.rejectKycBtn').forEach(btn => btn.addEventListener('click', () => {
-            let reason = prompt("Enter rejection reason:");
-            if(reason) {
-                let seller = sellers.find(s => s.id === parseInt(btn.dataset.id));
-                if(seller) {
-                    seller.kycStatus = "rejected";
-                    seller.rejectionReason = reason;
-                    saveAll();
-                    sendEmailNotification(seller.email, "KYC Rejected", `Your KYC has been rejected. Reason: ${reason}. Please re-register with correct documents.`);
-                    showToast(`${seller.shopName} KYC Rejected!`, false);
-                    loadAdminData();
-                }
-            }
-        }));
-        
-        document.getElementById('platformEarnings').innerHTML = `<h2>${getSym()}${convert(platformEarnings)}</h2>`;
-        document.getElementById('pendingWithdrawals').innerHTML = pendingWithdrawals.map(w => `<div class="flex-between order-card"><span>💰 ${getSym()}${convert(w.amount)} - ${w.sellerName}<br>🏦 ${w.bank} - ${w.account}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981; padding:8px 16px; border-radius:30px; border:none; color:white;">Approve & Transfer</button></div>`).join('');
-        document.querySelectorAll('.approveBtn').forEach(btn => btn.addEventListener('click', () => {
-            let w = pendingWithdrawals.find(w=>w.id===parseInt(btn.dataset.id));
-            if(w) {
-                payouts.push({...w, status:"Approved", approvedDate:new Date().toLocaleString()});
-                pendingWithdrawals = pendingWithdrawals.filter(w=>w.id!==parseInt(btn.dataset.id));
-                saveAll();
-                let seller = sellers.find(s=>s.id===w.sellerId);
-                if(seller) {
-                    sendEmailNotification(seller.email, "Withdrawal Approved", `Your withdrawal request of ${getSym()}${convert(w.amount)} has been approved. Amount will be credited to ${seller.bankName} - ${seller.accountNo} within 2-3 business days.`);
-                }
-                loadAdminData();
-                showToast(`Approved ${getSym()}${convert(w.amount)} payout`, false);
-            }
-        }));
-        document.getElementById('adminOrdersList').innerHTML = orders.map(o => `<div class="order-card">🔖 ${o.trackingNumber}<br>${o.productName} x${o.qty} - ${o.buyerName}<br>Status: ${o.status} | Payment ID: ${o.paymentId || 'N/A'}</div>`).join('');
-    }
-    document.getElementById('refreshAdminBtn')?.addEventListener('click', loadAdminData);
-    
     function openDrawer() { document.getElementById('drawer').classList.add('open'); document.getElementById('drawerOverlay').style.display = 'block'; }
     function closeDrawer() { document.getElementById('drawer').classList.remove('open'); document.getElementById('drawerOverlay').style.display = 'none'; }
     document.getElementById('menuBtn').onclick = openDrawer;
@@ -1083,7 +993,6 @@
     document.querySelectorAll('.drawer-item[data-mode]').forEach(el => el.addEventListener('click', () => { document.querySelector(`.mode-btn[data-tab="${el.dataset.mode}"]`).click(); closeDrawer(); }));
     document.getElementById('drawerWishlist')?.addEventListener('click', () => { let wp = products.filter(p=>wishlist.includes(p.id)); alert("Wishlist:\n"+wp.map(p=>p.name).join("\n")); closeDrawer(); });
     document.getElementById('drawerLogout')?.addEventListener('click', () => { currentUser=null; saveAll(); location.reload(); });
-    document.getElementById('drawerCountry')?.addEventListener('click', () => { closeDrawer(); });
     document.getElementById('editAddressBtn')?.addEventListener('click', () => { getAddressLineByLine(); displaySavedAddress(); });
     document.getElementById('closeModalBtn')?.addEventListener('click', () => document.getElementById('productModal').style.display='none');
     document.getElementById('modalAddCartBtn')?.addEventListener('click', () => { if(currentProduct) addToCart(currentProduct.id); document.getElementById('productModal').style.display='none'; });
