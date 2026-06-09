@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>GlobalBazaar - Complete Marketplace with Telegram Bot</title>
+    <title>GlobalBazaar - Complete Marketplace</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -44,7 +44,7 @@
         .brand-3d { font-weight: 800; font-size: 28px; background: linear-gradient(135deg, #1e3a8a, #3b82f6, #06b6d4); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .logo-3d { font-size: 32px; background: radial-gradient(circle at 35% 35%, #ffdd77, #ffaa33); border-radius: 50%; padding: 5px; }
         
-        .currency-dropdown, .language-selector {
+        .currency-dropdown {
             background: linear-gradient(145deg, #1e2a4a, #0f172f);
             border: none;
             padding: 8px 14px;
@@ -54,7 +54,6 @@
             font-weight: bold;
             cursor: pointer;
         }
-        .language-selector { color: white; }
         
         .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); z-index: 200; display: none; }
         .drawer { position: fixed; top: 0; left: -85%; width: 75%; max-width: 280px; height: 100%; background: white; z-index: 201; transition: left 0.3s ease; border-radius: 0 24px 24px 0; padding: 20px 0; overflow-y: auto; }
@@ -64,13 +63,16 @@
         .drawer-item:hover { background: #f1f5f9; }
         
         .container { max-width: 560px; margin: 0 auto; padding: 16px; }
-        .mode-tabs { display: none; }
         .section { display: none; }
         .section.active { display: block; }
         
         .cat-scroll { display: flex; gap: 10px; overflow-x: auto; padding: 8px 0 16px; }
         .cat-pill { background: white; padding: 8px 22px; border-radius: 40px; font-weight: 600; font-size: 14px; border: 1px solid #e2e8f0; cursor: pointer; white-space: nowrap; }
         .cat-pill.active { background: #1e3a8a; color: white; }
+        
+        .search-container { position: relative; margin-bottom: 16px; }
+        .search-container input { width: 100%; padding: 14px 40px 14px 16px; border: 1px solid #e2e8f0; border-radius: 40px; font-size: 14px; }
+        .search-container .search-icon { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
         
         .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
         .product-card { background: white; border-radius: 20px; padding: 12px; cursor: pointer; border: 1px solid #eef2f8; transition: 0.2s; }
@@ -127,9 +129,15 @@
         
         .doc-section { background: #f8fafc; padding: 15px; border-radius: 16px; margin-bottom: 20px; }
         .doc-title { font-weight: 700; margin-bottom: 12px; color: #1e3a8a; }
-        .phone-group { display: flex; gap: 10px; margin-bottom: 14px; }
+        .phone-group { display: flex; gap: 10px; margin-bottom: 14px; position: relative; }
         .phone-group select { width: 35%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; }
         .phone-group input { width: 65%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; margin-bottom: 0; }
+        
+        .country-search-select { position: relative; width: 35%; }
+        .country-search-select input { width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; font-size: 14px; }
+        .country-dropdown-list { position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #e2e8f0; border-radius: 12px; z-index: 1000; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .country-dropdown-list div { padding: 10px 14px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
+        .country-dropdown-list div:hover { background: #f1f5f9; }
         
         .kyc-status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
         .kyc-pending { background: #fef3c7; color: #d97706; }
@@ -149,8 +157,11 @@
             .brand-3d { font-size: 18px; }
             .logo-3d { font-size: 24px; }
             .fixed-cart { padding: 12px 20px; font-size: 14px; bottom: 15px; right: 15px; }
-            .currency-dropdown, .language-selector { font-size: 10px; padding: 4px 8px; }
+            .currency-dropdown { font-size: 10px; padding: 4px 8px; }
             .delivery-form-row { flex-direction: column; gap: 10px; }
+            .phone-group { flex-direction: column; }
+            .country-search-select { width: 100%; }
+            .phone-group select, .phone-group input { width: 100%; }
         }
     </style>
 </head>
@@ -163,14 +174,6 @@
         <div class="logo-3d">🌍</div>
     </div>
     <div class="header-right">
-        <select id="languageSelect" class="language-selector">
-            <option value="en">🇬🇧 English</option>
-            <option value="hi">🇮🇳 हिन्दी</option>
-            <option value="ur">🇵🇰 اردو</option>
-            <option value="ar">🇸🇦 العربية</option>
-            <option value="fr">🇫🇷 Français</option>
-            <option value="es">🇪🇸 Español</option>
-        </select>
         <select id="currencySelect" class="currency-dropdown">
             <option value="SAR">🇸🇦 SAR</option>
             <option value="USD">🇺🇸 USD $</option>
@@ -178,8 +181,17 @@
             <option value="GBP">🇬🇧 GBP £</option>
             <option value="INR">🇮🇳 INR ₹</option>
             <option value="PKR">🇵🇰 PKR ₨</option>
+            <option value="NPR">🇳🇵 NPR रू</option>
+            <option value="BDT">🇧🇩 BDT ৳</option>
+            <option value="LKR">🇱🇰 LKR Rs</option>
             <option value="AED">🇦🇪 AED د.إ</option>
             <option value="CAD">🇨🇦 CAD $</option>
+            <option value="AUD">🇦🇺 AUD $</option>
+            <option value="SGD">🇸🇬 SGD $</option>
+            <option value="MYR">🇲🇾 MYR RM</option>
+            <option value="THB">🇹🇭 THB ฿</option>
+            <option value="JPY">🇯🇵 JPY ¥</option>
+            <option value="CNY">🇨🇳 CNY ¥</option>
         </select>
     </div>
 </div>
@@ -187,28 +199,30 @@
 <div class="drawer-overlay" id="drawerOverlay"></div>
 <div class="drawer" id="drawer">
     <div class="drawer-header"><h2>GlobalBazaar 🌍</h2><p style="font-size:12px;">Multi‑Seller Hub</p></div>
-    <div class="drawer-item" id="drawerCountrySection">🌍 Select Country</div>
     <div class="drawer-item" id="drawerBuyer">🛒 Buyer Shopping</div>
     <div class="drawer-item" id="drawerSeller">🏪 Seller Dashboard</div>
     <div class="drawer-item" id="drawerProfile">👤 My Profile</div>
     <div class="drawer-item" id="drawerAdmin">⚙️ Admin Panel</div>
     <div class="drawer-item" id="drawerCartPage">🛍️ My Cart</div>
+    <div class="drawer-item" id="drawerWishlist">❤️ Wishlist</div>
     <div class="drawer-item" id="drawerSignup">📝 Sign Up</div>
     <div class="drawer-item" id="drawerLogin">🔐 Login</div>
-    <div class="drawer-item" id="drawerWishlist">❤️ My Wishlist</div>
     <div class="drawer-item" id="drawerSupport">📞 Support</div>
     <div class="drawer-item" id="drawerLogout">🚪 Logout</div>
 </div>
 
 <div class="container">
-    <!-- Buyer Section -->
+    <!-- BUYER SECTION - CLEAN DASHBOARD -->
     <div id="buyerSection" class="section active">
         <div class="cat-scroll" id="catList"></div>
-        <input type="text" id="searchInput" class="input" placeholder="🔍 Search products...">
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="🔍 Search products...">
+            <span class="search-icon">🔍</span>
+        </div>
         <div class="product-grid" id="productsGrid"></div>
     </div>
 
-    <!-- Seller Section -->
+    <!-- SELLER SECTION -->
     <div id="sellerSection" class="section">
         <div id="sellerRegisterBox" class="premium-card">
             <h2>🏪 Open Your Shop</h2>
@@ -218,11 +232,11 @@
                 <input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required>
                 <input type="email" id="sellerEmail" placeholder="Email" class="input" required>
                 <div class="phone-group">
-                    <select id="sellerCountryCode">
-                        <option value="+966">🇸🇦 +966</option><option value="+1">🇺🇸 +1</option><option value="+91">🇮🇳 +91</option>
-                        <option value="+971">🇦🇪 +971</option><option value="+44">🇬🇧 +44</option><option value="+61">🇦🇺 +61</option>
-                        <option value="+81">🇯🇵 +81</option><option value="+86">🇨🇳 +86</option><option value="+49">🇩🇪 +49</option>
-                    </select>
+                    <div class="country-search-select" id="sellerCountrySearchContainer">
+                        <input type="text" id="sellerCountrySearch" placeholder="🔍 Search country..." autocomplete="off">
+                        <div class="country-dropdown-list" id="sellerCountryDropdown"></div>
+                        <select id="sellerCountryCode" style="display:none;"></select>
+                    </div>
                     <input type="tel" id="sellerPhone" placeholder="Phone Number" class="input" required>
                 </div>
                 <input type="password" id="sellerPassword" placeholder="Password" class="input" required>
@@ -242,32 +256,36 @@
                     <option value="BD">Bangladesh</option><option value="LK">Sri Lanka</option><option value="NP">Nepal</option>
                 </select>
                 <div class="doc-section">
-                    <div class="doc-title">🌍 International KYC Documents</div>
-                    <select id="sellerDocType" class="input"><option value="passport">📘 Passport</option><option value="national_id">🆔 National ID Card</option><option value="driving_license">🚗 Driving License</option></select>
+                    <div class="doc-title">🌍 KYC Documents</div>
+                    <select id="sellerDocType" class="input">
+                        <option value="passport">📘 Passport</option>
+                        <option value="national_id">🆔 National ID Card</option>
+                        <option value="driving_license">🚗 Driving License</option>
+                        <option value="residence_permit">📄 Residence Permit</option>
+                    </select>
                     <input type="text" id="sellerDocNumber" placeholder="Document Number" class="input">
                     <input type="file" id="sellerDocImage" accept="image/*,application/pdf" class="input">
                 </div>
-                <h4>🏦 Bank Account</h4>
+                <h4>🏦 Bank Account Details</h4>
                 <input type="text" id="sellerBank" placeholder="Bank Name" class="input" required>
                 <input type="text" id="sellerAccountNo" placeholder="Account Number" class="input" required>
                 <input type="text" id="sellerIfsc" placeholder="IFSC / SWIFT Code" class="input" required>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="sellerAgreement" required>
-                    <label>I agree to the <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label>
-                </div>
+                <input type="text" id="sellerAccountHolder" placeholder="Account Holder Full Name" class="input" required>
+                <div class="checkbox-group"><input type="checkbox" id="sellerAgreement" required><label>I agree to <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label></div>
                 <button type="submit" class="btn-primary">✅ Register Shop</button>
             </form>
         </div>
         <div id="sellerDashboard" style="display:none;"></div>
     </div>
 
-    <!-- Profile Section -->
+    <!-- PROFILE SECTION -->
     <div id="profileSection" class="section">
         <div id="profileAuthBox" class="premium-card">
             <div id="loginFormDiv">
                 <input type="email" id="loginEmail" placeholder="Email" class="input">
                 <input type="password" id="loginPass" placeholder="Password" class="input">
                 <button class="btn-primary" id="doLoginBtn">Login</button>
+                <p style="text-align:center; margin-top:10px;"><span class="legal-link" onclick="showSignup()">Create new account</span></p>
             </div>
             <div id="signupFormDiv" style="display:none;">
                 <input type="text" id="signupName" placeholder="Full Name" class="input">
@@ -275,13 +293,18 @@
                 <select id="signupRole" class="input"><option value="buyer">Buyer</option><option value="seller">Seller</option></select>
                 <input type="email" id="signupEmail" placeholder="Email" class="input">
                 <div class="phone-group">
-                    <select id="signupCountryCode"><option value="+966">🇸🇦 +966</option><option value="+1">🇺🇸 +1</option><option value="+91">🇮🇳 +91</option></select>
-                    <input type="tel" id="signupPhone" placeholder="Phone" class="input">
+                    <div class="country-search-select" id="signupCountrySearchContainer">
+                        <input type="text" id="signupCountrySearch" placeholder="🔍 Search country..." autocomplete="off">
+                        <div class="country-dropdown-list" id="signupCountryDropdown"></div>
+                        <select id="signupCountryCode" style="display:none;"></select>
+                    </div>
+                    <input type="tel" id="signupPhone" placeholder="Phone Number" class="input">
                 </div>
                 <input type="password" id="signupPass" placeholder="Password" class="input">
-                <div class="checkbox-group"><input type="checkbox" id="termsCheckbox" required><label>Accept <span class="legal-link" onclick="showTerms()">Terms</span></label></div>
-                <div class="checkbox-group"><input type="checkbox" id="ageCheckbox" required><label>I am 18+</label></div>
+                <div class="checkbox-group"><input type="checkbox" id="termsCheckbox" required><label>Accept <span class="legal-link" onclick="showTerms()">Terms & Conditions</span></label></div>
+                <div class="checkbox-group"><input type="checkbox" id="ageCheckbox" required><label>I am 18 years or older</label></div>
                 <button class="btn-primary" id="doSignupBtn">Create Account</button>
+                <p style="text-align:center; margin-top:10px;"><span class="legal-link" onclick="showLogin()">Already have an account? Login</span></p>
             </div>
         </div>
         <div id="buyerProfilePanel" style="display:none;">
@@ -290,74 +313,82 @@
                 <button class="btn-primary" id="logoutBuyerBtn" style="background:#dc2626;">Logout</button>
             </div>
             <div class="premium-card"><h3>📜 My Orders</h3><div id="buyerOrdersList"></div></div>
+            <div class="premium-card"><h3>❤️ My Wishlist</h3><div id="buyerWishlistList"></div></div>
         </div>
     </div>
 
-    <!-- Admin Section -->
+    <!-- ADMIN SECTION -->
     <div id="adminSection" class="section">
         <div id="adminPanel" class="premium-card">
             <h2>⚙️ Admin Dashboard</h2>
-            <div id="adminLoginBox"><input type="password" id="adminKey" class="input" placeholder="Admin Key"><button class="btn-primary" id="adminLoginBtn">Login</button></div>
+            <div id="adminLoginBox"><input type="password" id="adminKey" class="input" placeholder="Enter Admin Key"><button class="btn-primary" id="adminLoginBtn">Login</button></div>
             <div id="adminContent" style="display:none;">
-                <div class="flex-between"><h3>📋 Sellers (KYC)</h3><button id="refreshAdminBtn">Refresh</button></div>
+                <div class="flex-between"><h3>📋 Sellers (KYC Verification)</h3><button id="refreshAdminBtn" style="background:#64748b; padding:8px 16px; border-radius:30px;">Refresh</button></div>
                 <div id="adminSellersList"></div>
                 <h3>💰 Platform Earnings</h3><div id="platformEarnings"></div>
                 <h3>💸 Pending Withdrawals</h3><div id="pendingWithdrawals"></div>
-                <h3>📊 Orders</h3><div id="adminOrdersList"></div>
+                <h3>📊 All Orders</h3><div id="adminOrdersList"></div>
             </div>
         </div>
     </div>
 
-    <!-- Cart Page Section -->
+    <!-- CART PAGE -->
     <div id="cartPageSection" class="section">
         <div class="premium-card">
             <h2>🛍️ My Cart</h2>
             <div id="cartItemsList"></div>
-            <div id="cartTotal" class="flex-between" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e2e8f0;"><h3>Total:</h3><h3 id="cartTotalAmount">SAR 0.00</h3></div>
-            <button id="proceedToDeliveryBtn" class="btn-primary" style="margin-top: 20px;">Proceed to Delivery</button>
+            <div id="cartTotal" class="flex-between" style="margin-top:20px; padding-top:20px; border-top:2px solid #e2e8f0;"><h3>Total:</h3><h3 id="cartTotalAmount">SAR 0.00</h3></div>
+            <button id="proceedToCheckoutBtn" class="btn-primary" style="margin-top:20px;">Proceed to Checkout</button>
         </div>
     </div>
 
-    <!-- Delivery Details Section -->
-    <div id="deliverySection" class="section">
+    <!-- CHECKOUT - DELIVERY DETAILS -->
+    <div id="checkoutSection" class="section">
         <div class="premium-card">
             <h2>📦 Delivery Details</h2>
             <div id="deliveryForm">
-                <input type="text" id="deliveryFullName" placeholder="Receiver Full Name *" class="input" required>
+                <input type="text" id="deliveryFullName" placeholder="Receiver Full Name *" class="input">
                 <div class="phone-group">
-                    <select id="deliveryCountryCode"><option value="+966">🇸🇦 +966</option><option value="+1">🇺🇸 +1</option><option value="+91">🇮🇳 +91</option></select>
-                    <input type="tel" id="deliveryPhone" placeholder="Phone Number *" class="input" required>
+                    <div class="country-search-select" id="deliveryCountrySearchContainer">
+                        <input type="text" id="deliveryCountrySearch" placeholder="🔍 Search country..." autocomplete="off">
+                        <div class="country-dropdown-list" id="deliveryCountryDropdown"></div>
+                        <select id="deliveryCountryCode" style="display:none;"></select>
+                    </div>
+                    <input type="tel" id="deliveryPhone" placeholder="Phone Number *" class="input">
                 </div>
                 <select id="deliveryCountry" class="input" required>
                     <option value="">Select Country *</option>
-                    <option value="SA">Saudi Arabia</option><option value="US">United States</option><option value="IN">India</option>
-                    <option value="AE">UAE</option><option value="GB">United Kingdom</option><option value="CA">Canada</option>
+                    <option value="SA">🇸🇦 Saudi Arabia</option><option value="US">🇺🇸 United States</option><option value="IN">🇮🇳 India</option>
+                    <option value="AE">🇦🇪 UAE</option><option value="GB">🇬🇧 United Kingdom</option><option value="CA">🇨🇦 Canada</option>
+                    <option value="AU">🇦🇺 Australia</option><option value="DE">🇩🇪 Germany</option><option value="FR">🇫🇷 France</option>
+                    <option value="JP">🇯🇵 Japan</option><option value="CN">🇨🇳 China</option><option value="PK">🇵🇰 Pakistan</option>
+                    <option value="BD">🇧🇩 Bangladesh</option><option value="LK">🇱🇰 Sri Lanka</option><option value="NP">🇳🇵 Nepal</option>
                 </select>
-                <input type="text" id="deliveryCity" placeholder="City *" class="input" required>
-                <input type="text" id="deliveryPostcode" placeholder="Post Code / ZIP *" class="input" required>
-                <input type="text" id="deliveryStreet" placeholder="Street Address *" class="input" required>
+                <input type="text" id="deliveryCity" placeholder="City *" class="input">
+                <input type="text" id="deliveryPostcode" placeholder="Post Code / ZIP *" class="input">
+                <input type="text" id="deliveryStreet" placeholder="Street Address *" class="input">
                 <input type="text" id="deliveryHouseNo" placeholder="House No. (Optional)" class="input">
                 <div class="checkbox-group"><input type="checkbox" id="saveAddressCheckbox"> <label>Save this address for future</label></div>
-                <button id="confirmDeliveryBtn" class="btn-primary">Confirm & Proceed to Payment</button>
+                <button id="confirmDeliveryBtn" class="btn-primary">Continue to Payment</button>
             </div>
         </div>
     </div>
 
-    <!-- Payment Section -->
+    <!-- PAYMENT SECTION -->
     <div id="paymentSection" class="section">
         <div class="premium-card">
             <h2>💳 Payment Details</h2>
             <div id="paymentForm">
-                <input type="text" id="cardNumber" placeholder="Card Number *" class="input" maxlength="19" required>
-                <input type="text" id="cardHolderName" placeholder="Card Holder Name *" class="input" required>
+                <input type="text" id="cardNumber" placeholder="Card Number *" class="input" maxlength="19">
+                <input type="text" id="cardHolderName" placeholder="Card Holder Name *" class="input">
                 <div class="delivery-form-row">
-                    <input type="text" id="expiryDate" placeholder="MM/YY *" class="input" maxlength="5" required>
-                    <input type="password" id="cvv" placeholder="CVV *" class="input" maxlength="4" required>
+                    <input type="text" id="expiryDate" placeholder="MM/YY *" maxlength="5">
+                    <input type="password" id="cvv" placeholder="CVV *" maxlength="4">
                 </div>
                 <div class="checkbox-group"><input type="checkbox" id="saveCardCheckbox"> <label>Save card for next time</label></div>
                 <button id="payNowBtn" class="btn-primary">Pay Now</button>
             </div>
-            <div id="savedCardsSection" style="margin-top: 20px; display: none;">
+            <div id="savedCardsSection" style="margin-top:20px; display:none;">
                 <h4>💳 Saved Cards</h4>
                 <div id="savedCardsList"></div>
             </div>
@@ -368,78 +399,177 @@
 <button class="fixed-cart" id="cartFloatBtn">🛒 Cart <span class="cart-badge" id="cartCountBadge">0</span></button>
 
 <div class="toast" id="toast"></div>
-<div id="productModal" class="modal"><div class="modal-card"><span class="close-modal" id="closeModalBtn">&times;</span><img id="modalImg" style="width:100%; border-radius:16px;"><h2 id="modalTitle"></h2><p id="modalDesc"></p><h3 id="modalPrice"></h3><button class="btn-primary" id="modalAddCartBtn">Add to Cart</button></div></div>
-<div id="termsModal" class="modal"><div class="modal-card"><h2>Terms</h2><p>You must be 18+ to use this platform.</p><button onclick="closeTermsModal()">Close</button></div></div>
-<div id="supportModal" class="modal"><div class="modal-card"><h2>Support</h2><p>Email: support@globalbazaar.com</p><button onclick="closeSupportModal()">Close</button></div></div>
+<div id="productModal" class="modal"><div class="modal-card"><span class="close-modal" id="closeModalBtn">&times;</span><img id="modalImg" style="width:100%; border-radius:16px;"><h2 id="modalTitle"></h2><p id="modalDesc"></p><div id="modalPriceBreakdown" style="font-size:12px; color:#64748b; margin:10px 0;"></div><h3 id="modalPrice"></h3><button class="btn-primary" id="modalAddCartBtn">Add to Cart</button><button class="btn-primary" id="modalAddWishBtn" style="background:#64748b; margin-top:10px;">❤️ Wishlist</button></div></div>
+<div id="termsModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeTermsModal()">&times;</span><h2>Terms & Conditions</h2><p>By using GlobalBazaar, you agree to our terms. You must be 18+ years old.</p><button class="btn-primary" onclick="closeTermsModal()">Close</button></div></div>
+<div id="sellerAgreementModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSellerAgreementModal()">&times;</span><h2>Seller Agreement</h2><p>Commission: 5% | Gateway Fee: 2.5% | Handling Fee: $2<br>Payments released after delivery confirmation.<br>Weekly withdrawal available (Monday & Friday).</p><button class="btn-primary" onclick="closeSellerAgreementModal()">Close</button></div></div>
+<div id="supportModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSupportModal()">&times;</span><h2>📞 Support</h2><p>Email: support@globalbazaar.com<br>WhatsApp: +966 123 456 789<br>24/7 Customer Support</p><button class="btn-primary" onclick="closeSupportModal()">Close</button></div></div>
 
-<div class="footer-legal">© 2026 GlobalBazaar | <span class="legal-link" onclick="showTerms()">Terms</span> | <span class="legal-link" onclick="showSupport()">Support</span></div>
+<div class="footer-legal">© 2026 GlobalBazaar Marketplace | <span class="legal-link" onclick="showTerms()">Terms</span> | <span class="legal-link" onclick="showPrivacy()">Privacy</span> | <span class="legal-link" onclick="showSupport()">Support</span></div>
 
 <script>
     // ============ TELEGRAM BOT CONFIGURATION ============
     const TELEGRAM_BOT_TOKEN = "8328824652:AAE-b4o6DaFDa9WPtZfrOfM7SYGU9gUa9HQ";
     const TELEGRAM_CHAT_ID = "7111653640";
     
-    // ============ TELEGRAM MESSAGE FUNCTION ============
     async function sendTelegramMessage(message) {
         try {
             const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: TELEGRAM_CHAT_ID,
-                    text: message,
-                    parse_mode: 'HTML'
-                })
+                body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: 'HTML' })
             });
             const result = await response.json();
-            if (result.ok) {
-                console.log("✅ Telegram message sent!");
-                return true;
-            } else {
-                console.log("❌ Telegram error:", result);
-                return false;
-            }
-        } catch (error) {
-            console.log("❌ Telegram send error:", error);
-            return false;
-        }
+            if (result.ok) console.log("✅ Telegram sent!");
+            return result.ok;
+        } catch(e) { console.log("Telegram error:", e); return false; }
     }
+
+    // ============ COUNTRY CODES DATA (195+ Countries) ============
+    const countryCodes = [
+        { code: "+93", name: "Afghanistan", flag: "🇦🇫" }, { code: "+355", name: "Albania", flag: "🇦🇱" }, { code: "+213", name: "Algeria", flag: "🇩🇿" },
+        { code: "+376", name: "Andorra", flag: "🇦🇩" }, { code: "+244", name: "Angola", flag: "🇦🇴" }, { code: "+1", name: "Antigua", flag: "🇦🇬" },
+        { code: "+54", name: "Argentina", flag: "🇦🇷" }, { code: "+374", name: "Armenia", flag: "🇦🇲" }, { code: "+61", name: "Australia", flag: "🇦🇺" },
+        { code: "+43", name: "Austria", flag: "🇦🇹" }, { code: "+994", name: "Azerbaijan", flag: "🇦🇿" }, { code: "+1", name: "Bahamas", flag: "🇧🇸" },
+        { code: "+973", name: "Bahrain", flag: "🇧🇭" }, { code: "+880", name: "Bangladesh", flag: "🇧🇩" }, { code: "+1", name: "Barbados", flag: "🇧🇧" },
+        { code: "+375", name: "Belarus", flag: "🇧🇾" }, { code: "+32", name: "Belgium", flag: "🇧🇪" }, { code: "+501", name: "Belize", flag: "🇧🇿" },
+        { code: "+229", name: "Benin", flag: "🇧🇯" }, { code: "+975", name: "Bhutan", flag: "🇧🇹" }, { code: "+591", name: "Bolivia", flag: "🇧🇴" },
+        { code: "+387", name: "Bosnia", flag: "🇧🇦" }, { code: "+267", name: "Botswana", flag: "🇧🇼" }, { code: "+55", name: "Brazil", flag: "🇧🇷" },
+        { code: "+673", name: "Brunei", flag: "🇧🇳" }, { code: "+359", name: "Bulgaria", flag: "🇧🇬" }, { code: "+226", name: "Burkina Faso", flag: "🇧🇫" },
+        { code: "+257", name: "Burundi", flag: "🇧🇮" }, { code: "+855", name: "Cambodia", flag: "🇰🇭" }, { code: "+237", name: "Cameroon", flag: "🇨🇲" },
+        { code: "+1", name: "Canada", flag: "🇨🇦" }, { code: "+238", name: "Cape Verde", flag: "🇨🇻" }, { code: "+236", name: "CAR", flag: "🇨🇫" },
+        { code: "+235", name: "Chad", flag: "🇹🇩" }, { code: "+56", name: "Chile", flag: "🇨🇱" }, { code: "+86", name: "China", flag: "🇨🇳" },
+        { code: "+57", name: "Colombia", flag: "🇨🇴" }, { code: "+269", name: "Comoros", flag: "🇰🇲" }, { code: "+242", name: "Congo", flag: "🇨🇬" },
+        { code: "+243", name: "Congo DR", flag: "🇨🇩" }, { code: "+506", name: "Costa Rica", flag: "🇨🇷" }, { code: "+385", name: "Croatia", flag: "🇭🇷" },
+        { code: "+53", name: "Cuba", flag: "🇨🇺" }, { code: "+357", name: "Cyprus", flag: "🇨🇾" }, { code: "+420", name: "Czechia", flag: "🇨🇿" },
+        { code: "+45", name: "Denmark", flag: "🇩🇰" }, { code: "+253", name: "Djibouti", flag: "🇩🇯" }, { code: "+1", name: "Dominica", flag: "🇩🇲" },
+        { code: "+1", name: "Dominican Rep", flag: "🇩🇴" }, { code: "+593", name: "Ecuador", flag: "🇪🇨" }, { code: "+20", name: "Egypt", flag: "🇪🇬" },
+        { code: "+503", name: "El Salvador", flag: "🇸🇻" }, { code: "+240", name: "Eq Guinea", flag: "🇬🇶" }, { code: "+291", name: "Eritrea", flag: "🇪🇷" },
+        { code: "+372", name: "Estonia", flag: "🇪🇪" }, { code: "+251", name: "Ethiopia", flag: "🇪🇹" }, { code: "+679", name: "Fiji", flag: "🇫🇯" },
+        { code: "+358", name: "Finland", flag: "🇫🇮" }, { code: "+33", name: "France", flag: "🇫🇷" }, { code: "+241", name: "Gabon", flag: "🇬🇦" },
+        { code: "+220", name: "Gambia", flag: "🇬🇲" }, { code: "+995", name: "Georgia", flag: "🇬🇪" }, { code: "+49", name: "Germany", flag: "🇩🇪" },
+        { code: "+233", name: "Ghana", flag: "🇬🇭" }, { code: "+30", name: "Greece", flag: "🇬🇷" }, { code: "+1", name: "Grenada", flag: "🇬🇩" },
+        { code: "+502", name: "Guatemala", flag: "🇬🇹" }, { code: "+224", name: "Guinea", flag: "🇬🇳" }, { code: "+245", name: "Guinea-Bissau", flag: "🇬🇼" },
+        { code: "+592", name: "Guyana", flag: "🇬🇾" }, { code: "+509", name: "Haiti", flag: "🇭🇹" }, { code: "+504", name: "Honduras", flag: "🇭🇳" },
+        { code: "+36", name: "Hungary", flag: "🇭🇺" }, { code: "+354", name: "Iceland", flag: "🇮🇸" }, { code: "+91", name: "India", flag: "🇮🇳" },
+        { code: "+62", name: "Indonesia", flag: "🇮🇩" }, { code: "+98", name: "Iran", flag: "🇮🇷" }, { code: "+964", name: "Iraq", flag: "🇮🇶" },
+        { code: "+353", name: "Ireland", flag: "🇮🇪" }, { code: "+972", name: "Israel", flag: "🇮🇱" }, { code: "+39", name: "Italy", flag: "🇮🇹" },
+        { code: "+1", name: "Jamaica", flag: "🇯🇲" }, { code: "+81", name: "Japan", flag: "🇯🇵" }, { code: "+962", name: "Jordan", flag: "🇯🇴" },
+        { code: "+7", name: "Kazakhstan", flag: "🇰🇿" }, { code: "+254", name: "Kenya", flag: "🇰🇪" }, { code: "+686", name: "Kiribati", flag: "🇰🇮" },
+        { code: "+850", name: "North Korea", flag: "🇰🇵" }, { code: "+82", name: "South Korea", flag: "🇰🇷" }, { code: "+383", name: "Kosovo", flag: "🇽🇰" },
+        { code: "+965", name: "Kuwait", flag: "🇰🇼" }, { code: "+996", name: "Kyrgyzstan", flag: "🇰🇬" }, { code: "+856", name: "Laos", flag: "🇱🇦" },
+        { code: "+371", name: "Latvia", flag: "🇱🇻" }, { code: "+961", name: "Lebanon", flag: "🇱🇧" }, { code: "+266", name: "Lesotho", flag: "🇱🇸" },
+        { code: "+231", name: "Liberia", flag: "🇱🇷" }, { code: "+218", name: "Libya", flag: "🇱🇾" }, { code: "+423", name: "Liechtenstein", flag: "🇱🇮" },
+        { code: "+370", name: "Lithuania", flag: "🇱🇹" }, { code: "+352", name: "Luxembourg", flag: "🇱🇺" }, { code: "+261", name: "Madagascar", flag: "🇲🇬" },
+        { code: "+265", name: "Malawi", flag: "🇲🇼" }, { code: "+60", name: "Malaysia", flag: "🇲🇾" }, { code: "+960", name: "Maldives", flag: "🇲🇻" },
+        { code: "+223", name: "Mali", flag: "🇲🇱" }, { code: "+356", name: "Malta", flag: "🇲🇹" }, { code: "+692", name: "Marshall Is", flag: "🇲🇭" },
+        { code: "+222", name: "Mauritania", flag: "🇲🇷" }, { code: "+230", name: "Mauritius", flag: "🇲🇺" }, { code: "+52", name: "Mexico", flag: "🇲🇽" },
+        { code: "+691", name: "Micronesia", flag: "🇫🇲" }, { code: "+373", name: "Moldova", flag: "🇲🇩" }, { code: "+377", name: "Monaco", flag: "🇲🇨" },
+        { code: "+976", name: "Mongolia", flag: "🇲🇳" }, { code: "+382", name: "Montenegro", flag: "🇲🇪" }, { code: "+212", name: "Morocco", flag: "🇲🇦" },
+        { code: "+258", name: "Mozambique", flag: "🇲🇿" }, { code: "+95", name: "Myanmar", flag: "🇲🇲" }, { code: "+264", name: "Namibia", flag: "🇳🇦" },
+        { code: "+674", name: "Nauru", flag: "🇳🇷" }, { code: "+977", name: "Nepal", flag: "🇳🇵" }, { code: "+31", name: "Netherlands", flag: "🇳🇱" },
+        { code: "+64", name: "New Zealand", flag: "🇳🇿" }, { code: "+505", name: "Nicaragua", flag: "🇳🇮" }, { code: "+227", name: "Niger", flag: "🇳🇪" },
+        { code: "+234", name: "Nigeria", flag: "🇳🇬" }, { code: "+389", name: "North Macedonia", flag: "🇲🇰" }, { code: "+47", name: "Norway", flag: "🇳🇴" },
+        { code: "+968", name: "Oman", flag: "🇴🇲" }, { code: "+92", name: "Pakistan", flag: "🇵🇰" }, { code: "+680", name: "Palau", flag: "🇵🇼" },
+        { code: "+970", name: "Palestine", flag: "🇵🇸" }, { code: "+507", name: "Panama", flag: "🇵🇦" }, { code: "+675", name: "PNG", flag: "🇵🇬" },
+        { code: "+595", name: "Paraguay", flag: "🇵🇾" }, { code: "+51", name: "Peru", flag: "🇵🇪" }, { code: "+63", name: "Philippines", flag: "🇵🇭" },
+        { code: "+48", name: "Poland", flag: "🇵🇱" }, { code: "+351", name: "Portugal", flag: "🇵🇹" }, { code: "+1", name: "Puerto Rico", flag: "🇵🇷" },
+        { code: "+974", name: "Qatar", flag: "🇶🇦" }, { code: "+40", name: "Romania", flag: "🇷🇴" }, { code: "+7", name: "Russia", flag: "🇷🇺" },
+        { code: "+250", name: "Rwanda", flag: "🇷🇼" }, { code: "+1", name: "St Kitts", flag: "🇰🇳" }, { code: "+1", name: "St Lucia", flag: "🇱🇨" },
+        { code: "+1", name: "St Vincent", flag: "🇻🇨" }, { code: "+685", name: "Samoa", flag: "🇼🇸" }, { code: "+378", name: "San Marino", flag: "🇸🇲" },
+        { code: "+239", name: "Sao Tome", flag: "🇸🇹" }, { code: "+966", name: "Saudi Arabia", flag: "🇸🇦" }, { code: "+221", name: "Senegal", flag: "🇸🇳" },
+        { code: "+381", name: "Serbia", flag: "🇷🇸" }, { code: "+248", name: "Seychelles", flag: "🇸🇨" }, { code: "+232", name: "Sierra Leone", flag: "🇸🇱" },
+        { code: "+65", name: "Singapore", flag: "🇸🇬" }, { code: "+421", name: "Slovakia", flag: "🇸🇰" }, { code: "+386", name: "Slovenia", flag: "🇸🇮" },
+        { code: "+677", name: "Solomon Is", flag: "🇸🇧" }, { code: "+252", name: "Somalia", flag: "🇸🇴" }, { code: "+27", name: "South Africa", flag: "🇿🇦" },
+        { code: "+211", name: "South Sudan", flag: "🇸🇸" }, { code: "+34", name: "Spain", flag: "🇪🇸" }, { code: "+94", name: "Sri Lanka", flag: "🇱🇰" },
+        { code: "+249", name: "Sudan", flag: "🇸🇩" }, { code: "+597", name: "Suriname", flag: "🇸🇷" }, { code: "+46", name: "Sweden", flag: "🇸🇪" },
+        { code: "+41", name: "Switzerland", flag: "🇨🇭" }, { code: "+963", name: "Syria", flag: "🇸🇾" }, { code: "+886", name: "Taiwan", flag: "🇹🇼" },
+        { code: "+992", name: "Tajikistan", flag: "🇹🇯" }, { code: "+255", name: "Tanzania", flag: "🇹🇿" }, { code: "+66", name: "Thailand", flag: "🇹🇭" },
+        { code: "+670", name: "Timor-Leste", flag: "🇹🇱" }, { code: "+228", name: "Togo", flag: "🇹🇬" }, { code: "+676", name: "Tonga", flag: "🇹🇴" },
+        { code: "+1", name: "Trinidad", flag: "🇹🇹" }, { code: "+216", name: "Tunisia", flag: "🇹🇳" }, { code: "+90", name: "Turkey", flag: "🇹🇷" },
+        { code: "+993", name: "Turkmenistan", flag: "🇹🇲" }, { code: "+688", name: "Tuvalu", flag: "🇹🇻" }, { code: "+256", name: "Uganda", flag: "🇺🇬" },
+        { code: "+380", name: "Ukraine", flag: "🇺🇦" }, { code: "+971", name: "UAE", flag: "🇦🇪" }, { code: "+44", name: "UK", flag: "🇬🇧" },
+        { code: "+1", name: "USA", flag: "🇺🇸" }, { code: "+598", name: "Uruguay", flag: "🇺🇾" }, { code: "+998", name: "Uzbekistan", flag: "🇺🇿" },
+        { code: "+678", name: "Vanuatu", flag: "🇻🇺" }, { code: "+39", name: "Vatican", flag: "🇻🇦" }, { code: "+58", name: "Venezuela", flag: "🇻🇪" },
+        { code: "+84", name: "Vietnam", flag: "🇻🇳" }, { code: "+967", name: "Yemen", flag: "🇾🇪" }, { code: "+260", name: "Zambia", flag: "🇿🇲" },
+        { code: "+263", name: "Zimbabwe", flag: "🇿🇼" }
+    ];
     
-    // ============ MULTI-LANGUAGE ============
-    const translations = {
-        en: { search: "🔍 Search products...", cart: "Cart", buy: "Buy", addToCart: "Add to Cart", wishlist: "Wishlist", profile: "My Profile", orders: "My Orders", shop: "Open Your Shop", registerShop: "Register Shop", addProduct: "Add Product", publish: "Publish", myProducts: "My Products", ordersReceived: "Orders Received", withdrawal: "Request Withdrawal", kycPending: "KYC Pending", kycVerified: "Verified", admin: "Admin Panel", sellerDashboard: "Seller Dashboard", buyerShopping: "Buyer Shopping", selectCountry: "Select Country", support: "Support", terms: "Terms", invoice: "Download Invoice", myCart: "My Cart", total: "Total", proceedToDelivery: "Proceed to Delivery", deliveryDetails: "Delivery Details", confirmPayment: "Confirm & Pay", payNow: "Pay Now" },
-        hi: { search: "🔍 उत्पाद खोजें...", cart: "कार्ट", buy: "खरीदें", addToCart: "कार्ट में डालें", wishlist: "पसंदीदा", profile: "मेरी प्रोफाइल", orders: "मेरे ऑर्डर", shop: "दुकान खोलें", registerShop: "रजिस्टर करें", addProduct: "उत्पाद जोड़ें", publish: "प्रकाशित करें", myProducts: "मेरे उत्पाद", ordersReceived: "प्राप्त ऑर्डर", withdrawal: "निकासी", kycPending: "KYC लंबित", kycVerified: "सत्यापित", admin: "एडमिन", sellerDashboard: "विक्रेता डैशबोर्ड", buyerShopping: "खरीदारी", selectCountry: "देश चुनें", support: "सहायता", terms: "नियम", invoice: "इनवॉइस", myCart: "मेरा कार्ट", total: "कुल", proceedToDelivery: "डिलीवरी के लिए आगे बढ़ें", deliveryDetails: "डिलीवरी विवरण", confirmPayment: "पुष्टि करें और भुगतान करें", payNow: "अभी भुगतान करें" },
-        ur: { search: "🔍 مصنوعات تلاش کریں...", cart: "کارٹ", buy: "خریدیں", addToCart: "کارٹ میں شامل کریں", wishlist: "پسندیدہ", profile: "میری پروفائل", orders: "میرے آرڈرز", shop: "دکان کھولیں", registerShop: "رجسٹر کریں", addProduct: "مصنوعات شامل کریں", publish: "شائع کریں", myProducts: "میری مصنوعات", ordersReceived: "موصولہ آرڈرز", withdrawal: "نکاسی", kycPending: "KYC زیر التواء", kycVerified: "تصدیق شدہ", admin: "ایڈمن", sellerDashboard: "فروخت کنندہ ڈیش بورڈ", buyerShopping: "خریداری", selectCountry: "ملک منتخب کریں", support: "مدد", terms: "شرائط", invoice: "انوائس", myCart: "میرا کارٹ", total: "کل", proceedToDelivery: "ڈیلیوری کے لیے آگے بڑھیں", deliveryDetails: "ڈیلیوری کی تفصیلات", confirmPayment: "تصدیق کریں اور ادائیگی کریں", payNow: "ابھی ادائیگی کریں" },
-        ar: { search: "🔍 ابحث عن المنتجات...", cart: "سلة التسوق", buy: "شراء", addToCart: "أضف إلى السلة", wishlist: "قائمة الرغبات", profile: "ملفي الشخصي", orders: "طلباتي", shop: "افتح متجرك", registerShop: "تسجيل المتجر", addProduct: "إضافة منتج", publish: "نشر", myProducts: "منتجاتي", ordersReceived: "الطلبات المستلمة", withdrawal: "طلب سحب", kycPending: "KYC قيد الانتظار", kycVerified: "تم التحقق", admin: "لوحة المسؤول", sellerDashboard: "لوحة تحكم البائع", buyerShopping: "تسوق المشتري", selectCountry: "اختر البلد", support: "الدعم", terms: "الشروط", invoice: "تحميل الفاتورة", myCart: "سلتي", total: "المجموع", proceedToDelivery: "المتابعة إلى التسليم", deliveryDetails: "تفاصيل التسليم", confirmPayment: "تأكيد والدفع", payNow: "ادفع الآن" }
+    function initCountrySearch(inputId, dropdownId, selectId) {
+        const input = document.getElementById(inputId);
+        const dropdown = document.getElementById(dropdownId);
+        const select = document.getElementById(selectId);
+        if(!input || !dropdown) return;
+        
+        countryCodes.forEach(c => { let opt = document.createElement('option'); opt.value = c.code; opt.text = `${c.flag} ${c.name} (${c.code})`; select.appendChild(opt); });
+        
+        function showDropdown() {
+            const search = input.value.toLowerCase();
+            const filtered = countryCodes.filter(c => c.name.toLowerCase().includes(search) || c.code.includes(search));
+            dropdown.innerHTML = filtered.map(c => `<div data-code="${c.code}">${c.flag} ${c.name} (${c.code})</div>`).join('');
+            dropdown.style.display = 'block';
+            dropdown.querySelectorAll('div').forEach(div => {
+                div.addEventListener('click', () => {
+                    input.value = div.innerText;
+                    select.value = div.dataset.code;
+                    dropdown.style.display = 'none';
+                });
+            });
+        }
+        input.addEventListener('focus', showDropdown);
+        input.addEventListener('input', showDropdown);
+        document.addEventListener('click', (e) => { if(!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.style.display = 'none'; });
+    }
+
+    // ============ DYNAMIC CURRENCY ============
+    const fxRates = {
+        SAR: 3.75, USD: 1, EUR: 0.92, GBP: 0.78, INR: 83.5, PKR: 278,
+        NPR: 133.5, BDT: 117, LKR: 305, AED: 3.67, CAD: 1.36, AUD: 1.52,
+        SGD: 1.35, MYR: 4.70, THB: 36.5, JPY: 150.2, CNY: 7.25
+    };
+    const currencySymbols = {
+        SAR: "SAR ", USD: "$", EUR: "€", GBP: "£", INR: "₹", PKR: "₨",
+        NPR: "रू ", BDT: "৳", LKR: "Rs ", AED: "د.إ ", CAD: "$", AUD: "$",
+        SGD: "$", MYR: "RM ", THB: "฿", JPY: "¥", CNY: "¥"
     };
     
-    let currentLanguage = localStorage.getItem('gb_language') || 'en';
-    function applyTranslations() {
-        const t = translations[currentLanguage];
-        if(!t) return;
-        document.getElementById('searchInput').placeholder = t.search;
-        document.getElementById('cartFloatBtn').innerHTML = `🛒 ${t.cart} <span class="cart-badge" id="cartCountBadge">${cart.reduce((a,b)=>a+b.qty,0)}</span>`;
-        const drawerMap = { drawerCountrySection: t.selectCountry, drawerBuyer: t.buyerShopping, drawerSeller: t.sellerDashboard, drawerProfile: t.profile, drawerAdmin: t.admin, drawerCartPage: t.myCart, drawerSignup: "📝 Sign Up", drawerLogin: "🔐 Login", drawerWishlist: `❤️ ${t.wishlist}`, drawerSupport: `📞 ${t.support}`, drawerLogout: "🚪 Logout" };
-        for(let [id, text] of Object.entries(drawerMap)) { let el = document.getElementById(id); if(el) el.innerHTML = text; }
-        let regTitle = document.querySelector('#sellerRegisterBox h2'); if(regTitle) regTitle.innerHTML = `🏪 ${t.shop}`;
-        let regBtn = document.querySelector('#sellerRegForm button'); if(regBtn) regBtn.innerHTML = `✅ ${t.registerShop}`;
-        let addCartBtn = document.getElementById('modalAddCartBtn'); if(addCartBtn) addCartBtn.innerHTML = t.addToCart;
-        let proceedBtn = document.getElementById('proceedToDeliveryBtn'); if(proceedBtn) proceedBtn.innerHTML = t.proceedToDelivery;
-        let confirmBtn = document.getElementById('confirmDeliveryBtn'); if(confirmBtn) confirmBtn.innerHTML = t.confirmPayment;
-        let payBtn = document.getElementById('payNowBtn'); if(payBtn) payBtn.innerHTML = t.payNow;
+    function getShippingCost(sellerCountry, buyerCountry) {
+        if(sellerCountry === buyerCountry) return 5;
+        const nearby = ["SA","AE","IN","PK","BD","LK","NP"];
+        if(nearby.includes(sellerCountry) && nearby.includes(buyerCountry)) return 12;
+        return 25;
     }
-    document.getElementById('languageSelect')?.addEventListener('change', (e) => { currentLanguage = e.target.value; localStorage.setItem('gb_language', currentLanguage); applyTranslations(); renderProducts(); if(currentUser?.role === 'seller') renderSellerDashboard(); renderBuyerOrders(); renderCartPage(); showToast(`Language changed`, false); });
     
-    // ============ CONSTANTS ============
     const PLATFORM_COMMISSION = 0.05, GATEWAY_FEE = 0.025, HANDLING_FEE = 2;
-    let fx = { SAR: 3.75, USD: 1, EUR: 0.92, GBP: 0.78, INR: 83.5, PKR: 278, AED: 3.67, CAD: 1.36 };
-    let sym = { SAR: "SAR ", USD: "$", EUR: "€", GBP: "£", INR: "₹", PKR: "₨", AED: "د.إ ", CAD: "$" };
-    let selectedCurr = "SAR", buyerCountry = "SA";
+    
+    function calculateFinalPrice(basePrice, sellerCountry, buyerCountry) {
+        let shipping = getShippingCost(sellerCountry, buyerCountry);
+        let commission = basePrice * PLATFORM_COMMISSION;
+        let gateway = basePrice * GATEWAY_FEE;
+        return { total: basePrice + commission + gateway + shipping + HANDLING_FEE, basePrice, shipping, commission, gateway, handling: HANDLING_FEE };
+    }
+    
+    let selectedCurrency = localStorage.getItem('selectedCurrency') || 'SAR';
+    let buyerCountry = localStorage.getItem('buyerCountry') || 'SA';
+    
+    function convertPrice(usd) { return (usd * fxRates[selectedCurrency]).toFixed(2); }
+    function getCurrencySymbol() { return currencySymbols[selectedCurrency]; }
+    
+    document.getElementById('currencySelect').value = selectedCurrency;
+    document.getElementById('currencySelect').addEventListener('change', (e) => {
+        selectedCurrency = e.target.value;
+        localStorage.setItem('selectedCurrency', selectedCurrency);
+        renderProducts(); updateCartUI(); renderCartPage();
+        if(currentUser?.role === 'seller') renderSellerDashboard();
+        if(currentUser) renderBuyerOrders();
+        showToast(`Currency changed to ${selectedCurrency}`, false);
+    });
+    
+    // ============ DATA STORAGE ============
     let sellers = JSON.parse(localStorage.getItem('gb_sellers')) || [];
     let products = JSON.parse(localStorage.getItem('gb_products')) || [
-        {id:1, sellerId:0, sellerName:"GlobalBazaar", name:"Luxury Smart Watch", price:50, category:"Electronics", image:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400", description:"Premium smart watch", sellerCountry:"SA"},
-        {id:2, sellerId:0, sellerName:"GlobalBazaar", name:"Premium Headphones", price:120, category:"Electronics", image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", description:"Noise cancellation", sellerCountry:"SA"}
+        {id:1, sellerId:0, sellerName:"GlobalBazaar", name:"Luxury Smart Watch", price:50, category:"Electronics", image:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400", description:"Premium smart watch", sellerCountry:"SA", rating:4.5},
+        {id:2, sellerId:0, sellerName:"GlobalBazaar", name:"Premium Headphones", price:120, category:"Electronics", image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", description:"Noise cancellation headphones", sellerCountry:"SA", rating:4.8}
     ];
     let buyers = JSON.parse(localStorage.getItem('gb_buyers')) || [];
     let currentUser = JSON.parse(localStorage.getItem('gb_current_user')) || null;
@@ -466,58 +596,55 @@
         localStorage.setItem('gb_saved_addresses', JSON.stringify(savedAddresses));
     }
     
-    function convert(usd) { return (usd * fx[selectedCurr]).toFixed(2); }
-    function getSym() { return sym[selectedCurr]; }
     function showToast(msg, isError) { let t = document.getElementById('toast'); t.innerText = msg; t.style.backgroundColor = isError ? '#dc2626' : '#10b981'; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
     function showTerms() { document.getElementById('termsModal').style.display = 'block'; }
     function closeTermsModal() { document.getElementById('termsModal').style.display = 'none'; }
+    function showSellerAgreement() { document.getElementById('sellerAgreementModal').style.display = 'block'; }
+    function closeSellerAgreementModal() { document.getElementById('sellerAgreementModal').style.display = 'none'; }
     function showSupport() { document.getElementById('supportModal').style.display = 'block'; }
     function closeSupportModal() { document.getElementById('supportModal').style.display = 'none'; }
-    function calculateAge(dob) { let age = new Date().getFullYear() - new Date(dob).getFullYear(); return age; }
+    function showSignup() { document.getElementById('signupFormDiv').style.display = 'block'; document.getElementById('loginFormDiv').style.display = 'none'; }
+    function showLogin() { document.getElementById('loginFormDiv').style.display = 'block'; document.getElementById('signupFormDiv').style.display = 'none'; }
+    function calculateAge(dob) { return new Date().getFullYear() - new Date(dob).getFullYear(); }
     
-    function getShippingCost(sellerCountry, buyerCountry) { return (sellerCountry === buyerCountry) ? 5 : 15; }
-    function calculateFinalPrice(basePrice, sellerCountry) {
-        let shipping = getShippingCost(sellerCountry, buyerCountry);
-        let commission = basePrice * PLATFORM_COMMISSION;
-        let gateway = basePrice * GATEWAY_FEE;
-        return { total: basePrice + commission + gateway + shipping + HANDLING_FEE, shipping, commission, gateway, basePrice };
-    }
-    
-    document.getElementById('currencySelect').addEventListener('change', (e) => { selectedCurr = e.target.value; renderProducts(); updateCartUI(); renderBuyerOrders(); renderCartPage(); if(currentUser?.role === 'seller') renderSellerDashboard(); });
-    
-    // Products
+    // Products Rendering
     let currentCategory = "All";
     function renderCats() {
         let cats = ["All", ...new Set(products.map(p=>p.category))];
         document.getElementById('catList').innerHTML = cats.map(c => `<div class="cat-pill ${currentCategory===c?'active':''}" data-cat="${c}">${c}</div>`).join('');
         document.querySelectorAll('.cat-pill').forEach(el => el.addEventListener('click', (e) => { currentCategory = e.target.dataset.cat; renderCats(); renderProducts(); }));
     }
+    
     function renderProducts() {
-        const t = translations[currentLanguage] || translations.en;
         let search = document.getElementById('searchInput')?.value.toLowerCase() || "";
         let filtered = products.filter(p => (currentCategory==="All" || p.category===currentCategory) && p.name.toLowerCase().includes(search));
         let sellerMap = new Map(sellers.map(s=>[s.id, s]));
         let html = filtered.map(p => {
             let seller = sellerMap.get(p.sellerId) || {shopName:"GlobalBazaar", country:"SA"};
-            let final = calculateFinalPrice(p.price, seller.country);
-            return `<div class="product-card" data-id="${p.id}"><img src="${p.image}"><div class="seller-name-tag">🏪 ${seller.shopName}</div><h4>${p.name}</h4><div class="prod-price">${getSym()}${convert(final.total)}</div><div class="card-actions"><button class="btn-sm btn-buy addCartBtn" data-id="${p.id}">${t.buy}</button><button class="btn-sm btn-wish wishBtn ${wishlist.includes(p.id)?'active':''}" data-id="${p.id}">❤️</button></div></div>`;
+            let final = calculateFinalPrice(p.price, seller.country, buyerCountry);
+            return `<div class="product-card" data-id="${p.id}"><img src="${p.image}"><div class="seller-name-tag">🏪 ${seller.shopName}</div><h4>${p.name}</h4><div class="prod-price">${getCurrencySymbol()}${convertPrice(final.total)}</div><div class="card-actions"><button class="btn-sm btn-buy addCartBtn" data-id="${p.id}">Buy</button><button class="btn-sm btn-wish wishBtn ${wishlist.includes(p.id)?'active':''}" data-id="${p.id}">❤️</button></div></div>`;
         }).join('');
         document.getElementById('productsGrid').innerHTML = html;
-        document.querySelectorAll('.addCartBtn').forEach(btn => btn.addEventListener('click, (e) => { e.stopPropagation(); addToCart(parseInt(btn.dataset.id)); }));
+        document.querySelectorAll('.addCartBtn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); addToCart(parseInt(btn.dataset.id)); }));
         document.querySelectorAll('.wishBtn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); toggleWish(parseInt(btn.dataset.id)); }));
         document.querySelectorAll('.product-card').forEach(card => card.addEventListener('click', () => openProduct(parseInt(card.dataset.id))));
     }
+    
+    let currentProduct = null;
     function openProduct(id) {
         let p = products.find(x=>x.id===id);
         if(!p) return;
+        currentProduct = p;
         let seller = sellers.find(s=>s.id===p.sellerId) || {shopName:"GlobalBazaar", country:"SA"};
-        let final = calculateFinalPrice(p.price, seller.country);
+        let final = calculateFinalPrice(p.price, seller.country, buyerCountry);
         document.getElementById('modalImg').src = p.image;
         document.getElementById('modalTitle').innerText = p.name;
         document.getElementById('modalDesc').innerText = p.description;
-        document.getElementById('modalPrice').innerHTML = `${getSym()}${convert(final.total)}`;
+        document.getElementById('modalPriceBreakdown').innerHTML = `Base: ${getCurrencySymbol()}${convertPrice(p.price)}<br>+ Shipping: ${getCurrencySymbol()}${convertPrice(final.shipping)}<br>+ Fees: ${getCurrencySymbol()}${convertPrice(final.commission+final.gateway+final.handling)}`;
+        document.getElementById('modalPrice').innerHTML = `<strong>Total: ${getCurrencySymbol()}${convertPrice(final.total)}</strong>`;
         document.getElementById('productModal').style.display = 'block';
     }
+    
     function addToCart(id) {
         let p = products.find(x=>x.id===id);
         if(!p) return;
@@ -526,68 +653,89 @@
         else cart.push({id:p.id, name:p.name, price:p.price, sellerId:p.sellerId, sellerCountry:p.sellerCountry || "SA", qty:1, image:p.image});
         saveAll();
         updateCartUI();
-        showToast("Added to cart", false);
         renderCartPage();
+        showToast("Added to cart", false);
     }
-    function updateCartUI() { document.getElementById('cartCountBadge').innerText = cart.reduce((a,b)=>a+b.qty,0); }
-    function toggleWish(id) { if(wishlist.includes(id)) wishlist = wishlist.filter(i=>i!==id); else wishlist.push(id); saveAll(); renderProducts(); }
     
-    // Cart Page Functions
+    function updateCartUI() { document.getElementById('cartCountBadge').innerText = cart.reduce((a,b)=>a+b.qty,0); }
+    
+    function toggleWish(id) { 
+        if(wishlist.includes(id)) wishlist = wishlist.filter(i=>i!==id); 
+        else wishlist.push(id); 
+        saveAll(); renderProducts(); if(currentUser) renderBuyerWishlist();
+    }
+    
     function renderCartPage() {
-        const t = translations[currentLanguage] || translations.en;
-        if(cart.length === 0) {
-            document.getElementById('cartItemsList').innerHTML = '<p>Your cart is empty.</p>';
-            document.getElementById('cartTotalAmount').innerHTML = `${getSym()}0.00`;
-            return;
+        if(cart.length === 0) { 
+            document.getElementById('cartItemsList').innerHTML = '<p style="text-align:center; padding:40px;">Your cart is empty 🛒</p>'; 
+            document.getElementById('cartTotalAmount').innerHTML = `${getCurrencySymbol()}0.00`; 
+            return; 
         }
         let totalUSD = 0;
         let html = cart.map((item, idx) => {
             let seller = sellers.find(s=>s.id===item.sellerId) || {country:"SA"};
-            let final = calculateFinalPrice(item.price, seller.country);
+            let final = calculateFinalPrice(item.price, seller.country, buyerCountry);
             let itemTotal = final.total * item.qty;
             totalUSD += itemTotal;
-            return `<div class="cart-item"><div class="cart-item-info"><strong>${item.name}</strong><br>${getSym()}${convert(final.total)} each</div><div class="cart-item-controls"><button class="cart-qty-btn" data-idx="${idx}" data-dir="dec">-</button><span style="width:30px;text-align:center">${item.qty}</span><button class="cart-qty-btn" data-idx="${idx}" data-dir="inc">+</button><button class="cart-remove" data-idx="${idx}">Remove</button></div></div>`;
+            return `<div class="cart-item"><div><strong>${item.name}</strong><br>${getCurrencySymbol()}${convertPrice(final.total)} each</div><div class="cart-item-controls"><button class="cart-qty-btn" data-idx="${idx}" data-dir="dec">-</button><span style="width:30px;text-align:center">${item.qty}</span><button class="cart-qty-btn" data-idx="${idx}" data-dir="inc">+</button><button class="cart-remove" data-idx="${idx}">Remove</button></div></div>`;
         }).join('');
         document.getElementById('cartItemsList').innerHTML = html;
-        document.getElementById('cartTotalAmount').innerHTML = `${getSym()}${convert(totalUSD)}`;
-        document.querySelectorAll('.cart-qty-btn').forEach(btn => btn.addEventListener('click', () => { let idx = parseInt(btn.dataset.idx); if(btn.dataset.dir === 'inc') cart[idx].qty++; else if(btn.dataset.dir === 'dec' && cart[idx].qty > 1) cart[idx].qty--; else if(btn.dataset.dir === 'dec' && cart[idx].qty === 1) cart.splice(idx,1); saveAll(); updateCartUI(); renderCartPage(); renderProducts(); }));
-        document.querySelectorAll('.cart-remove').forEach(btn => btn.addEventListener('click', () => { cart.splice(parseInt(btn.dataset.idx),1); saveAll(); updateCartUI(); renderCartPage(); renderProducts(); }));
+        document.getElementById('cartTotalAmount').innerHTML = `${getCurrencySymbol()}${convertPrice(totalUSD)}`;
+        
+        document.querySelectorAll('.cart-qty-btn').forEach(btn => btn.addEventListener('click', () => { 
+            let idx = parseInt(btn.dataset.idx); 
+            if(btn.dataset.dir === 'inc') cart[idx].qty++; 
+            else if(btn.dataset.dir === 'dec' && cart[idx].qty > 1) cart[idx].qty--; 
+            else if(btn.dataset.dir === 'dec' && cart[idx].qty === 1) cart.splice(idx,1); 
+            saveAll(); updateCartUI(); renderCartPage(); renderProducts(); 
+        }));
+        document.querySelectorAll('.cart-remove').forEach(btn => btn.addEventListener('click', () => { 
+            cart.splice(parseInt(btn.dataset.idx),1); 
+            saveAll(); updateCartUI(); renderCartPage(); renderProducts(); 
+        }));
     }
     
-    // Delivery & Payment Flow
-    let currentDeliveryAddress = null;
-    document.getElementById('proceedToDeliveryBtn')?.addEventListener('click', () => {
+    let currentDelivery = null;
+    document.getElementById('proceedToCheckoutBtn')?.addEventListener('click', () => {
         if(cart.length === 0) { showToast("Cart is empty!", true); return; }
         if(!currentUser) { showToast("Please login first!", true); return; }
-        showSection('delivery');
+        showSection('checkout');
         let savedAddr = savedAddresses.find(a => a.userEmail === currentUser.email);
         if(savedAddr) {
-            document.getElementById('deliveryFullName').value = savedAddr.fullName;
-            document.getElementById('deliveryCountryCode').value = savedAddr.countryCode;
-            document.getElementById('deliveryPhone').value = savedAddr.phone;
-            document.getElementById('deliveryCountry').value = savedAddr.country;
-            document.getElementById('deliveryCity').value = savedAddr.city;
-            document.getElementById('deliveryPostcode').value = savedAddr.postcode;
-            document.getElementById('deliveryStreet').value = savedAddr.street;
+            document.getElementById('deliveryFullName').value = savedAddr.fullName || '';
+            document.getElementById('deliveryPhone').value = savedAddr.phone || '';
+            document.getElementById('deliveryCountry').value = savedAddr.country || '';
+            document.getElementById('deliveryCity').value = savedAddr.city || '';
+            document.getElementById('deliveryPostcode').value = savedAddr.postcode || '';
+            document.getElementById('deliveryStreet').value = savedAddr.street || '';
             document.getElementById('deliveryHouseNo').value = savedAddr.houseNo || '';
             document.getElementById('saveAddressCheckbox').checked = true;
+            let country = countryCodes.find(c => c.code === savedAddr.countryCode);
+            if(country) document.getElementById('deliveryCountrySearch').value = `${country.flag} ${country.name} (${country.code})`;
         }
     });
+    
     document.getElementById('confirmDeliveryBtn')?.addEventListener('click', () => {
         let fullName = document.getElementById('deliveryFullName').value;
-        let countryCode = document.getElementById('deliveryCountryCode').value;
         let phone = document.getElementById('deliveryPhone').value;
         let country = document.getElementById('deliveryCountry').value;
         let city = document.getElementById('deliveryCity').value;
         let postcode = document.getElementById('deliveryPostcode').value;
         let street = document.getElementById('deliveryStreet').value;
-        let houseNo = document.getElementById('deliveryHouseNo').value;
         if(!fullName || !phone || !country || !city || !postcode || !street) { showToast("Please fill all required fields!", true); return; }
-        currentDeliveryAddress = { fullName, countryCode, phone, country, city, postcode, street, houseNo, fullAddress: `${houseNo}, ${street}, ${city}, ${postcode}, ${country}` };
+        
+        let countryCodeSelect = document.getElementById('deliveryCountryCode');
+        let countryCode = countryCodeSelect.value || "+1";
+        
+        buyerCountry = country;
+        localStorage.setItem('buyerCountry', buyerCountry);
+        
+        currentDelivery = { fullName, phone, country, city, postcode, street, houseNo: document.getElementById('deliveryHouseNo').value, fullAddress: `${document.getElementById('deliveryHouseNo').value || ''}, ${street}, ${city}, ${postcode}, ${country}` };
+        
         if(document.getElementById('saveAddressCheckbox').checked) {
-            let existing = savedAddresses.findIndex(a => a.userEmail === currentUser.email);
-            let addr = { userEmail: currentUser.email, fullName, countryCode, phone, country, city, postcode, street, houseNo };
-            if(existing >= 0) savedAddresses[existing] = addr;
+            let addrIndex = savedAddresses.findIndex(a => a.userEmail === currentUser.email);
+            let addr = { userEmail: currentUser.email, fullName, countryCode, phone, country, city, postcode, street, houseNo: document.getElementById('deliveryHouseNo').value };
+            if(addrIndex >= 0) savedAddresses[addrIndex] = addr;
             else savedAddresses.push(addr);
             saveAll();
         }
@@ -595,12 +743,11 @@
         loadSavedCards();
     });
     
-    // Payment Functions
     function loadSavedCards() {
         let userCards = savedCards.filter(c => c.userEmail === currentUser?.email);
         if(userCards.length > 0) {
             document.getElementById('savedCardsSection').style.display = 'block';
-            document.getElementById('savedCardsList').innerHTML = userCards.map((card, idx) => `<div class="flex-between" style="margin-bottom:10px"><span>💳 ${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}" style="background:#10b981; border:none; padding:6px 12px; border-radius:20px;">Use</button></div>`).join('');
+            document.getElementById('savedCardsList').innerHTML = userCards.map((card, idx) => `<div class="flex-between" style="margin-bottom:10px"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}" style="background:#10b981; border:none; padding:6px 12px; border-radius:20px;">Use</button></div>`).join('');
             document.querySelectorAll('.useSavedCardBtn').forEach(btn => btn.addEventListener('click', () => {
                 let card = userCards[parseInt(btn.dataset.idx)];
                 document.getElementById('cardNumber').value = card.cardNumber;
@@ -611,18 +758,19 @@
             }));
         }
     }
+    
     document.getElementById('payNowBtn')?.addEventListener('click', async () => {
-        let cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
-        let cardHolderName = document.getElementById('cardHolderName').value;
-        let expiryDate = document.getElementById('expiryDate').value;
+        let cardNum = document.getElementById('cardNumber').value.replace(/\s/g, '');
+        let cardName = document.getElementById('cardHolderName').value;
+        let expiry = document.getElementById('expiryDate').value;
         let cvv = document.getElementById('cvv').value;
-        if(!cardNumber || !cardHolderName || !expiryDate || !cvv) { showToast("Please fill all card details!", true); return; }
-        if(cardNumber.length < 15) { showToast("Invalid card number!", true); return; }
+        if(!cardNum || !cardName || !expiry || !cvv) { showToast("Please fill all card details!", true); return; }
+        if(cardNum.length < 15) { showToast("Invalid card number!", true); return; }
         if(cvv.length < 3) { showToast("Invalid CVV!", true); return; }
         
         if(document.getElementById('saveCardCheckbox').checked) {
-            let existing = savedCards.findIndex(c => c.userEmail === currentUser.email && c.cardNumber === cardNumber);
-            let cardData = { userEmail: currentUser.email, cardNumber, cardHolderName, expiryDate };
+            let existing = savedCards.findIndex(c => c.userEmail === currentUser.email && c.cardNumber === cardNum);
+            let cardData = { userEmail: currentUser.email, cardNumber: cardNum, cardHolderName: cardName, expiryDate: expiry };
             if(existing >= 0) savedCards[existing] = cardData;
             else savedCards.push(cardData);
             saveAll();
@@ -630,48 +778,32 @@
         
         let totalUSD = cart.reduce((sum, item) => {
             let seller = sellers.find(s=>s.id===item.sellerId);
-            let final = calculateFinalPrice(item.price, seller?.country || "SA");
+            let final = calculateFinalPrice(item.price, seller?.country || "SA", buyerCountry);
             return sum + (final.total * item.qty);
         }, 0);
         let tracking = "GB" + Date.now();
         
         cart.forEach(item => {
             let seller = sellers.find(s=>s.id===item.sellerId);
-            let final = calculateFinalPrice(item.price, seller?.country || "SA");
+            let final = calculateFinalPrice(item.price, seller?.country || "SA", buyerCountry);
             orders.push({
                 id: Date.now()+Math.random(), trackingNumber: tracking,
                 sellerId: item.sellerId, sellerName: item.sellerName,
                 buyerEmail: currentUser.email, buyerName: currentUser.name,
                 productName: item.name, amount: final.total, basePrice: item.price,
-                address: currentDeliveryAddress.fullAddress, date: new Date().toLocaleString(),
+                address: currentDelivery.fullAddress, date: new Date().toLocaleString(),
                 status: "Processing", qty: item.qty, shippingCost: final.shipping,
-                commission: final.commission, sellerReleased: false
+                commission: final.commission, trackingInfo: null
             });
             platformEarnings += final.commission * item.qty;
         });
         
-        // ============ SEND TELEGRAM NOTIFICATION FOR NEW ORDER ============
-        const orderMessage = `
-🛍️ <b>NEW ORDER RECEIVED!</b> 🛍️
-
-📦 <b>Order ID:</b> ${tracking}
-👤 <b>Customer:</b> ${currentUser.name}
-📧 <b>Email:</b> ${currentUser.email}
-📞 <b>Phone:</b> ${currentUser.phone}
-💰 <b>Amount:</b> ${getSym()}${convert(totalUSD)}
-📍 <b>Address:</b> ${currentDeliveryAddress.fullAddress}
-📅 <b>Date:</b> ${new Date().toLocaleString()}
-
-🔔 Please process this order soon!
-        `;
-        await sendTelegramMessage(orderMessage);
+        await sendTelegramMessage(`🛍️ NEW ORDER!\nOrder: ${tracking}\nCustomer: ${currentUser.name}\nAmount: ${getCurrencySymbol()}${convertPrice(totalUSD)}`);
         
-        cart = [];
-        saveAll();
-        updateCartUI();
+        cart = []; saveAll(); updateCartUI();
         showToast(`✅ Payment Successful! Order ID: ${tracking}`, false);
         showSection('buyer');
-        if(currentUser?.role === 'buyer') renderBuyerOrders();
+        renderBuyerOrders();
         if(currentUser?.role === 'seller') renderSellerDashboard();
         
         document.getElementById('cardNumber').value = '';
@@ -680,7 +812,6 @@
         document.getElementById('cvv').value = '';
     });
     
-    // Order Functions
     function confirmOrderReceived(orderId) {
         let order = orders.find(o => o.id === orderId);
         if(order && order.status === "Shipped") {
@@ -705,17 +836,19 @@
             }, 5000);
         } else { showToast("Order not shipped yet!", true); }
     }
+    
     function markOrderShipped(orderId, trackingNum) {
         let order = orders.find(o => o.id === orderId);
         if(order && order.status === "Processing") {
             order.status = "Shipped";
-            order.trackingNumber = trackingNum;
+            order.trackingInfo = trackingNum;
             saveAll();
-            showToast("Order marked as Shipped!", false);
+            showToast(`Order marked as Shipped! Tracking: ${trackingNum}`, false);
             renderSellerDashboard();
             renderBuyerOrders();
         }
     }
+    
     function requestWithdrawal(sellerId) {
         let seller = sellers.find(s => s.id === sellerId);
         if(seller && seller.earnings > 0) {
@@ -724,38 +857,34 @@
             saveAll();
             showToast(`Withdrawal request submitted!`, false);
             renderSellerDashboard();
-            // Telegram notification for withdrawal request
-            sendTelegramMessage(`💰 <b>WITHDRAWAL REQUEST</b> 💰\n\nSeller: ${seller.shopName}\nAmount: ${getSym()}${convert(pendingWithdrawals[pendingWithdrawals.length-1].amount)}\nBank: ${seller.bankName}\nAccount: ${seller.accountNo}`);
+            sendTelegramMessage(`💰 Withdrawal Request\nSeller: ${seller.shopName}\nAmount: ${getCurrencySymbol()}${convertPrice(pendingWithdrawals[pendingWithdrawals.length-1].amount)}`);
         } else { showToast("No balance to withdraw", true); }
     }
     
-    // Weekly Withdrawal Auto-Process
     function processWeeklyWithdrawals() {
-        let lastProcessed = localStorage.getItem('gb_last_withdrawal_process');
+        let lastProcessed = localStorage.getItem('gb_last_withdrawal');
         let now = new Date();
         let day = now.getDay();
         if((day === 1 || day === 5) && (!lastProcessed || new Date(lastProcessed).getDate() !== now.getDate())) {
-            pendingWithdrawals.forEach(w => {
-                if(w.status === "Pending") {
-                    w.status = "Approved";
-                    w.approvedDate = now.toLocaleString();
-                    let seller = sellers.find(s => s.id === w.sellerId);
-                    if(seller) showToast(`Withdrawal of ${getSym()}${convert(w.amount)} approved for ${seller.shopName}`, false);
-                }
-            });
-            localStorage.setItem('gb_last_withdrawal_process', now.toString());
+            pendingWithdrawals.forEach(w => { if(w.status === "Pending") w.status = "Approved"; });
+            localStorage.setItem('gb_last_withdrawal', now.toString());
             saveAll();
         }
     }
     setInterval(processWeeklyWithdrawals, 3600000);
     processWeeklyWithdrawals();
     
-    // Seller Registration
     document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         if(!document.getElementById('sellerAgreement').checked) { showToast("Accept Seller Agreement", true); return; }
+        let dob = document.getElementById('sellerDob').value;
+        if(calculateAge(dob) < 18) { showToast("You must be 18+", true); return; }
         let avatar = document.getElementById('sellerAvatar').files[0];
         if(!avatar) { showToast("Upload shop logo", true); return; }
+        
+        let countryCodeSelect = document.getElementById('sellerCountryCode');
+        let countryCode = countryCodeSelect.value || "+91";
+        
         let reader = new FileReader();
         reader.onload = async (ev) => {
             let newSeller = {
@@ -763,9 +892,9 @@
                 fullName: document.getElementById('sellerFullName').value,
                 shopName: document.getElementById('sellerShopName').value,
                 email: document.getElementById('sellerEmail').value,
-                phone: document.getElementById('sellerCountryCode').value + document.getElementById('sellerPhone').value,
+                phone: countryCode + document.getElementById('sellerPhone').value,
                 password: document.getElementById('sellerPassword').value,
-                dob: document.getElementById('sellerDob').value,
+                dob: dob,
                 houseNo: document.getElementById('sellerHouseNo').value,
                 street: document.getElementById('sellerStreet').value,
                 city: document.getElementById('sellerCity').value,
@@ -777,7 +906,8 @@
                 bankName: document.getElementById('sellerBank').value,
                 accountNo: document.getElementById('sellerAccountNo').value,
                 ifsc: document.getElementById('sellerIfsc').value,
-                earnings: 0, kycStatus: "pending"
+                accountHolder: document.getElementById('sellerAccountHolder').value,
+                earnings: 0, kycStatus: "pending", totalSales: 0, totalWithdrawn: 0
             };
             sellers.push(newSeller);
             currentUser = { name: newSeller.fullName, email: newSeller.email, role: 'seller', sellerId: newSeller.id, phone: newSeller.phone };
@@ -786,193 +916,209 @@
             document.getElementById('sellerDashboard').style.display = 'block';
             renderSellerDashboard();
             showToast("Shop Registered! KYC Pending.", false);
-            
-            // ============ SEND TELEGRAM NOTIFICATION FOR NEW SELLER ============
-            await sendTelegramMessage(`
-🏪 <b>NEW SELLER REGISTERED!</b> 🏪
-
-📛 <b>Shop Name:</b> ${newSeller.shopName}
-👤 <b>Owner:</b> ${newSeller.fullName}
-📧 <b>Email:</b> ${newSeller.email}
-📞 <b>Phone:</b> ${newSeller.phone}
-🌍 <b>Country:</b> ${newSeller.country}
-📄 <b>KYC Document:</b> ${newSeller.docType} - ${newSeller.docNumber}
-
-🔔 Please verify KYC documents!
-            `);
+            await sendTelegramMessage(`🏪 New Seller: ${newSeller.shopName}\nOwner: ${newSeller.fullName}\nEmail: ${newSeller.email}`);
         };
         reader.readAsDataURL(avatar);
     });
     
     function renderSellerDashboard() {
-        const t = translations[currentLanguage] || translations.en;
         if(!currentUser?.sellerId) return;
         let seller = sellers.find(s=>s.id === currentUser.sellerId);
         if(!seller) return;
         let myProducts = products.filter(p=>p.sellerId === seller.id);
         let myOrders = orders.filter(o=>o.sellerId === seller.id);
+        let totalSales = 0;
         let monthlyRevenue = {};
-        myOrders.forEach(order => {
-            if(order.status === "Completed" || order.status === "Delivered") {
-                let month = new Date(order.date).getMonth();
-                let sellerEarning = (order.basePrice - order.shippingCost - HANDLING_FEE) * order.qty;
-                monthlyRevenue[month] = (monthlyRevenue[month] || 0) + sellerEarning;
+        
+        myOrders.forEach(o => {
+            if(o.status === "Completed") {
+                let sellerEarning = (o.basePrice - o.shippingCost - HANDLING_FEE) * o.qty;
+                totalSales += sellerEarning;
+                let date = new Date(o.date);
+                let monthYear = `${date.getMonth()+1}/${date.getFullYear()}`;
+                monthlyRevenue[monthYear] = (monthlyRevenue[monthYear] || 0) + sellerEarning;
             }
         });
-        let chartLabels = Object.keys(monthlyRevenue).map(m => ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m]);
+        
+        let chartLabels = Object.keys(monthlyRevenue);
         let chartData = Object.values(monthlyRevenue);
         if(chartLabels.length === 0) { chartLabels = ["No Data"]; chartData = [0]; }
         
         let kycClass = seller.kycStatus === "pending" ? "kyc-pending" : (seller.kycStatus === "verified" ? "kyc-verified" : "kyc-rejected");
-        let kycText = seller.kycStatus === "pending" ? t.kycPending : (seller.kycStatus === "verified" ? t.kycVerified : "Rejected");
+        let kycText = seller.kycStatus === "pending" ? "KYC Pending" : (seller.kycStatus === "verified" ? "KYC Verified ✓" : "KYC Rejected ✗");
         
         document.getElementById('sellerDashboard').innerHTML = `
-            <div class="premium-card"><div class="flex-between"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}</p></div><span class="kyc-status ${kycClass}">${kycText}</span></div><div class="flex-between"><span>🏦 ${seller.bankName}</span><span>💰 ${getSym()}${convert(seller.earnings)}</span></div>${seller.kycStatus === "verified" ? '<button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 ' + t.withdrawal + '</button>' : '<button class="btn-primary" style="background:#64748b;" disabled>🔒 KYC Required</button>'}</div>
-            <div class="chart-container"><h3>📊 Revenue Chart</h3><canvas id="revenueChart"></canvas></div>
+            <div class="premium-card"><div class="flex-between"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📍 ${seller.city}, ${seller.country}</p></div><div><span class="kyc-status ${kycClass}">${kycText}</span><br><span class="role-badge">Seller ID: ${seller.id}</span></div></div><div class="flex-between"><span>🏦 ${seller.bankName} - ${seller.accountNo}</span><span>💰 Balance: ${getCurrencySymbol()}${convertPrice(seller.earnings)}</span></div><div class="flex-between"><span>📊 Total Sales: ${getCurrencySymbol()}${convertPrice(totalSales)}</span><span>💸 Total Withdrawn: ${getCurrencySymbol()}${convertPrice(seller.totalWithdrawn || 0)}</span></div>${seller.kycStatus === "verified" ? '<button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Request Withdrawal</button>' : '<button class="btn-primary" style="background:#64748b;" disabled>🔒 KYC Required</button>'}</div>
+            <div class="chart-container"><h3>📊 Revenue Chart (Monthly)</h3><canvas id="revenueChart"></canvas></div>
             ${seller.kycStatus === "verified" ? `
-            <div class="premium-card"><h3>➕ ${t.addProduct}</h3><input type="text" id="prodName" placeholder="Product Name" class="input"><input type="number" id="prodPrice" placeholder="Price (USD)" class="input"><select id="prodCat" class="input"><option>Electronics</option><option>Fashion</option><option>Home</option></select><input type="url" id="prodImg" placeholder="Image URL" class="input"><textarea id="prodDesc" placeholder="Description" class="input"></textarea><button id="publishBtn" class="btn-primary">${t.publish}</button></div>
-            <div class="premium-card"><h3>📋 ${t.myProducts}</h3><div id="myProductsList"></div></div>
-            <div class="premium-card"><h3>📦 ${t.ordersReceived}</h3><div id="ordersList"></div></div>
-            ` : `<div class="premium-card"><h3>⚠️ ${t.kycPending}</h3><p>Wait for admin verification.</p></div>`}
+            <div class="premium-card"><h3>➕ Add New Product</h3><input type="text" id="prodName" placeholder="Product Name" class="input"><input type="number" id="prodPrice" placeholder="Price (USD)" class="input"><select id="prodCat" class="input"><option>Electronics</option><option>Fashion</option><option>Home</option><option>Beauty</option><option>Sports</option></select><input type="url" id="prodImg" placeholder="Image URL" class="input"><textarea id="prodDesc" placeholder="Product Description" class="input" rows="3"></textarea><button id="publishBtn" class="btn-primary">Publish Product</button></div>
+            <div class="premium-card"><h3>📋 My Products (${myProducts.length})</h3><div id="myProductsList"></div></div>
+            <div class="premium-card"><h3>📦 Orders Received (${myOrders.length})</h3><div id="ordersList"></div></div>
+            ` : `<div class="premium-card"><h3>⚠️ ${kycText}</h3><p>Your KYC documents are under review by admin.<br><br><strong>Documents submitted:</strong> ${seller.docType} - ${seller.docNumber}</p></div>`}
         `;
         
         let ctx = document.getElementById('revenueChart')?.getContext('2d');
-        if(ctx) { if(sellerRevenueChart) sellerRevenueChart.destroy(); sellerRevenueChart = new Chart(ctx, { type: 'bar', data: { labels: chartLabels, datasets: [{ label: 'Revenue ('+getSym()+')', data: chartData.map(v=>parseFloat(convert(v))), backgroundColor: '#3b82f6', borderRadius: 8 }] }, options: { responsive: true } }); }
+        if(ctx) {
+            if(sellerRevenueChart) sellerRevenueChart.destroy();
+            sellerRevenueChart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: chartLabels, datasets: [{ label: 'Revenue ('+getCurrencySymbol()+')', data: chartData.map(v=>parseFloat(convertPrice(v))), backgroundColor: '#3b82f6', borderRadius: 8 }] },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+        }
         
         if(seller.kycStatus === "verified") {
             document.getElementById('publishBtn')?.addEventListener('click', () => {
-                let name = document.getElementById('prodName').value, desc = document.getElementById('prodDesc').value, price = parseFloat(document.getElementById('prodPrice').value);
+                let name = document.getElementById('prodName').value;
+                let desc = document.getElementById('prodDesc').value;
+                let price = parseFloat(document.getElementById('prodPrice').value);
                 if(!name || !price) { showToast("Fill name & price", true); return; }
-                products.push({ id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, name, price, category: document.getElementById('prodCat').value, image: document.getElementById('prodImg').value || "https://placehold.co/200x200", description: desc, sellerCountry: seller.country });
+                products.push({ id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, name, price, category: document.getElementById('prodCat').value, image: document.getElementById('prodImg').value || "https://placehold.co/200x200", description: desc, sellerCountry: seller.country, rating: 0, reviews: [] });
                 saveAll(); renderSellerDashboard(); renderProducts(); showToast("Published!", false);
-                sendTelegramMessage(`📦 <b>NEW PRODUCT LISTED</b> 📦\n\nShop: ${seller.shopName}\nProduct: ${name}\nPrice: ${getSym()}${convert(price)}`);
+                sendTelegramMessage(`📦 New Product: ${name}\nShop: ${seller.shopName}\nPrice: ${getCurrencySymbol()}${convertPrice(price)}`);
             });
-            document.getElementById('myProductsList').innerHTML = myProducts.map(p => `<div class="flex-between"><span>${p.name} - ${getSym()}${convert(p.price)}</span><button class="delProd" data-id="${p.id}" style="background:#dc2626; border:none; padding:6px 14px; border-radius:30px;">Delete</button></div>`).join('');
-            document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', () => { products = products.filter(p=>p.id!==parseInt(btn.dataset.id)); saveAll(); renderSellerDashboard(); renderProducts(); }));
-            document.getElementById('ordersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty} - ${getSym()}${convert(o.amount)}<br>Status: ${o.status}<br>${o.status === "Processing" ? `<button class="shipBtn" data-id="${o.id}" style="background:#3b82f6; margin-top:10px; padding:8px 16px; border-radius:30px;">Mark Shipped</button>` : ''}</div>`).join('');
-            document.querySelectorAll('.shipBtn').forEach(btn => btn.addEventListener('click', () => { let track = prompt("Enter tracking number:"); if(track) markOrderShipped(parseFloat(btn.dataset.id), track); }));
+            document.getElementById('myProductsList').innerHTML = myProducts.map(p => `<div class="flex-between"><span>📦 ${p.name} - ${getCurrencySymbol()}${convertPrice(p.price)}</span><button class="delProd" data-id="${p.id}" style="background:#dc2626; border:none; padding:6px 14px; border-radius:30px;">Delete</button></div>`).join('');
+            document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', () => { products = products.filter(p=>p.id!==parseInt(btn.dataset.id)); saveAll(); renderSellerDashboard(); renderProducts(); showToast("Product deleted", false); }));
+            document.getElementById('ordersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 Order #${o.trackingNumber}</strong><br>Product: ${o.productName} x${o.qty}<br>Amount: ${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: <span style="color:${o.status==='Processing'?'#d97706':(o.status==='Shipped'?'#3b82f6':'#10b981')}">${o.status}</span><br>Buyer: ${o.buyerName}<br>Address: ${o.address}<br>Date: ${o.date}<br>${o.status === "Processing" ? `<button class="shipBtn" data-id="${o.id}" style="background:#3b82f6; margin-top:10px; padding:8px 16px; border-radius:30px;">📦 Mark as Shipped</button>` : ''}${o.status === "Shipped" ? `<br><span style="font-size:11px;">Tracking: ${o.trackingInfo}</span>` : ''}</div>`).join('');
+            document.querySelectorAll('.shipBtn').forEach(btn => btn.addEventListener('click', () => { let track = prompt("Enter tracking number / courier info:"); if(track) markOrderShipped(parseFloat(btn.dataset.id), track); }));
             document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
         }
     }
     
     function renderBuyerOrders() {
-        const t = translations[currentLanguage] || translations.en;
         if(!currentUser) return;
         let myOrders = orders.filter(o=>o.buyerEmail===currentUser.email);
-        document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty} - ${getSym()}${convert(o.amount)}<br>📍 ${o.address}<br>Status: ${o.status}<br>Date: ${o.date}<br>${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981; margin-top:10px; padding:8px 16px; border-radius:30px;">I received the product</button>` : ''}</div>`).join('');
+        document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 Order #${o.trackingNumber}</strong><br>Product: ${o.productName} x${o.qty}<br>Amount: ${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: <span style="color:${o.status==='Processing'?'#d97706':(o.status==='Shipped'?'#3b82f6':'#10b981')}">${o.status}</span><br>Delivery Address: ${o.address}<br>Order Date: ${o.date}<br>${o.trackingInfo ? `📮 Tracking: ${o.trackingInfo}<br>` : ''}${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981; margin-top:10px; padding:8px 16px; border-radius:30px;">✅ I have received the product</button>` : ''}</div>`).join('');
         document.querySelectorAll('.confirmReceivedBtn').forEach(btn => btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id))));
     }
     
-    // Auth Functions
+    function renderBuyerWishlist() {
+        if(!currentUser) return;
+        let wishlistProducts = products.filter(p => wishlist.includes(p.id));
+        document.getElementById('buyerWishlistList').innerHTML = wishlistProducts.map(p => `<div class="order-card"><strong>${p.name}</strong><br>Price: ${getCurrencySymbol()}${convertPrice(p.price)}<br><button class="removeWishlistBtn" data-id="${p.id}" style="background:#dc2626; border:none; padding:6px 12px; border-radius:20px;">Remove</button></div>`).join('');
+        document.querySelectorAll('.removeWishlistBtn').forEach(btn => btn.addEventListener('click', () => { wishlist = wishlist.filter(id => id !== parseInt(btn.dataset.id)); saveAll(); renderProducts(); renderBuyerWishlist(); showToast("Removed from wishlist", false); }));
+    }
+    
     document.getElementById('doLoginBtn')?.addEventListener('click', () => {
         let email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPass').value;
         let user = buyers.find(b=>b.email===email && b.password===pass);
-        if(user) { currentUser = user; saveAll(); document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = user.name; document.getElementById('profileRoleBadge').innerText = user.role || 'Buyer'; renderBuyerOrders(); showToast("Login successful!", false); }
-        else { let seller = sellers.find(s=>s.email===email && s.password===pass); if(seller) { currentUser = { name: seller.fullName, email: seller.email, role: 'seller', sellerId: seller.id, phone: seller.phone }; saveAll(); document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = seller.fullName; document.getElementById('profileRoleBadge').innerText = 'Seller'; showToast("Seller login successful!", false); } else showToast("Invalid credentials", true); }
+        if(user) { 
+            currentUser = user; saveAll(); 
+            document.getElementById('profileAuthBox').style.display='none'; 
+            document.getElementById('buyerProfilePanel').style.display='block'; 
+            document.getElementById('profileName').innerText = user.name; 
+            document.getElementById('profileRoleBadge').innerText = user.role || 'Buyer'; 
+            renderBuyerOrders(); renderBuyerWishlist(); 
+            showToast(`Welcome back, ${user.name}!`, false); 
+        } else { 
+            let seller = sellers.find(s=>s.email===email && s.password===pass); 
+            if(seller) { 
+                currentUser = { name: seller.fullName, email: seller.email, role: 'seller', sellerId: seller.id, phone: seller.phone }; 
+                saveAll(); 
+                document.getElementById('profileAuthBox').style.display='none'; 
+                document.getElementById('buyerProfilePanel').style.display='block'; 
+                document.getElementById('profileName').innerText = seller.fullName; 
+                document.getElementById('profileRoleBadge').innerText = 'Seller'; 
+                showToast(`Welcome back, ${seller.shopName}!`, false); 
+            } else showToast("Invalid email or password", true); 
+        }
     });
+    
     document.getElementById('doSignupBtn')?.addEventListener('click', () => {
         if(!document.getElementById('termsCheckbox').checked) { showToast("Accept Terms", true); return; }
-        let name = document.getElementById('signupName').value, email = document.getElementById('signupEmail').value, phone = document.getElementById('signupCountryCode').value + document.getElementById('signupPhone').value, pass = document.getElementById('signupPass').value, role = document.getElementById('signupRole').value;
+        if(!document.getElementById('ageCheckbox').checked) { showToast("You must be 18+", true); return; }
+        let name = document.getElementById('signupName').value, email = document.getElementById('signupEmail').value;
+        let pass = document.getElementById('signupPass').value, role = document.getElementById('signupRole').value;
+        let dob = document.getElementById('signupDob').value;
         if(!name || !email || !pass) { showToast("Fill all fields", true); return; }
+        if(calculateAge(dob) < 18) { showToast("You must be 18+", true); return; }
         if(buyers.find(b=>b.email===email)) { showToast("Email exists", true); return; }
-        let newUser = { name, email, phone, password: pass, role, savedAddress: null };
+        
+        let countryCodeSelect = document.getElementById('signupCountryCode');
+        let countryCode = countryCodeSelect.value || "+91";
+        let phone = countryCode + document.getElementById('signupPhone').value;
+        
+        let newUser = { name, email, phone, password: pass, role, dob, savedAddress: null, joinDate: new Date().toLocaleString() };
         buyers.push(newUser); currentUser = newUser; saveAll();
-        document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block';
-        document.getElementById('profileName').innerText = name; document.getElementById('profileRoleBadge').innerText = role;
-        renderBuyerOrders(); showToast("Signup successful!", false);
+        document.getElementById('profileAuthBox').style.display='none'; 
+        document.getElementById('buyerProfilePanel').style.display='block';
+        document.getElementById('profileName').innerText = name; 
+        document.getElementById('profileRoleBadge').innerText = role;
+        renderBuyerOrders(); renderBuyerWishlist(); 
+        showToast(`Account created! Welcome ${name}!`, false);
     });
+    
     document.getElementById('logoutBuyerBtn')?.addEventListener('click', () => { currentUser = null; saveAll(); location.reload(); });
     
-    // Admin Functions
-    let adminLoggedIn = false;
     document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
         if(document.getElementById('adminKey').value === 'admin123') {
-            adminLoggedIn = true;
             document.getElementById('adminLoginBox').style.display = 'none';
             document.getElementById('adminContent').style.display = 'block';
             loadAdminData();
             showToast("Admin logged in", false);
         } else showToast("Wrong admin key (admin123)", true);
     });
+    
     function loadAdminData() {
-        document.getElementById('adminSellersList').innerHTML = sellers.map(s => `<div class="order-card"><strong>${s.shopName}</strong><br>${s.email}<br>📞 ${s.phone}<br>🏦 ${s.bankName}<br>💰 ${getSym()}${convert(s.earnings)}<br>KYC: ${s.kycStatus}<br>${s.kycStatus === 'pending' ? `<button class="verifyKycBtn" data-id="${s.id}" style="background:#10b981; margin-top:10px;">✅ Verify</button><button class="rejectKycBtn" data-id="${s.id}" style="background:#dc2626;">❌ Reject</button>` : ''}</div>`).join('');
+        document.getElementById('adminSellersList').innerHTML = sellers.map(s => `<div class="order-card"><strong>🏪 ${s.shopName}</strong><br>📧 ${s.email}<br>📞 ${s.phone}<br>🏦 ${s.bankName}<br>💰 ${getCurrencySymbol()}${convertPrice(s.earnings)}<br><span class="kyc-status ${s.kycStatus === 'pending' ? 'kyc-pending' : (s.kycStatus === 'verified' ? 'kyc-verified' : 'kyc-rejected')}">KYC: ${s.kycStatus}</span><br>📄 ${s.docType}<br>${s.kycStatus === 'pending' ? `<div><button class="verifyKycBtn" data-id="${s.id}" style="background:#10b981;">✅ Verify</button><button class="rejectKycBtn" data-id="${s.id}" style="background:#dc2626;">❌ Reject</button></div>` : ''}</div>`).join('');
+        
         document.querySelectorAll('.verifyKycBtn').forEach(btn => btn.addEventListener('click', async () => { 
             let seller = sellers.find(s => s.id === parseInt(btn.dataset.id)); 
-            if(seller) { 
-                seller.kycStatus = "verified"; 
-                saveAll(); 
-                loadAdminData(); 
-                showToast(`${seller.shopName} Verified!`, false);
-                await sendTelegramMessage(`✅ <b>KYC VERIFIED</b> ✅\n\nShop: ${seller.shopName}\nOwner: ${seller.fullName}\n\nSeller can now add products and withdraw earnings!`);
-            } 
+            if(seller) { seller.kycStatus = "verified"; saveAll(); loadAdminData(); showToast(`${seller.shopName} Verified!`, false); await sendTelegramMessage(`✅ KYC Verified: ${seller.shopName}`); } 
         }));
         document.querySelectorAll('.rejectKycBtn').forEach(btn => btn.addEventListener('click', async () => { 
-            let reason = prompt("Enter rejection reason:"); 
+            let reason = prompt("Rejection reason:"); 
             if(reason) { 
                 let seller = sellers.find(s => s.id === parseInt(btn.dataset.id)); 
-                if(seller) { 
-                    seller.kycStatus = "rejected"; 
-                    seller.rejectionReason = reason; 
-                    saveAll(); 
-                    loadAdminData(); 
-                    showToast(`${seller.shopName} Rejected!`, false);
-                    await sendTelegramMessage(`❌ <b>KYC REJECTED</b> ❌\n\nShop: ${seller.shopName}\nReason: ${reason}\n\nPlease re-submit correct documents.`);
-                } 
+                if(seller) { seller.kycStatus = "rejected"; seller.rejectionReason = reason; saveAll(); loadAdminData(); showToast(`${seller.shopName} Rejected!`, false); await sendTelegramMessage(`❌ KYC Rejected: ${seller.shopName}\nReason: ${reason}`); } 
             } 
         }));
-        document.getElementById('platformEarnings').innerHTML = `<h2>${getSym()}${convert(platformEarnings)}</h2>`;
-        document.getElementById('pendingWithdrawals').innerHTML = pendingWithdrawals.map(w => `<div class="order-card flex-between"><span>💰 ${getSym()}${convert(w.amount)} - ${w.sellerName}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981;">Approve</button></div>`).join('');
+        
+        document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
+        document.getElementById('pendingWithdrawals').innerHTML = pendingWithdrawals.map(w => `<div class="flex-between order-card"><span>💰 ${getCurrencySymbol()}${convertPrice(w.amount)} - ${w.sellerName}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981;">Approve</button></div>`).join('');
         document.querySelectorAll('.approveBtn').forEach(btn => btn.addEventListener('click', async () => { 
             let w = pendingWithdrawals.find(w=>w.id===parseInt(btn.dataset.id)); 
-            if(w) { 
-                w.status = "Approved"; 
-                w.approvedDate = new Date().toLocaleString(); 
-                saveAll(); 
-                loadAdminData(); 
-                showToast(`Approved ${getSym()}${convert(w.amount)}`, false);
-                await sendTelegramMessage(`💰 <b>WITHDRAWAL APPROVED</b> 💰\n\nSeller: ${w.sellerName}\nAmount: ${getSym()}${convert(w.amount)}\nStatus: Approved - Amount will be credited soon.`);
-            } 
+            if(w) { w.status = "Approved"; w.approvedDate = new Date().toLocaleString(); saveAll(); loadAdminData(); showToast(`Approved ${getCurrencySymbol()}${convertPrice(w.amount)}`, false); await sendTelegramMessage(`💰 Withdrawal Approved: ${w.sellerName}\nAmount: ${getCurrencySymbol()}${convertPrice(w.amount)}`); } 
         }));
-        document.getElementById('adminOrdersList').innerHTML = orders.map(o => `<div class="order-card">🔖 ${o.trackingNumber}<br>${o.productName} x${o.qty} - ${o.buyerName}<br>Status: ${o.status}</div>`).join('');
+        document.getElementById('adminOrdersList').innerHTML = orders.map(o => `<div class="order-card">🔖 ${o.trackingNumber}<br>${o.productName} x${o.qty}<br>${o.buyerName}<br>Status: ${o.status}</div>`).join('');
     }
     document.getElementById('refreshAdminBtn')?.addEventListener('click', loadAdminData);
     
-    // Navigation
-    function showSection(tab) {
-        document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-        document.getElementById(tab + "Section").classList.add('active');
+    function showSection(section) { 
+        document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); 
+        document.getElementById(section + "Section").classList.add('active'); 
     }
+    
     document.getElementById('drawerBuyer')?.addEventListener('click', () => { showSection('buyer'); closeDrawer(); });
     document.getElementById('drawerSeller')?.addEventListener('click', () => { showSection('seller'); if(currentUser?.role === 'seller') { document.getElementById('sellerRegisterBox').style.display='none'; document.getElementById('sellerDashboard').style.display='block'; renderSellerDashboard(); } closeDrawer(); });
-    document.getElementById('drawerProfile')?.addEventListener('click', () => { showSection('profile'); closeDrawer(); });
+    document.getElementById('drawerProfile')?.addEventListener('click', () => { showSection('profile'); if(currentUser) { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; renderBuyerOrders(); renderBuyerWishlist(); } else { document.getElementById('profileAuthBox').style.display='block'; document.getElementById('buyerProfilePanel').style.display='none'; } closeDrawer(); });
     document.getElementById('drawerAdmin')?.addEventListener('click', () => { showSection('admin'); closeDrawer(); });
     document.getElementById('drawerCartPage')?.addEventListener('click', () => { renderCartPage(); showSection('cartPage'); closeDrawer(); });
-    document.getElementById('drawerSignup')?.addEventListener('click', () => { showSection('profile'); document.getElementById('signupFormDiv').style.display='block'; document.getElementById('loginFormDiv').style.display='none'; closeDrawer(); });
-    document.getElementById('drawerLogin')?.addEventListener('click', () => { showSection('profile'); document.getElementById('loginFormDiv').style.display='block'; document.getElementById('signupFormDiv').style.display='none'; closeDrawer(); });
-    document.getElementById('drawerWishlist')?.addEventListener('click', () => { let wp = products.filter(p=>wishlist.includes(p.id)); alert("Wishlist:\n"+wp.map(p=>p.name).join("\n")); closeDrawer(); });
+    document.getElementById('drawerWishlist')?.addEventListener('click', () => { if(currentUser) { showSection('profile'); renderBuyerWishlist(); } else showToast("Please login first", true); closeDrawer(); });
+    document.getElementById('drawerSignup')?.addEventListener('click', () => { showSection('profile'); showSignup(); closeDrawer(); });
+    document.getElementById('drawerLogin')?.addEventListener('click', () => { showSection('profile'); showLogin(); closeDrawer(); });
     document.getElementById('drawerSupport')?.addEventListener('click', () => { showSupport(); closeDrawer(); });
     document.getElementById('drawerLogout')?.addEventListener('click', () => { currentUser=null; saveAll(); location.reload(); });
-    document.getElementById('drawerCountrySection')?.addEventListener('click', () => { let c = prompt("Enter country code (SA, US, IN, AE, GB):", buyerCountry); if(c) { buyerCountry = c.toUpperCase(); renderProducts(); showToast(`Country: ${buyerCountry}`, false); } closeDrawer(); });
     document.getElementById('cartFloatBtn')?.addEventListener('click', () => { renderCartPage(); showSection('cartPage'); });
     document.getElementById('closeModalBtn')?.addEventListener('click', () => document.getElementById('productModal').style.display='none');
     document.getElementById('modalAddCartBtn')?.addEventListener('click', () => { if(currentProduct) addToCart(currentProduct.id); document.getElementById('productModal').style.display='none'; });
-    
-    let currentProduct = null;
-    function openProduct(id) { currentProduct = products.find(x=>x.id===id); if(currentProduct) { let final = calculateFinalPrice(currentProduct.price, "SA"); document.getElementById('modalImg').src = currentProduct.image; document.getElementById('modalTitle').innerText = currentProduct.name; document.getElementById('modalDesc').innerText = currentProduct.description; document.getElementById('modalPrice').innerHTML = `${getSym()}${convert(final.total)}`; document.getElementById('productModal').style.display = 'block'; } }
+    document.getElementById('modalAddWishBtn')?.addEventListener('click', () => { if(currentProduct) toggleWish(currentProduct.id); document.getElementById('productModal').style.display='none'; });
     
     function openDrawer() { document.getElementById('drawer').classList.add('open'); document.getElementById('drawerOverlay').style.display = 'block'; }
     function closeDrawer() { document.getElementById('drawer').classList.remove('open'); document.getElementById('drawerOverlay').style.display = 'none'; }
     document.getElementById('menuBtn').onclick = openDrawer;
     document.getElementById('drawerOverlay').onclick = closeDrawer;
     
-    // Card number formatting
     document.getElementById('cardNumber')?.addEventListener('input', function(e) { let v = e.target.value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim(); e.target.value = v; });
     document.getElementById('expiryDate')?.addEventListener('input', function(e) { let v = e.target.value.replace(/\//g, ''); if(v.length >= 2) v = v.slice(0,2) + '/' + v.slice(2,4); e.target.value = v; });
     
-    applyTranslations();
+    initCountrySearch('sellerCountrySearch', 'sellerCountryDropdown', 'sellerCountryCode');
+    initCountrySearch('signupCountrySearch', 'signupCountryDropdown', 'signupCountryCode');
+    initCountrySearch('deliveryCountrySearch', 'deliveryCountryDropdown', 'deliveryCountryCode');
+    
     renderCats(); renderProducts(); updateCartUI();
     if(currentUser?.role === 'seller') { document.getElementById('sellerRegisterBox').style.display='none'; document.getElementById('sellerDashboard').style.display='block'; renderSellerDashboard(); }
-    if(currentUser && currentUser.role !== 'seller') { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = currentUser.name; document.getElementById('profileRoleBadge').innerText = currentUser.role || 'Buyer'; renderBuyerOrders(); }
+    if(currentUser && currentUser.role !== 'seller') { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = currentUser.name; document.getElementById('profileRoleBadge').innerText = currentUser.role || 'Buyer'; renderBuyerOrders(); renderBuyerWishlist(); }
 </script>
 </body>
 </html>
