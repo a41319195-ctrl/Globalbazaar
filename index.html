@@ -27,13 +27,18 @@
             gap: 10px;
         }
         
-        /* ALL ITEMS IN ONE HORIZONTAL LINE: Menu + GLOBALBAZAAR + Logo + SAR dropdown */
-        .header-items {
+        /* Left side group */
+        .header-left {
             display: flex;
             align-items: center;
             gap: 15px;
-            flex-wrap: wrap;
-            width: 100%;
+        }
+        
+        /* Right side group - SAR will be here */
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
         
         .menu-icon-3d {
@@ -64,14 +69,14 @@
             padding: 5px; 
         }
         
-        /* Currency Dropdown - SAR and other currencies */
+        /* Currency Dropdown - SAR and other currencies - Now on RIGHT side */
         .currency-dropdown {
             background: linear-gradient(145deg, #1e2a4a, #0f172f);
             border: none;
-            padding: 6px 12px;
+            padding: 8px 16px;
             border-radius: 40px;
             color: #FFD966;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: bold;
             cursor: pointer;
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -158,18 +163,6 @@
             color: #1e3a8a;
         }
         
-        .country-selector {
-            background: #f1f5f9;
-            padding: 6px 12px;
-            border-radius: 40px;
-            border: 1px solid #e2e8f0;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 10px;
-        }
-        
         .phone-group {
             display: flex;
             gap: 10px;
@@ -194,19 +187,22 @@
             .brand-3d { font-size: 24px; }
             .logo-3d { font-size: 28px; }
             .fixed-cart { padding: 12px 20px; font-size: 14px; bottom: 15px; right: 15px; }
-            .currency-dropdown { font-size: 10px; padding: 4px 8px; }
-            .header-items { gap: 8px; }
+            .currency-dropdown { font-size: 11px; padding: 5px 10px; }
         }
     </style>
 </head>
 <body>
 
 <div class="header-3d">
-    <!-- All in one line: Menu + GLOBALBAZAAR + Logo + SAR dropdown -->
-    <div class="header-items">
+    <!-- LEFT SIDE: Menu + GLOBALBAZAAR + Logo -->
+    <div class="header-left">
         <button class="menu-icon-3d" id="menuBtn">☰</button>
         <div class="brand-3d">GLOBALBAZAAR</div>
         <div class="logo-3d">🌍</div>
+    </div>
+    
+    <!-- RIGHT SIDE: SAR Currency Dropdown ONLY -->
+    <div class="header-right">
         <select id="currencySelect" class="currency-dropdown">
             <option value="SAR">🇸🇦 SAR</option>
             <option value="USD">🇺🇸 USD $</option>
@@ -229,48 +225,7 @@
     </div>
 </div>
 
-<!-- Shipping Country Dropdown (for delivery location) - Saudi Arabia is now only here and in drawer -->
-<div style="max-width: 560px; margin: 10px auto 0; padding: 0 16px;">
-    <select id="globalCountrySelect" class="country-selector">
-        <option value="SA">🇸🇦 Saudi Arabia</option>
-        <option value="IN">🇮🇳 India</option>
-        <option value="US">🇺🇸 United States</option>
-        <option value="AE">🇦🇪 UAE</option>
-        <option value="GB">🇬🇧 United Kingdom</option>
-        <option value="CA">🇨🇦 Canada</option>
-        <option value="AU">🇦🇺 Australia</option>
-        <option value="DE">🇩🇪 Germany</option>
-        <option value="FR">🇫🇷 France</option>
-        <option value="SG">🇸🇬 Singapore</option>
-        <option value="CN">🇨🇳 China</option>
-        <option value="JP">🇯🇵 Japan</option>
-        <option value="KR">🇰🇷 South Korea</option>
-        <option value="BR">🇧🇷 Brazil</option>
-        <option value="MX">🇲🇽 Mexico</option>
-        <option value="ZA">🇿🇦 South Africa</option>
-        <option value="NG">🇳🇬 Nigeria</option>
-        <option value="EG">🇪🇬 Egypt</option>
-        <option value="TR">🇹🇷 Turkey</option>
-        <option value="RU">🇷🇺 Russia</option>
-        <option value="IT">🇮🇹 Italy</option>
-        <option value="ES">🇪🇸 Spain</option>
-        <option value="NL">🇳🇱 Netherlands</option>
-        <option value="SE">🇸🇪 Sweden</option>
-        <option value="NO">🇳🇴 Norway</option>
-        <option value="DK">🇩🇰 Denmark</option>
-        <option value="FI">🇫🇮 Finland</option>
-        <option value="PL">🇵🇱 Poland</option>
-        <option value="MY">🇲🇾 Malaysia</option>
-        <option value="TH">🇹🇭 Thailand</option>
-        <option value="VN">🇻🇳 Vietnam</option>
-        <option value="PH">🇵🇭 Philippines</option>
-        <option value="ID">🇮🇩 Indonesia</option>
-        <option value="PK">🇵🇰 Pakistan</option>
-        <option value="BD">🇧🇩 Bangladesh</option>
-        <option value="LK">🇱🇰 Sri Lanka</option>
-        <option value="NP">🇳🇵 Nepal</option>
-    </select>
-</div>
+<!-- REMOVED: Global country selector from here - moved to drawer menu -->
 
 <div class="drawer-overlay" id="drawerOverlay"></div>
 <div class="drawer" id="drawer">
@@ -283,8 +238,51 @@
     <div class="drawer-item" data-mode="seller">🏪 Seller Dashboard</div>
     <div class="drawer-item" id="drawerWishlist">❤️ My Wishlist</div>
     <div class="drawer-item" id="drawerSupport">📞 Support</div>
-    <!-- Saudi Arabia is now inside drawer only -->
-    <div class="drawer-item" id="drawerCountry">🇸🇦 Saudi Arabia</div>
+    
+    <!-- COUNTRIES SECTION ADDED IN MENU (DRAWER) -->
+    <div style="padding: 10px 20px; border-top: 1px solid #eef2f8; margin-top: 10px;">
+        <p style="font-size: 12px; color: #64748b; margin-bottom: 8px;">🌍 SELECT SHIPPING COUNTRY</p>
+        <select id="globalCountrySelect" style="width: 100%; padding: 10px; border-radius: 40px; border: 1px solid #e2e8f0; font-size: 13px;">
+            <option value="SA">🇸🇦 Saudi Arabia</option>
+            <option value="IN">🇮🇳 India</option>
+            <option value="US">🇺🇸 United States</option>
+            <option value="AE">🇦🇪 UAE</option>
+            <option value="GB">🇬🇧 United Kingdom</option>
+            <option value="CA">🇨🇦 Canada</option>
+            <option value="AU">🇦🇺 Australia</option>
+            <option value="DE">🇩🇪 Germany</option>
+            <option value="FR">🇫🇷 France</option>
+            <option value="SG">🇸🇬 Singapore</option>
+            <option value="CN">🇨🇳 China</option>
+            <option value="JP">🇯🇵 Japan</option>
+            <option value="KR">🇰🇷 South Korea</option>
+            <option value="BR">🇧🇷 Brazil</option>
+            <option value="MX">🇲🇽 Mexico</option>
+            <option value="ZA">🇿🇦 South Africa</option>
+            <option value="NG">🇳🇬 Nigeria</option>
+            <option value="EG">🇪🇬 Egypt</option>
+            <option value="TR">🇹🇷 Turkey</option>
+            <option value="RU">🇷🇺 Russia</option>
+            <option value="IT">🇮🇹 Italy</option>
+            <option value="ES">🇪🇸 Spain</option>
+            <option value="NL">🇳🇱 Netherlands</option>
+            <option value="SE">🇸🇪 Sweden</option>
+            <option value="NO">🇳🇴 Norway</option>
+            <option value="DK">🇩🇰 Denmark</option>
+            <option value="FI">🇫🇮 Finland</option>
+            <option value="PL">🇵🇱 Poland</option>
+            <option value="MY">🇲🇾 Malaysia</option>
+            <option value="TH">🇹🇭 Thailand</option>
+            <option value="VN">🇻🇳 Vietnam</option>
+            <option value="PH">🇵🇭 Philippines</option>
+            <option value="ID">🇮🇩 Indonesia</option>
+            <option value="PK">🇵🇰 Pakistan</option>
+            <option value="BD">🇧🇩 Bangladesh</option>
+            <option value="LK">🇱🇰 Sri Lanka</option>
+            <option value="NP">🇳🇵 Nepal</option>
+        </select>
+    </div>
+    
     <div class="drawer-item" id="drawerLogout">🚪 Logout</div>
 </div>
 
@@ -1026,7 +1024,6 @@
     document.querySelectorAll('.drawer-item[data-mode]').forEach(el => el.addEventListener('click', () => { document.querySelector(`.mode-btn[data-tab="${el.dataset.mode}"]`).click(); closeDrawer(); }));
     document.getElementById('drawerWishlist')?.addEventListener('click', () => { let wp = products.filter(p=>wishlist.includes(p.id)); alert("Wishlist:\n"+wp.map(p=>p.name).join("\n")); closeDrawer(); });
     document.getElementById('drawerLogout')?.addEventListener('click', () => { currentUser=null; saveAll(); location.reload(); });
-    document.getElementById('drawerCountry')?.addEventListener('click', () => { closeDrawer(); });
     document.getElementById('editAddressBtn')?.addEventListener('click', () => { getAddressLineByLine(); displaySavedAddress(); });
     document.getElementById('closeModalBtn')?.addEventListener('click', () => document.getElementById('productModal').style.display='none');
     document.getElementById('modalAddCartBtn')?.addEventListener('click', () => { if(currentProduct) addToCart(currentProduct.id); document.getElementById('productModal').style.display='none'; });
