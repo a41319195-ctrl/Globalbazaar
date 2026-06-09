@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>GlobalBazaar - Complete Marketplace</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -39,7 +36,7 @@
         .product-card { background: white; border-radius: 20px; padding: 12px; cursor: pointer; border: 1px solid #eef2f8; transition: 0.2s; }
         .product-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
         .product-card .main-img { width: 100%; height: 140px; object-fit: cover; border-radius: 16px; }
-        .product-thumbnails { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+        .product-thumbnails { display: flex; gap: 6px; margin-top: 8px; }
         .product-thumbnails img { width: 50px; height: 50px; object-fit: cover; border-radius: 10px; cursor: pointer; border: 1px solid #e2e8f0; }
         .product-thumbnails img:hover { border-color: #3b82f6; }
         .seller-name-tag { font-size: 11px; color: #3b82f6; margin: 10px 0 6px; font-weight: 600; }
@@ -156,16 +153,12 @@
 </div>
 
 <div class="container">
-    <!-- BUYER SECTION -->
     <div id="buyerSection" class="section active">
         <div class="cat-scroll" id="catList"></div>
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="🔍 Search products...">
-        </div>
+        <div class="search-container"><input type="text" id="searchInput" placeholder="🔍 Search products..."></div>
         <div class="product-grid" id="productsGrid"></div>
     </div>
 
-    <!-- SELLER SECTION -->
     <div id="sellerSection" class="section">
         <div id="sellerRegisterBox" class="premium-card">
             <h2>🏪 Open Your Shop</h2>
@@ -194,17 +187,10 @@
                 <input type="text" id="sellerCity" placeholder="City" class="input" required>
                 <input type="text" id="sellerState" placeholder="State" class="input" required>
                 <input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required>
-                <select id="sellerCountryReg" class="input" required>
-                    <option value="">Select Country</option>
-                </select>
+                <select id="sellerCountryReg" class="input" required><option value="">Select Country</option></select>
                 <div class="doc-section">
                     <div class="doc-title">🌍 KYC Documents</div>
-                    <select id="sellerDocType" class="input">
-                        <option value="passport">📘 Passport</option>
-                        <option value="national_id">🆔 National ID Card</option>
-                        <option value="driving_license">🚗 Driving License</option>
-                        <option value="residence_permit">📄 Residence Permit</option>
-                    </select>
+                    <select id="sellerDocType" class="input"><option value="passport">📘 Passport</option><option value="national_id">🆔 National ID Card</option><option value="driving_license">🚗 Driving License</option><option value="residence_permit">📄 Residence Permit</option></select>
                     <input type="text" id="sellerDocNumber" placeholder="Document Number" class="input">
                     <input type="file" id="sellerDocImage" accept="image/*,application/pdf" class="input">
                 </div>
@@ -220,7 +206,6 @@
         <div id="sellerDashboard" style="display:none;"></div>
     </div>
 
-    <!-- PROFILE SECTION -->
     <div id="profileSection" class="section">
         <div id="profileAuthBox" class="premium-card">
             <div id="loginFormDiv">
@@ -263,7 +248,6 @@
         </div>
     </div>
 
-    <!-- ADMIN SECTION -->
     <div id="adminSection" class="section">
         <div id="adminPanel" class="premium-card">
             <h2>⚙️ Admin Dashboard</h2>
@@ -278,7 +262,6 @@
         </div>
     </div>
 
-    <!-- CART PAGE -->
     <div id="cartPageSection" class="section">
         <div class="premium-card">
             <h2>🛍️ My Cart</h2>
@@ -288,7 +271,6 @@
         </div>
     </div>
 
-    <!-- CHECKOUT SECTION -->
     <div id="checkoutSection" class="section">
         <div class="premium-card">
             <h2>📦 Delivery Details</h2>
@@ -302,9 +284,7 @@
                     </div>
                     <input type="tel" id="deliveryPhone" placeholder="Phone Number *" class="input">
                 </div>
-                <select id="deliveryCountry" class="input" required>
-                    <option value="">Select Country *</option>
-                </select>
+                <select id="deliveryCountry" class="input" required><option value="">Select Country *</option></select>
                 <input type="text" id="deliveryCity" placeholder="City *" class="input">
                 <input type="text" id="deliveryPostcode" placeholder="Post Code / ZIP *" class="input">
                 <input type="text" id="deliveryStreet" placeholder="Street Address *" class="input">
@@ -315,24 +295,17 @@
         </div>
     </div>
 
-    <!-- PAYMENT SECTION -->
     <div id="paymentSection" class="section">
         <div class="premium-card">
             <h2>💳 Payment Details</h2>
             <div id="paymentForm">
                 <input type="text" id="cardNumber" placeholder="Card Number *" class="input" maxlength="19">
                 <input type="text" id="cardHolderName" placeholder="Card Holder Name *" class="input">
-                <div class="delivery-form-row">
-                    <input type="text" id="expiryDate" placeholder="MM/YY *" maxlength="5">
-                    <input type="password" id="cvv" placeholder="CVV *" maxlength="4">
-                </div>
+                <div class="delivery-form-row"><input type="text" id="expiryDate" placeholder="MM/YY *" maxlength="5"><input type="password" id="cvv" placeholder="CVV *" maxlength="4"></div>
                 <div class="checkbox-group"><input type="checkbox" id="saveCardCheckbox"> <label>Save card for next time</label></div>
                 <button id="payNowBtn" class="btn-primary">Pay Now</button>
             </div>
-            <div id="savedCardsSection" style="margin-top:20px; display:none;">
-                <h4>💳 Saved Cards</h4>
-                <div id="savedCardsList"></div>
-            </div>
+            <div id="savedCardsSection" style="margin-top:20px; display:none;"><h4>💳 Saved Cards</h4><div id="savedCardsList"></div></div>
         </div>
     </div>
 </div>
@@ -361,19 +334,6 @@
 <div class="footer-legal">© 2026 GlobalBazaar Marketplace | <span class="legal-link" onclick="showTerms()">Terms</span> | <span class="legal-link" onclick="showPrivacy()">Privacy</span> | <span class="legal-link" onclick="showSupport()">Support</span></div>
 
 <script>
-    // ============ FIREBASE CONFIGURATION ============
-    const firebaseConfig = {
-        apiKey: "AIzaSyAvbSJkEH3NDNy_SIaf0bJk0hkhknTRhno",
-        authDomain: "globalbazaar-2c6cb.firebaseapp.com",
-        projectId: "globalbazaar-2c6cb",
-        storageBucket: "globalbazaar-2c6cb.firebasestorage.app",
-        messagingSenderId: "734113870757",
-        appId: "1:734113870757:web:653ac103c064685cbaee4c",
-        measurementId: "G-NSM7YP4GZG"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-
     // ============ TELEGRAM BOT ============
     const TELEGRAM_BOT_TOKEN = "8328824652:AAE-b4o6DaFDa9WPtZfrOfM7SYGU9gUa9HQ";
     const TELEGRAM_CHAT_ID = "7111653640";
@@ -460,7 +420,6 @@
         { code: "+263", name: "Zimbabwe", flag: "🇿🇼" }
     ];
 
-    // Shipping Countries for Delivery
     const shippingCountries = [
         "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua", "Argentina", "Armenia", "Australia", "Austria",
         "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan",
@@ -617,8 +576,8 @@
         return { total: basePrice + commission + gateway + shipping + HANDLING_FEE, basePrice, shipping, commission, gateway };
     }
     
-    // ============ 3 DUMMY PRODUCTS (3 Different Categories) ============
-    const dummyProducts = [
+    // ============ 3 DUMMY PRODUCTS (NO FIREBASE - DIRECT LOCALSTORAGE) ============
+    let products = [
         {
             id: 101, sellerId: 0, sellerName: "GlobalBazaar", name: "Wireless Noise Cancelling Headphones", price: 89.99, 
             category: "Electronics", sellerCountry: "SA", rating: 4.8,
@@ -628,7 +587,7 @@
                 "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400",
                 "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=400"
             ],
-            description: "Premium wireless headphones with active noise cancellation, 30-hour battery life, and crystal clear sound quality. Perfect for travel and daily use."
+            description: "Premium wireless headphones with active noise cancellation, 30-hour battery life, and crystal clear sound quality."
         },
         {
             id: 102, sellerId: 0, sellerName: "GlobalBazaar", name: "Premium Cotton T-Shirt", price: 24.99, 
@@ -639,7 +598,7 @@
                 "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=400",
                 "https://images.unsplash.com/photo-1581655353564-df123a1eb21f?w=400"
             ],
-            description: "Soft, breathable 100% combed cotton t-shirt. Available in multiple colors. Perfect for everyday wear."
+            description: "Soft, breathable 100% combed cotton t-shirt. Available in multiple colors."
         },
         {
             id: 103, sellerId: 0, sellerName: "GlobalBazaar", name: "Matte Lipstick Set (6 Colors)", price: 29.99, 
@@ -650,74 +609,34 @@
                 "https://images.unsplash.com/photo-1596462502278-27e3e946f9b1?w=400",
                 "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400"
             ],
-            description: "Long-lasting matte lipstick set with 6 stunning shades. Vitamin E enriched for smooth application."
+            description: "Long-lasting matte lipstick set with 6 stunning shades. Vitamin E enriched."
         }
     ];
 
-    // ============ FIREBASE DATA ============
     let sellers = [];
-    let products = [];
     let buyers = [];
     let currentUser = null;
     let cart = JSON.parse(localStorage.getItem('gb_cart')) || [];
     let wishlist = JSON.parse(localStorage.getItem('gb_wishlist')) || [];
-    let orders = [];
-    let platformEarnings = 0;
-    let pendingWithdrawals = [];
+    let orders = JSON.parse(localStorage.getItem('gb_orders')) || [];
+    let platformEarnings = JSON.parse(localStorage.getItem('gb_platform_earnings')) || 0;
+    let pendingWithdrawals = JSON.parse(localStorage.getItem('gb_pending_withdrawals')) || [];
     let savedCards = JSON.parse(localStorage.getItem('gb_saved_cards')) || [];
     let savedAddresses = JSON.parse(localStorage.getItem('gb_saved_addresses')) || [];
     let sellerRevenueChart = null;
     
-    function loadFromFirebase() {
-        database.ref('sellers').on('value', (snapshot) => {
-            sellers = snapshot.val() ? Object.values(snapshot.val()) : [];
-            if(currentUser?.role === 'seller') renderSellerDashboard();
-            if(document.getElementById('adminContent').style.display === 'block') loadAdminData();
-        });
-        
-        database.ref('products').on('value', (snapshot) => {
-            const data = snapshot.val();
-            if(data && Object.keys(data).length > 0) {
-                products = Object.values(data);
-            } else {
-                products = dummyProducts;
-                products.forEach(p => database.ref('products/' + p.id).set(p));
-            }
-            renderProducts();
-        });
-        
-        database.ref('buyers').on('value', (snapshot) => { buyers = snapshot.val() ? Object.values(snapshot.val()) : []; });
-        database.ref('orders').on('value', (snapshot) => { orders = snapshot.val() ? Object.values(snapshot.val()) : []; renderBuyerOrders(); });
-        database.ref('platformEarnings').on('value', (snapshot) => { platformEarnings = snapshot.val() || 0; });
-        database.ref('pendingWithdrawals').on('value', (snapshot) => { pendingWithdrawals = snapshot.val() ? Object.values(snapshot.val()) : []; });
-    }
-    
-    function saveToFirebase(path, data) { database.ref(path).set(data); }
-    
     function saveAll() {
-        saveToFirebase('sellers', sellers);
-        saveToFirebase('products', products);
-        saveToFirebase('buyers', buyers);
-        saveToFirebase('orders', orders);
-        saveToFirebase('platformEarnings', platformEarnings);
-        saveToFirebase('pendingWithdrawals', pendingWithdrawals);
+        localStorage.setItem('gb_sellers', JSON.stringify(sellers));
+        localStorage.setItem('gb_products', JSON.stringify(products));
+        localStorage.setItem('gb_buyers', JSON.stringify(buyers));
+        localStorage.setItem('gb_current_user', JSON.stringify(currentUser));
         localStorage.setItem('gb_cart', JSON.stringify(cart));
         localStorage.setItem('gb_wishlist', JSON.stringify(wishlist));
+        localStorage.setItem('gb_orders', JSON.stringify(orders));
+        localStorage.setItem('gb_platform_earnings', JSON.stringify(platformEarnings));
+        localStorage.setItem('gb_pending_withdrawals', JSON.stringify(pendingWithdrawals));
         localStorage.setItem('gb_saved_cards', JSON.stringify(savedCards));
         localStorage.setItem('gb_saved_addresses', JSON.stringify(savedAddresses));
-    }
-    
-    function loadProductsFromFirebase() {
-        database.ref('products').once('value', (snapshot) => {
-            const data = snapshot.val();
-            if(data && Object.keys(data).length > 0) {
-                products = Object.values(data);
-            } else {
-                products = dummyProducts;
-                products.forEach(p => database.ref('products/' + p.id).set(p));
-            }
-            renderProducts();
-        });
     }
     
     function showToast(msg, isError) { 
@@ -736,7 +655,7 @@
     function closeSupportModal() { document.getElementById('supportModal').style.display = 'none'; }
     function showSignup() { document.getElementById('signupFormDiv').style.display = 'block'; document.getElementById('loginFormDiv').style.display = 'none'; }
     function showLogin() { document.getElementById('loginFormDiv').style.display = 'block'; document.getElementById('signupFormDiv').style.display = 'none'; }
-    function showPrivacy() { alert("Privacy Policy: We collect name, email, phone, address for order processing. We do not share your data with third parties."); }
+    function showPrivacy() { alert("Privacy Policy: We collect name, email, phone, address for order processing."); }
     function calculateAge(dob) { return new Date().getFullYear() - new Date(dob).getFullYear(); }
     
     // Products Rendering
@@ -796,7 +715,6 @@
         if(thumbContainer && p.images && p.images.length > 0) {
             thumbContainer.innerHTML = p.images.map(img => `<img src="${img}" onclick="changeProductImage(${p.id}, '${img}')">`).join('');
         }
-        
         document.getElementById('productModal').style.display = 'block';
     }
     
@@ -1283,12 +1201,11 @@
     document.getElementById('expiryDate')?.addEventListener('input', function(e) { let v = e.target.value.replace(/\//g, ''); if(v.length >= 2) v = v.slice(0,2) + '/' + v.slice(2,4); e.target.value = v; });
     
     // Initialize
-    loadFromFirebase();
     renderCats();
-    loadProductsFromFirebase();
+    renderProducts();
     updateCartUI();
     
-    console.log("✅ GlobalBazaar with 3 Products (Electronics, Textile, Cosmetic) and Multiple Photos is Ready!");
+    console.log("✅ GlobalBazaar with 3 Products (Electronics, Textile, Cosmetic) and Multiple Photos - Firebase Removed!");
 </script>
 </body>
 </html>
