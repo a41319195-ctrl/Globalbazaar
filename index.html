@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>GlobalBazaar - Complete Marketplace with 195+ Countries</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -185,11 +186,27 @@
             transform: translateY(-3px);
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
         }
-        .product-card img {
+        .product-card .main-img {
             width: 100%;
-            height: 130px;
+            height: 140px;
             object-fit: cover;
             border-radius: 16px;
+        }
+        .product-thumbnails {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .product-thumbnails img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 1px solid #e2e8f0;
+        }
+        .product-thumbnails img:hover {
+            border-color: #3b82f6;
         }
         .seller-name-tag {
             font-size: 11px;
@@ -341,6 +358,29 @@
             float: right;
             font-size: 28px;
             cursor: pointer;
+        }
+        .modal-main-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 16px;
+        }
+        .modal-thumbnails {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+        .modal-thumbnails img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 2px solid #e2e8f0;
+        }
+        .modal-thumbnails img:hover {
+            border-color: #3b82f6;
         }
         .seller-avatar {
             width: 60px;
@@ -549,6 +589,20 @@
             .delivery-form-row {
                 flex-direction: column;
             }
+            .product-thumbnails img {
+                width: 40px;
+                height: 40px;
+            }
+            .product-card .main-img {
+                height: 120px;
+            }
+            .modal-main-img {
+                height: 180px;
+            }
+            .modal-thumbnails img {
+                width: 50px;
+                height: 50px;
+            }
         }
     </style>
 </head>
@@ -620,7 +674,6 @@
                 <input type="text" id="sellerFullName" placeholder="Full Legal Name" class="input" required>
                 <input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required>
                 <input type="email" id="sellerEmail" placeholder="Email" class="input" required>
-
                 <div class="phone-group">
                     <div class="country-search-select" id="sellerCountrySearchContainer">
                         <input type="text" id="sellerCountrySearch" placeholder="🔍 Search country..." autocomplete="off">
@@ -633,7 +686,6 @@
                     <input type="text" id="sellerOtp" placeholder="Enter OTP" class="input">
                     <button type="button" id="sellerVerifyOtpBtn" class="btn-secondary">Verify OTP</button>
                 </div>
-
                 <input type="password" id="sellerPassword" placeholder="Password" class="input" required>
                 <input type="date" id="sellerDob" class="input" required>
                 <h4>📍 Shop Address</h4>
@@ -688,7 +740,6 @@
                     <option value="seller">Seller</option>
                 </select>
                 <input type="email" id="signupEmail" placeholder="Email" class="input">
-
                 <div class="phone-group">
                     <div class="country-search-select" id="signupCountrySearchContainer">
                         <input type="text" id="signupCountrySearch" placeholder="🔍 Search country..." autocomplete="off">
@@ -701,7 +752,6 @@
                     <input type="text" id="signupOtp" placeholder="Enter OTP" class="input">
                     <button type="button" id="signupVerifyOtpBtn" class="btn-secondary">Verify OTP</button>
                 </div>
-
                 <input type="password" id="signupPass" placeholder="Password" class="input">
                 <div class="checkbox-group">
                     <input type="checkbox" id="termsCheckbox" required>
@@ -832,7 +882,8 @@
 <div id="productModal" class="modal">
     <div class="modal-card">
         <span class="close-modal" id="closeModalBtn">&times;</span>
-        <img id="modalImg" style="width:100%; border-radius:16px;">
+        <img id="modalMainImg" class="modal-main-img">
+        <div class="modal-thumbnails" id="modalThumbnails"></div>
         <h2 id="modalTitle"></h2>
         <p id="modalDesc"></p>
         <div id="modalPriceBreakdown" style="font-size:12px; color:#64748b; margin:10px 0;"></div>
@@ -1173,24 +1224,117 @@
     let savedAddresses = JSON.parse(localStorage.getItem('gb_saved_addresses')) || [];
     let sellerRevenueChart = null;
     
+    // ============ DUMMY PRODUCTS WITH MULTIPLE PHOTOS ============
+    const dummyProducts = [
+        {
+            id: 101, sellerId: 0, sellerName: "GlobalBazaar", name: "Wireless Noise Cancelling Headphones", price: 89.99, 
+            category: "Electronics", sellerCountry: "SA", rating: 4.8,
+            mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400",
+            images: [
+                "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400",
+                "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400",
+                "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=400"
+            ],
+            description: "Premium wireless headphones with active noise cancellation, 30-hour battery life, and crystal clear sound quality. Perfect for travel and daily use."
+        },
+        {
+            id: 102, sellerId: 0, sellerName: "GlobalBazaar", name: "Premium Cotton T-Shirt", price: 24.99, 
+            category: "Textile", sellerCountry: "SA", rating: 4.5,
+            mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400",
+            images: [
+                "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400",
+                "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=400",
+                "https://images.unsplash.com/photo-1581655353564-df123a1eb21f?w=400"
+            ],
+            description: "Soft, breathable 100% combed cotton t-shirt. Available in multiple colors. Perfect for everyday wear."
+        },
+        {
+            id: 103, sellerId: 0, sellerName: "GlobalBazaar", name: "Smart LED Smartwatch", price: 149.99, 
+            category: "Electronics", sellerCountry: "SA", rating: 4.7,
+            mainImage: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400",
+            images: [
+                "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400",
+                "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=400",
+                "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9?w=400"
+            ],
+            description: "Feature-rich smartwatch with heart rate monitor, GPS, sleep tracking, and 7-day battery life. Compatible with iOS and Android."
+        },
+        {
+            id: 104, sellerId: 0, sellerName: "GlobalBazaar", name: "Women's Silk Scarf", price: 34.99, 
+            category: "Textile", sellerCountry: "SA", rating: 4.6,
+            mainImage: "https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=400",
+            images: [
+                "https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=400",
+                "https://images.unsplash.com/photo-1582418702059-97ebafb35d09?w=400",
+                "https://images.unsplash.com/photo-1596275175352-ec7f1b39bac6?w=400"
+            ],
+            description: "Luxurious 100% silk scarf with elegant floral design. Perfect accessory for any outfit."
+        },
+        {
+            id: 105, sellerId: 0, sellerName: "GlobalBazaar", name: "Matte Lipstick Set (6 Colors)", price: 29.99, 
+            category: "Cosmetic", sellerCountry: "SA", rating: 4.9,
+            mainImage: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400",
+            images: [
+                "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400",
+                "https://images.unsplash.com/photo-1596462502278-27e3e946f9b1?w=400",
+                "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400"
+            ],
+            description: "Long-lasting matte lipstick set with 6 stunning shades. Vitamin E enriched for smooth application."
+        },
+        {
+            id: 106, sellerId: 0, sellerName: "GlobalBazaar", name: "Vitamin C Face Serum", price: 42.99, 
+            category: "Cosmetic", sellerCountry: "SA", rating: 4.8,
+            mainImage: "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=400",
+            images: [
+                "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=400",
+                "https://images.unsplash.com/photo-1570194065650-d99fb4b8ccb0?w=400",
+                "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=400"
+            ],
+            description: "20% Vitamin C face serum with Hyaluronic Acid. Reduces dark spots and brightens skin."
+        },
+        {
+            id: 107, sellerId: 0, sellerName: "GlobalBazaar", name: "Men's Denim Jeans", price: 59.99, 
+            category: "Textile", sellerCountry: "SA", rating: 4.4,
+            mainImage: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400",
+            images: [
+                "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400",
+                "https://images.unsplash.com/photo-1555689502-c4b22d76c56f?w=400",
+                "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=400"
+            ],
+            description: "Classic fit denim jeans with stretch comfort. Durable fabric and stylish design."
+        },
+        {
+            id: 108, sellerId: 0, sellerName: "GlobalBazaar", name: "Portable Bluetooth Speaker", price: 79.99, 
+            category: "Electronics", sellerCountry: "SA", rating: 4.7,
+            mainImage: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400",
+            images: [
+                "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400",
+                "https://images.unsplash.com/photo-1589256469067-ea99122bbd75?w=400",
+                "https://images.unsplash.com/photo-1614149162883-504ce4d13909?w=400"
+            ],
+            description: "Waterproof portable speaker with 20-hour playtime, deep bass, and built-in microphone."
+        }
+    ];
+
     function loadFromFirebase() {
         database.ref('sellers').on('value', (snapshot) => {
             sellers = snapshot.val() ? Object.values(snapshot.val()) : [];
             if(currentUser?.role === 'seller') renderSellerDashboard();
             if(document.getElementById('adminContent').style.display === 'block') loadAdminData();
         });
+        
         database.ref('products').on('value', (snapshot) => {
-            products = snapshot.val() ? Object.values(snapshot.val()) : [];
-            if(products.length === 0) {
-                const defaultProducts = [
-                    {id:1, sellerId:0, sellerName:"GlobalBazaar", name:"Luxury Smart Watch", price:50, category:"Electronics", image:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400", description:"Premium smart watch", sellerCountry:"SA"},
-                    {id:2, sellerId:0, sellerName:"GlobalBazaar", name:"Premium Headphones", price:120, category:"Electronics", image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", description:"Noise cancellation", sellerCountry:"SA"}
-                ];
-                defaultProducts.forEach(p => database.ref('products/' + p.id).set(p));
-                products = defaultProducts;
+            const data = snapshot.val();
+            if(data && Object.keys(data).length > 0) {
+                products = Object.values(data);
+            } else {
+                // Add dummy products to Firebase if empty
+                products = dummyProducts;
+                products.forEach(p => database.ref('products/' + p.id).set(p));
             }
             renderProducts();
         });
+        
         database.ref('buyers').on('value', (snapshot) => { buyers = snapshot.val() ? Object.values(snapshot.val()) : []; });
         database.ref('orders').on('value', (snapshot) => { orders = snapshot.val() ? Object.values(snapshot.val()) : []; renderBuyerOrders(); });
         database.ref('platformEarnings').on('value', (snapshot) => { platformEarnings = snapshot.val() || 0; });
@@ -1214,14 +1358,12 @@
     
     function loadProductsFromFirebase() {
         database.ref('products').once('value', (snapshot) => {
-            products = snapshot.val() ? Object.values(snapshot.val()) : [];
-            if(products.length === 0) {
-                const defaultProducts = [
-                    {id:1, sellerId:0, sellerName:"GlobalBazaar", name:"Luxury Smart Watch", price:50, category:"Electronics", image:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400", description:"Premium smart watch", sellerCountry:"SA"},
-                    {id:2, sellerId:0, sellerName:"GlobalBazaar", name:"Premium Headphones", price:120, category:"Electronics", image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", description:"Noise cancellation", sellerCountry:"SA"}
-                ];
-                defaultProducts.forEach(p => database.ref('products/' + p.id).set(p));
-                products = defaultProducts;
+            const data = snapshot.val();
+            if(data && Object.keys(data).length > 0) {
+                products = Object.values(data);
+            } else {
+                products = dummyProducts;
+                products.forEach(p => database.ref('products/' + p.id).set(p));
             }
             renderProducts();
         });
@@ -1261,12 +1403,29 @@
         let html = filtered.map(p => {
             let seller = sellerMap.get(p.sellerId) || {shopName:"GlobalBazaar", country:"SA"};
             let final = calculateFinalPrice(p.price, seller.country, buyerCountry);
-            return `<div class="product-card" data-id="${p.id}"><img src="${p.image}"><div class="seller-name-tag">🏪 ${seller.shopName}</div><h4>${p.name}</h4><div class="prod-price">${getCurrencySymbol()}${convertPrice(final.total)}</div><div class="card-actions"><button class="btn-sm btn-buy addCartBtn" data-id="${p.id}">Buy</button><button class="btn-sm btn-wish wishBtn ${wishlist.includes(p.id)?'active':''}" data-id="${p.id}">❤️</button></div></div>`;
+            return `<div class="product-card" data-id="${p.id}">
+                        <img class="main-img" src="${p.mainImage}" alt="${p.name}">
+                        <div class="product-thumbnails">
+                            ${p.images && p.images.length > 1 ? p.images.slice(0,3).map(img => `<img src="${img}" onclick="event.stopPropagation(); changeProductImage(${p.id}, '${img}')">`).join('') : ''}
+                        </div>
+                        <div class="seller-name-tag">🏪 ${seller.shopName}</div>
+                        <h4>${p.name}</h4>
+                        <div class="prod-price">${getCurrencySymbol()}${convertPrice(final.total)}</div>
+                        <div class="card-actions">
+                            <button class="btn-sm btn-buy addCartBtn" data-id="${p.id}">Buy</button>
+                            <button class="btn-sm btn-wish wishBtn ${wishlist.includes(p.id)?'active':''}" data-id="${p.id}">❤️</button>
+                        </div>
+                    </div>`;
         }).join('');
         document.getElementById('productsGrid').innerHTML = html;
         document.querySelectorAll('.addCartBtn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); addToCart(parseInt(btn.dataset.id)); }));
         document.querySelectorAll('.wishBtn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); toggleWish(parseInt(btn.dataset.id)); }));
         document.querySelectorAll('.product-card').forEach(card => card.addEventListener('click', () => openProduct(parseInt(card.dataset.id))));
+    }
+    
+    function changeProductImage(productId, imageUrl) {
+        const modalMainImg = document.getElementById('modalMainImg');
+        if(modalMainImg) modalMainImg.src = imageUrl;
     }
     
     let currentProduct = null;
@@ -1276,11 +1435,18 @@
         currentProduct = p;
         let seller = sellers.find(s=>s.id===p.sellerId) || {shopName:"GlobalBazaar", country:"SA"};
         let final = calculateFinalPrice(p.price, seller.country, buyerCountry);
-        document.getElementById('modalImg').src = p.image;
+        document.getElementById('modalMainImg').src = p.mainImage;
         document.getElementById('modalTitle').innerText = p.name;
         document.getElementById('modalDesc').innerText = p.description;
         document.getElementById('modalPriceBreakdown').innerHTML = `Base: ${getCurrencySymbol()}${convertPrice(p.price)}<br>+ Shipping: ${getCurrencySymbol()}${convertPrice(final.shipping)}<br>+ Fees: ${getCurrencySymbol()}${convertPrice(final.commission+final.gateway+HANDLING_FEE)}`;
         document.getElementById('modalPrice').innerHTML = `<strong>Total: ${getCurrencySymbol()}${convertPrice(final.total)}</strong>`;
+        
+        // Add thumbnails to modal
+        const thumbContainer = document.getElementById('modalThumbnails');
+        if(thumbContainer && p.images && p.images.length > 0) {
+            thumbContainer.innerHTML = p.images.map(img => `<img src="${img}" onclick="changeProductImage(${p.id}, '${img}')">`).join('');
+        }
+        
         document.getElementById('productModal').style.display = 'block';
     }
     
@@ -1289,7 +1455,7 @@
         if(!p) return;
         let existing = cart.find(i=>i.id===id);
         if(existing) existing.qty++;
-        else cart.push({id:p.id, name:p.name, price:p.price, sellerId:p.sellerId, sellerCountry:p.sellerCountry || "SA", qty:1, image:p.image});
+        else cart.push({id:p.id, name:p.name, price:p.price, sellerId:p.sellerId, sellerCountry:p.sellerCountry || "SA", qty:1, image:p.mainImage});
         saveAll();
         updateCartUI();
         renderCartPage();
@@ -1615,7 +1781,13 @@
                 let desc = document.getElementById('prodDesc').value;
                 let price = parseFloat(document.getElementById('prodPrice').value);
                 if(!name || !price) { showToast("Fill name & price", true); return; }
-                let newProduct = { id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, name, price, category: document.getElementById('prodCat').value, image: document.getElementById('prodImg').value || "https://placehold.co/200x200", description: desc, sellerCountry: seller.country };
+                let newProduct = { 
+                    id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, 
+                    name, price, category: document.getElementById('prodCat').value, 
+                    mainImage: document.getElementById('prodImg').value || "https://placehold.co/200x200", 
+                    images: [document.getElementById('prodImg').value || "https://placehold.co/200x200"],
+                    description: desc, sellerCountry: seller.country, rating: 0
+                };
                 products.push(newProduct);
                 saveAll();
                 renderSellerDashboard(); renderProducts(); showToast("Published!", false);
@@ -1766,7 +1938,7 @@
     loadProductsFromFirebase();
     updateCartUI();
     
-    console.log("✅ GlobalBazaar with 195+ Countries and Search Bar is Ready!");
+    console.log("✅ GlobalBazaar with 8 Products (Electronics, Textile, Cosmetic) and Multiple Photos is Ready!");
 </script>
 </body>
 </html>
