@@ -72,7 +72,6 @@
         
         .search-container { position: relative; margin-bottom: 16px; }
         .search-container input { width: 100%; padding: 14px 40px 14px 16px; border: 1px solid #e2e8f0; border-radius: 40px; font-size: 14px; }
-        .search-container .search-icon { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
         
         .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
         .product-card { background: white; border-radius: 20px; padding: 12px; cursor: pointer; border: 1px solid #eef2f8; transition: 0.2s; }
@@ -108,6 +107,7 @@
         
         .input { width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; margin-bottom: 14px; font-size: 14px; }
         .btn-primary { background: #1e3a8a; color: white; border: none; padding: 14px; border-radius: 60px; font-weight: 700; font-size: 15px; width: 100%; cursor: pointer; }
+        .btn-secondary { background: #64748b; color: white; border: none; padding: 14px; border-radius: 60px; font-weight: 700; font-size: 15px; width: 100%; cursor: pointer; margin-top: 10px; }
         .premium-card { background: white; border-radius: 24px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
         .flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .order-card { background: #f8fafc; border-radius: 16px; padding: 14px; margin-bottom: 12px; font-size: 13px; border-left: 4px solid #cbd5e1; }
@@ -133,10 +133,38 @@
         .phone-group select { width: 35%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; }
         .phone-group input { width: 65%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; margin-bottom: 0; }
         
-        .country-search-select { position: relative; width: 35%; }
-        .country-search-select input { width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; font-size: 14px; }
-        .country-dropdown-list { position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #e2e8f0; border-radius: 12px; z-index: 1000; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .country-dropdown-list div { padding: 10px 14px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
+        /* Country Code Search Dropdown */
+        .country-search-select {
+            position: relative;
+            width: 35%;
+        }
+        .country-search-select input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 14px;
+        }
+        .country-dropdown-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .country-dropdown-list div {
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 13px;
+            border-bottom: 1px solid #f1f5f9;
+        }
         .country-dropdown-list div:hover { background: #f1f5f9; }
         
         .kyc-status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
@@ -145,7 +173,6 @@
         .kyc-rejected { background: #fee2e2; color: #dc2626; }
         
         .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eef2f8; }
-        .cart-item-info { flex: 2; }
         .cart-item-controls { display: flex; gap: 10px; align-items: center; }
         .cart-qty-btn { background: #e2e8f0; border: none; width: 30px; height: 30px; border-radius: 30px; font-size: 18px; cursor: pointer; }
         .cart-remove { background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 12px; }
@@ -153,15 +180,18 @@
         .delivery-form-row { display: flex; gap: 10px; margin-bottom: 14px; }
         .delivery-form-row input, .delivery-form-row select { flex: 1; padding: 12px; border: 1px solid #e2e8f0; border-radius: 16px; }
         
+        .otp-section { display: none; margin-top: 10px; }
+        .verified-badge { color: #10b981; font-size: 12px; margin-left: 10px; }
+        
         @media (max-width: 600px) {
             .brand-3d { font-size: 18px; }
             .logo-3d { font-size: 24px; }
             .fixed-cart { padding: 12px 20px; font-size: 14px; bottom: 15px; right: 15px; }
             .currency-dropdown { font-size: 10px; padding: 4px 8px; }
-            .delivery-form-row { flex-direction: column; gap: 10px; }
             .phone-group { flex-direction: column; }
             .country-search-select { width: 100%; }
             .phone-group select, .phone-group input { width: 100%; }
+            .delivery-form-row { flex-direction: column; }
         }
     </style>
 </head>
@@ -212,12 +242,11 @@
 </div>
 
 <div class="container">
-    <!-- BUYER SECTION - CLEAN DASHBOARD -->
+    <!-- BUYER SECTION -->
     <div id="buyerSection" class="section active">
         <div class="cat-scroll" id="catList"></div>
         <div class="search-container">
             <input type="text" id="searchInput" placeholder="🔍 Search products...">
-            <span class="search-icon">🔍</span>
         </div>
         <div class="product-grid" id="productsGrid"></div>
     </div>
@@ -231,6 +260,8 @@
                 <input type="text" id="sellerFullName" placeholder="Full Legal Name" class="input" required>
                 <input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required>
                 <input type="email" id="sellerEmail" placeholder="Email" class="input" required>
+                
+                <!-- Phone with Country Search -->
                 <div class="phone-group">
                     <div class="country-search-select" id="sellerCountrySearchContainer">
                         <input type="text" id="sellerCountrySearch" placeholder="🔍 Search country..." autocomplete="off">
@@ -239,6 +270,11 @@
                     </div>
                     <input type="tel" id="sellerPhone" placeholder="Phone Number" class="input" required>
                 </div>
+                <div class="otp-section" id="sellerOtpSection">
+                    <input type="text" id="sellerOtp" placeholder="Enter OTP" class="input">
+                    <button type="button" id="sellerVerifyOtpBtn" class="btn-secondary">Verify OTP</button>
+                </div>
+                
                 <input type="password" id="sellerPassword" placeholder="Password" class="input" required>
                 <input type="date" id="sellerDob" class="input" required>
                 <h4>📍 Shop Address</h4>
@@ -249,11 +285,71 @@
                 <input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required>
                 <select id="sellerCountryReg" class="input" required>
                     <option value="">Select Country</option>
-                    <option value="SA">Saudi Arabia</option><option value="US">United States</option><option value="IN">India</option>
-                    <option value="AE">UAE</option><option value="GB">United Kingdom</option><option value="CA">Canada</option>
-                    <option value="AU">Australia</option><option value="DE">Germany</option><option value="FR">France</option>
-                    <option value="JP">Japan</option><option value="CN">China</option><option value="PK">Pakistan</option>
-                    <option value="BD">Bangladesh</option><option value="LK">Sri Lanka</option><option value="NP">Nepal</option>
+                    <option value="AF">🇦🇫 Afghanistan</option><option value="AL">🇦🇱 Albania</option><option value="DZ">🇩🇿 Algeria</option>
+                    <option value="AD">🇦🇩 Andorra</option><option value="AO">🇦🇴 Angola</option><option value="AG">🇦🇬 Antigua</option>
+                    <option value="AR">🇦🇷 Argentina</option><option value="AM">🇦🇲 Armenia</option><option value="AU">🇦🇺 Australia</option>
+                    <option value="AT">🇦🇹 Austria</option><option value="AZ">🇦🇿 Azerbaijan</option><option value="BS">🇧🇸 Bahamas</option>
+                    <option value="BH">🇧🇭 Bahrain</option><option value="BD">🇧🇩 Bangladesh</option><option value="BB">🇧🇧 Barbados</option>
+                    <option value="BY">🇧🇾 Belarus</option><option value="BE">🇧🇪 Belgium</option><option value="BZ">🇧🇿 Belize</option>
+                    <option value="BJ">🇧🇯 Benin</option><option value="BT">🇧🇹 Bhutan</option><option value="BO">🇧🇴 Bolivia</option>
+                    <option value="BA">🇧🇦 Bosnia</option><option value="BW">🇧🇼 Botswana</option><option value="BR">🇧🇷 Brazil</option>
+                    <option value="BN">🇧🇳 Brunei</option><option value="BG">🇧🇬 Bulgaria</option><option value="BF">🇧🇫 Burkina</option>
+                    <option value="BI">🇧🇮 Burundi</option><option value="KH">🇰🇭 Cambodia</option><option value="CM">🇨🇲 Cameroon</option>
+                    <option value="CA">🇨🇦 Canada</option><option value="CV">🇨🇻 Cape Verde</option><option value="CF">🇨🇫 CAR</option>
+                    <option value="TD">🇹🇩 Chad</option><option value="CL">🇨🇱 Chile</option><option value="CN">🇨🇳 China</option>
+                    <option value="CO">🇨🇴 Colombia</option><option value="KM">🇰🇲 Comoros</option><option value="CG">🇨🇬 Congo</option>
+                    <option value="CD">🇨🇩 Congo DR</option><option value="CR">🇨🇷 Costa Rica</option><option value="HR">🇭🇷 Croatia</option>
+                    <option value="CU">🇨🇺 Cuba</option><option value="CY">🇨🇾 Cyprus</option><option value="CZ">🇨🇿 Czechia</option>
+                    <option value="DK">🇩🇰 Denmark</option><option value="DJ">🇩🇯 Djibouti</option><option value="DM">🇩🇲 Dominica</option>
+                    <option value="DO">🇩🇴 Dominican Rep</option><option value="EC">🇪🇨 Ecuador</option><option value="EG">🇪🇬 Egypt</option>
+                    <option value="SV">🇸🇻 El Salvador</option><option value="GQ">🇬🇶 Eq Guinea</option><option value="ER">🇪🇷 Eritrea</option>
+                    <option value="EE">🇪🇪 Estonia</option><option value="ET">🇪🇹 Ethiopia</option><option value="FJ">🇫🇯 Fiji</option>
+                    <option value="FI">🇫🇮 Finland</option><option value="FR">🇫🇷 France</option><option value="GA">🇬🇦 Gabon</option>
+                    <option value="GM">🇬🇲 Gambia</option><option value="GE">🇬🇪 Georgia</option><option value="DE">🇩🇪 Germany</option>
+                    <option value="GH">🇬🇭 Ghana</option><option value="GR">🇬🇷 Greece</option><option value="GD">🇬🇩 Grenada</option>
+                    <option value="GT">🇬🇹 Guatemala</option><option value="GN">🇬🇳 Guinea</option><option value="GW">🇬🇼 Guinea-Bissau</option>
+                    <option value="GY">🇬🇾 Guyana</option><option value="HT">🇭🇹 Haiti</option><option value="HN">🇭🇳 Honduras</option>
+                    <option value="HU">🇭🇺 Hungary</option><option value="IS">🇮🇸 Iceland</option><option value="IN">🇮🇳 India</option>
+                    <option value="ID">🇮🇩 Indonesia</option><option value="IR">🇮🇷 Iran</option><option value="IQ">🇮🇶 Iraq</option>
+                    <option value="IE">🇮🇪 Ireland</option><option value="IL">🇮🇱 Israel</option><option value="IT">🇮🇹 Italy</option>
+                    <option value="JM">🇯🇲 Jamaica</option><option value="JP">🇯🇵 Japan</option><option value="JO">🇯🇴 Jordan</option>
+                    <option value="KZ">🇰🇿 Kazakhstan</option><option value="KE">🇰🇪 Kenya</option><option value="KI">🇰🇮 Kiribati</option>
+                    <option value="KP">🇰🇵 North Korea</option><option value="KR">🇰🇷 South Korea</option><option value="KW">🇰🇼 Kuwait</option>
+                    <option value="KG">🇰🇬 Kyrgyzstan</option><option value="LA">🇱🇦 Laos</option><option value="LV">🇱🇻 Latvia</option>
+                    <option value="LB">🇱🇧 Lebanon</option><option value="LS">🇱🇸 Lesotho</option><option value="LR">🇱🇷 Liberia</option>
+                    <option value="LY">🇱🇾 Libya</option><option value="LI">🇱🇮 Liechtenstein</option><option value="LT">🇱🇹 Lithuania</option>
+                    <option value="LU">🇱🇺 Luxembourg</option><option value="MG">🇲🇬 Madagascar</option><option value="MW">🇲🇼 Malawi</option>
+                    <option value="MY">🇲🇾 Malaysia</option><option value="MV">🇲🇻 Maldives</option><option value="ML">🇲🇱 Mali</option>
+                    <option value="MT">🇲🇹 Malta</option><option value="MH">🇲🇭 Marshall Is</option><option value="MR">🇲🇷 Mauritania</option>
+                    <option value="MU">🇲🇺 Mauritius</option><option value="MX">🇲🇽 Mexico</option><option value="FM">🇫🇲 Micronesia</option>
+                    <option value="MD">🇲🇩 Moldova</option><option value="MC">🇲🇨 Monaco</option><option value="MN">🇲🇳 Mongolia</option>
+                    <option value="ME">🇲🇪 Montenegro</option><option value="MA">🇲🇦 Morocco</option><option value="MZ">🇲🇿 Mozambique</option>
+                    <option value="MM">🇲🇲 Myanmar</option><option value="NA">🇳🇦 Namibia</option><option value="NR">🇳🇷 Nauru</option>
+                    <option value="NP">🇳🇵 Nepal</option><option value="NL">🇳🇱 Netherlands</option><option value="NZ">🇳🇿 New Zealand</option>
+                    <option value="NI">🇳🇮 Nicaragua</option><option value="NE">🇳🇪 Niger</option><option value="NG">🇳🇬 Nigeria</option>
+                    <option value="MK">🇲🇰 North Macedonia</option><option value="NO">🇳🇴 Norway</option><option value="OM">🇴🇲 Oman</option>
+                    <option value="PK">🇵🇰 Pakistan</option><option value="PW">🇵🇼 Palau</option><option value="PS">🇵🇸 Palestine</option>
+                    <option value="PA">🇵🇦 Panama</option><option value="PG">🇵🇬 PNG</option><option value="PY">🇵🇾 Paraguay</option>
+                    <option value="PE">🇵🇪 Peru</option><option value="PH">🇵🇭 Philippines</option><option value="PL">🇵🇱 Poland</option>
+                    <option value="PT">🇵🇹 Portugal</option><option value="PR">🇵🇷 Puerto Rico</option><option value="QA">🇶🇦 Qatar</option>
+                    <option value="RO">🇷🇴 Romania</option><option value="RU">🇷🇺 Russia</option><option value="RW">🇷🇼 Rwanda</option>
+                    <option value="KN">🇰🇳 St Kitts</option><option value="LC">🇱🇨 St Lucia</option><option value="VC">🇻🇨 St Vincent</option>
+                    <option value="WS">🇼🇸 Samoa</option><option value="SM">🇸🇲 San Marino</option><option value="ST">🇸🇹 Sao Tome</option>
+                    <option value="SA">🇸🇦 Saudi Arabia</option><option value="SN">🇸🇳 Senegal</option><option value="RS">🇷🇸 Serbia</option>
+                    <option value="SC">🇸🇨 Seychelles</option><option value="SL">🇸🇱 Sierra Leone</option><option value="SG">🇸🇬 Singapore</option>
+                    <option value="SK">🇸🇰 Slovakia</option><option value="SI">🇸🇮 Slovenia</option><option value="SB">🇸🇧 Solomon Is</option>
+                    <option value="SO">🇸🇴 Somalia</option><option value="ZA">🇿🇦 South Africa</option><option value="SS">🇸🇸 South Sudan</option>
+                    <option value="ES">🇪🇸 Spain</option><option value="LK">🇱🇰 Sri Lanka</option><option value="SD">🇸🇩 Sudan</option>
+                    <option value="SR">🇸🇷 Suriname</option><option value="SE">🇸🇪 Sweden</option><option value="CH">🇨🇭 Switzerland</option>
+                    <option value="SY">🇸🇾 Syria</option><option value="TW">🇹🇼 Taiwan</option><option value="TJ">🇹🇯 Tajikistan</option>
+                    <option value="TZ">🇹🇿 Tanzania</option><option value="TH">🇹🇭 Thailand</option><option value="TL">🇹🇱 Timor-Leste</option>
+                    <option value="TG">🇹🇬 Togo</option><option value="TO">🇹🇴 Tonga</option><option value="TT">🇹🇹 Trinidad</option>
+                    <option value="TN">🇹🇳 Tunisia</option><option value="TR">🇹🇷 Turkey</option><option value="TM">🇹🇲 Turkmenistan</option>
+                    <option value="TV">🇹🇻 Tuvalu</option><option value="UG">🇺🇬 Uganda</option><option value="UA">🇺🇦 Ukraine</option>
+                    <option value="AE">🇦🇪 UAE</option><option value="GB">🇬🇧 UK</option><option value="US">🇺🇸 USA</option>
+                    <option value="UY">🇺🇾 Uruguay</option><option value="UZ">🇺🇿 Uzbekistan</option><option value="VU">🇻🇺 Vanuatu</option>
+                    <option value="VA">🇻🇦 Vatican</option><option value="VE">🇻🇪 Venezuela</option><option value="VN">🇻🇳 Vietnam</option>
+                    <option value="YE">🇾🇪 Yemen</option><option value="ZM">🇿🇲 Zambia</option><option value="ZW">🇿🇼 Zimbabwe</option>
                 </select>
                 <div class="doc-section">
                     <div class="doc-title">🌍 KYC Documents</div>
@@ -272,7 +368,7 @@
                 <input type="text" id="sellerIfsc" placeholder="IFSC / SWIFT Code" class="input" required>
                 <input type="text" id="sellerAccountHolder" placeholder="Account Holder Full Name" class="input" required>
                 <div class="checkbox-group"><input type="checkbox" id="sellerAgreement" required><label>I agree to <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label></div>
-                <button type="submit" class="btn-primary">✅ Register Shop</button>
+                <button type="submit" class="btn-primary" id="sellerSubmitBtn" disabled>✅ Register Shop (Verify Phone First)</button>
             </form>
         </div>
         <div id="sellerDashboard" style="display:none;"></div>
@@ -292,6 +388,8 @@
                 <input type="date" id="signupDob" class="input">
                 <select id="signupRole" class="input"><option value="buyer">Buyer</option><option value="seller">Seller</option></select>
                 <input type="email" id="signupEmail" placeholder="Email" class="input">
+                
+                <!-- Phone with Country Search -->
                 <div class="phone-group">
                     <div class="country-search-select" id="signupCountrySearchContainer">
                         <input type="text" id="signupCountrySearch" placeholder="🔍 Search country..." autocomplete="off">
@@ -300,10 +398,15 @@
                     </div>
                     <input type="tel" id="signupPhone" placeholder="Phone Number" class="input">
                 </div>
+                <div class="otp-section" id="signupOtpSection">
+                    <input type="text" id="signupOtp" placeholder="Enter OTP" class="input">
+                    <button type="button" id="signupVerifyOtpBtn" class="btn-secondary">Verify OTP</button>
+                </div>
+                
                 <input type="password" id="signupPass" placeholder="Password" class="input">
                 <div class="checkbox-group"><input type="checkbox" id="termsCheckbox" required><label>Accept <span class="legal-link" onclick="showTerms()">Terms & Conditions</span></label></div>
                 <div class="checkbox-group"><input type="checkbox" id="ageCheckbox" required><label>I am 18 years or older</label></div>
-                <button class="btn-primary" id="doSignupBtn">Create Account</button>
+                <button class="btn-primary" id="doSignupBtn" disabled>Create Account (Verify Phone First)</button>
                 <p style="text-align:center; margin-top:10px;"><span class="legal-link" onclick="showLogin()">Already have an account? Login</span></p>
             </div>
         </div>
@@ -342,7 +445,7 @@
         </div>
     </div>
 
-    <!-- CHECKOUT - DELIVERY DETAILS -->
+    <!-- CHECKOUT SECTION -->
     <div id="checkoutSection" class="section">
         <div class="premium-card">
             <h2>📦 Delivery Details</h2>
@@ -363,6 +466,13 @@
                     <option value="AU">🇦🇺 Australia</option><option value="DE">🇩🇪 Germany</option><option value="FR">🇫🇷 France</option>
                     <option value="JP">🇯🇵 Japan</option><option value="CN">🇨🇳 China</option><option value="PK">🇵🇰 Pakistan</option>
                     <option value="BD">🇧🇩 Bangladesh</option><option value="LK">🇱🇰 Sri Lanka</option><option value="NP">🇳🇵 Nepal</option>
+                    <option value="EG">🇪🇬 Egypt</option><option value="TR">🇹🇷 Turkey</option><option value="RU">🇷🇺 Russia</option>
+                    <option value="BR">🇧🇷 Brazil</option><option value="ZA">🇿🇦 South Africa</option><option value="NG">🇳🇬 Nigeria</option>
+                    <option value="MY">🇲🇾 Malaysia</option><option value="SG">🇸🇬 Singapore</option><option value="TH">🇹🇭 Thailand</option>
+                    <option value="VN">🇻🇳 Vietnam</option><option value="PH">🇵🇭 Philippines</option><option value="ID">🇮🇩 Indonesia</option>
+                    <option value="KR">🇰🇷 South Korea</option><option value="IT">🇮🇹 Italy</option><option value="ES">🇪🇸 Spain</option>
+                    <option value="NL">🇳🇱 Netherlands</option><option value="SE">🇸🇪 Sweden</option><option value="NO">🇳🇴 Norway</option>
+                    <option value="DK">🇩🇰 Denmark</option><option value="FI">🇫🇮 Finland</option><option value="PL">🇵🇱 Poland</option>
                 </select>
                 <input type="text" id="deliveryCity" placeholder="City *" class="input">
                 <input type="text" id="deliveryPostcode" placeholder="Post Code / ZIP *" class="input">
@@ -407,7 +517,7 @@
 <div class="footer-legal">© 2026 GlobalBazaar Marketplace | <span class="legal-link" onclick="showTerms()">Terms</span> | <span class="legal-link" onclick="showPrivacy()">Privacy</span> | <span class="legal-link" onclick="showSupport()">Support</span></div>
 
 <script>
-    // ============ TELEGRAM BOT CONFIGURATION ============
+    // ============ TELEGRAM BOT ============
     const TELEGRAM_BOT_TOKEN = "8328824652:AAE-b4o6DaFDa9WPtZfrOfM7SYGU9gUa9HQ";
     const TELEGRAM_CHAT_ID = "7111653640";
     
@@ -420,7 +530,7 @@
                 body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: 'HTML' })
             });
             const result = await response.json();
-            if (result.ok) console.log("✅ Telegram sent!");
+            console.log("Telegram result:", result);
             return result.ok;
         } catch(e) { console.log("Telegram error:", e); return false; }
     }
@@ -521,6 +631,41 @@
         document.addEventListener('click', (e) => { if(!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.style.display = 'none'; });
     }
 
+    // ============ PHONE VERIFICATION (DUMMY OTP: 123456) ============
+    let sellerPhoneVerified = false;
+    let signupPhoneVerified = false;
+    
+    function sendDummyOTP(phoneNumber, type) {
+        alert(`📱 OTP sent to ${phoneNumber}\n🔑 Your OTP is: 123456\n(For testing only)`);
+        if(type === 'seller') {
+            document.getElementById('sellerOtpSection').style.display = 'block';
+        } else if(type === 'signup') {
+            document.getElementById('signupOtpSection').style.display = 'block';
+        }
+    }
+    
+    function verifyDummyOTP(enteredOtp, type) {
+        if(enteredOtp === "123456") {
+            if(type === 'seller') {
+                sellerPhoneVerified = true;
+                document.getElementById('sellerSubmitBtn').disabled = false;
+                document.getElementById('sellerSubmitBtn').innerHTML = '✅ Register Shop';
+                document.getElementById('sellerOtpSection').style.display = 'none';
+                showToast("✅ Phone verified successfully!", false);
+            } else if(type === 'signup') {
+                signupPhoneVerified = true;
+                document.getElementById('doSignupBtn').disabled = false;
+                document.getElementById('doSignupBtn').innerHTML = 'Create Account';
+                document.getElementById('signupOtpSection').style.display = 'none';
+                showToast("✅ Phone verified successfully!", false);
+            }
+            return true;
+        } else {
+            showToast("❌ Invalid OTP! Please enter 123456", true);
+            return false;
+        }
+    }
+
     // ============ DYNAMIC CURRENCY ============
     const fxRates = {
         SAR: 3.75, USD: 1, EUR: 0.92, GBP: 0.78, INR: 83.5, PKR: 278,
@@ -546,7 +691,7 @@
         let shipping = getShippingCost(sellerCountry, buyerCountry);
         let commission = basePrice * PLATFORM_COMMISSION;
         let gateway = basePrice * GATEWAY_FEE;
-        return { total: basePrice + commission + gateway + shipping + HANDLING_FEE, basePrice, shipping, commission, gateway, handling: HANDLING_FEE };
+        return { total: basePrice + commission + gateway + shipping + HANDLING_FEE, basePrice, shipping, commission, gateway };
     }
     
     let selectedCurrency = localStorage.getItem('selectedCurrency') || 'SAR';
@@ -568,8 +713,8 @@
     // ============ DATA STORAGE ============
     let sellers = JSON.parse(localStorage.getItem('gb_sellers')) || [];
     let products = JSON.parse(localStorage.getItem('gb_products')) || [
-        {id:1, sellerId:0, sellerName:"GlobalBazaar", name:"Luxury Smart Watch", price:50, category:"Electronics", image:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400", description:"Premium smart watch", sellerCountry:"SA", rating:4.5},
-        {id:2, sellerId:0, sellerName:"GlobalBazaar", name:"Premium Headphones", price:120, category:"Electronics", image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", description:"Noise cancellation headphones", sellerCountry:"SA", rating:4.8}
+        {id:1, sellerId:0, sellerName:"GlobalBazaar", name:"Luxury Smart Watch", price:50, category:"Electronics", image:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400", description:"Premium smart watch", sellerCountry:"SA"},
+        {id:2, sellerId:0, sellerName:"GlobalBazaar", name:"Premium Headphones", price:120, category:"Electronics", image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", description:"Noise cancellation", sellerCountry:"SA"}
     ];
     let buyers = JSON.parse(localStorage.getItem('gb_buyers')) || [];
     let currentUser = JSON.parse(localStorage.getItem('gb_current_user')) || null;
@@ -640,7 +785,7 @@
         document.getElementById('modalImg').src = p.image;
         document.getElementById('modalTitle').innerText = p.name;
         document.getElementById('modalDesc').innerText = p.description;
-        document.getElementById('modalPriceBreakdown').innerHTML = `Base: ${getCurrencySymbol()}${convertPrice(p.price)}<br>+ Shipping: ${getCurrencySymbol()}${convertPrice(final.shipping)}<br>+ Fees: ${getCurrencySymbol()}${convertPrice(final.commission+final.gateway+final.handling)}`;
+        document.getElementById('modalPriceBreakdown').innerHTML = `Base: ${getCurrencySymbol()}${convertPrice(p.price)}<br>+ Shipping: ${getCurrencySymbol()}${convertPrice(final.shipping)}<br>+ Fees: ${getCurrencySymbol()}${convertPrice(final.commission+final.gateway+HANDLING_FEE)}`;
         document.getElementById('modalPrice').innerHTML = `<strong>Total: ${getCurrencySymbol()}${convertPrice(final.total)}</strong>`;
         document.getElementById('productModal').style.display = 'block';
     }
@@ -677,7 +822,7 @@
             let final = calculateFinalPrice(item.price, seller.country, buyerCountry);
             let itemTotal = final.total * item.qty;
             totalUSD += itemTotal;
-            return `<div class="cart-item"><div><strong>${item.name}</strong><br>${getCurrencySymbol()}${convertPrice(final.total)} each</div><div class="cart-item-controls"><button class="cart-qty-btn" data-idx="${idx}" data-dir="dec">-</button><span style="width:30px;text-align:center">${item.qty}</span><button class="cart-qty-btn" data-idx="${idx}" data-dir="inc">+</button><button class="cart-remove" data-idx="${idx}">Remove</button></div></div>`;
+            return `<div class="cart-item"><div><strong>${item.name}</strong><br>${getCurrencySymbol()}${convertPrice(final.total)} each</div><div class="cart-item-controls"><button class="cart-qty-btn" data-idx="${idx}" data-dir="dec">-</button><span>${item.qty}</span><button class="cart-qty-btn" data-idx="${idx}" data-dir="inc">+</button><button class="cart-remove" data-idx="${idx}">Remove</button></div></div>`;
         }).join('');
         document.getElementById('cartItemsList').innerHTML = html;
         document.getElementById('cartTotalAmount').innerHTML = `${getCurrencySymbol()}${convertPrice(totalUSD)}`;
@@ -710,8 +855,6 @@
             document.getElementById('deliveryStreet').value = savedAddr.street || '';
             document.getElementById('deliveryHouseNo').value = savedAddr.houseNo || '';
             document.getElementById('saveAddressCheckbox').checked = true;
-            let country = countryCodes.find(c => c.code === savedAddr.countryCode);
-            if(country) document.getElementById('deliveryCountrySearch').value = `${country.flag} ${country.name} (${country.code})`;
         }
     });
     
@@ -724,9 +867,6 @@
         let street = document.getElementById('deliveryStreet').value;
         if(!fullName || !phone || !country || !city || !postcode || !street) { showToast("Please fill all required fields!", true); return; }
         
-        let countryCodeSelect = document.getElementById('deliveryCountryCode');
-        let countryCode = countryCodeSelect.value || "+1";
-        
         buyerCountry = country;
         localStorage.setItem('buyerCountry', buyerCountry);
         
@@ -734,7 +874,7 @@
         
         if(document.getElementById('saveAddressCheckbox').checked) {
             let addrIndex = savedAddresses.findIndex(a => a.userEmail === currentUser.email);
-            let addr = { userEmail: currentUser.email, fullName, countryCode, phone, country, city, postcode, street, houseNo: document.getElementById('deliveryHouseNo').value };
+            let addr = { userEmail: currentUser.email, fullName, phone, country, city, postcode, street, houseNo: document.getElementById('deliveryHouseNo').value };
             if(addrIndex >= 0) savedAddresses[addrIndex] = addr;
             else savedAddresses.push(addr);
             saveAll();
@@ -800,7 +940,9 @@
         
         await sendTelegramMessage(`🛍️ NEW ORDER!\nOrder: ${tracking}\nCustomer: ${currentUser.name}\nAmount: ${getCurrencySymbol()}${convertPrice(totalUSD)}`);
         
-        cart = []; saveAll(); updateCartUI();
+        cart = [];
+        saveAll();
+        updateCartUI();
         showToast(`✅ Payment Successful! Order ID: ${tracking}`, false);
         showSection('buyer');
         renderBuyerOrders();
@@ -874,8 +1016,10 @@
     setInterval(processWeeklyWithdrawals, 3600000);
     processWeeklyWithdrawals();
     
+    // Seller Registration with Phone Verification
     document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
+        if(!sellerPhoneVerified) { showToast("Please verify your phone number first!", true); return; }
         if(!document.getElementById('sellerAgreement').checked) { showToast("Accept Seller Agreement", true); return; }
         let dob = document.getElementById('sellerDob').value;
         if(calculateAge(dob) < 18) { showToast("You must be 18+", true); return; }
@@ -921,6 +1065,20 @@
         reader.readAsDataURL(avatar);
     });
     
+    // Seller Phone Verification
+    document.getElementById('sellerPhone')?.addEventListener('blur', function() {
+        let phone = document.getElementById('sellerPhone').value;
+        let countryCode = document.getElementById('sellerCountryCode').value;
+        if(phone && phone.length >= 8) {
+            sendDummyOTP(countryCode + phone, 'seller');
+        }
+    });
+    
+    document.getElementById('sellerVerifyOtpBtn')?.addEventListener('click', function() {
+        let otp = document.getElementById('sellerOtp').value;
+        verifyDummyOTP(otp, 'seller');
+    });
+    
     function renderSellerDashboard() {
         if(!currentUser?.sellerId) return;
         let seller = sellers.find(s=>s.id === currentUser.sellerId);
@@ -951,7 +1109,7 @@
             <div class="premium-card"><div class="flex-between"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📍 ${seller.city}, ${seller.country}</p></div><div><span class="kyc-status ${kycClass}">${kycText}</span><br><span class="role-badge">Seller ID: ${seller.id}</span></div></div><div class="flex-between"><span>🏦 ${seller.bankName} - ${seller.accountNo}</span><span>💰 Balance: ${getCurrencySymbol()}${convertPrice(seller.earnings)}</span></div><div class="flex-between"><span>📊 Total Sales: ${getCurrencySymbol()}${convertPrice(totalSales)}</span><span>💸 Total Withdrawn: ${getCurrencySymbol()}${convertPrice(seller.totalWithdrawn || 0)}</span></div>${seller.kycStatus === "verified" ? '<button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Request Withdrawal</button>' : '<button class="btn-primary" style="background:#64748b;" disabled>🔒 KYC Required</button>'}</div>
             <div class="chart-container"><h3>📊 Revenue Chart (Monthly)</h3><canvas id="revenueChart"></canvas></div>
             ${seller.kycStatus === "verified" ? `
-            <div class="premium-card"><h3>➕ Add New Product</h3><input type="text" id="prodName" placeholder="Product Name" class="input"><input type="number" id="prodPrice" placeholder="Price (USD)" class="input"><select id="prodCat" class="input"><option>Electronics</option><option>Fashion</option><option>Home</option><option>Beauty</option><option>Sports</option></select><input type="url" id="prodImg" placeholder="Image URL" class="input"><textarea id="prodDesc" placeholder="Product Description" class="input" rows="3"></textarea><button id="publishBtn" class="btn-primary">Publish Product</button></div>
+            <div class="premium-card"><h3>➕ Add New Product</h3><input type="text" id="prodName" placeholder="Product Name" class="input"><input type="number" id="prodPrice" placeholder="Price (USD)" class="input"><select id="prodCat" class="input"><option>Electronics</option><option>Fashion</option><option>Home</option></select><input type="url" id="prodImg" placeholder="Image URL" class="input"><textarea id="prodDesc" placeholder="Product Description" class="input" rows="3"></textarea><button id="publishBtn" class="btn-primary">Publish Product</button></div>
             <div class="premium-card"><h3>📋 My Products (${myProducts.length})</h3><div id="myProductsList"></div></div>
             <div class="premium-card"><h3>📦 Orders Received (${myOrders.length})</h3><div id="ordersList"></div></div>
             ` : `<div class="premium-card"><h3>⚠️ ${kycText}</h3><p>Your KYC documents are under review by admin.<br><br><strong>Documents submitted:</strong> ${seller.docType} - ${seller.docNumber}</p></div>`}
@@ -973,14 +1131,14 @@
                 let desc = document.getElementById('prodDesc').value;
                 let price = parseFloat(document.getElementById('prodPrice').value);
                 if(!name || !price) { showToast("Fill name & price", true); return; }
-                products.push({ id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, name, price, category: document.getElementById('prodCat').value, image: document.getElementById('prodImg').value || "https://placehold.co/200x200", description: desc, sellerCountry: seller.country, rating: 0, reviews: [] });
+                products.push({ id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, name, price, category: document.getElementById('prodCat').value, image: document.getElementById('prodImg').value || "https://placehold.co/200x200", description: desc, sellerCountry: seller.country });
                 saveAll(); renderSellerDashboard(); renderProducts(); showToast("Published!", false);
                 sendTelegramMessage(`📦 New Product: ${name}\nShop: ${seller.shopName}\nPrice: ${getCurrencySymbol()}${convertPrice(price)}`);
             });
             document.getElementById('myProductsList').innerHTML = myProducts.map(p => `<div class="flex-between"><span>📦 ${p.name} - ${getCurrencySymbol()}${convertPrice(p.price)}</span><button class="delProd" data-id="${p.id}" style="background:#dc2626; border:none; padding:6px 14px; border-radius:30px;">Delete</button></div>`).join('');
             document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', () => { products = products.filter(p=>p.id!==parseInt(btn.dataset.id)); saveAll(); renderSellerDashboard(); renderProducts(); showToast("Product deleted", false); }));
             document.getElementById('ordersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 Order #${o.trackingNumber}</strong><br>Product: ${o.productName} x${o.qty}<br>Amount: ${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: <span style="color:${o.status==='Processing'?'#d97706':(o.status==='Shipped'?'#3b82f6':'#10b981')}">${o.status}</span><br>Buyer: ${o.buyerName}<br>Address: ${o.address}<br>Date: ${o.date}<br>${o.status === "Processing" ? `<button class="shipBtn" data-id="${o.id}" style="background:#3b82f6; margin-top:10px; padding:8px 16px; border-radius:30px;">📦 Mark as Shipped</button>` : ''}${o.status === "Shipped" ? `<br><span style="font-size:11px;">Tracking: ${o.trackingInfo}</span>` : ''}</div>`).join('');
-            document.querySelectorAll('.shipBtn').forEach(btn => btn.addEventListener('click', () => { let track = prompt("Enter tracking number / courier info:"); if(track) markOrderShipped(parseFloat(btn.dataset.id), track); }));
+            document.querySelectorAll('.shipBtn').forEach(btn => btn.addEventListener('click', () => { let track = prompt("Enter tracking number:"); if(track) markOrderShipped(parseFloat(btn.dataset.id), track); }));
             document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
         }
     }
@@ -988,7 +1146,7 @@
     function renderBuyerOrders() {
         if(!currentUser) return;
         let myOrders = orders.filter(o=>o.buyerEmail===currentUser.email);
-        document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 Order #${o.trackingNumber}</strong><br>Product: ${o.productName} x${o.qty}<br>Amount: ${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: <span style="color:${o.status==='Processing'?'#d97706':(o.status==='Shipped'?'#3b82f6':'#10b981')}">${o.status}</span><br>Delivery Address: ${o.address}<br>Order Date: ${o.date}<br>${o.trackingInfo ? `📮 Tracking: ${o.trackingInfo}<br>` : ''}${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981; margin-top:10px; padding:8px 16px; border-radius:30px;">✅ I have received the product</button>` : ''}</div>`).join('');
+        document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 Order #${o.trackingNumber}</strong><br>Product: ${o.productName} x${o.qty}<br>Amount: ${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: <span style="color:${o.status==='Processing'?'#d97706':(o.status==='Shipped'?'#3b82f6':'#10b981')}">${o.status}</span><br>Delivery: ${o.address}<br>Date: ${o.date}<br>${o.trackingInfo ? `📮 Tracking: ${o.trackingInfo}<br>` : ''}${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981; margin-top:10px; padding:8px 16px; border-radius:30px;">✅ I have received the product</button>` : ''}</div>`).join('');
         document.querySelectorAll('.confirmReceivedBtn').forEach(btn => btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id))));
     }
     
@@ -999,6 +1157,7 @@
         document.querySelectorAll('.removeWishlistBtn').forEach(btn => btn.addEventListener('click', () => { wishlist = wishlist.filter(id => id !== parseInt(btn.dataset.id)); saveAll(); renderProducts(); renderBuyerWishlist(); showToast("Removed from wishlist", false); }));
     }
     
+    // Auth Functions
     document.getElementById('doLoginBtn')?.addEventListener('click', () => {
         let email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPass').value;
         let user = buyers.find(b=>b.email===email && b.password===pass);
@@ -1020,11 +1179,13 @@
                 document.getElementById('profileName').innerText = seller.fullName; 
                 document.getElementById('profileRoleBadge').innerText = 'Seller'; 
                 showToast(`Welcome back, ${seller.shopName}!`, false); 
-            } else showToast("Invalid email or password", true); 
+            } else showToast("Invalid credentials", true); 
         }
     });
     
+    // Signup with Phone Verification
     document.getElementById('doSignupBtn')?.addEventListener('click', () => {
+        if(!signupPhoneVerified) { showToast("Please verify your phone number first!", true); return; }
         if(!document.getElementById('termsCheckbox').checked) { showToast("Accept Terms", true); return; }
         if(!document.getElementById('ageCheckbox').checked) { showToast("You must be 18+", true); return; }
         let name = document.getElementById('signupName').value, email = document.getElementById('signupEmail').value;
@@ -1048,8 +1209,23 @@
         showToast(`Account created! Welcome ${name}!`, false);
     });
     
+    // Signup Phone Verification
+    document.getElementById('signupPhone')?.addEventListener('blur', function() {
+        let phone = document.getElementById('signupPhone').value;
+        let countryCode = document.getElementById('signupCountryCode').value;
+        if(phone && phone.length >= 8) {
+            sendDummyOTP(countryCode + phone, 'signup');
+        }
+    });
+    
+    document.getElementById('signupVerifyOtpBtn')?.addEventListener('click', function() {
+        let otp = document.getElementById('signupOtp').value;
+        verifyDummyOTP(otp, 'signup');
+    });
+    
     document.getElementById('logoutBuyerBtn')?.addEventListener('click', () => { currentUser = null; saveAll(); location.reload(); });
     
+    // Admin Functions
     document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
         if(document.getElementById('adminKey').value === 'admin123') {
             document.getElementById('adminLoginBox').style.display = 'none';
@@ -1060,7 +1236,7 @@
     });
     
     function loadAdminData() {
-        document.getElementById('adminSellersList').innerHTML = sellers.map(s => `<div class="order-card"><strong>🏪 ${s.shopName}</strong><br>📧 ${s.email}<br>📞 ${s.phone}<br>🏦 ${s.bankName}<br>💰 ${getCurrencySymbol()}${convertPrice(s.earnings)}<br><span class="kyc-status ${s.kycStatus === 'pending' ? 'kyc-pending' : (s.kycStatus === 'verified' ? 'kyc-verified' : 'kyc-rejected')}">KYC: ${s.kycStatus}</span><br>📄 ${s.docType}<br>${s.kycStatus === 'pending' ? `<div><button class="verifyKycBtn" data-id="${s.id}" style="background:#10b981;">✅ Verify</button><button class="rejectKycBtn" data-id="${s.id}" style="background:#dc2626;">❌ Reject</button></div>` : ''}</div>`).join('');
+        document.getElementById('adminSellersList').innerHTML = sellers.map(s => `<div class="order-card"><strong>🏪 ${s.shopName}</strong><br>📧 ${s.email}<br>📞 ${s.phone}<br>🏦 ${s.bankName}<br>💰 ${getCurrencySymbol()}${convertPrice(s.earnings)}<br><span class="kyc-status ${s.kycStatus === 'pending' ? 'kyc-pending' : (s.kycStatus === 'verified' ? 'kyc-verified' : 'kyc-rejected')}">KYC: ${s.kycStatus}</span><br>${s.kycStatus === 'pending' ? `<div><button class="verifyKycBtn" data-id="${s.id}" style="background:#10b981;">✅ Verify</button><button class="rejectKycBtn" data-id="${s.id}" style="background:#dc2626;">❌ Reject</button></div>` : ''}</div>`).join('');
         
         document.querySelectorAll('.verifyKycBtn').forEach(btn => btn.addEventListener('click', async () => { 
             let seller = sellers.find(s => s.id === parseInt(btn.dataset.id)); 
@@ -1084,6 +1260,7 @@
     }
     document.getElementById('refreshAdminBtn')?.addEventListener('click', loadAdminData);
     
+    // Navigation
     function showSection(section) { 
         document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); 
         document.getElementById(section + "Section").classList.add('active'); 
@@ -1112,10 +1289,12 @@
     document.getElementById('cardNumber')?.addEventListener('input', function(e) { let v = e.target.value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim(); e.target.value = v; });
     document.getElementById('expiryDate')?.addEventListener('input', function(e) { let v = e.target.value.replace(/\//g, ''); if(v.length >= 2) v = v.slice(0,2) + '/' + v.slice(2,4); e.target.value = v; });
     
+    // Initialize country searches
     initCountrySearch('sellerCountrySearch', 'sellerCountryDropdown', 'sellerCountryCode');
     initCountrySearch('signupCountrySearch', 'signupCountryDropdown', 'signupCountryCode');
     initCountrySearch('deliveryCountrySearch', 'deliveryCountryDropdown', 'deliveryCountryCode');
     
+    // Initialize
     renderCats(); renderProducts(); updateCartUI();
     if(currentUser?.role === 'seller') { document.getElementById('sellerRegisterBox').style.display='none'; document.getElementById('sellerDashboard').style.display='block'; renderSellerDashboard(); }
     if(currentUser && currentUser.role !== 'seller') { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = currentUser.name; document.getElementById('profileRoleBadge').innerText = currentUser.role || 'Buyer'; renderBuyerOrders(); renderBuyerWishlist(); }
