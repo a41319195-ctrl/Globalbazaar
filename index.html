@@ -37,7 +37,6 @@
             padding: 8px 14px;
             border-radius: 18px;
             color: white;
-            cursor: pointer;
         }
         
         .brand-3d { font-weight: 800; font-size: 28px; background: linear-gradient(135deg, #1e3a8a, #3b82f6, #06b6d4); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -62,11 +61,8 @@
         .drawer-item:hover { background: #f1f5f9; }
         
         .container { max-width: 560px; margin: 0 auto; padding: 16px; }
-        .mode-tabs { display: flex; background: #e2e8f0; padding: 6px; border-radius: 60px; margin-bottom: 20px; gap: 6px; }
-        .mode-btn { flex: 1; border: none; background: none; padding: 12px; font-weight: 700; border-radius: 50px; cursor: pointer; }
-        .mode-btn.active { background: white; color: #2563eb; }
-        .section { display: none; }
-        .section.active { display: block; }
+        
+        /* REMOVED mode-tabs styles - no more tabs at top */
         
         .cat-scroll { display: flex; gap: 10px; overflow-x: auto; padding: 8px 0 16px; }
         .cat-pill { background: white; padding: 8px 22px; border-radius: 40px; font-weight: 600; border: 1px solid #e2e8f0; cursor: pointer; white-space: nowrap; }
@@ -82,7 +78,6 @@
         .card-actions { display: flex; gap: 8px; margin-top: 12px; }
         .btn-sm { flex: 1; padding: 8px; border-radius: 40px; font-weight: 700; font-size: 12px; border: none; cursor: pointer; }
         .btn-buy { background: #0f172a; color: white; }
-        .btn-wish { background: #f1f5f9; }
         
         .fixed-cart {
             position: fixed;
@@ -120,12 +115,12 @@
             .currency-dropdown, .language-dropdown { font-size: 10px; padding: 5px 8px; }
         }
         
-        /* Login Required Modal */
-        .login-required-modal .modal-card { text-align: center; }
-        .login-required-modal button { margin-top: 15px; }
-        
         .seller-rating-stars { color: #fbbf24; font-size: 14px; }
         .dispute-card { background: #fff3e0; border-left-color: #f97316; }
+        
+        /* Section display */
+        .section { display: none; }
+        .section.active { display: block; }
     </style>
 </head>
 <body>
@@ -156,13 +151,15 @@
 
 <div class="drawer-overlay" id="drawerOverlay"></div>
 <div class="drawer" id="drawer">
-    <div class="drawer-header"><h2>GlobalBazaar 🌍</h2></div>
+    <div class="drawer-header"><h2>GlobalBazaar 🌍</h2><p style="font-size:12px;">Global Marketplace</p></div>
+    
+    <!-- All menu items including Buyer, Seller, Profile, Admin now inside drawer -->
     <div class="drawer-item" id="drawerSignup">📝 Sign Up</div>
     <div class="drawer-item" id="drawerLogin">🔐 Login</div>
-    <div class="drawer-item" id="drawerAdmin">⚙️ Admin Panel</div>
-    <div class="drawer-item" id="drawerProfile">👤 My Profile</div>
     <div class="drawer-item" data-mode="buyer">🛒 Buyer Shopping</div>
     <div class="drawer-item" data-mode="seller">🏪 Seller Dashboard</div>
+    <div class="drawer-item" data-mode="profile">👤 My Profile</div>
+    <div class="drawer-item" data-mode="admin">⚙️ Admin Panel</div>
     <div class="drawer-item" id="drawerWishlist">❤️ Wishlist</div>
     <div class="drawer-item" id="drawerDisputes">⚖️ My Disputes</div>
     <div class="drawer-item" id="drawerSupport">📞 Support</div>
@@ -170,13 +167,8 @@
 </div>
 
 <div class="container">
-    <div class="mode-tabs">
-        <button class="mode-btn active" data-tab="buyer">🛒 Buyer</button>
-        <button class="mode-btn" data-tab="seller">🏪 Seller</button>
-        <button class="mode-btn" data-tab="profile">👤 Profile</button>
-        <button class="mode-btn" data-tab="admin">⚙️ Admin</button>
-    </div>
-
+    <!-- NO MORE TABS AT TOP - Removed Buyer/Seller/Profile/Admin buttons from here -->
+    
     <div id="buyerSection" class="section active">
         <div class="cat-scroll" id="catList"></div>
         <input type="text" id="searchInput" class="input" placeholder="🔍 Search products...">
@@ -306,10 +298,10 @@
     
     // Translations
     const translations = {
-        en: { brand: "GLOBALBAZAAR", cart: "Cart", login: "Login", signup: "Sign Up", buyNow: "Buy Now", addToCart: "Add to Cart", search: "Search products..." },
-        ar: { brand: "جلوبال بازار", cart: "السلة", login: "تسجيل الدخول", signup: "اشتراك", buyNow: "اشتر الآن", addToCart: "أضف للسلة", search: "ابحث عن منتجات..." },
-        hi: { brand: "ग्लोबल बाज़ार", cart: "कार्ट", login: "लॉगिन", signup: "साइन अप", buyNow: "अभी खरीदें", addToCart: "कार्ट में डालें", search: "उत्पाद खोजें..." },
-        ur: { brand: "گلوبل بازار", cart: "کارٹ", login: "لاگ ان", signup: "سائن اپ", buyNow: "ابھی خریدیں", addToCart: "کارٹ میں ڈالیں", search: "مصنوعات تلاش کریں..." }
+        en: { brand: "GLOBALBAZAAR", cart: "Cart", search: "Search products..." },
+        ar: { brand: "جلوبال بازار", cart: "السلة", search: "ابحث عن منتجات..." },
+        hi: { brand: "ग्लोबल बाज़ार", cart: "कार्ट", search: "उत्पाद खोजें..." },
+        ur: { brand: "گلوبل بازار", cart: "کارٹ", search: "مصنوعات تلاش کریں..." }
     };
     
     function updateLanguage() {
@@ -319,7 +311,7 @@
         document.getElementById('cartFloatBtn').innerHTML = `🛒 ${t.cart} <span class="cart-badge" id="cartCountBadge">${cart.reduce((a,b)=>a+b.qty,0)}</span>`;
     }
     
-    // Exchange rates (real-time simulation)
+    // Exchange rates
     let fxRates = { SAR: 3.75, USD: 1, EUR: 0.92, GBP: 0.78, INR: 83.5, AED: 3.67 };
     
     async function fetchLiveRates() {
@@ -347,13 +339,6 @@
         if(sellerCountry === buyerCountry) return 5;
         let zones = { SA: 10, AE: 12, IN: 15, US: 25, UK: 20, DE: 22, FR: 22 };
         return zones[buyerCountry] || 30;
-    }
-    
-    // Fraud detection
-    function isFraudulent(order) {
-        let suspicious = order.amount > 5000 || (order.qty > 50);
-        if(suspicious) { showToast("⚠️ Fraud alert! Order flagged for review.", true); return true; }
-        return false;
     }
     
     // ============ DATA ============
@@ -568,7 +553,7 @@
         if(buyers.find(b=>b.email===email)) { showToast("Email exists", true); return; }
         let newUser = { name, email, phone, password: pass, role, savedAddress: null };
         buyers.push(newUser); currentUser = newUser; saveAll();
-        if(role === 'seller') { showToast("Please complete seller registration", false); document.querySelector('.mode-btn[data-tab="seller"]').click(); document.getElementById('sellerRegisterBox').style.display='block'; document.getElementById('sellerDashboard').style.display='none'; }
+        if(role === 'seller') { showToast("Please complete seller registration", false); document.getElementById('sellerSection').classList.add('active'); document.getElementById('buyerSection').classList.remove('active'); document.getElementById('sellerRegisterBox').style.display='block'; document.getElementById('sellerDashboard').style.display='none'; }
         else { location.reload(); }
     });
     
@@ -590,37 +575,43 @@
     document.getElementById('languageSelect')?.addEventListener('change', (e) => { selectedLang = e.target.value; updateLanguage(); });
     document.getElementById('menuBtn').onclick = () => document.getElementById('drawer').classList.add('open');
     document.getElementById('drawerOverlay').onclick = () => document.getElementById('drawer').classList.remove('open');
-    document.getElementById('drawerLogin').onclick = () => { document.querySelector('.mode-btn[data-tab="profile"]').click(); document.getElementById('loginFormDiv').style.display='block'; document.getElementById('signupFormDiv').style.display='none'; closeDrawer(); };
-    document.getElementById('drawerSignup').onclick = () => { document.querySelector('.mode-btn[data-tab="profile"]').click(); document.getElementById('signupFormDiv').style.display='block'; document.getElementById('loginFormDiv').style.display='none'; closeDrawer(); };
+    document.getElementById('drawerLogin').onclick = () => { switchSection('profile'); document.getElementById('loginFormDiv').style.display='block'; document.getElementById('signupFormDiv').style.display='none'; closeDrawer(); };
+    document.getElementById('drawerSignup').onclick = () => { switchSection('profile'); document.getElementById('signupFormDiv').style.display='block'; document.getElementById('loginFormDiv').style.display='none'; closeDrawer(); };
     document.getElementById('drawerLogout').onclick = () => { currentUser=null; saveAll(); location.reload(); };
     document.getElementById('drawerDisputes').onclick = () => { alert("Your disputes:\n" + disputes.filter(d=>d.buyerEmail===currentUser?.email).map(d=>`#${d.id}: ${d.reason} - ${d.status}`).join("\n")); closeDrawer(); };
     document.getElementById('showSignupLink')?.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('loginFormDiv').style.display='none'; document.getElementById('signupFormDiv').style.display='block'; });
     document.getElementById('showLoginLink')?.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('signupFormDiv').style.display='none'; document.getElementById('loginFormDiv').style.display='block'; });
     document.getElementById('closeModalBtn')?.addEventListener('click', () => document.getElementById('productModal').style.display='none');
     document.getElementById('closeLoginModalBtn')?.addEventListener('click', () => document.getElementById('loginRequiredModal').style.display='none');
-    document.getElementById('gotoLoginBtn')?.addEventListener('click', () => { document.getElementById('loginRequiredModal').style.display='none'; document.querySelector('.mode-btn[data-tab="profile"]').click(); document.getElementById('loginFormDiv').style.display='block'; document.getElementById('signupFormDiv').style.display='none'; });
-    document.getElementById('gotoSignupBtn')?.addEventListener('click', () => { document.getElementById('loginRequiredModal').style.display='none'; document.querySelector('.mode-btn[data-tab="profile"]').click(); document.getElementById('signupFormDiv').style.display='block'; document.getElementById('loginFormDiv').style.display='none'; });
+    document.getElementById('gotoLoginBtn')?.addEventListener('click', () => { document.getElementById('loginRequiredModal').style.display='none'; switchSection('profile'); document.getElementById('loginFormDiv').style.display='block'; document.getElementById('signupFormDiv').style.display='none'; });
+    document.getElementById('gotoSignupBtn')?.addEventListener('click', () => { document.getElementById('loginRequiredModal').style.display='none'; switchSection('profile'); document.getElementById('signupFormDiv').style.display='block'; document.getElementById('loginFormDiv').style.display='none'; });
     document.getElementById('modalAddCartBtn')?.addEventListener('click', () => { if(window.currentProductId) addToCart(window.currentProductId); document.getElementById('productModal').style.display='none'; });
     document.getElementById('raiseDisputeBtn')?.addEventListener('click', () => { raiseDispute(document.getElementById('disputeOrderId').value, document.getElementById('disputeReason').value, document.getElementById('disputeMessage').value); document.getElementById('disputeModal').style.display='none'; });
     document.getElementById('closeDisputeModalBtn')?.addEventListener('click', () => document.getElementById('disputeModal').style.display='none');
     document.getElementById('adminLoginBtn')?.addEventListener('click', () => { if(document.getElementById('adminKey').value === 'admin123') { document.getElementById('adminContent').style.display='block'; loadAdminData(); showToast("Admin logged in", false); } else showToast("Wrong key", true); });
     document.getElementById('logoutBtn')?.addEventListener('click', () => { currentUser=null; saveAll(); location.reload(); });
-    document.querySelectorAll('.mode-btn').forEach(btn => btn.addEventListener('click', (e) => { document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.getElementById(btn.dataset.tab + "Section").classList.add('active'); if(btn.dataset.tab === 'seller' && currentUser?.role === 'seller') { document.getElementById('sellerRegisterBox').style.display='none'; document.getElementById('sellerDashboard').style.display='block'; renderSellerDashboard(); } if(btn.dataset.tab === 'profile' && currentUser) { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = currentUser.name; document.getElementById('profileRoleBadge').innerText = currentUser.role; renderBuyerOrders(); } }));
+    
+    function switchSection(sectionName) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById(sectionName + 'Section').classList.add('active');
+        if(sectionName === 'seller' && currentUser?.role === 'seller') { document.getElementById('sellerRegisterBox').style.display='none'; document.getElementById('sellerDashboard').style.display='block'; renderSellerDashboard(); }
+        if(sectionName === 'profile' && currentUser) { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = currentUser.name; document.getElementById('profileRoleBadge').innerText = currentUser.role; renderBuyerOrders(); }
+    }
     
     function closeDrawer() { document.getElementById('drawer').classList.remove('open'); document.getElementById('drawerOverlay').style.display = 'none'; }
-    document.querySelectorAll('.drawer-item[data-mode]').forEach(el => el.addEventListener('click', () => { document.querySelector(`.mode-btn[data-tab="${el.dataset.mode}"]`).click(); closeDrawer(); }));
+    document.querySelectorAll('.drawer-item[data-mode]').forEach(el => el.addEventListener('click', () => { switchSection(el.dataset.mode); closeDrawer(); }));
     
     // Init
-    renderCats(); renderProducts(); updateCartUI(); updateLanguage();
-    if(currentUser?.role === 'seller') { document.getElementById('sellerRegisterBox').style.display='none'; document.getElementById('sellerDashboard').style.display='block'; renderSellerDashboard(); }
-    if(currentUser) { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = currentUser.name; document.getElementById('profileRoleBadge').innerText = currentUser.role; renderBuyerOrders(); }
-    
     function renderCats() {
         let cats = ["All", ...new Set(products.map(p=>p.category))];
         document.getElementById('catList').innerHTML = cats.map(c => `<div class="cat-pill ${currentCategory===c?'active':''}" data-cat="${c}">${c}</div>`).join('');
         document.querySelectorAll('.cat-pill').forEach(el => el.addEventListener('click', (e) => { currentCategory = e.target.dataset.cat; renderCats(); renderProducts(); }));
     }
     let currentCategory = "All";
+    
+    renderCats(); renderProducts(); updateCartUI(); updateLanguage();
+    if(currentUser?.role === 'seller') { document.getElementById('sellerRegisterBox').style.display='none'; document.getElementById('sellerDashboard').style.display='block'; renderSellerDashboard(); }
+    if(currentUser) { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = currentUser.name; document.getElementById('profileRoleBadge').innerText = currentUser.role; renderBuyerOrders(); }
 </script>
 </body>
 </html>
