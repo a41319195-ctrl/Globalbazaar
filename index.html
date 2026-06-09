@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>GlobalBazaar - Complete Marketplace</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -23,21 +22,10 @@
             z-index: 100;
             box-shadow: 0 10px 25px -8px rgba(0,0,0,0.15);
             border-bottom: 1px solid rgba(59,130,246,0.15);
-            flex-wrap: wrap;
-            gap: 10px;
         }
         
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .header-right { display: flex; align-items: center; gap: 10px; }
         
         .menu-icon-3d {
             background: linear-gradient(145deg, #1e293b, #0f172a);
@@ -50,22 +38,8 @@
             box-shadow: 0 8px 12px rgba(0,0,0,0.2);
         }
         
-        .brand-3d { 
-            font-weight: 800; 
-            font-size: 28px; 
-            background: linear-gradient(135deg, #1e3a8a, #3b82f6, #06b6d4); 
-            -webkit-background-clip: text; 
-            background-clip: text; 
-            color: transparent;
-            letter-spacing: 1px;
-        }
-        
-        .logo-3d { 
-            font-size: 32px; 
-            background: radial-gradient(circle at 35% 35%, #ffdd77, #ffaa33); 
-            border-radius: 50%; 
-            padding: 5px; 
-        }
+        .brand-3d { font-weight: 800; font-size: 28px; background: linear-gradient(135deg, #1e3a8a, #3b82f6, #06b6d4); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .logo-3d { font-size: 32px; background: radial-gradient(circle at 35% 35%, #ffdd77, #ffaa33); border-radius: 50%; padding: 5px; }
         
         .currency-dropdown {
             background: linear-gradient(145deg, #1e2a4a, #0f172f);
@@ -76,7 +50,6 @@
             font-size: 13px;
             font-weight: bold;
             cursor: pointer;
-            font-family: 'Plus Jakarta Sans', sans-serif;
         }
         
         .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); z-index: 200; display: none; }
@@ -87,10 +60,6 @@
         .drawer-item:hover { background: #f1f5f9; }
         
         .container { max-width: 560px; margin: 0 auto; padding: 16px; }
-        
-        /* Hiding all mode tabs from dashboard - moving to drawer */
-        .mode-tabs { display: none; }
-        
         .section { display: none; }
         .section.active { display: block; }
         
@@ -129,13 +98,15 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.25);
         }
         .cart-badge { background: #ef4444; color: white; font-size: 13px; padding: 2px 10px; border-radius: 40px; }
-        .cart-heart { font-size: 24px; color: #ff3366; margin-left: 10px; }
         
         .input { width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; margin-bottom: 14px; font-size: 14px; }
         .btn-primary { background: #1e3a8a; color: white; border: none; padding: 14px; border-radius: 60px; font-weight: 700; font-size: 15px; width: 100%; cursor: pointer; }
         .premium-card { background: white; border-radius: 24px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
         .flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .order-card { background: #f8fafc; border-radius: 16px; padding: 14px; margin-bottom: 12px; font-size: 13px; border-left: 4px solid #cbd5e1; }
+        
+        .chart-container { background: white; border-radius: 24px; padding: 20px; margin-bottom: 20px; }
+        .chart-container canvas { max-height: 250px; width: 100%; }
         
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 300; overflow-y: auto; }
         .modal-card { background: white; margin: 50px 20px; border-radius: 28px; padding: 24px; max-width: 500px; margin-left: auto; margin-right: auto; }
@@ -144,73 +115,35 @@
         .seller-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #3b82f6; }
         .role-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; background: #dbeafe; color: #1e40af; }
         .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; z-index: 1000; display: none; font-size: 14px; }
-        .checkbox-group { display: flex; align-items: center; gap: 10px; margin: 15px 0; font-size: 13px; flex-wrap: wrap; }
+        .checkbox-group { display: flex; align-items: center; gap: 10px; margin: 15px 0; flex-wrap: wrap; }
         .legal-link { color: #3b82f6; text-decoration: none; cursor: pointer; }
         .footer-legal { text-align: center; padding: 20px; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; margin-top: 20px; }
         .btn-download { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 20px; font-size: 11px; cursor: pointer; }
         
-        .doc-section {
-            background: #f8fafc;
-            padding: 15px;
-            border-radius: 16px;
-            margin-bottom: 20px;
-        }
-        .doc-title {
-            font-weight: 700;
-            margin-bottom: 12px;
-            color: #1e3a8a;
-        }
+        .doc-section { background: #f8fafc; padding: 15px; border-radius: 16px; margin-bottom: 20px; }
+        .doc-title { font-weight: 700; margin-bottom: 12px; color: #1e3a8a; }
+        .phone-group { display: flex; gap: 10px; margin-bottom: 14px; }
+        .phone-group select { width: 35%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; }
+        .phone-group input { width: 65%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; margin-bottom: 0; }
         
-        .country-selector {
-            background: #f1f5f9;
-            padding: 6px 12px;
-            border-radius: 40px;
-            border: 1px solid #e2e8f0;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 10px;
-        }
-        
-        .phone-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 14px;
-        }
-        .phone-group select {
-            width: 35%;
-            padding: 14px;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            font-size: 14px;
-        }
-        .phone-group input {
-            width: 65%;
-            padding: 14px;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            font-size: 14px;
-        }
-
-        .kyc-status {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-        }
+        .kyc-status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
         .kyc-pending { background: #fef3c7; color: #d97706; }
         .kyc-verified { background: #d1fae5; color: #059669; }
         .kyc-rejected { background: #fee2e2; color: #dc2626; }
+        
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eef2f8; }
+        .cart-item-controls { display: flex; gap: 10px; align-items: center; }
+        .cart-qty-btn { background: #e2e8f0; border: none; width: 30px; height: 30px; border-radius: 30px; font-size: 18px; cursor: pointer; }
+        .cart-remove { background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 12px; }
+        .delivery-form-row { display: flex; gap: 10px; margin-bottom: 14px; }
+        .delivery-form-row input, .delivery-form-row select { flex: 1; padding: 12px; border: 1px solid #e2e8f0; border-radius: 16px; }
         
         @media (max-width: 600px) {
             .brand-3d { font-size: 18px; }
             .logo-3d { font-size: 24px; }
             .fixed-cart { padding: 12px 20px; font-size: 14px; bottom: 15px; right: 15px; }
             .currency-dropdown { font-size: 10px; padding: 4px 8px; }
-            .header-left { gap: 8px; }
-            .header-right { gap: 5px; }
+            .delivery-form-row { flex-direction: column; }
         }
     </style>
 </head>
@@ -230,88 +163,39 @@
             <option value="GBP">🇬🇧 GBP £</option>
             <option value="INR">🇮🇳 INR ₹</option>
             <option value="PKR">🇵🇰 PKR ₨</option>
-            <option value="NPR">🇳🇵 NPR रू</option>
-            <option value="BDT">🇧🇩 BDT ৳</option>
-            <option value="LKR">🇱🇰 LKR Rs</option>
             <option value="AED">🇦🇪 AED د.إ</option>
             <option value="CAD">🇨🇦 CAD $</option>
             <option value="AUD">🇦🇺 AUD $</option>
-            <option value="SGD">🇸🇬 SGD $</option>
-            <option value="MYR">🇲🇾 MYR RM</option>
-            <option value="THB">🇹🇭 THB ฿</option>
             <option value="JPY">🇯🇵 JPY ¥</option>
             <option value="CNY">🇨🇳 CNY ¥</option>
         </select>
     </div>
 </div>
 
-<!-- Shipping Country Dropdown - Hidden from dashboard, only in drawer now -->
-<div style="display: none;">
-    <select id="globalCountrySelect" class="country-selector">
-        <option value="SA">🇸🇦 Saudi Arabia</option>
-        <option value="US">🇺🇸 United States</option>
-        <option value="IN">🇮🇳 India</option>
-        <option value="AE">🇦🇪 UAE</option>
-        <option value="GB">🇬🇧 United Kingdom</option>
-        <option value="CA">🇨🇦 Canada</option>
-        <option value="AU">🇦🇺 Australia</option>
-        <option value="DE">🇩🇪 Germany</option>
-        <option value="FR">🇫🇷 France</option>
-        <option value="SG">🇸🇬 Singapore</option>
-        <option value="CN">🇨🇳 China</option>
-        <option value="JP">🇯🇵 Japan</option>
-        <option value="KR">🇰🇷 South Korea</option>
-        <option value="BR">🇧🇷 Brazil</option>
-        <option value="MX">🇲🇽 Mexico</option>
-        <option value="ZA">🇿🇦 South Africa</option>
-        <option value="NG">🇳🇬 Nigeria</option>
-        <option value="EG">🇪🇬 Egypt</option>
-        <option value="TR">🇹🇷 Turkey</option>
-        <option value="RU">🇷🇺 Russia</option>
-        <option value="IT">🇮🇹 Italy</option>
-        <option value="ES">🇪🇸 Spain</option>
-        <option value="NL">🇳🇱 Netherlands</option>
-        <option value="SE">🇸🇪 Sweden</option>
-        <option value="NO">🇳🇴 Norway</option>
-        <option value="DK">🇩🇰 Denmark</option>
-        <option value="FI">🇫🇮 Finland</option>
-        <option value="PL">🇵🇱 Poland</option>
-        <option value="MY">🇲🇾 Malaysia</option>
-        <option value="TH">🇹🇭 Thailand</option>
-        <option value="VN">🇻🇳 Vietnam</option>
-        <option value="PH">🇵🇭 Philippines</option>
-        <option value="ID">🇮🇩 Indonesia</option>
-        <option value="PK">🇵🇰 Pakistan</option>
-        <option value="BD">🇧🇩 Bangladesh</option>
-        <option value="LK">🇱🇰 Sri Lanka</option>
-        <option value="NP">🇳🇵 Nepal</option>
-    </select>
-</div>
-
 <div class="drawer-overlay" id="drawerOverlay"></div>
 <div class="drawer" id="drawer">
     <div class="drawer-header"><h2>GlobalBazaar 🌍</h2><p style="font-size:12px;">Multi‑Seller Hub</p></div>
-    <div class="drawer-item" id="drawerCountrySection">🌍 Select Country</div>
     <div class="drawer-item" id="drawerBuyer">🛒 Buyer Shopping</div>
     <div class="drawer-item" id="drawerSeller">🏪 Seller Dashboard</div>
     <div class="drawer-item" id="drawerProfile">👤 My Profile</div>
     <div class="drawer-item" id="drawerAdmin">⚙️ Admin Panel</div>
+    <div class="drawer-item" id="drawerCartPage">🛍️ My Cart</div>
+    <div class="drawer-item" id="drawerWishlist">❤️ Wishlist</div>
     <div class="drawer-item" id="drawerSignup">📝 Sign Up</div>
     <div class="drawer-item" id="drawerLogin">🔐 Login</div>
-    <div class="drawer-item" id="drawerWishlist">❤️ My Wishlist</div>
     <div class="drawer-item" id="drawerSupport">📞 Support</div>
     <div class="drawer-item" id="drawerLogout">🚪 Logout</div>
 </div>
 
 <div class="container">
-    <!-- Mode tabs removed from dashboard - moved to drawer -->
-
+    <!-- BUYER SECTION - CLEAN DASHBOARD -->
     <div id="buyerSection" class="section active">
         <div class="cat-scroll" id="catList"></div>
         <input type="text" id="searchInput" class="input" placeholder="🔍 Search products...">
         <div class="product-grid" id="productsGrid"></div>
     </div>
 
+    <!-- SELLER SECTION -->
     <div id="sellerSection" class="section">
         <div id="sellerRegisterBox" class="premium-card">
             <h2>🏪 Open Your Shop</h2>
@@ -320,50 +204,14 @@
                 <input type="text" id="sellerFullName" placeholder="Full Legal Name" class="input" required>
                 <input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required>
                 <input type="email" id="sellerEmail" placeholder="Email" class="input" required>
-                
                 <div class="phone-group">
                     <select id="sellerCountryCode">
-                        <option value="+966">🇸🇦 +966</option>
-                        <option value="+1">🇺🇸 +1</option>
-                        <option value="+91">🇮🇳 +91</option>
-                        <option value="+971">🇦🇪 +971</option>
-                        <option value="+44">🇬🇧 +44</option>
-                        <option value="+1">🇨🇦 +1</option>
-                        <option value="+61">🇦🇺 +61</option>
-                        <option value="+49">🇩🇪 +49</option>
-                        <option value="+33">🇫🇷 +33</option>
-                        <option value="+65">🇸🇬 +65</option>
-                        <option value="+86">🇨🇳 +86</option>
-                        <option value="+81">🇯🇵 +81</option>
-                        <option value="+82">🇰🇷 +82</option>
-                        <option value="+55">🇧🇷 +55</option>
-                        <option value="+52">🇲🇽 +52</option>
-                        <option value="+27">🇿🇦 +27</option>
-                        <option value="+234">🇳🇬 +234</option>
-                        <option value="+20">🇪🇬 +20</option>
-                        <option value="+90">🇹🇷 +90</option>
-                        <option value="+7">🇷🇺 +7</option>
-                        <option value="+39">🇮🇹 +39</option>
-                        <option value="+34">🇪🇸 +34</option>
-                        <option value="+31">🇳🇱 +31</option>
-                        <option value="+46">🇸🇪 +46</option>
-                        <option value="+47">🇳🇴 +47</option>
-                        <option value="+45">🇩🇰 +45</option>
-                        <option value="+358">🇫🇮 +358</option>
-                        <option value="+48">🇵🇱 +48</option>
-                        <option value="+60">🇲🇾 +60</option>
-                        <option value="+66">🇹🇭 +66</option>
-                        <option value="+84">🇻🇳 +84</option>
-                        <option value="+63">🇵🇭 +63</option>
-                        <option value="+62">🇮🇩 +62</option>
-                        <option value="+92">🇵🇰 +92</option>
-                        <option value="+880">🇧🇩 +880</option>
-                        <option value="+94">🇱🇰 +94</option>
-                        <option value="+977">🇳🇵 +977</option>
+                        <option value="+966">🇸🇦 +966</option><option value="+1">🇺🇸 +1</option><option value="+91">🇮🇳 +91</option>
+                        <option value="+971">🇦🇪 +971</option><option value="+44">🇬🇧 +44</option><option value="+61">🇦🇺 +61</option>
+                        <option value="+81">🇯🇵 +81</option><option value="+86">🇨🇳 +86</option><option value="+49">🇩🇪 +49</option>
                     </select>
-                    <input type="tel" id="sellerPhone" placeholder="Phone Number" class="input" required style="margin-bottom:0;">
+                    <input type="tel" id="sellerPhone" placeholder="Phone Number" class="input" required>
                 </div>
-                
                 <input type="password" id="sellerPassword" placeholder="Password" class="input" required>
                 <input type="date" id="sellerDob" class="input" required>
                 <h4>📍 Shop Address</h4>
@@ -372,268 +220,226 @@
                 <input type="text" id="sellerCity" placeholder="City" class="input" required>
                 <input type="text" id="sellerState" placeholder="State" class="input" required>
                 <input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required>
-                <input type="text" id="sellerCountryReg" placeholder="Country" class="input" required>
-                
+                <select id="sellerCountryReg" class="input" required>
+                    <option value="">Select Country</option>
+                    <option value="SA">Saudi Arabia</option><option value="US">United States</option><option value="IN">India</option>
+                    <option value="AE">UAE</option><option value="GB">United Kingdom</option><option value="CA">Canada</option>
+                    <option value="AU">Australia</option><option value="DE">Germany</option><option value="FR">France</option>
+                    <option value="JP">Japan</option><option value="CN">China</option><option value="PK">Pakistan</option>
+                    <option value="BD">Bangladesh</option><option value="LK">Sri Lanka</option><option value="NP">Nepal</option>
+                </select>
                 <div class="doc-section">
-                    <div class="doc-title">🌍 International KYC Documents</div>
-                    <div id="internationalDocsContainer">
-                        <select id="sellerDocType" class="input" style="margin-bottom:10px;">
-                            <option value="passport">📘 Passport</option>
-                            <option value="national_id">🆔 National ID Card</option>
-                            <option value="driving_license">🚗 Driving License</option>
-                            <option value="residence_permit">📄 Residence Permit / Iqama</option>
-                        </select>
-                        <input type="text" id="sellerDocNumber" placeholder="Document Number" class="input">
-                        <input type="file" id="sellerDocImage" accept="image/*,application/pdf" class="input">
-                        <p style="font-size:11px; color:#64748b;">Supported: Passport, National ID, Driving License, Iqama, SSN, Emirates ID, BRP</p>
-                    </div>
+                    <div class="doc-title">🌍 KYC Documents</div>
+                    <select id="sellerDocType" class="input">
+                        <option value="passport">📘 Passport</option>
+                        <option value="national_id">🆔 National ID Card</option>
+                        <option value="driving_license">🚗 Driving License</option>
+                        <option value="residence_permit">📄 Residence Permit</option>
+                    </select>
+                    <input type="text" id="sellerDocNumber" placeholder="Document Number" class="input">
+                    <input type="file" id="sellerDocImage" accept="image/*,application/pdf" class="input">
                 </div>
-                
-                <h4>🏦 Bank Account</h4>
+                <h4>🏦 Bank Account Details</h4>
                 <input type="text" id="sellerBank" placeholder="Bank Name" class="input" required>
                 <input type="text" id="sellerAccountNo" placeholder="Account Number" class="input" required>
                 <input type="text" id="sellerIfsc" placeholder="IFSC / SWIFT Code" class="input" required>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="sellerAgreement" required>
-                    <label>I agree to the <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span> and confirm that I am 18+ years old.</label>
-                </div>
+                <input type="text" id="sellerAccountHolder" placeholder="Account Holder Full Name" class="input" required>
+                <div class="checkbox-group"><input type="checkbox" id="sellerAgreement" required><label>I agree to <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label></div>
                 <button type="submit" class="btn-primary">✅ Register Shop</button>
             </form>
         </div>
         <div id="sellerDashboard" style="display:none;"></div>
     </div>
 
+    <!-- PROFILE SECTION -->
     <div id="profileSection" class="section">
         <div id="profileAuthBox" class="premium-card">
             <div id="loginFormDiv">
                 <input type="email" id="loginEmail" placeholder="Email" class="input">
                 <input type="password" id="loginPass" placeholder="Password" class="input">
                 <button class="btn-primary" id="doLoginBtn">Login</button>
+                <p style="text-align:center; margin-top:10px;"><span class="legal-link" onclick="showSignup()">Create new account</span></p>
             </div>
             <div id="signupFormDiv" style="display:none;">
-                <input type="text" id="signupName" placeholder="Full Name" class="input" required>
-                <input type="date" id="signupDob" class="input" required>
-                <select id="signupRole" class="input">
-                    <option value="buyer">Buyer</option>
-                    <option value="seller">Seller</option>
-                </select>
-                <input type="email" id="signupEmail" placeholder="Email" class="input" required>
+                <input type="text" id="signupName" placeholder="Full Name" class="input">
+                <input type="date" id="signupDob" class="input">
+                <select id="signupRole" class="input"><option value="buyer">Buyer</option><option value="seller">Seller</option></select>
+                <input type="email" id="signupEmail" placeholder="Email" class="input">
                 <div class="phone-group">
                     <select id="signupCountryCode">
-                        <option value="+966">🇸🇦 +966</option>
-                        <option value="+1">🇺🇸 +1</option>
-                        <option value="+91">🇮🇳 +91</option>
-                        <option value="+971">🇦🇪 +971</option>
-                        <option value="+44">🇬🇧 +44</option>
-                        <option value="+61">🇦🇺 +61</option>
-                        <option value="+49">🇩🇪 +49</option>
-                        <option value="+33">🇫🇷 +33</option>
-                        <option value="+65">🇸🇬 +65</option>
-                        <option value="+86">🇨🇳 +86</option>
-                        <option value="+81">🇯🇵 +81</option>
+                        <option value="+966">🇸🇦 +966</option><option value="+1">🇺🇸 +1</option><option value="+91">🇮🇳 +91</option>
+                        <option value="+971">🇦🇪 +971</option><option value="+44">🇬🇧 +44</option><option value="+61">🇦🇺 +61</option>
                     </select>
-                    <input type="tel" id="signupPhone" placeholder="Phone Number" class="input" required style="margin-bottom:0;">
+                    <input type="tel" id="signupPhone" placeholder="Phone Number" class="input">
                 </div>
-                <input type="password" id="signupPass" placeholder="Password" class="input" required>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="termsCheckbox" required>
-                    <label>I accept the <span class="legal-link" onclick="showTerms()">Terms & Conditions</span> and <span class="legal-link" onclick="showPrivacy()">Privacy Policy</span></label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="ageCheckbox" required>
-                    <label>I confirm that I am 18 years or older.</label>
-                </div>
+                <input type="password" id="signupPass" placeholder="Password" class="input">
+                <div class="checkbox-group"><input type="checkbox" id="termsCheckbox" required><label>Accept <span class="legal-link" onclick="showTerms()">Terms & Conditions</span></label></div>
+                <div class="checkbox-group"><input type="checkbox" id="ageCheckbox" required><label>I am 18 years or older</label></div>
                 <button class="btn-primary" id="doSignupBtn">Create Account</button>
+                <p style="text-align:center; margin-top:10px;"><span class="legal-link" onclick="showLogin()">Already have an account? Login</span></p>
             </div>
         </div>
         <div id="buyerProfilePanel" style="display:none;">
             <div class="premium-card">
                 <div class="flex-between"><h2>👋 Welcome, <span id="profileName"></span></h2><span class="role-badge" id="profileRoleBadge">Buyer</span></div>
-                <div id="profileAddressSection"><h3>📍 Saved Address</h3><div id="savedAddressDisplay" class="address-card"></div><button id="editAddressBtn" class="btn-primary" style="background:#64748b; margin-top:10px;">✏️ Edit Address</button></div>
-                <button class="btn-primary" id="logoutBuyerBtn" style="background:#dc2626; margin-top:10px;">Logout</button>
+                <button class="btn-primary" id="logoutBuyerBtn" style="background:#dc2626;">Logout</button>
             </div>
             <div class="premium-card"><h3>📜 My Orders</h3><div id="buyerOrdersList"></div></div>
-            <div class="premium-card"><h3>📄 Refund & Cancellation Policy</h3><p style="font-size:12px; color:#64748b;">Cancellation within 24 hours of order. Refund processed within 7-10 business days after product return verification.</p></div>
+            <div class="premium-card"><h3>❤️ My Wishlist</h3><div id="buyerWishlistList"></div></div>
         </div>
     </div>
 
+    <!-- ADMIN SECTION -->
     <div id="adminSection" class="section">
         <div id="adminPanel" class="premium-card">
             <h2>⚙️ Admin Dashboard</h2>
             <div id="adminLoginBox"><input type="password" id="adminKey" class="input" placeholder="Enter Admin Key"><button class="btn-primary" id="adminLoginBtn">Login</button></div>
             <div id="adminContent" style="display:none;">
-                <div class="flex-between"><h3>📋 All Sellers (KYC Verification)</h3><button id="refreshAdminBtn" style="background:#64748b; padding:8px 16px; border-radius:30px; border:none; color:white;">Refresh</button></div>
+                <div class="flex-between"><h3>📋 Sellers (KYC Verification)</h3><button id="refreshAdminBtn" style="background:#64748b; padding:8px 16px; border-radius:30px;">Refresh</button></div>
                 <div id="adminSellersList"></div>
                 <h3>💰 Platform Earnings</h3><div id="platformEarnings"></div>
                 <h3>💸 Pending Withdrawals</h3><div id="pendingWithdrawals"></div>
                 <h3>📊 All Orders</h3><div id="adminOrdersList"></div>
-                <h3>⚙️ Razorpay Settings</h3>
-                <div class="premium-card">
-                    <input type="text" id="razorpayKey" class="input" placeholder="Razorpay Key ID (rzp_test_xxx)" value="rzp_test_YourKey">
-                    <input type="text" id="razorpaySecret" class="input" placeholder="Razorpay Key Secret">
-                    <button id="saveRazorpaySettings" class="btn-primary">Save Settings</button>
-                    <p style="font-size:11px; margin-top:10px;">Get keys from <a href="https://dashboard.razorpay.com/" target="_blank">Razorpay Dashboard</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CART PAGE -->
+    <div id="cartPageSection" class="section">
+        <div class="premium-card">
+            <h2>🛍️ My Cart</h2>
+            <div id="cartItemsList"></div>
+            <div id="cartTotal" class="flex-between" style="margin-top:20px; padding-top:20px; border-top:2px solid #e2e8f0;"><h3>Total:</h3><h3 id="cartTotalAmount">SAR 0.00</h3></div>
+            <button id="proceedToCheckoutBtn" class="btn-primary" style="margin-top:20px;">Proceed to Checkout</button>
+        </div>
+    </div>
+
+    <!-- CHECKOUT - DELIVERY DETAILS -->
+    <div id="checkoutSection" class="section">
+        <div class="premium-card">
+            <h2>📦 Delivery Details</h2>
+            <div id="deliveryForm">
+                <input type="text" id="deliveryFullName" placeholder="Receiver Full Name *" class="input">
+                <div class="phone-group">
+                    <select id="deliveryCountryCode">
+                        <option value="+966">🇸🇦 +966</option><option value="+1">🇺🇸 +1</option><option value="+91">🇮🇳 +91</option>
+                        <option value="+971">🇦🇪 +971</option><option value="+44">🇬🇧 +44</option><option value="+61">🇦🇺 +61</option>
+                    </select>
+                    <input type="tel" id="deliveryPhone" placeholder="Phone Number *" class="input">
                 </div>
+                <select id="deliveryCountry" class="input" required>
+                    <option value="">Select Country *</option>
+                    <option value="SA">🇸🇦 Saudi Arabia</option><option value="US">🇺🇸 United States</option><option value="IN">🇮🇳 India</option>
+                    <option value="AE">🇦🇪 UAE</option><option value="GB">🇬🇧 United Kingdom</option><option value="CA">🇨🇦 Canada</option>
+                    <option value="AU">🇦🇺 Australia</option><option value="DE">🇩🇪 Germany</option><option value="FR">🇫🇷 France</option>
+                    <option value="JP">🇯🇵 Japan</option><option value="CN">🇨🇳 China</option><option value="PK">🇵🇰 Pakistan</option>
+                    <option value="BD">🇧🇩 Bangladesh</option><option value="LK">🇱🇰 Sri Lanka</option><option value="NP">🇳🇵 Nepal</option>
+                </select>
+                <input type="text" id="deliveryCity" placeholder="City *" class="input">
+                <input type="text" id="deliveryPostcode" placeholder="Post Code / ZIP *" class="input">
+                <input type="text" id="deliveryStreet" placeholder="Street Address *" class="input">
+                <input type="text" id="deliveryHouseNo" placeholder="House No. (Optional)" class="input">
+                <div class="checkbox-group"><input type="checkbox" id="saveAddressCheckbox"> <label>Save this address for future</label></div>
+                <button id="confirmDeliveryBtn" class="btn-primary">Continue to Payment</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAYMENT SECTION -->
+    <div id="paymentSection" class="section">
+        <div class="premium-card">
+            <h2>💳 Payment Details</h2>
+            <div id="paymentForm">
+                <input type="text" id="cardNumber" placeholder="Card Number *" class="input" maxlength="19">
+                <input type="text" id="cardHolderName" placeholder="Card Holder Name *" class="input">
+                <div class="delivery-form-row">
+                    <input type="text" id="expiryDate" placeholder="MM/YY *" maxlength="5">
+                    <input type="password" id="cvv" placeholder="CVV *" maxlength="4">
+                </div>
+                <div class="checkbox-group"><input type="checkbox" id="saveCardCheckbox"> <label>Save card for next time</label></div>
+                <button id="payNowBtn" class="btn-primary">Pay Now</button>
+            </div>
+            <div id="savedCardsSection" style="margin-top:20px; display:none;">
+                <h4>💳 Saved Cards</h4>
+                <div id="savedCardsList"></div>
             </div>
         </div>
     </div>
 </div>
 
-<button class="fixed-cart" id="cartFloatBtn">
-    🛒 Cart <span class="cart-badge" id="cartCountBadge">0</span>
-    <span class="cart-heart">💜</span>
-</button>
+<button class="fixed-cart" id="cartFloatBtn">🛒 Cart <span class="cart-badge" id="cartCountBadge">0</span></button>
 
 <div class="toast" id="toast"></div>
+<div id="productModal" class="modal"><div class="modal-card"><span class="close-modal" id="closeModalBtn">&times;</span><img id="modalImg" style="width:100%; border-radius:16px;"><h2 id="modalTitle"></h2><p id="modalDesc"></p><div id="modalPriceBreakdown" style="font-size:12px; color:#64748b; margin:10px 0;"></div><h3 id="modalPrice"></h3><button class="btn-primary" id="modalAddCartBtn">Add to Cart</button><button class="btn-primary" id="modalAddWishBtn" style="background:#64748b; margin-top:10px;">❤️ Wishlist</button></div></div>
+<div id="termsModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeTermsModal()">&times;</span><h2>Terms & Conditions</h2><p>By using GlobalBazaar, you agree to our terms. You must be 18+ years old.</p><button class="btn-primary" onclick="closeTermsModal()">Close</button></div></div>
+<div id="sellerAgreementModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSellerAgreementModal()">&times;</span><h2>Seller Agreement</h2><p>Commission: 5% | Gateway Fee: 2.5% | Handling Fee: $2<br>Payments released after delivery confirmation.<br>Weekly withdrawal available (Monday & Friday).</p><button class="btn-primary" onclick="closeSellerAgreementModal()">Close</button></div></div>
+<div id="supportModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSupportModal()">&times;</span><h2>📞 Support</h2><p>Email: support@globalbazaar.com<br>WhatsApp: +966 123 456 789<br>24/7 Customer Support</p><button class="btn-primary" onclick="closeSupportModal()">Close</button></div></div>
 
-<div id="productModal" class="modal">
-    <div class="modal-card">
-        <span class="close-modal" id="closeModalBtn">&times;</span>
-        <img id="modalImg" style="width:100%; border-radius:16px;">
-        <h2 id="modalTitle"></h2>
-        <p id="modalSellerName"></p>
-        <p id="modalDesc"></p>
-        <div id="priceBreakdownModal" class="price-breakdown"></div>
-        <h3 id="modalPrice"></h3>
-        <button class="btn-primary" id="modalAddCartBtn">Add to Cart</button>
-        <button class="btn-primary" id="modalAddWishBtn" style="background:#64748b;">❤️ Wishlist</button>
-    </div>
-</div>
-
-<div id="termsModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeTermsModal()">&times;</span><h2>Terms & Conditions</h2><p>By using GlobalBazaar, you agree to these terms. You must be 18+.</p><button class="btn-primary" onclick="closeTermsModal()">Close</button></div></div>
-<div id="privacyModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closePrivacyModal()">&times;</span><h2>Privacy Policy</h2><p>We collect name, email, phone, address for order processing.</p><button class="btn-primary" onclick="closePrivacyModal()">Close</button></div></div>
-<div id="sellerAgreementModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSellerAgreementModal()">&times;</span><h2>Seller Agreement</h2><p>5% commission + 2.5% gateway fee. Payments released after delivery confirmation.</p><button class="btn-primary" onclick="closeSellerAgreementModal()">Close</button></div></div>
-<div id="supportModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSupportModal()">&times;</span><h2>📞 Support</h2><p>Email: support@globalbazaar.com<br>WhatsApp: +966 123 456 789</p><button class="btn-primary" onclick="closeSupportModal()">Close</button></div></div>
-
-<div class="footer-legal">
-    © 2026 GlobalBazaar Marketplace | <span class="legal-link" onclick="showTerms()">Terms</span> | <span class="legal-link" onclick="showPrivacy()">Privacy</span> | <span class="legal-link" onclick="showSupport()">Support</span>
-</div>
+<div class="footer-legal">© 2026 GlobalBazaar Marketplace | <span class="legal-link" onclick="showTerms()">Terms</span> | <span class="legal-link" onclick="showPrivacy()">Privacy</span> | <span class="legal-link" onclick="showSupport()">Support</span></div>
 
 <script>
-    // ============ CONSTANTS ============
+    // ============ DYNAMIC CURRENCY & EXCHANGE RATES ============
+    const fxRates = {
+        SAR: 3.75, USD: 1, EUR: 0.92, GBP: 0.78, INR: 83.5, PKR: 278,
+        AED: 3.67, CAD: 1.36, AUD: 1.52, JPY: 150.2, CNY: 7.25
+    };
+    const currencySymbols = {
+        SAR: "SAR ", USD: "$", EUR: "€", GBP: "£", INR: "₹", PKR: "₨",
+        AED: "د.إ ", CAD: "$", AUD: "$", JPY: "¥", CNY: "¥"
+    };
+    
+    // ============ SHIPPING COSTS (Country based) ============
+    function getShippingCost(sellerCountry, buyerCountry) {
+        if(sellerCountry === buyerCountry) return 5;
+        const nearby = ["SA","AE","IN","PK","BD","LK","NP","OM","KW","BH","QA"];
+        if(nearby.includes(sellerCountry) && nearby.includes(buyerCountry)) return 12;
+        const regional = ["US","CA","GB","DE","FR","IT","ES","NL"];
+        if(regional.includes(sellerCountry) && regional.includes(buyerCountry)) return 20;
+        return 35;
+    }
+    
+    // ============ COMMISSION & FEES ============
     const PLATFORM_COMMISSION = 0.05;
     const GATEWAY_FEE = 0.025;
     const HANDLING_FEE = 2;
     
-    let razorpayConfig = JSON.parse(localStorage.getItem('razorpay_config')) || {
-        key: "rzp_test_YourKey",
-        secret: ""
-    };
-    
-    let fx = {
-        SAR: 3.75, USD: 1, EUR: 0.92, GBP: 0.78, INR: 83.5, PKR: 278,
-        NPR: 133.5, BDT: 117, LKR: 305, AED: 3.67, CAD: 1.36, AUD: 1.52,
-        SGD: 1.35, MYR: 4.70, THB: 36.5, JPY: 150.2, CNY: 7.25
-    };
-    
-    let sym = {
-        SAR: "SAR ", USD: "$", EUR: "€", GBP: "£", INR: "₹", PKR: "₨",
-        NPR: "रू ", BDT: "৳", LKR: "Rs ", AED: "د.إ ", CAD: "$", AUD: "$",
-        SGD: "$", MYR: "RM ", THB: "฿", JPY: "¥", CNY: "¥"
-    };
-    
-    let selectedCurr = "SAR";
-    let buyerCountry = "SA";
-    
-    emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
-    
-    function sendEmailNotification(toEmail, subject, message) {
-        console.log(`📧 Email to ${toEmail}: ${subject} - ${message}`);
-        showToast(`📧 Email sent to ${toEmail}`, false);
-    }
-    
-    function sendWhatsAppNotification(phone, message) {
-        console.log(`💬 WhatsApp to ${phone}: ${message}`);
-        showToast(`💬 WhatsApp notification sent`, false);
-    }
-    
-    function generatePDFInvoice(order) {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.setFontSize(18);
-        doc.text("GlobalBazaar Invoice", 20, 20);
-        doc.setFontSize(12);
-        doc.text(`Order ID: ${order.trackingNumber}`, 20, 40);
-        doc.text(`Date: ${order.date}`, 20, 50);
-        doc.text(`Product: ${order.productName} x${order.qty}`, 20, 60);
-        doc.text(`Amount: ${getSym()}${convert(order.amount)}`, 20, 70);
-        doc.text(`Status: ${order.status}`, 20, 80);
-        doc.text(`Address: ${order.address}`, 20, 90);
-        doc.save(`invoice_${order.trackingNumber}.pdf`);
-        showToast("Invoice downloaded!", false);
-    }
-    
-    function convert(usd) { return (usd * fx[selectedCurr]).toFixed(2); }
-    function getSym() { return sym[selectedCurr]; }
-    function showToast(msg, isError) { let t = document.getElementById('toast'); t.innerText = msg; t.style.backgroundColor = isError ? '#dc2626' : '#10b981'; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
-    
-    function showTerms() { document.getElementById('termsModal').style.display = 'block'; }
-    function closeTermsModal() { document.getElementById('termsModal').style.display = 'none'; }
-    function showPrivacy() { document.getElementById('privacyModal').style.display = 'block'; }
-    function closePrivacyModal() { document.getElementById('privacyModal').style.display = 'none'; }
-    function showSellerAgreement() { document.getElementById('sellerAgreementModal').style.display = 'block'; }
-    function closeSellerAgreementModal() { document.getElementById('sellerAgreementModal').style.display = 'none'; }
-    function showSupport() { document.getElementById('supportModal').style.display = 'block'; }
-    function closeSupportModal() { document.getElementById('supportModal').style.display = 'none'; }
-    
-    function calculateAge(dob) {
-        let today = new Date();
-        let birthDate = new Date(dob);
-        let age = today.getFullYear() - birthDate.getFullYear();
-        let m = today.getMonth() - birthDate.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
-        return age;
-    }
-    
-    const illegalKeywords = ["gun","pistol","weapon","bomb","drugs","cocaine","heroin"];
-    function isIllegal(n,d) { return illegalKeywords.some(k => (n+d).toLowerCase().includes(k)); }
-    
-    function getShippingCost(sellerCountry, buyerCountry) {
-        if(sellerCountry === buyerCountry) return 5;
-        let nearby = ["SA","AE","US","IN","PK","BD","LK","NP"];
-        return nearby.includes(sellerCountry) && nearby.includes(buyerCountry) ? 12 : 25;
-    }
-    
-    function calculateFinalPrice(basePrice, sellerCountry) {
+    function calculateFinalPrice(basePrice, sellerCountry, buyerCountry) {
         let shipping = getShippingCost(sellerCountry, buyerCountry);
         let commission = basePrice * PLATFORM_COMMISSION;
         let gateway = basePrice * GATEWAY_FEE;
-        return { total: basePrice + commission + gateway + shipping + HANDLING_FEE, shipping, commission, gateway, basePrice };
-    }
-    
-    function processRazorpayPayment(amountINR, orderId, buyerEmail, buyerPhone, buyerName, callback) {
-        if(!razorpayConfig.key || razorpayConfig.key === "rzp_test_YourKey") {
-            showToast("⚠️ Razorpay not configured! Please set Razorpay Key.", true);
-            callback(false, null);
-            return;
-        }
-        
-        var options = {
-            key: razorpayConfig.key,
-            amount: Math.round(amountINR * 100),
-            currency: "INR",
-            name: "GlobalBazaar",
-            description: `Order ${orderId}`,
-            prefill: {
-                name: buyerName,
-                email: buyerEmail,
-                contact: buyerPhone
-            },
-            theme: { color: "#1e3a8a" },
-            handler: function(response) {
-                showToast("✅ Payment successful!", false);
-                sendEmailNotification(buyerEmail, "Payment Successful", `Your payment of ₹${amountINR} for order ${orderId} is successful. Payment ID: ${response.razorpay_payment_id}`);
-                callback(true, response.razorpay_payment_id);
-            }
+        return {
+            total: basePrice + commission + gateway + shipping + HANDLING_FEE,
+            basePrice: basePrice,
+            shipping: shipping,
+            commission: commission,
+            gateway: gateway,
+            handling: HANDLING_FEE
         };
-        var rzp = new Razorpay(options);
-        rzp.open();
     }
     
+    let selectedCurrency = localStorage.getItem('selectedCurrency') || 'SAR';
+    let buyerCountry = localStorage.getItem('buyerCountry') || 'SA';
+    
+    function convertPrice(usd) { return (usd * fxRates[selectedCurrency]).toFixed(2); }
+    function getCurrencySymbol() { return currencySymbols[selectedCurrency]; }
+    
+    document.getElementById('currencySelect').value = selectedCurrency;
+    document.getElementById('currencySelect').addEventListener('change', (e) => {
+        selectedCurrency = e.target.value;
+        localStorage.setItem('selectedCurrency', selectedCurrency);
+        renderProducts();
+        updateCartUI();
+        renderCartPage();
+        if(currentUser?.role === 'seller') renderSellerDashboard();
+        if(currentUser) renderBuyerOrders();
+        showToast(`Currency changed to ${selectedCurrency}`, false);
+    });
+    
+    // ============ DATA STORAGE ============
     let sellers = JSON.parse(localStorage.getItem('gb_sellers')) || [];
     let products = JSON.parse(localStorage.getItem('gb_products')) || [
-        {id:1, sellerId:0, sellerName:"GlobalBazaar", name:"Luxury Smart Watch", price:50, category:"Electronics", image:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400", description:"Premium smart watch", rating:4.5, reviews:[], sellerCountry:"SA"},
-        {id:2, sellerId:0, sellerName:"GlobalBazaar", name:"Premium Headphones", price:120, category:"Electronics", image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", description:"Noise cancellation", rating:4.8, reviews:[], sellerCountry:"SA"}
+        {id:1, sellerId:0, sellerName:"GlobalBazaar", name:"Luxury Smart Watch", price:50, category:"Electronics", image:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400", description:"Premium smart watch with heart rate monitor", sellerCountry:"SA", rating:4.5},
+        {id:2, sellerId:0, sellerName:"GlobalBazaar", name:"Premium Headphones", price:120, category:"Electronics", image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", description:"Noise cancellation wireless headphones", sellerCountry:"SA", rating:4.8}
     ];
     let buyers = JSON.parse(localStorage.getItem('gb_buyers')) || [];
     let currentUser = JSON.parse(localStorage.getItem('gb_current_user')) || null;
@@ -642,7 +448,9 @@
     let orders = JSON.parse(localStorage.getItem('gb_orders')) || [];
     let platformEarnings = JSON.parse(localStorage.getItem('gb_platform_earnings')) || 0;
     let pendingWithdrawals = JSON.parse(localStorage.getItem('gb_pending_withdrawals')) || [];
-    let payouts = JSON.parse(localStorage.getItem('gb_payouts')) || [];
+    let savedCards = JSON.parse(localStorage.getItem('gb_saved_cards')) || [];
+    let savedAddresses = JSON.parse(localStorage.getItem('gb_saved_addresses')) || [];
+    let sellerRevenueChart = null;
     
     function saveAll() {
         localStorage.setItem('gb_sellers', JSON.stringify(sellers));
@@ -654,51 +462,30 @@
         localStorage.setItem('gb_orders', JSON.stringify(orders));
         localStorage.setItem('gb_platform_earnings', JSON.stringify(platformEarnings));
         localStorage.setItem('gb_pending_withdrawals', JSON.stringify(pendingWithdrawals));
-        localStorage.setItem('gb_payouts', JSON.stringify(payouts));
-        localStorage.setItem('razorpay_config', JSON.stringify(razorpayConfig));
+        localStorage.setItem('gb_saved_cards', JSON.stringify(savedCards));
+        localStorage.setItem('gb_saved_addresses', JSON.stringify(savedAddresses));
     }
     
-    document.getElementById('saveRazorpaySettings')?.addEventListener('click', () => {
-        razorpayConfig.key = document.getElementById('razorpayKey').value;
-        razorpayConfig.secret = document.getElementById('razorpaySecret').value;
-        saveAll();
-        showToast("Razorpay settings saved!", false);
-    });
-    
-    async function detectLocation() { try { let r = await fetch('https://ipapi.co/json/'); let d = await r.json(); buyerCountry = d.country_code || "SA"; } catch(e) {} renderProducts(); }
-    detectLocation();
-    
-    document.getElementById('currencySelect').addEventListener('change', (e) => { 
-        selectedCurr = e.target.value; 
-        renderProducts(); 
-        updateCartUI(); 
-        renderBuyerOrders();
-        if(currentUser?.role === 'seller') renderSellerDashboard();
-    });
-    
-    document.getElementById('globalCountrySelect')?.addEventListener('change', (e) => {
-        buyerCountry = e.target.value;
-        renderProducts();
-        showToast(`Country changed to ${e.target.options[e.target.selectedIndex].text}`, false);
-    });
-    
-    function getAddressLineByLine() {
-        let h = prompt("House No.:"); if(!h) return null;
-        let s = prompt("Street:"); if(!s) return null;
-        let c = prompt("City:"); if(!c) return null;
-        let st = prompt("State:"); if(!st) return null;
-        let p = prompt("PIN Code:"); if(!p) return null;
-        let co = prompt("Country:", "Saudi Arabia"); if(!co) return null;
-        let addr = `${h}, ${s}, ${c}, ${st} - ${p}, ${co}`;
-        if(currentUser) { currentUser.savedAddress = { house:h, street:s, city:c, state:st, pincode:p, country:co, fullAddress:addr }; saveAll(); displaySavedAddress(); }
-        return addr;
+    function showToast(msg, isError) { 
+        let t = document.getElementById('toast'); 
+        t.innerText = msg; 
+        t.style.backgroundColor = isError ? '#dc2626' : '#10b981'; 
+        t.style.display = 'block'; 
+        setTimeout(() => t.style.display = 'none', 3000); 
     }
     
-    function displaySavedAddress() {
-        if(currentUser?.savedAddress) document.getElementById('savedAddressDisplay').innerHTML = `🏠 ${currentUser.savedAddress.house}<br>📌 ${currentUser.savedAddress.street}<br>🏙️ ${currentUser.savedAddress.city}<br>🗺️ ${currentUser.savedAddress.state}<br>📮 ${currentUser.savedAddress.pincode}<br>🌍 ${currentUser.savedAddress.country}`;
-        else document.getElementById('savedAddressDisplay').innerHTML = "No address saved.";
-    }
+    function showTerms() { document.getElementById('termsModal').style.display = 'block'; }
+    function closeTermsModal() { document.getElementById('termsModal').style.display = 'none'; }
+    function showSellerAgreement() { document.getElementById('sellerAgreementModal').style.display = 'block'; }
+    function closeSellerAgreementModal() { document.getElementById('sellerAgreementModal').style.display = 'none'; }
+    function showSupport() { document.getElementById('supportModal').style.display = 'block'; }
+    function closeSupportModal() { document.getElementById('supportModal').style.display = 'none'; }
+    function showSignup() { document.getElementById('signupFormDiv').style.display = 'block'; document.getElementById('loginFormDiv').style.display = 'none'; }
+    function showLogin() { document.getElementById('loginFormDiv').style.display = 'block'; document.getElementById('signupFormDiv').style.display = 'none'; }
     
+    function calculateAge(dob) { return new Date().getFullYear() - new Date(dob).getFullYear(); }
+    
+    // ============ PRODUCTS RENDERING ============
     let currentCategory = "All";
     function renderCats() {
         let cats = ["All", ...new Set(products.map(p=>p.category))];
@@ -712,8 +499,8 @@
         let sellerMap = new Map(sellers.map(s=>[s.id, s]));
         let html = filtered.map(p => {
             let seller = sellerMap.get(p.sellerId) || {shopName:"GlobalBazaar", country:"SA"};
-            let final = calculateFinalPrice(p.price, seller.country);
-            return `<div class="product-card" data-id="${p.id}"><img src="${p.image}"><div class="seller-name-tag">🏪 ${seller.shopName}</div><h4>${p.name}</h4><div class="prod-price">${getSym()}${convert(final.total)}</div><div class="card-actions"><button class="btn-sm btn-buy addCartBtn" data-id="${p.id}">Buy</button><button class="btn-sm btn-wish wishBtn ${wishlist.includes(p.id)?'active':''}" data-id="${p.id}">❤️</button></div></div>`;
+            let final = calculateFinalPrice(p.price, seller.country, buyerCountry);
+            return `<div class="product-card" data-id="${p.id}"><img src="${p.image}"><div class="seller-name-tag">🏪 ${seller.shopName}</div><h4>${p.name}</h4><div class="prod-price">${getCurrencySymbol()}${convertPrice(final.total)}</div><div class="card-actions"><button class="btn-sm btn-buy addCartBtn" data-id="${p.id}">Buy</button><button class="btn-sm btn-wish wishBtn ${wishlist.includes(p.id)?'active':''}" data-id="${p.id}">❤️</button></div></div>`;
         }).join('');
         document.getElementById('productsGrid').innerHTML = html;
         document.querySelectorAll('.addCartBtn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); addToCart(parseInt(btn.dataset.id)); }));
@@ -727,13 +514,12 @@
         if(!p) return;
         currentProduct = p;
         let seller = sellers.find(s=>s.id===p.sellerId) || {shopName:"GlobalBazaar", country:"SA"};
-        let final = calculateFinalPrice(p.price, seller.country);
+        let final = calculateFinalPrice(p.price, seller.country, buyerCountry);
         document.getElementById('modalImg').src = p.image;
         document.getElementById('modalTitle').innerText = p.name;
-        document.getElementById('modalSellerName').innerHTML = `🏪 ${seller.shopName}`;
         document.getElementById('modalDesc').innerText = p.description;
-        document.getElementById('priceBreakdownModal').innerHTML = `Base: ${getSym()}${convert(p.price)}<br>+ Shipping: ${getSym()}${convert(final.shipping)}<br>+ Fees: ${getSym()}${convert(final.commission+final.gateway+HANDLING_FEE)}<br><strong>Total: ${getSym()}${convert(final.total)}</strong>`;
-        document.getElementById('modalPrice').innerHTML = `${getSym()}${convert(final.total)}`;
+        document.getElementById('modalPriceBreakdown').innerHTML = `Base: ${getCurrencySymbol()}${convertPrice(p.price)}<br>+ Shipping: ${getCurrencySymbol()}${convertPrice(final.shipping)}<br>+ Fees: ${getCurrencySymbol()}${convertPrice(final.commission+final.gateway+final.handling)}`;
+        document.getElementById('modalPrice').innerHTML = `<strong>Total: ${getCurrencySymbol()}${convertPrice(final.total)}</strong>`;
         document.getElementById('productModal').style.display = 'block';
     }
     
@@ -742,65 +528,175 @@
         if(!p) return;
         let existing = cart.find(i=>i.id===id);
         if(existing) existing.qty++;
-        else cart.push({id:p.id, name:p.name, price:p.price, sellerId:p.sellerId, sellerCountry:p.sellerCountry || "SA", qty:1});
+        else cart.push({id:p.id, name:p.name, price:p.price, sellerId:p.sellerId, sellerCountry:p.sellerCountry || "SA", qty:1, image:p.image});
         saveAll();
         updateCartUI();
+        renderCartPage();
         showToast("Added to cart", false);
     }
     
     function updateCartUI() { document.getElementById('cartCountBadge').innerText = cart.reduce((a,b)=>a+b.qty,0); }
-    function toggleWish(id) { if(wishlist.includes(id)) wishlist = wishlist.filter(i=>i!==id); else wishlist.push(id); saveAll(); renderProducts(); }
     
-    document.getElementById('cartFloatBtn')?.addEventListener('click', () => {
-        if(cart.length === 0) { showToast("Cart empty!", true); return; }
-        if(!currentUser) { showToast("Login first!", true); return; }
-        let address = currentUser.savedAddress?.fullAddress || getAddressLineByLine();
-        if(!address) return;
+    function toggleWish(id) { 
+        if(wishlist.includes(id)) wishlist = wishlist.filter(i=>i!==id); 
+        else wishlist.push(id); 
+        saveAll(); 
+        renderProducts(); 
+        if(currentUser) renderBuyerWishlist();
+    }
+    
+    // ============ CART PAGE ============
+    function renderCartPage() {
+        if(cart.length === 0) { 
+            document.getElementById('cartItemsList').innerHTML = '<p style="text-align:center; padding:40px;">Your cart is empty 🛒</p>'; 
+            document.getElementById('cartTotalAmount').innerHTML = `${getCurrencySymbol()}0.00`; 
+            return; 
+        }
+        let totalUSD = 0;
+        let html = cart.map((item, idx) => {
+            let seller = sellers.find(s=>s.id===item.sellerId) || {country:"SA"};
+            let final = calculateFinalPrice(item.price, seller.country, buyerCountry);
+            let itemTotal = final.total * item.qty;
+            totalUSD += itemTotal;
+            return `<div class="cart-item"><div><strong>${item.name}</strong><br>${getCurrencySymbol()}${convertPrice(final.total)} each</div><div class="cart-item-controls"><button class="cart-qty-btn" data-idx="${idx}" data-dir="dec">-</button><span style="width:30px;text-align:center">${item.qty}</span><button class="cart-qty-btn" data-idx="${idx}" data-dir="inc">+</button><button class="cart-remove" data-idx="${idx}">Remove</button></div></div>`;
+        }).join('');
+        document.getElementById('cartItemsList').innerHTML = html;
+        document.getElementById('cartTotalAmount').innerHTML = `${getCurrencySymbol()}${convertPrice(totalUSD)}`;
+        
+        document.querySelectorAll('.cart-qty-btn').forEach(btn => btn.addEventListener('click', () => { 
+            let idx = parseInt(btn.dataset.idx); 
+            if(btn.dataset.dir === 'inc') cart[idx].qty++; 
+            else if(btn.dataset.dir === 'dec' && cart[idx].qty > 1) cart[idx].qty--; 
+            else if(btn.dataset.dir === 'dec' && cart[idx].qty === 1) cart.splice(idx,1); 
+            saveAll(); updateCartUI(); renderCartPage(); renderProducts(); 
+        }));
+        document.querySelectorAll('.cart-remove').forEach(btn => btn.addEventListener('click', () => { 
+            cart.splice(parseInt(btn.dataset.idx),1); 
+            saveAll(); updateCartUI(); renderCartPage(); renderProducts(); 
+        }));
+    }
+    
+    // ============ CHECKOUT FLOW ============
+    let currentDelivery = null;
+    document.getElementById('proceedToCheckoutBtn')?.addEventListener('click', () => {
+        if(cart.length === 0) { showToast("Cart is empty!", true); return; }
+        if(!currentUser) { showToast("Please login first!", true); return; }
+        showSection('checkout');
+        let savedAddr = savedAddresses.find(a => a.userEmail === currentUser.email);
+        if(savedAddr) {
+            document.getElementById('deliveryFullName').value = savedAddr.fullName || '';
+            document.getElementById('deliveryCountryCode').value = savedAddr.countryCode || '+966';
+            document.getElementById('deliveryPhone').value = savedAddr.phone || '';
+            document.getElementById('deliveryCountry').value = savedAddr.country || '';
+            document.getElementById('deliveryCity').value = savedAddr.city || '';
+            document.getElementById('deliveryPostcode').value = savedAddr.postcode || '';
+            document.getElementById('deliveryStreet').value = savedAddr.street || '';
+            document.getElementById('deliveryHouseNo').value = savedAddr.houseNo || '';
+            document.getElementById('saveAddressCheckbox').checked = true;
+        }
+    });
+    
+    document.getElementById('confirmDeliveryBtn')?.addEventListener('click', () => {
+        let fullName = document.getElementById('deliveryFullName').value;
+        let countryCode = document.getElementById('deliveryCountryCode').value;
+        let phone = document.getElementById('deliveryPhone').value;
+        let country = document.getElementById('deliveryCountry').value;
+        let city = document.getElementById('deliveryCity').value;
+        let postcode = document.getElementById('deliveryPostcode').value;
+        let street = document.getElementById('deliveryStreet').value;
+        if(!fullName || !phone || !country || !city || !postcode || !street) { showToast("Please fill all required fields!", true); return; }
+        
+        buyerCountry = country;
+        localStorage.setItem('buyerCountry', buyerCountry);
+        
+        currentDelivery = { fullName, countryCode, phone, country, city, postcode, street, houseNo: document.getElementById('deliveryHouseNo').value, fullAddress: `${document.getElementById('deliveryHouseNo').value || ''}, ${street}, ${city}, ${postcode}, ${country}` };
+        
+        if(document.getElementById('saveAddressCheckbox').checked) {
+            let addrIndex = savedAddresses.findIndex(a => a.userEmail === currentUser.email);
+            let addr = { userEmail: currentUser.email, fullName, countryCode, phone, country, city, postcode, street, houseNo: document.getElementById('deliveryHouseNo').value };
+            if(addrIndex >= 0) savedAddresses[addrIndex] = addr;
+            else savedAddresses.push(addr);
+            saveAll();
+        }
+        showSection('payment');
+        loadSavedCards();
+    });
+    
+    function loadSavedCards() {
+        let userCards = savedCards.filter(c => c.userEmail === currentUser?.email);
+        if(userCards.length > 0) {
+            document.getElementById('savedCardsSection').style.display = 'block';
+            document.getElementById('savedCardsList').innerHTML = userCards.map((card, idx) => `<div class="flex-between" style="margin-bottom:10px"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}" style="background:#10b981; border:none; padding:6px 12px; border-radius:20px;">Use</button></div>`).join('');
+            document.querySelectorAll('.useSavedCardBtn').forEach(btn => btn.addEventListener('click', () => {
+                let card = userCards[parseInt(btn.dataset.idx)];
+                document.getElementById('cardNumber').value = card.cardNumber;
+                document.getElementById('cardHolderName').value = card.cardHolderName;
+                document.getElementById('expiryDate').value = card.expiryDate;
+                document.getElementById('cvv').value = '';
+                showToast("Card loaded, enter CVV to pay", false);
+            }));
+        }
+    }
+    
+    document.getElementById('payNowBtn')?.addEventListener('click', () => {
+        let cardNum = document.getElementById('cardNumber').value.replace(/\s/g, '');
+        let cardName = document.getElementById('cardHolderName').value;
+        let expiry = document.getElementById('expiryDate').value;
+        let cvv = document.getElementById('cvv').value;
+        if(!cardNum || !cardName || !expiry || !cvv) { showToast("Please fill all card details!", true); return; }
+        if(cardNum.length < 15) { showToast("Invalid card number!", true); return; }
+        if(cvv.length < 3) { showToast("Invalid CVV!", true); return; }
+        
+        if(document.getElementById('saveCardCheckbox').checked) {
+            let existing = savedCards.findIndex(c => c.userEmail === currentUser.email && c.cardNumber === cardNum);
+            let cardData = { userEmail: currentUser.email, cardNumber: cardNum, cardHolderName: cardName, expiryDate: expiry };
+            if(existing >= 0) savedCards[existing] = cardData;
+            else savedCards.push(cardData);
+            saveAll();
+        }
         
         let totalUSD = cart.reduce((sum, item) => {
             let seller = sellers.find(s=>s.id===item.sellerId);
-            let final = calculateFinalPrice(item.price, seller?.country || "SA");
+            let final = calculateFinalPrice(item.price, seller?.country || "SA", buyerCountry);
             return sum + (final.total * item.qty);
         }, 0);
-        let totalINR = totalUSD * fx.INR;
-        
         let tracking = "GB" + Date.now();
         
-        processRazorpayPayment(totalINR, tracking, currentUser.email, currentUser.phone, currentUser.name, (success, paymentId) => {
-            if(success) {
-                cart.forEach(item => {
-                    let seller = sellers.find(s=>s.id===item.sellerId);
-                    let final = calculateFinalPrice(item.price, seller?.country || "SA");
-                    orders.push({
-                        id: Date.now()+Math.random(), trackingNumber: tracking, paymentId: paymentId,
-                        sellerId: item.sellerId, sellerName: item.sellerName,
-                        buyerEmail: currentUser.email, buyerName: currentUser.name,
-                        productName: item.name, amount: final.total, basePrice: item.price,
-                        address: address, date: new Date().toLocaleString(), 
-                        status: "Confirmed", qty: item.qty, shippingCost: final.shipping,
-                        commission: final.commission, sellerReleased: false
-                    });
-                    platformEarnings += final.commission * item.qty;
-                });
-                cart = []; saveAll(); updateCartUI();
-                sendEmailNotification(currentUser.email, "Order Confirmed", `Your order ${tracking} has been confirmed. Total: ${getSym()}${convert(totalUSD)}`);
-                sendWhatsAppNotification(currentUser.phone, `Order ${tracking} confirmed! Thank you for shopping at GlobalBazaar.`);
-                showToast(`Order Confirmed! Tracking: ${tracking}`, false);
-                if(currentUser?.role === 'buyer') renderBuyerOrders();
-                if(currentUser?.role === 'seller') renderSellerDashboard();
-            } else {
-                showToast("Payment failed!", true);
-            }
+        cart.forEach(item => {
+            let seller = sellers.find(s=>s.id===item.sellerId);
+            let final = calculateFinalPrice(item.price, seller?.country || "SA", buyerCountry);
+            orders.push({
+                id: Date.now()+Math.random(), trackingNumber: tracking,
+                sellerId: item.sellerId, sellerName: item.sellerName,
+                buyerEmail: currentUser.email, buyerName: currentUser.name,
+                productName: item.name, amount: final.total, basePrice: item.price,
+                address: currentDelivery.fullAddress, date: new Date().toLocaleString(),
+                status: "Processing", qty: item.qty, shippingCost: final.shipping,
+                commission: final.commission, trackingInfo: null
+            });
+            platformEarnings += final.commission * item.qty;
         });
+        cart = [];
+        saveAll();
+        updateCartUI();
+        showToast(`✅ Payment Successful! Order ID: ${tracking}`, false);
+        showSection('buyer');
+        renderBuyerOrders();
+        if(currentUser?.role === 'seller') renderSellerDashboard();
+        
+        document.getElementById('cardNumber').value = '';
+        document.getElementById('cardHolderName').value = '';
+        document.getElementById('expiryDate').value = '';
+        document.getElementById('cvv').value = '';
     });
     
+    // ============ ORDER FUNCTIONS ============
     function confirmOrderReceived(orderId) {
         let order = orders.find(o => o.id === orderId);
         if(order && order.status === "Shipped") {
             order.status = "Delivered";
             saveAll();
-            sendEmailNotification(order.buyerEmail, "Order Delivered", `Your order ${order.trackingNumber} has been delivered. Thank you!`);
-            showToast("Order marked as Delivered!", false);
+            showToast("Order marked as Delivered! Thank you for confirming.", false);
             renderBuyerOrders();
             renderSellerDashboard();
             setTimeout(() => {
@@ -811,28 +707,22 @@
                     if(seller) {
                         let sellerEarning = ord.basePrice - ord.shippingCost - HANDLING_FEE;
                         seller.earnings = (seller.earnings || 0) + (sellerEarning * ord.qty);
-                        ord.sellerReleased = true;
                         saveAll();
-                        sendEmailNotification(seller.email, "Payment Released", `Payment of ${getSym()}${convert(sellerEarning * ord.qty)} has been released for order ${ord.trackingNumber}`);
-                        showToast(`Payment released to seller`, false);
+                        showToast(`💰 Payment of ${getCurrencySymbol()}${convertPrice(sellerEarning * ord.qty)} released to seller`, false);
                         renderSellerDashboard();
                     }
-                    renderBuyerOrders();
                 }
             }, 5000);
-        } else {
-            showToast("Order not shipped yet!", true);
-        }
+        } else { showToast("Order not shipped yet!", true); }
     }
     
     function markOrderShipped(orderId, trackingNum) {
         let order = orders.find(o => o.id === orderId);
-        if(order && order.status === "Confirmed") {
+        if(order && order.status === "Processing") {
             order.status = "Shipped";
-            order.trackingNumber = trackingNum;
+            order.trackingInfo = trackingNum;
             saveAll();
-            sendEmailNotification(order.buyerEmail, "Order Shipped", `Your order ${order.trackingNumber} has been shipped. Tracking: ${trackingNum}`);
-            showToast("Order marked as Shipped!", false);
+            showToast(`Order marked as Shipped! Tracking: ${trackingNum}`, false);
             renderSellerDashboard();
             renderBuyerOrders();
         }
@@ -841,29 +731,41 @@
     function requestWithdrawal(sellerId) {
         let seller = sellers.find(s => s.id === sellerId);
         if(seller && seller.earnings > 0) {
-            pendingWithdrawals.push({
-                id: Date.now(), sellerId: seller.id, sellerName: seller.shopName,
+            pendingWithdrawals.push({ 
+                id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, 
                 amount: seller.earnings, bank: seller.bankName, account: seller.accountNo,
-                ifsc: seller.ifsc, date: new Date().toLocaleString(), status: "Pending"
+                ifsc: seller.ifsc, date: new Date().toLocaleString(), status: "Pending" 
             });
             seller.earnings = 0;
             saveAll();
-            sendEmailNotification(seller.email, "Withdrawal Request", `Your withdrawal request of ${getSym()}${convert(pendingWithdrawals[pendingWithdrawals.length-1].amount)} has been submitted.`);
-            showToast(`Withdrawal request submitted!`, false);
+            showToast(`Withdrawal request of ${getCurrencySymbol()}${convertPrice(pendingWithdrawals[pendingWithdrawals.length-1].amount)} submitted!`, false);
             renderSellerDashboard();
         } else { showToast("No balance to withdraw", true); }
     }
     
+    // Weekly withdrawal auto-process (Monday & Friday)
+    function processWeeklyWithdrawals() {
+        let lastProcessed = localStorage.getItem('gb_last_withdrawal');
+        let now = new Date();
+        let day = now.getDay();
+        if((day === 1 || day === 5) && (!lastProcessed || new Date(lastProcessed).getDate() !== now.getDate())) {
+            pendingWithdrawals.forEach(w => { if(w.status === "Pending") w.status = "Approved"; });
+            localStorage.setItem('gb_last_withdrawal', now.toString());
+            saveAll();
+            showToast("Weekly withdrawals processed", false);
+        }
+    }
+    setInterval(processWeeklyWithdrawals, 3600000);
+    processWeeklyWithdrawals();
+    
+    // ============ SELLER REGISTRATION ============
     document.getElementById('sellerRegForm')?.addEventListener('submit', (e) => {
         e.preventDefault();
-        if(!document.getElementById('sellerAgreement').checked) { showToast("Accept Seller Agreement", true); return; }
+        if(!document.getElementById('sellerAgreement').checked) { showToast("Please accept Seller Agreement", true); return; }
         let dob = document.getElementById('sellerDob').value;
-        if(calculateAge(dob) < 18) { showToast("You must be 18+", true); return; }
-        
+        if(calculateAge(dob) < 18) { showToast("You must be 18+ years old", true); return; }
         let avatar = document.getElementById('sellerAvatar').files[0];
-        if(!avatar) { showToast("Upload shop logo", true); return; }
-        
-        let phoneWithCode = document.getElementById('sellerCountryCode').value + document.getElementById('sellerPhone').value;
+        if(!avatar) { showToast("Please upload shop logo", true); return; }
         
         let reader = new FileReader();
         reader.onload = (ev) => {
@@ -872,7 +774,7 @@
                 fullName: document.getElementById('sellerFullName').value,
                 shopName: document.getElementById('sellerShopName').value,
                 email: document.getElementById('sellerEmail').value,
-                phone: phoneWithCode,
+                phone: document.getElementById('sellerCountryCode').value + document.getElementById('sellerPhone').value,
                 password: document.getElementById('sellerPassword').value,
                 dob: dob,
                 houseNo: document.getElementById('sellerHouseNo').value,
@@ -886,14 +788,9 @@
                 bankName: document.getElementById('sellerBank').value,
                 accountNo: document.getElementById('sellerAccountNo').value,
                 ifsc: document.getElementById('sellerIfsc').value,
-                earnings: 0,
-                kycStatus: "pending",
-                kycDocuments: {
-                    type: document.getElementById('sellerDocType').value,
-                    number: document.getElementById('sellerDocNumber').value
-                },
-                verificationDate: null,
-                rejectionReason: null
+                accountHolder: document.getElementById('sellerAccountHolder').value,
+                earnings: 0, kycStatus: "pending", totalSales: 0, totalWithdrawn: 0,
+                revenueHistory: []
             };
             sellers.push(newSeller);
             currentUser = { name: newSeller.fullName, email: newSeller.email, role: 'seller', sellerId: newSeller.id, phone: newSeller.phone };
@@ -902,7 +799,6 @@
             document.getElementById('sellerDashboard').style.display = 'block';
             renderSellerDashboard();
             showToast("Shop Registered! Waiting for KYC Verification.", false);
-            sendEmailNotification(newSeller.email, "KYC Pending", "Your shop registration is complete. Admin will verify your KYC documents within 24-48 hours.");
         };
         reader.readAsDataURL(avatar);
     });
@@ -913,206 +809,218 @@
         if(!seller) return;
         let myProducts = products.filter(p=>p.sellerId === seller.id);
         let myOrders = orders.filter(o=>o.sellerId === seller.id);
-        let addressHtml = `${seller.houseNo}, ${seller.street}, ${seller.city}, ${seller.state} - ${seller.pincode}, ${seller.country}`;
+        let totalSales = 0;
+        let monthlyRevenue = {};
         
-        let kycStatusClass = "";
-        let kycStatusText = "";
-        if(seller.kycStatus === "pending") { kycStatusClass = "kyc-pending"; kycStatusText = "⏳ Pending Verification"; }
-        else if(seller.kycStatus === "verified") { kycStatusClass = "kyc-verified"; kycStatusText = "✅ Verified"; }
-        else if(seller.kycStatus === "rejected") { kycStatusClass = "kyc-rejected"; kycStatusText = "❌ Rejected"; }
+        myOrders.forEach(o => {
+            if(o.status === "Completed") {
+                let sellerEarning = (o.basePrice - o.shippingCost - HANDLING_FEE) * o.qty;
+                totalSales += sellerEarning;
+                let date = new Date(o.date);
+                let monthYear = `${date.getMonth()+1}/${date.getFullYear()}`;
+                monthlyRevenue[monthYear] = (monthlyRevenue[monthYear] || 0) + sellerEarning;
+            }
+        });
+        
+        let chartLabels = Object.keys(monthlyRevenue);
+        let chartData = Object.values(monthlyRevenue);
+        if(chartLabels.length === 0) { chartLabels = ["No Data"]; chartData = [0]; }
+        
+        let kycClass = seller.kycStatus === "pending" ? "kyc-pending" : (seller.kycStatus === "verified" ? "kyc-verified" : "kyc-rejected");
+        let kycText = seller.kycStatus === "pending" ? "KYC Pending" : (seller.kycStatus === "verified" ? "KYC Verified ✓" : "KYC Rejected ✗");
         
         document.getElementById('sellerDashboard').innerHTML = `
-            <div class="premium-card"><div class="flex-between"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📍 ${addressHtml}</p></div><div><span class="role-badge">Seller</span><br><span class="kyc-status ${kycStatusClass}">${kycStatusText}</span></div></div><div class="flex-between"><span>🏦 ${seller.bankName} - ${seller.accountNo}</span><span>💰 ${getSym()}${convert(seller.earnings || 0)}</span></div>${seller.kycStatus === "verified" ? '<button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Request Withdrawal</button>' : '<button class="btn-primary" style="background:#64748b;" disabled>🔒 KYC Required for Withdrawal</button>'}</div>
+            <div class="premium-card"><div class="flex-between"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📍 ${seller.city}, ${seller.country}</p></div><div><span class="kyc-status ${kycClass}">${kycText}</span><br><span class="role-badge">Seller ID: ${seller.id}</span></div></div><div class="flex-between"><span>🏦 ${seller.bankName} - ${seller.accountNo}</span><span>💰 Balance: ${getCurrencySymbol()}${convertPrice(seller.earnings)}</span></div><div class="flex-between"><span>📊 Total Sales: ${getCurrencySymbol()}${convertPrice(totalSales)}</span><span>💸 Total Withdrawn: ${getCurrencySymbol()}${convertPrice(seller.totalWithdrawn || 0)}</span></div>${seller.kycStatus === "verified" ? '<button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Request Withdrawal</button>' : '<button class="btn-primary" style="background:#64748b;" disabled>🔒 KYC Required for Withdrawal</button>'}</div>
+            <div class="chart-container"><h3>📊 Revenue Chart (Monthly)</h3><canvas id="revenueChart"></canvas></div>
             ${seller.kycStatus === "verified" ? `
-            <div class="premium-card"><h3>➕ Add Product</h3><input type="text" id="prodName" placeholder="Product Name" class="input"><input type="number" id="prodPrice" placeholder="Price (USD)" class="input"><select id="prodCat" class="input"><option>Electronics</option><option>Fashion</option><option>Home</option></select><input type="url" id="prodImg" placeholder="Image URL" class="input"><textarea id="prodDesc" placeholder="Description" class="input"></textarea><button id="publishBtn" class="btn-primary">Publish</button></div>
-            <div class="premium-card"><h3>📋 My Products</h3><div id="myProductsList"></div></div>
-            <div class="premium-card"><h3>📦 Orders Received</h3><div id="ordersList"></div></div>
-            ` : `<div class="premium-card"><h3>⚠️ KYC Verification Pending</h3><p>Your KYC documents are under review. Once verified by admin, you will be able to add products and withdraw earnings.</p></div>`}
+            <div class="premium-card"><h3>➕ Add New Product</h3><input type="text" id="prodName" placeholder="Product Name" class="input"><input type="number" id="prodPrice" placeholder="Price (USD)" class="input"><select id="prodCat" class="input"><option>Electronics</option><option>Fashion</option><option>Home</option><option>Beauty</option><option>Sports</option></select><input type="url" id="prodImg" placeholder="Image URL" class="input"><textarea id="prodDesc" placeholder="Product Description" class="input" rows="3"></textarea><button id="publishBtn" class="btn-primary">Publish Product</button></div>
+            <div class="premium-card"><h3>📋 My Products (${myProducts.length})</h3><div id="myProductsList"></div></div>
+            <div class="premium-card"><h3>📦 Orders Received (${myOrders.length})</h3><div id="ordersList"></div></div>
+            ` : `<div class="premium-card"><h3>⚠️ ${kycText}</h3><p>Your KYC documents are under review by admin. Once verified, you can add products and withdraw earnings.<br><br><strong>Documents submitted:</strong> ${seller.docType} - ${seller.docNumber}</p></div>`}
         `;
+        
+        let ctx = document.getElementById('revenueChart')?.getContext('2d');
+        if(ctx) {
+            if(sellerRevenueChart) sellerRevenueChart.destroy();
+            sellerRevenueChart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: chartLabels, datasets: [{ label: 'Revenue ('+getCurrencySymbol()+')', data: chartData.map(v=>parseFloat(convertPrice(v))), backgroundColor: '#3b82f6', borderRadius: 8 }] },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+        }
         
         if(seller.kycStatus === "verified") {
             document.getElementById('publishBtn')?.addEventListener('click', () => {
                 let name = document.getElementById('prodName').value;
                 let desc = document.getElementById('prodDesc').value;
-                if(isIllegal(name, desc)) { showToast("Illegal product blocked!", true); return; }
                 let price = parseFloat(document.getElementById('prodPrice').value);
-                if(!name || !price) { showToast("Fill name & price", true); return; }
-                products.push({ id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, name, price, category: document.getElementById('prodCat').value, image: document.getElementById('prodImg').value || "https://placehold.co/200x200", description: desc, rating: 0, reviews: [], sellerCountry: seller.country });
-                saveAll(); renderSellerDashboard(); renderProducts(); showToast("Product published!", false);
+                if(!name || !price) { showToast("Please fill product name and price", true); return; }
+                products.push({ 
+                    id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, 
+                    name, price, category: document.getElementById('prodCat').value, 
+                    image: document.getElementById('prodImg').value || "https://placehold.co/200x200", 
+                    description: desc, sellerCountry: seller.country, rating: 0, reviews: [] 
+                });
+                saveAll(); renderSellerDashboard(); renderProducts(); showToast("Product published successfully!", false);
             });
-            document.getElementById('myProductsList').innerHTML = myProducts.map(p => `<div class="flex-between"><span>${p.name} - ${getSym()}${convert(p.price)}</span><button class="delProd" data-id="${p.id}" style="background:#dc2626; border:none; padding:6px 14px; border-radius:30px;">Delete</button></div>`).join('');
+            document.getElementById('myProductsList').innerHTML = myProducts.map(p => `<div class="flex-between"><span>📦 ${p.name} - ${getCurrencySymbol()}${convertPrice(p.price)}</span><button class="delProd" data-id="${p.id}" style="background:#dc2626; border:none; padding:6px 14px; border-radius:30px;">Delete</button></div>`).join('');
             document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', () => { products = products.filter(p=>p.id!==parseInt(btn.dataset.id)); saveAll(); renderSellerDashboard(); renderProducts(); showToast("Product deleted", false); }));
-            document.getElementById('ordersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>Buyer: ${o.buyerName}<br>Product: ${o.productName} x${o.qty}<br>Amount: ${getSym()}${convert(o.amount)}<br>Status: ${o.status}<br>Address: ${o.address}${o.status === "Confirmed" ? `<br><button class="shipBtn" data-id="${o.id}" style="background:#3b82f6; margin-top:10px; padding:8px 16px; border-radius:30px; border:none; color:white;">Mark as Shipped</button>` : ''}</div>`).join('');
-            document.querySelectorAll('.shipBtn').forEach(btn => btn.addEventListener('click', () => { let track = prompt("Enter tracking number:"); if(track) markOrderShipped(parseFloat(btn.dataset.id), track); }));
+            document.getElementById('ordersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 Order #${o.trackingNumber}</strong><br>Product: ${o.productName} x${o.qty}<br>Amount: ${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: <span style="color:${o.status==='Processing'?'#d97706':(o.status==='Shipped'?'#3b82f6':'#10b981')}">${o.status}</span><br>Buyer: ${o.buyerName}<br>Address: ${o.address}<br>Date: ${o.date}<br>${o.status === "Processing" ? `<button class="shipBtn" data-id="${o.id}" style="background:#3b82f6; margin-top:10px; padding:8px 16px; border-radius:30px;">📦 Mark as Shipped</button>` : ''}${o.status === "Shipped" ? `<br><span style="font-size:11px;">Tracking: ${o.trackingInfo}</span>` : ''}</div>`).join('');
+            document.querySelectorAll('.shipBtn').forEach(btn => btn.addEventListener('click', () => { let track = prompt("Enter tracking number / courier info:"); if(track) markOrderShipped(parseFloat(btn.dataset.id), track); }));
             document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
         }
     }
     
-    // Drawer navigation handlers
-    document.getElementById('drawerSignup')?.addEventListener('click', () => {
-        showSection('profile');
-        document.getElementById('signupFormDiv').style.display = 'block';
-        document.getElementById('loginFormDiv').style.display = 'none';
-        closeDrawer();
-    });
-    document.getElementById('drawerLogin')?.addEventListener('click', () => {
-        showSection('profile');
-        document.getElementById('loginFormDiv').style.display = 'block';
-        document.getElementById('signupFormDiv').style.display = 'none';
-        closeDrawer();
-    });
-    document.getElementById('drawerAdmin')?.addEventListener('click', () => {
-        showSection('admin');
-        closeDrawer();
-    });
-    document.getElementById('drawerProfile')?.addEventListener('click', () => {
-        showSection('profile');
-        closeDrawer();
-    });
-    document.getElementById('drawerBuyer')?.addEventListener('click', () => {
-        showSection('buyer');
-        closeDrawer();
-    });
-    document.getElementById('drawerSeller')?.addEventListener('click', () => {
-        showSection('seller');
-        if(currentUser?.role === 'seller') { 
-            document.getElementById('sellerRegisterBox').style.display='none'; 
-            document.getElementById('sellerDashboard').style.display='block'; 
-            renderSellerDashboard(); 
-        }
-        closeDrawer();
-    });
-    document.getElementById('drawerCountrySection')?.addEventListener('click', () => {
-        let country = prompt("Enter country code (SA, US, IN, AE, GB, CA, AU, etc.):", buyerCountry);
-        if(country) {
-            buyerCountry = country.toUpperCase();
-            document.getElementById('globalCountrySelect').value = buyerCountry;
-            renderProducts();
-            showToast(`Country changed to ${buyerCountry}`, false);
-        }
-        closeDrawer();
-    });
-    
-    function showSection(tab) {
-        document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
-        document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-        document.getElementById(tab + "Section").classList.add('active');
+    // ============ BUYER FUNCTIONS ============
+    function renderBuyerOrders() {
+        if(!currentUser) return;
+        let myOrders = orders.filter(o=>o.buyerEmail===currentUser.email);
+        document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 Order #${o.trackingNumber}</strong><br>Product: ${o.productName} x${o.qty}<br>Amount: ${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: <span style="color:${o.status==='Processing'?'#d97706':(o.status==='Shipped'?'#3b82f6':'#10b981')}">${o.status}</span><br>Delivery Address: ${o.address}<br>Order Date: ${o.date}<br>${o.trackingInfo ? `📮 Tracking: ${o.trackingInfo}<br>` : ''}${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981; margin-top:10px; padding:8px 16px; border-radius:30px;">✅ I have received the product</button>` : ''}</div>`).join('');
+        document.querySelectorAll('.confirmReceivedBtn').forEach(btn => btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id))));
     }
     
+    function renderBuyerWishlist() {
+        if(!currentUser) return;
+        let wishlistProducts = products.filter(p => wishlist.includes(p.id));
+        document.getElementById('buyerWishlistList').innerHTML = wishlistProducts.map(p => `<div class="order-card"><strong>${p.name}</strong><br>Price: ${getCurrencySymbol()}${convertPrice(p.price)}<br><button class="removeWishlistBtn" data-id="${p.id}" style="background:#dc2626; border:none; padding:6px 12px; border-radius:20px;">Remove</button></div>`).join('');
+        document.querySelectorAll('.removeWishlistBtn').forEach(btn => btn.addEventListener('click', () => { wishlist = wishlist.filter(id => id !== parseInt(btn.dataset.id)); saveAll(); renderProducts(); renderBuyerWishlist(); showToast("Removed from wishlist", false); }));
+    }
+    
+    // ============ AUTHENTICATION ============
     document.getElementById('doLoginBtn')?.addEventListener('click', () => {
         let email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPass').value;
         let user = buyers.find(b=>b.email===email && b.password===pass);
-        if(user) { currentUser = user; saveAll(); document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = user.name; document.getElementById('profileRoleBadge').innerText = user.role || 'Buyer'; displaySavedAddress(); renderBuyerOrders(); showToast("Login successful!", false); }
-        else showToast("Invalid credentials", true);
+        if(user) { 
+            currentUser = user; saveAll(); 
+            document.getElementById('profileAuthBox').style.display='none'; 
+            document.getElementById('buyerProfilePanel').style.display='block'; 
+            document.getElementById('profileName').innerText = user.name; 
+            document.getElementById('profileRoleBadge').innerText = user.role || 'Buyer'; 
+            renderBuyerOrders(); renderBuyerWishlist(); 
+            showToast(`Welcome back, ${user.name}!`, false); 
+        } else { 
+            let seller = sellers.find(s=>s.email===email && s.password===pass); 
+            if(seller) { 
+                currentUser = { name: seller.fullName, email: seller.email, role: 'seller', sellerId: seller.id, phone: seller.phone }; 
+                saveAll(); 
+                document.getElementById('profileAuthBox').style.display='none'; 
+                document.getElementById('buyerProfilePanel').style.display='block'; 
+                document.getElementById('profileName').innerText = seller.fullName; 
+                document.getElementById('profileRoleBadge').innerText = 'Seller'; 
+                showToast(`Welcome back, ${seller.shopName}!`, false); 
+            } else showToast("Invalid email or password", true); 
+        }
     });
     
     document.getElementById('doSignupBtn')?.addEventListener('click', () => {
-        if(!document.getElementById('termsCheckbox').checked) { showToast("Accept Terms & Conditions", true); return; }
-        if(!document.getElementById('ageCheckbox').checked) { showToast("Confirm you are 18+", true); return; }
+        if(!document.getElementById('termsCheckbox').checked) { showToast("Please accept Terms & Conditions", true); return; }
+        if(!document.getElementById('ageCheckbox').checked) { showToast("You must be 18+ years old", true); return; }
+        let name = document.getElementById('signupName').value, email = document.getElementById('signupEmail').value;
+        let phone = document.getElementById('signupCountryCode').value + document.getElementById('signupPhone').value;
+        let pass = document.getElementById('signupPass').value, role = document.getElementById('signupRole').value;
         let dob = document.getElementById('signupDob').value;
-        if(calculateAge(dob) < 18) { showToast("You must be 18+", true); return; }
-        
-        let name = document.getElementById('signupName').value, email = document.getElementById('signupEmail').value, 
-            phoneWithCode = document.getElementById('signupCountryCode').value + document.getElementById('signupPhone').value, 
-            pass = document.getElementById('signupPass').value, role = document.getElementById('signupRole').value;
-        if(!name || !email || !pass) { showToast("Fill all fields", true); return; }
-        if(buyers.find(b=>b.email===email)) { showToast("Email exists", true); return; }
-        let newUser = { name, email, phone: phoneWithCode, password: pass, role, dob, savedAddress: null };
+        if(!name || !email || !pass) { showToast("Please fill all fields", true); return; }
+        if(calculateAge(dob) < 18) { showToast("You must be 18+ years old", true); return; }
+        if(buyers.find(b=>b.email===email)) { showToast("Email already exists", true); return; }
+        let newUser = { name, email, phone, password: pass, role, dob, savedAddress: null, joinDate: new Date().toLocaleString() };
         buyers.push(newUser); currentUser = newUser; saveAll();
-        document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block';
-        document.getElementById('profileName').innerText = name; document.getElementById('profileRoleBadge').innerText = role;
-        displaySavedAddress(); renderBuyerOrders(); showToast("Signup successful!", false);
-        sendEmailNotification(email, "Welcome to GlobalBazaar", `Hi ${name}, welcome to GlobalBazaar! Start shopping now.`);
+        document.getElementById('profileAuthBox').style.display='none'; 
+        document.getElementById('buyerProfilePanel').style.display='block';
+        document.getElementById('profileName').innerText = name; 
+        document.getElementById('profileRoleBadge').innerText = role;
+        renderBuyerOrders(); renderBuyerWishlist(); 
+        showToast(`Account created successfully! Welcome ${name}!`, false);
     });
     
     document.getElementById('logoutBuyerBtn')?.addEventListener('click', () => { currentUser = null; saveAll(); location.reload(); });
     
-    function renderBuyerOrders() {
-        if(!currentUser) return;
-        let myOrders = orders.filter(o=>o.buyerEmail===currentUser.email);
-        document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty} - ${getSym()}${convert(o.amount)}<br>📍 ${o.address}<br>Status: ${o.status}<br>Date: ${o.date}<br><button class="btn-download" onclick='generatePDFInvoice(${JSON.stringify(o).replace(/'/g, "&#39;")})'>📄 Download Invoice</button>${o.status === "Shipped" ? `<br><button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981; margin-top:10px; padding:8px 16px; border-radius:30px; border:none; color:white;">I have received the product</button>` : ''}</div>`).join('');
-        document.querySelectorAll('.confirmReceivedBtn').forEach(btn => btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id))));
-    }
-    
-    let adminLoggedIn = false;
+    // ============ ADMIN FUNCTIONS ============
     document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
         if(document.getElementById('adminKey').value === 'admin123') {
-            adminLoggedIn = true;
             document.getElementById('adminLoginBox').style.display = 'none';
             document.getElementById('adminContent').style.display = 'block';
-            document.getElementById('razorpayKey').value = razorpayConfig.key;
-            document.getElementById('razorpaySecret').value = razorpayConfig.secret;
             loadAdminData();
             showToast("Admin logged in", false);
         } else showToast("Wrong admin key (admin123)", true);
     });
     
     function loadAdminData() {
-        document.getElementById('adminSellersList').innerHTML = sellers.map(s => `<div class="order-card"><strong>${s.shopName}</strong><br>${s.email}<br>📞 ${s.phone}<br>🏦 ${s.bankName} - ${s.accountNo}<br>💰 ${getSym()}${convert(s.earnings || 0)}<br><span class="kyc-status ${s.kycStatus === 'pending' ? 'kyc-pending' : (s.kycStatus === 'verified' ? 'kyc-verified' : 'kyc-rejected')}">KYC: ${s.kycStatus}</span><br>${s.kycStatus === 'pending' ? `<button class="verifyKycBtn" data-id="${s.id}" style="background:#10b981; margin-top:10px; margin-right:10px; padding:6px 12px; border-radius:20px; border:none; color:white;">✅ Verify</button><button class="rejectKycBtn" data-id="${s.id}" style="background:#dc2626; margin-top:10px; padding:6px 12px; border-radius:20px; border:none; color:white;">❌ Reject</button>` : ''}</div>`).join('');
+        document.getElementById('adminSellersList').innerHTML = sellers.map(s => `<div class="order-card"><strong>🏪 ${s.shopName}</strong><br>📧 ${s.email}<br>📞 ${s.phone}<br>🏦 ${s.bankName} - ${s.accountNo}<br>💰 Balance: ${getCurrencySymbol()}${convertPrice(s.earnings)}<br>📊 Total Sales: ${getCurrencySymbol()}${convertPrice(s.totalSales || 0)}<br><span class="kyc-status ${s.kycStatus === 'pending' ? 'kyc-pending' : (s.kycStatus === 'verified' ? 'kyc-verified' : 'kyc-rejected')}">KYC: ${s.kycStatus}</span><br>📄 Document: ${s.docType} - ${s.docNumber}<br>${s.kycStatus === 'pending' ? `<div style="margin-top:10px;"><button class="verifyKycBtn" data-id="${s.id}" style="background:#10b981; padding:8px 16px; border-radius:30px; border:none; color:white;">✅ Verify KYC</button><button class="rejectKycBtn" data-id="${s.id}" style="background:#dc2626; padding:8px 16px; border-radius:30px; border:none; color:white; margin-left:10px;">❌ Reject KYC</button></div>` : ''}</div>`).join('');
         
-        document.querySelectorAll('.verifyKycBtn').forEach(btn => btn.addEventListener('click', () => {
-            let seller = sellers.find(s => s.id === parseInt(btn.dataset.id));
-            if(seller) {
-                seller.kycStatus = "verified";
-                seller.verificationDate = new Date().toLocaleString();
-                saveAll();
-                sendEmailNotification(seller.email, "KYC Verified", "Congratulations! Your KYC has been verified. You can now add products and withdraw earnings.");
-                showToast(`${seller.shopName} KYC Verified!`, false);
-                loadAdminData();
-            }
+        document.querySelectorAll('.verifyKycBtn').forEach(btn => btn.addEventListener('click', () => { 
+            let seller = sellers.find(s => s.id === parseInt(btn.dataset.id)); 
+            if(seller) { seller.kycStatus = "verified"; saveAll(); loadAdminData(); showToast(`${seller.shopName} KYC Verified!`, false); 
+                sendEmailNotification(seller.email, "KYC Verified", "Congratulations! Your KYC has been verified. You can now add products and withdraw earnings."); 
+            } 
+        }));
+        document.querySelectorAll('.rejectKycBtn').forEach(btn => btn.addEventListener('click', () => { 
+            let reason = prompt("Enter rejection reason:"); 
+            if(reason) { 
+                let seller = sellers.find(s => s.id === parseInt(btn.dataset.id)); 
+                if(seller) { seller.kycStatus = "rejected"; seller.rejectionReason = reason; saveAll(); loadAdminData(); showToast(`${seller.shopName} KYC Rejected!`, false); 
+                    sendEmailNotification(seller.email, "KYC Rejected", `Your KYC has been rejected. Reason: ${reason}. Please contact support.`); 
+                } 
+            } 
         }));
         
-        document.querySelectorAll('.rejectKycBtn').forEach(btn => btn.addEventListener('click', () => {
-            let reason = prompt("Enter rejection reason:");
-            if(reason) {
-                let seller = sellers.find(s => s.id === parseInt(btn.dataset.id));
-                if(seller) {
-                    seller.kycStatus = "rejected";
-                    seller.rejectionReason = reason;
-                    saveAll();
-                    sendEmailNotification(seller.email, "KYC Rejected", `Your KYC has been rejected. Reason: ${reason}. Please re-register with correct documents.`);
-                    showToast(`${seller.shopName} KYC Rejected!`, false);
-                    loadAdminData();
-                }
-            }
+        document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
+        document.getElementById('pendingWithdrawals').innerHTML = pendingWithdrawals.map(w => `<div class="flex-between order-card"><span>💰 ${getCurrencySymbol()}${convertPrice(w.amount)} - ${w.sellerName}<br>🏦 ${w.bank} - ${w.account}<br>Requested: ${w.date}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981; padding:8px 16px; border-radius:30px;">Approve & Transfer</button></div>`).join('');
+        
+        document.querySelectorAll('.approveBtn').forEach(btn => btn.addEventListener('click', () => { 
+            let w = pendingWithdrawals.find(w=>w.id===parseInt(btn.dataset.id)); 
+            if(w) { 
+                w.status = "Approved"; w.approvedDate = new Date().toLocaleString(); 
+                let seller = sellers.find(s=>s.id===w.sellerId); 
+                if(seller) { seller.totalWithdrawn = (seller.totalWithdrawn || 0) + w.amount; saveAll(); 
+                    sendEmailNotification(seller.email, "Withdrawal Approved", `Your withdrawal request of ${getCurrencySymbol()}${convertPrice(w.amount)} has been approved. Amount will be credited to ${seller.bankName} - ${seller.accountNo} within 2-3 business days.`); 
+                } 
+                saveAll(); loadAdminData(); showToast(`Approved ${getCurrencySymbol()}${convertPrice(w.amount)} payout`, false); 
+            } 
         }));
         
-        document.getElementById('platformEarnings').innerHTML = `<h2>${getSym()}${convert(platformEarnings)}</h2>`;
-        document.getElementById('pendingWithdrawals').innerHTML = pendingWithdrawals.map(w => `<div class="flex-between order-card"><span>💰 ${getSym()}${convert(w.amount)} - ${w.sellerName}<br>🏦 ${w.bank} - ${w.account}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981; padding:8px 16px; border-radius:30px; border:none; color:white;">Approve & Transfer</button></div>`).join('');
-        document.querySelectorAll('.approveBtn').forEach(btn => btn.addEventListener('click', () => {
-            let w = pendingWithdrawals.find(w=>w.id===parseInt(btn.dataset.id));
-            if(w) {
-                payouts.push({...w, status:"Approved", approvedDate:new Date().toLocaleString()});
-                pendingWithdrawals = pendingWithdrawals.filter(w=>w.id!==parseInt(btn.dataset.id));
-                saveAll();
-                let seller = sellers.find(s=>s.id===w.sellerId);
-                if(seller) {
-                    sendEmailNotification(seller.email, "Withdrawal Approved", `Your withdrawal request of ${getSym()}${convert(w.amount)} has been approved. Amount will be credited to ${seller.bankName} - ${seller.accountNo} within 2-3 business days.`);
-                }
-                loadAdminData();
-                showToast(`Approved ${getSym()}${convert(w.amount)} payout`, false);
-            }
-        }));
-        document.getElementById('adminOrdersList').innerHTML = orders.map(o => `<div class="order-card">🔖 ${o.trackingNumber}<br>${o.productName} x${o.qty} - ${o.buyerName}<br>Status: ${o.status} | Payment ID: ${o.paymentId || 'N/A'}</div>`).join('');
+        document.getElementById('adminOrdersList').innerHTML = orders.map(o => `<div class="order-card">🔖 ${o.trackingNumber}<br>${o.productName} x${o.qty} - ${o.buyerName}<br>Status: ${o.status} | Amount: ${getCurrencySymbol()}${convertPrice(o.amount)}<br>Date: ${o.date}</div>`).join('');
     }
     document.getElementById('refreshAdminBtn')?.addEventListener('click', loadAdminData);
+    
+    function sendEmailNotification(toEmail, subject, message) {
+        console.log(`📧 Email to ${toEmail}: ${subject} - ${message}`);
+        showToast(`📧 ${subject}`, false);
+    }
+    
+    // ============ NAVIGATION ============
+    function showSection(section) { 
+        document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); 
+        document.getElementById(section + "Section").classList.add('active'); 
+    }
+    
+    document.getElementById('drawerBuyer')?.addEventListener('click', () => { showSection('buyer'); closeDrawer(); });
+    document.getElementById('drawerSeller')?.addEventListener('click', () => { showSection('seller'); if(currentUser?.role === 'seller') { document.getElementById('sellerRegisterBox').style.display='none'; document.getElementById('sellerDashboard').style.display='block'; renderSellerDashboard(); } closeDrawer(); });
+    document.getElementById('drawerProfile')?.addEventListener('click', () => { showSection('profile'); if(currentUser) { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; renderBuyerOrders(); renderBuyerWishlist(); } else { document.getElementById('profileAuthBox').style.display='block'; document.getElementById('buyerProfilePanel').style.display='none'; } closeDrawer(); });
+    document.getElementById('drawerAdmin')?.addEventListener('click', () => { showSection('admin'); closeDrawer(); });
+    document.getElementById('drawerCartPage')?.addEventListener('click', () => { renderCartPage(); showSection('cartPage'); closeDrawer(); });
+    document.getElementById('drawerWishlist')?.addEventListener('click', () => { if(currentUser) { showSection('profile'); renderBuyerWishlist(); } else showToast("Please login first", true); closeDrawer(); });
+    document.getElementById('drawerSignup')?.addEventListener('click', () => { showSection('profile'); showSignup(); closeDrawer(); });
+    document.getElementById('drawerLogin')?.addEventListener('click', () => { showSection('profile'); showLogin(); closeDrawer(); });
+    document.getElementById('drawerSupport')?.addEventListener('click', () => { showSupport(); closeDrawer(); });
+    document.getElementById('drawerLogout')?.addEventListener('click', () => { currentUser=null; saveAll(); location.reload(); });
+    document.getElementById('cartFloatBtn')?.addEventListener('click', () => { renderCartPage(); showSection('cartPage'); });
+    document.getElementById('closeModalBtn')?.addEventListener('click', () => document.getElementById('productModal').style.display='none');
+    document.getElementById('modalAddCartBtn')?.addEventListener('click', () => { if(currentProduct) addToCart(currentProduct.id); document.getElementById('productModal').style.display='none'; });
+    document.getElementById('modalAddWishBtn')?.addEventListener('click', () => { if(currentProduct) toggleWish(currentProduct.id); document.getElementById('productModal').style.display='none'; });
     
     function openDrawer() { document.getElementById('drawer').classList.add('open'); document.getElementById('drawerOverlay').style.display = 'block'; }
     function closeDrawer() { document.getElementById('drawer').classList.remove('open'); document.getElementById('drawerOverlay').style.display = 'none'; }
     document.getElementById('menuBtn').onclick = openDrawer;
     document.getElementById('drawerOverlay').onclick = closeDrawer;
-    document.getElementById('drawerSupport')?.addEventListener('click', () => { showSupport(); closeDrawer(); });
     
-    document.getElementById('drawerWishlist')?.addEventListener('click', () => { let wp = products.filter(p=>wishlist.includes(p.id)); alert("Wishlist:\n"+wp.map(p=>p.name).join("\n")); closeDrawer(); });
-    document.getElementById('drawerLogout')?.addEventListener('click', () => { currentUser=null; saveAll(); location.reload(); });
-    document.getElementById('editAddressBtn')?.addEventListener('click', () => { getAddressLineByLine(); displaySavedAddress(); });
-    document.getElementById('closeModalBtn')?.addEventListener('click', () => document.getElementById('productModal').style.display='none');
-    document.getElementById('modalAddCartBtn')?.addEventListener('click', () => { if(currentProduct) addToCart(currentProduct.id); document.getElementById('productModal').style.display='none'; });
-    document.getElementById('modalAddWishBtn')?.addEventListener('click', () => { if(currentProduct) toggleWish(currentProduct.id); document.getElementById('productModal').style.display='none'; });
+    // Card formatting
+    document.getElementById('cardNumber')?.addEventListener('input', function(e) { let v = e.target.value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim(); e.target.value = v; });
+    document.getElementById('expiryDate')?.addEventListener('input', function(e) { let v = e.target.value.replace(/\//g, ''); if(v.length >= 2) v = v.slice(0,2) + '/' + v.slice(2,4); e.target.value = v; });
     
+    // Initialize
     renderCats(); renderProducts(); updateCartUI();
     if(currentUser?.role === 'seller') { document.getElementById('sellerRegisterBox').style.display='none'; document.getElementById('sellerDashboard').style.display='block'; renderSellerDashboard(); }
-    if(currentUser && currentUser.role !== 'seller') { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = currentUser.name; document.getElementById('profileRoleBadge').innerText = currentUser.role || 'Buyer'; displaySavedAddress(); renderBuyerOrders(); }
+    if(currentUser && currentUser.role !== 'seller') { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; document.getElementById('profileName').innerText = currentUser.name; document.getElementById('profileRoleBadge').innerText = currentUser.role || 'Buyer'; renderBuyerOrders(); renderBuyerWishlist(); }
 </script>
 </body>
 </html>
