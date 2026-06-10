@@ -214,7 +214,7 @@
         <div id="sellerRegisterBox" class="premium-card">
             <h2>🏪 Open Your Shop</h2>
             <form id="sellerRegForm">
-                <input type="file" id="sellerAvatar" accept="image/*" class="input" required>
+                <input type="file" id="sellerAvatar" accept="image/*" class="input">
                 <input type="text" id="sellerFullName" placeholder="Full Legal Name" class="input" required>
                 <input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required>
                 <input type="email" id="sellerEmail" placeholder="Email" class="input" required>
@@ -242,9 +242,9 @@
                 <select id="sellerCountryReg" class="input" required><option value="">Select Country</option></select>
                 <div class="doc-section">
                     <div class="doc-title">🌍 KYC Documents</div>
-                    <select id="sellerDocType" class="input"><option value="passport">📘 Passport</option><option value="national_id">🆔 National ID Card</option><option value="driving_license">🚗 Driving License</option><option value="residence_permit">📄 Residence Permit</option></select>
-                    <input type="text" id="sellerDocNumber" placeholder="Document Number" class="input">
-                    <input type="file" id="sellerDocImage" accept="image/*,application/pdf" class="input">
+                    <select id="sellerDocType" class="input" required><option value="">Select Document Type</option><option value="passport">📘 Passport</option><option value="national_id">🆔 National ID Card</option><option value="driving_license">🚗 Driving License</option><option value="residence_permit">📄 Residence Permit</option></select>
+                    <input type="text" id="sellerDocNumber" placeholder="Document Number" class="input" required>
+                    <input type="file" id="sellerDocImage" accept="image/*,application/pdf" class="input" required>
                 </div>
                 <h4>🏦 Bank Account Details</h4>
                 <input type="text" id="sellerBank" placeholder="Bank Name" class="input" required>
@@ -273,7 +273,6 @@
             <h2>⚙️ Admin Dashboard</h2>
             <div id="adminLoginBox"><input type="password" id="adminKey" class="input" placeholder="Enter Admin Key"><button class="btn-primary" id="adminLoginBtn">Login</button></div>
             <div id="adminContent" style="display:none;">
-                <!-- ============ KYC VERIFICATION SECTION - FIXED ============ -->
                 <div style="margin-bottom: 25px;">
                     <div class="kyc-section-title">⏳ Pending KYC Verification Requests</div>
                     <div id="pendingKycList"></div>
@@ -288,7 +287,6 @@
                     <div class="kyc-section-title">❌ Rejected Sellers</div>
                     <div id="rejectedSellersList"></div>
                 </div>
-                <!-- ============ END OF KYC SECTION ============ -->
                 
                 <div class="flex-between"><h3>💰 Platform Earnings</h3><button id="refreshAdminBtn" style="background:#64748b; padding:8px 16px; border-radius:30px;">Refresh</button></div>
                 <div id="platformEarnings"></div>
@@ -1133,105 +1131,122 @@
     setInterval(processWeeklyWithdrawals, 3600000);
     processWeeklyWithdrawals();
     
-    // SELLER REGISTER - Direct form submit
+    // ============ SELLER REGISTRATION (DOCUMENT COMPULSORY, AVATAR OPTIONAL) ============
     document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
+        
+        // Check phone verification
         if(!sellerPhoneVerified) { showToast("Please verify your phone number first!", true); return; }
+        
+        // Check agreement
         if(!document.getElementById('sellerAgreement').checked) { showToast("Accept Seller Agreement", true); return; }
+        
+        // Check age
         let dob = document.getElementById('sellerDob').value;
         if(calculateAge(dob) < 18) { showToast("You must be 18+", true); return; }
-        let avatar = document.getElementById('sellerAvatar').files[0];
-        if(!avatar) { showToast("Upload shop logo", true); return; }
+        
+        // ✅ CHECK: Document image is COMPULSORY (KYC ke liye)
+        let docImageFile = document.getElementById('sellerDocImage').files[0];
+        if(!docImageFile) {
+            showToast("❌ KYC Document Image is required! Please upload your document.", true);
+            return;
+        }
+        
+        // Check document number
+        let docNumber = document.getElementById('sellerDocNumber').value;
+        if(!docNumber || docNumber.trim() === "") {
+            showToast("❌ Document Number is required!", true);
+            return;
+        }
+        
+        // Check document type
+        let docType = document.getElementById('sellerDocType').value;
+        if(!docType || docType === "") {
+            showToast("❌ Please select Document Type!", true);
+            return;
+        }
         
         let countryCodeSelect = document.getElementById('sellerCountryCode');
         let countryCode = countryCodeSelect.value || "+91";
         
-        let reader = new FileReader();
-        reader.onload = async (ev) => {
-            let docImageFile = document.getElementById('sellerDocImage').files[0];
-            let docImageData = null;
-            if(docImageFile) {
-                let docReader = new FileReader();
-                docReader.onload = (docEv) => {
-                    let newSeller = {
-                        id: Date.now(), avatar: ev.target.result,
-                        fullName: document.getElementById('sellerFullName').value,
-                        shopName: document.getElementById('sellerShopName').value,
-                        email: document.getElementById('sellerEmail').value,
-                        phone: countryCode + document.getElementById('sellerPhone').value,
-                        password: document.getElementById('sellerPassword').value,
-                        dob: dob,
-                        houseNo: document.getElementById('sellerHouseNo').value,
-                        street: document.getElementById('sellerStreet').value,
-                        city: document.getElementById('sellerCity').value,
-                        state: document.getElementById('sellerState').value,
-                        pincode: document.getElementById('sellerPincode').value,
-                        country: document.getElementById('sellerCountryReg').value,
-                        docType: document.getElementById('sellerDocType').value,
-                        docNumber: document.getElementById('sellerDocNumber').value,
-                        docImage: docEv.target.result,
-                        bankName: document.getElementById('sellerBank').value,
-                        accountNo: document.getElementById('sellerAccountNo').value,
-                        ifsc: document.getElementById('sellerIfsc').value,
-                        accountHolder: document.getElementById('sellerAccountHolder').value,
-                        earnings: 0, kycStatus: "pending", totalSales: 0, totalWithdrawn: 0
-                    };
-                    sellers.push(newSeller);
-                    saveAll();
-                    document.getElementById('sellerRegisterBox').style.display = 'block';
-                    document.getElementById('sellerDashboard').style.display = 'none';
-                    document.getElementById('sellerRegForm').reset();
-                    sellerPhoneVerified = false;
-                    document.getElementById('sellerSubmitBtn').disabled = true;
-                    document.getElementById('sellerSubmitBtn').innerHTML = '✅ Register Shop (Verify Phone First)';
-                    showToast("Shop Registered! KYC Pending. Admin will verify soon.", false);
-                    sendTelegramMessage(`🏪 New Seller Registered: ${newSeller.shopName}\nOwner: ${newSeller.fullName}\nEmail: ${newSeller.email}\nKYC Status: Pending`);
-                    addNotification(`New seller ${newSeller.shopName} registered! KYC pending.`, 'info');
-                    if(document.getElementById('adminContent').style.display === 'block') loadAdminData();
-                };
-                docReader.readAsDataURL(docImageFile);
-            } else {
-                let newSeller = {
-                    id: Date.now(), avatar: ev.target.result,
-                    fullName: document.getElementById('sellerFullName').value,
-                    shopName: document.getElementById('sellerShopName').value,
-                    email: document.getElementById('sellerEmail').value,
-                    phone: countryCode + document.getElementById('sellerPhone').value,
-                    password: document.getElementById('sellerPassword').value,
-                    dob: dob,
-                    houseNo: document.getElementById('sellerHouseNo').value,
-                    street: document.getElementById('sellerStreet').value,
-                    city: document.getElementById('sellerCity').value,
-                    state: document.getElementById('sellerState').value,
-                    pincode: document.getElementById('sellerPincode').value,
-                    country: document.getElementById('sellerCountryReg').value,
-                    docType: document.getElementById('sellerDocType').value,
-                    docNumber: document.getElementById('sellerDocNumber').value,
-                    docImage: null,
-                    bankName: document.getElementById('sellerBank').value,
-                    accountNo: document.getElementById('sellerAccountNo').value,
-                    ifsc: document.getElementById('sellerIfsc').value,
-                    accountHolder: document.getElementById('sellerAccountHolder').value,
-                    earnings: 0, kycStatus: "pending", totalSales: 0, totalWithdrawn: 0
-                };
-                sellers.push(newSeller);
-                saveAll();
-                document.getElementById('sellerRegisterBox').style.display = 'block';
-                document.getElementById('sellerDashboard').style.display = 'none';
-                document.getElementById('sellerRegForm').reset();
-                sellerPhoneVerified = false;
-                document.getElementById('sellerSubmitBtn').disabled = true;
-                document.getElementById('sellerSubmitBtn').innerHTML = '✅ Register Shop (Verify Phone First)';
-                showToast("Shop Registered! KYC Pending. Admin will verify soon.", false);
-                sendTelegramMessage(`🏪 New Seller Registered: ${newSeller.shopName}\nOwner: ${newSeller.fullName}\nEmail: ${newSeller.email}\nKYC Status: Pending`);
-                addNotification(`New seller ${newSeller.shopName} registered! KYC pending.`, 'info');
-                if(document.getElementById('adminContent').style.display === 'block') loadAdminData();
-            }
-        };
-        reader.readAsDataURL(avatar);
+        // Handle avatar (optional - default if not provided)
+        let avatarFile = document.getElementById('sellerAvatar').files[0];
+        
+        if(avatarFile) {
+            let reader = new FileReader();
+            reader.onload = async (ev) => {
+                await registerSeller(ev.target.result, countryCode);
+            };
+            reader.readAsDataURL(avatarFile);
+        } else {
+            // Default avatar if not uploaded
+            let defaultAvatar = "https://randomuser.me/api/portraits/lego/1.jpg";
+            await registerSeller(defaultAvatar, countryCode);
+        }
     });
     
-    // My Shop Login - Always visible, checks KYC status
+    async function registerSeller(avatarData, countryCode) {
+        let docImageFile = document.getElementById('sellerDocImage').files[0];
+        
+        if(!docImageFile) {
+            showToast("❌ KYC Document is required!", true);
+            return;
+        }
+        
+        let docReader = new FileReader();
+        docReader.onload = async (docEv) => {
+            let docImageData = docEv.target.result;
+            await saveSellerData(avatarData, docImageData, countryCode);
+        };
+        docReader.readAsDataURL(docImageFile);
+    }
+    
+    async function saveSellerData(avatarData, docImageData, countryCode) {
+        let newSeller = {
+            id: Date.now(), avatar: avatarData,
+            fullName: document.getElementById('sellerFullName').value,
+            shopName: document.getElementById('sellerShopName').value,
+            email: document.getElementById('sellerEmail').value,
+            phone: countryCode + document.getElementById('sellerPhone').value,
+            password: document.getElementById('sellerPassword').value,
+            dob: document.getElementById('sellerDob').value,
+            houseNo: document.getElementById('sellerHouseNo').value,
+            street: document.getElementById('sellerStreet').value,
+            city: document.getElementById('sellerCity').value,
+            state: document.getElementById('sellerState').value,
+            pincode: document.getElementById('sellerPincode').value,
+            country: document.getElementById('sellerCountryReg').value,
+            docType: document.getElementById('sellerDocType').value,
+            docNumber: document.getElementById('sellerDocNumber').value,
+            docImage: docImageData,
+            bankName: document.getElementById('sellerBank').value,
+            accountNo: document.getElementById('sellerAccountNo').value,
+            ifsc: document.getElementById('sellerIfsc').value,
+            accountHolder: document.getElementById('sellerAccountHolder').value,
+            earnings: 0, kycStatus: "pending", totalSales: 0, totalWithdrawn: 0
+        };
+        
+        sellers.push(newSeller);
+        saveAll();
+        
+        document.getElementById('sellerRegisterBox').style.display = 'block';
+        document.getElementById('sellerDashboard').style.display = 'none';
+        document.getElementById('sellerRegForm').reset();
+        sellerPhoneVerified = false;
+        document.getElementById('sellerSubmitBtn').disabled = true;
+        document.getElementById('sellerSubmitBtn').innerHTML = '✅ Register Shop (Verify Phone First)';
+        
+        showToast("✅ Shop Registered! KYC Pending. Admin will verify soon.", false);
+        await sendTelegramMessage(`🏪 New Seller Registered: ${newSeller.shopName}\nOwner: ${newSeller.fullName}\nEmail: ${newSeller.email}\nKYC Status: Pending`);
+        addNotification(`New seller ${newSeller.shopName} registered! KYC pending.`, 'info');
+        
+        // Refresh admin panel if open
+        if(document.getElementById('adminContent').style.display === 'block') {
+            loadAdminData();
+        }
+    }
+    
+    // My Shop Login - ONLY verified sellers can login
     function showMyShopLogin() {
         let verifiedSellers = sellers.filter(s => s.kycStatus === 'verified');
         
@@ -1244,9 +1259,11 @@
         if(!email) return;
         let password = prompt("Enter your password:");
         let seller = sellers.find(s => s.email === email && s.password === password);
+        
         if(seller) {
+            // ✅ ONLY verified sellers can login
             if(seller.kycStatus !== 'verified') {
-                showToast("Your KYC is not verified yet. Please wait for admin approval.", true);
+                showToast("❌ Your KYC is not verified yet. Please wait for admin approval.", true);
                 return;
             }
             currentSeller = { name: seller.fullName, email: seller.email, role: 'seller', sellerId: seller.id, phone: seller.phone };
@@ -1291,7 +1308,7 @@
         if(chartLabels.length === 0) { chartLabels = ["No Data"]; chartData = [0]; }
         
         let kycClass = seller.kycStatus === "pending" ? "kyc-pending" : (seller.kycStatus === "verified" ? "kyc-verified" : "kyc-rejected");
-        let kycText = seller.kycStatus === "pending" ? "KYC Pending" : (seller.kycStatus === "verified" ? "KYC Verified ✓" : "KYC Rejected ✗");
+        let kycText = seller.kycStatus === "pending" ? "⏳ KYC Pending - Wait for Admin" : (seller.kycStatus === "verified" ? "✅ KYC Verified" : "❌ KYC Rejected");
         
         let topProducts = {};
         myOrders.forEach(o => { topProducts[o.productName] = (topProducts[o.productName] || 0) + o.qty; });
@@ -1359,7 +1376,7 @@
         document.querySelectorAll('.removeWishlistBtn').forEach(btn => btn.addEventListener('click', () => { wishlist = wishlist.filter(id => id !== parseInt(btn.dataset.id)); saveAll(); renderProducts(); renderBuyerWishlist(); showToast("Removed from wishlist", false); }));
     }
     
-    // ============ ADMIN FUNCTIONS WITH KYC VERIFICATION SECTION ============
+    // ============ ADMIN FUNCTIONS (ONLY OWNER CAN VERIFY KYC) ============
     document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
         if(document.getElementById('adminKey').value === 'admin123') {
             document.getElementById('adminLoginBox').style.display = 'none';
@@ -1375,7 +1392,7 @@
         let verifiedSellers = sellers.filter(s => s.kycStatus === 'verified');
         let rejectedSellers = sellers.filter(s => s.kycStatus === 'rejected');
         
-        // Pending KYC Requests Table
+        // Pending KYC Requests Table - ONLY OWNER CAN SEE THIS
         let pendingHtml = '';
         if(pendingSellers.length === 0) {
             pendingHtml = '<div style="padding: 20px; text-align: center; background: #f8fafc; border-radius: 12px;">✅ No pending KYC requests</div>';
@@ -1438,14 +1455,14 @@
         }
         document.getElementById('rejectedSellersList').innerHTML = rejectedHtml;
         
-        // Attach approve/reject events
+        // Attach approve/reject events (ONLY OWNER)
         document.querySelectorAll('.btn-approve').forEach(btn => btn.addEventListener('click', async () => { 
             let seller = sellers.find(s => s.id === parseInt(btn.dataset.id)); 
             if(seller) { 
                 seller.kycStatus = "verified"; 
                 saveAll(); 
                 loadAdminData(); 
-                showToast(`${seller.shopName} Verified!`, false); 
+                showToast(`${seller.shopName} Verified! Now they can login and sell.`, false); 
                 await sendTelegramMessage(`✅ KYC Verified: ${seller.shopName}\nOwner: ${seller.fullName}\nEmail: ${seller.email}`); 
                 addNotification(`${seller.shopName} KYC Verified!`, 'info');
             } 
@@ -1536,7 +1553,7 @@
     updateCartUI();
     updateNotificationUI();
     
-    console.log("✅ GlobalBazaar - KYC Verification Section Added Successfully!");
+    console.log("✅ GlobalBazaar - Fully Fixed: KYC only by Admin, Document Compulsory, Avatar Optional");
 </script>
 </body>
 </html>
