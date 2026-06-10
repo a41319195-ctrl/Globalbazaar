@@ -198,50 +198,48 @@
         <div class="product-grid" id="productsGrid"></div>
     </div>
 
-    <!-- SELLER SECTION - COMPLETELY RESTORED -->
+    <!-- SELLER SECTION - COMPLETE -->
     <div id="sellerSection" class="section">
         <div id="sellerRegisterBox" class="premium-card">
             <h2>🏪 Open Your Shop</h2>
-            <form id="sellerRegForm">
-                <input type="file" id="sellerAvatar" accept="image/*" class="input" required>
-                <input type="text" id="sellerFullName" placeholder="Full Legal Name" class="input" required>
-                <input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required>
-                <input type="email" id="sellerEmail" placeholder="Email" class="input" required>
-                <div class="phone-group">
-                    <div class="country-search-select" id="sellerCountrySearchContainer">
-                        <input type="text" id="sellerCountrySearch" placeholder="🔍 Search country..." autocomplete="off">
-                        <div class="country-dropdown-list" id="sellerCountryDropdown"></div>
-                        <select id="sellerCountryCode" style="display:none;"></select>
-                    </div>
-                    <input type="tel" id="sellerPhone" placeholder="Phone Number" class="input" required>
+            <input type="file" id="sellerAvatar" accept="image/*" class="input" required>
+            <input type="text" id="sellerFullName" placeholder="Full Legal Name" class="input" required>
+            <input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required>
+            <input type="email" id="sellerEmail" placeholder="Email" class="input" required>
+            <div class="phone-group">
+                <div class="country-search-select" id="sellerCountrySearchContainer">
+                    <input type="text" id="sellerCountrySearch" placeholder="🔍 Search country..." autocomplete="off">
+                    <div class="country-dropdown-list" id="sellerCountryDropdown"></div>
+                    <select id="sellerCountryCode" style="display:none;"></select>
                 </div>
-                <div class="otp-section" id="sellerOtpSection">
-                    <input type="text" id="sellerOtp" placeholder="Enter OTP" class="input">
-                    <button type="button" id="sellerVerifyOtpBtn" class="btn-secondary">Verify OTP</button>
-                </div>
-                <input type="password" id="sellerPassword" placeholder="Password" class="input" required>
-                <input type="date" id="sellerDob" class="input" required>
-                <h4>📍 Shop Address</h4>
-                <input type="text" id="sellerHouseNo" placeholder="House No." class="input" required>
-                <input type="text" id="sellerStreet" placeholder="Street" class="input" required>
-                <input type="text" id="sellerCity" placeholder="City" class="input" required>
-                <input type="text" id="sellerState" placeholder="State" class="input" required>
-                <input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required>
-                <select id="sellerCountryReg" class="input" required><option value="">Select Country</option></select>
-                <div class="doc-section">
-                    <div class="doc-title">🌍 KYC Documents</div>
-                    <select id="sellerDocType" class="input"><option value="passport">📘 Passport</option><option value="national_id">🆔 National ID Card</option><option value="driving_license">🚗 Driving License</option><option value="residence_permit">📄 Residence Permit</option></select>
-                    <input type="text" id="sellerDocNumber" placeholder="Document Number" class="input">
-                    <input type="file" id="sellerDocImage" accept="image/*,application/pdf" class="input">
-                </div>
-                <h4>🏦 Bank Account Details</h4>
-                <input type="text" id="sellerBank" placeholder="Bank Name" class="input" required>
-                <input type="text" id="sellerAccountNo" placeholder="Account Number" class="input" required>
-                <input type="text" id="sellerIfsc" placeholder="IFSC / SWIFT Code" class="input" required>
-                <input type="text" id="sellerAccountHolder" placeholder="Account Holder Full Name" class="input" required>
-                <div class="checkbox-group"><input type="checkbox" id="sellerAgreement" required><label>I agree to <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label></div>
-                <button type="submit" class="btn-primary" id="sellerSubmitBtn" disabled>✅ Register Shop (Verify Phone First)</button>
-            </form>
+                <input type="tel" id="sellerPhone" placeholder="Phone Number" class="input" required>
+            </div>
+            <div class="otp-section" id="sellerOtpSection">
+                <input type="text" id="sellerOtp" placeholder="Enter OTP" class="input">
+                <button type="button" id="sellerVerifyOtpBtn" class="btn-secondary">Verify OTP</button>
+            </div>
+            <input type="password" id="sellerPassword" placeholder="Password" class="input" required>
+            <input type="date" id="sellerDob" class="input" required>
+            <h4>📍 Shop Address</h4>
+            <input type="text" id="sellerHouseNo" placeholder="House No." class="input" required>
+            <input type="text" id="sellerStreet" placeholder="Street" class="input" required>
+            <input type="text" id="sellerCity" placeholder="City" class="input" required>
+            <input type="text" id="sellerState" placeholder="State" class="input" required>
+            <input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required>
+            <select id="sellerCountryReg" class="input" required><option value="">Select Country</option></select>
+            <div class="doc-section">
+                <div class="doc-title">🌍 KYC Documents</div>
+                <select id="sellerDocType" class="input"><option value="passport">📘 Passport</option><option value="national_id">🆔 National ID Card</option><option value="driving_license">🚗 Driving License</option><option value="residence_permit">📄 Residence Permit</option></select>
+                <input type="text" id="sellerDocNumber" placeholder="Document Number" class="input">
+                <input type="file" id="sellerDocImage" accept="image/*,application/pdf" class="input">
+            </div>
+            <h4>🏦 Bank Account Details</h4>
+            <input type="text" id="sellerBank" placeholder="Bank Name" class="input" required>
+            <input type="text" id="sellerAccountNo" placeholder="Account Number" class="input" required>
+            <input type="text" id="sellerIfsc" placeholder="IFSC / SWIFT Code" class="input" required>
+            <input type="text" id="sellerAccountHolder" placeholder="Account Holder Full Name" class="input" required>
+            <div class="checkbox-group"><input type="checkbox" id="sellerAgreement" required><label>I agree to <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label></div>
+            <button type="button" class="btn-primary" id="sellerSubmitBtn" disabled>✅ Register Shop (Verify Phone First)</button>
         </div>
         <div id="sellerDashboard" style="display:none;"></div>
     </div>
@@ -271,11 +269,20 @@
                 <div class="checkbox-group"><input type="checkbox" id="termsCheckbox" required><label>Accept <span class="legal-link" onclick="showTerms()">Terms & Conditions</span></label></div>
                 <div class="checkbox-group"><input type="checkbox" id="ageCheckbox" required><label>I am 18 years or older</label></div>
                 <button class="btn-primary" id="doSignupBtn" disabled>Create Account (Verify Phone First)</button>
+                <p style="text-align:center; margin-top:15px;"><span class="legal-link" onclick="showSellerLoginForm()">🔐 Seller Login</span></p>
+            </div>
+            <div id="sellerLoginDiv" style="display:none;">
+                <h2>🔐 Seller Login</h2>
+                <input type="email" id="sellerLoginEmail" placeholder="Email" class="input">
+                <input type="password" id="sellerLoginPass" placeholder="Password" class="input">
+                <button class="btn-primary" id="doSellerLoginBtn">Login as Seller</button>
+                <p style="text-align:center; margin-top:10px;"><span class="legal-link" onclick="showBuyerSignupForm()">⬅️ Back to Signup</span></p>
             </div>
         </div>
         <div id="buyerProfilePanel" style="display:none;">
             <div class="premium-card">
                 <div class="flex-between"><h2>👋 Welcome, <span id="profileName"></span></h2><span class="role-badge" id="profileRoleBadge">Buyer</span></div>
+                <button class="btn-primary" id="logoutBtn" style="background:#dc2626; margin-top:15px;">Logout</button>
             </div>
             <div class="premium-card"><h3>📜 My Orders</h3><div id="buyerOrdersList"></div></div>
             <div class="premium-card"><h3>❤️ My Wishlist</h3><div id="buyerWishlistList"></div></div>
@@ -369,7 +376,6 @@
     </div>
 </div>
 
-<!-- Checkout Signup Modal -->
 <div id="checkoutSignupModal" class="checkout-signup-modal">
     <div class="checkout-signup-card">
         <span class="close-modal" onclick="closeCheckoutSignupModal()">&times;</span>
@@ -751,7 +757,7 @@
         updateCartUI();
         renderCartPage();
         if(currentUser?.role === 'seller') renderSellerDashboard();
-        if(currentUser) renderBuyerOrders();
+        if(currentUser && currentUser.role !== 'seller') renderBuyerOrders();
         showToast(`Currency changed to ${selectedCurrency}`, false);
     });
     
@@ -875,6 +881,16 @@
     
     function closeCheckoutSignupModal() {
         document.getElementById('checkoutSignupModal').style.display = 'none';
+    }
+    
+    function showSellerLoginForm() {
+        document.getElementById('signupFormDiv').style.display = 'none';
+        document.getElementById('sellerLoginDiv').style.display = 'block';
+    }
+    
+    function showBuyerSignupForm() {
+        document.getElementById('signupFormDiv').style.display = 'block';
+        document.getElementById('sellerLoginDiv').style.display = 'none';
     }
     
     // Products Rendering
@@ -1067,7 +1083,6 @@
         
         closeCheckoutSignupModal();
         
-        // Clear checkout signup form
         document.getElementById('checkoutSignupName').value = '';
         document.getElementById('checkoutSignupEmail').value = '';
         document.getElementById('checkoutSignupPass').value = '';
@@ -1081,7 +1096,6 @@
         showToast(`Account created! Welcome ${name}!`, false);
         addNotification(`Welcome to GlobalBazaar ${name}!`, 'info');
         
-        // Now proceed to checkout
         document.getElementById('proceedToCheckoutBtn').click();
     });
     
@@ -1250,8 +1264,8 @@
     setInterval(processWeeklyWithdrawals, 3600000);
     processWeeklyWithdrawals();
     
-    document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    // SELLER REGISTER
+    document.getElementById('sellerSubmitBtn')?.addEventListener('click', async () => {
         if(!sellerPhoneVerified) { showToast("Please verify your phone number first!", true); return; }
         if(!document.getElementById('sellerAgreement').checked) { showToast("Accept Seller Agreement", true); return; }
         let dob = document.getElementById('sellerDob').value;
@@ -1297,6 +1311,26 @@
             addNotification(`Welcome ${newSeller.shopName}! Complete KYC to start selling.`, 'info');
         };
         reader.readAsDataURL(avatar);
+    });
+    
+    // SELLER LOGIN
+    document.getElementById('doSellerLoginBtn')?.addEventListener('click', () => {
+        let email = document.getElementById('sellerLoginEmail').value;
+        let pass = document.getElementById('sellerLoginPass').value;
+        let seller = sellers.find(s => s.email === email && s.password === pass);
+        if(seller) {
+            currentUser = { name: seller.fullName, email: seller.email, role: 'seller', sellerId: seller.id, phone: seller.phone };
+            saveAll();
+            document.getElementById('profileAuthBox').style.display = 'none';
+            document.getElementById('buyerProfilePanel').style.display = 'block';
+            document.getElementById('profileName').innerText = seller.fullName;
+            document.getElementById('profileRoleBadge').innerText = 'Seller';
+            showToast(`Welcome back, ${seller.shopName}!`, false);
+            addNotification(`Welcome back ${seller.shopName}!`, 'info');
+            renderSellerDashboard();
+        } else {
+            showToast("Invalid credentials!", true);
+        }
     });
     
     function renderSellerDashboard() {
@@ -1391,7 +1425,7 @@
         document.querySelectorAll('.removeWishlistBtn').forEach(btn => btn.addEventListener('click', () => { wishlist = wishlist.filter(id => id !== parseInt(btn.dataset.id)); saveAll(); renderProducts(); renderBuyerWishlist(); showToast("Removed from wishlist", false); }));
     }
     
-    // Signup from profile section
+    // BUYER SIGNUP
     document.getElementById('doSignupBtn')?.addEventListener('click', () => {
         if(!signupPhoneVerified) { showToast("Please verify your phone number first!", true); return; }
         if(!document.getElementById('termsCheckbox').checked) { showToast("Accept Terms", true); return; }
@@ -1420,38 +1454,8 @@
         addNotification(`Welcome to GlobalBazaar ${name}!`, 'info');
     });
     
-    // Seller Login from profile section
-    function showSellerLoginForm() {
-        document.getElementById('profileAuthBox').innerHTML = `
-            <div id="sellerLoginDiv">
-                <h2>🔐 Seller Login</h2>
-                <input type="email" id="sellerLoginEmail" placeholder="Email" class="input">
-                <input type="password" id="sellerLoginPass" placeholder="Password" class="input">
-                <button class="btn-primary" id="doSellerLoginBtn">Login as Seller</button>
-                <p style="text-align:center; margin-top:10px;"><span class="legal-link" onclick="location.reload()">New seller? Register here</span></p>
-            </div>
-        `;
-        document.getElementById('doSellerLoginBtn')?.addEventListener('click', () => {
-            let email = document.getElementById('sellerLoginEmail').value;
-            let pass = document.getElementById('sellerLoginPass').value;
-            let seller = sellers.find(s => s.email === email && s.password === pass);
-            if(seller) {
-                currentUser = { name: seller.fullName, email: seller.email, role: 'seller', sellerId: seller.id, phone: seller.phone };
-                saveAll();
-                document.getElementById('profileAuthBox').style.display = 'none';
-                document.getElementById('buyerProfilePanel').style.display = 'block';
-                document.getElementById('profileName').innerText = seller.fullName;
-                document.getElementById('profileRoleBadge').innerText = 'Seller';
-                showToast(`Welcome back, ${seller.shopName}!`, false);
-                addNotification(`Welcome back ${seller.shopName}!`, 'info');
-                renderSellerDashboard();
-            } else {
-                showToast("Invalid credentials!", true);
-            }
-        });
-    }
-    
-    document.getElementById('drawerLogout')?.addEventListener('click', () => { 
+    // LOGOUT
+    document.getElementById('logoutBtn')?.addEventListener('click', () => { 
         currentUser = null; 
         localStorage.removeItem('gb_current_user');
         location.reload(); 
@@ -1516,11 +1520,12 @@
         if(currentUser) { 
             document.getElementById('profileAuthBox').style.display='none'; 
             document.getElementById('buyerProfilePanel').style.display='block'; 
-            renderBuyerOrders(); 
-            renderBuyerWishlist(); 
+            if(currentUser.role === 'seller') renderSellerDashboard();
+            else { renderBuyerOrders(); renderBuyerWishlist(); }
         } else { 
             document.getElementById('profileAuthBox').style.display='block'; 
             document.getElementById('buyerProfilePanel').style.display='none'; 
+            showBuyerSignupForm();
         } 
         closeDrawer(); 
     });
@@ -1548,7 +1553,7 @@
     updateCartUI();
     updateNotificationUI();
     
-    console.log("✅ GlobalBazaar - Seller Dashboard FULLY RESTORED!");
+    console.log("✅ GlobalBazaar - FULLY WORKING with Seller Dashboard!");
 </script>
 </body>
 </html>
