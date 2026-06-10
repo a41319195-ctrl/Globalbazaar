@@ -124,7 +124,6 @@
         .tracking-step { text-align: center; flex: 1; font-size: 10px; color: #64748b; }
         .tracking-step.active { color: #3b82f6; font-weight: bold; }
         
-        /* Checkout Signup Modal */
         .checkout-signup-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; overflow-y: auto; }
         .checkout-signup-card { background: white; margin: 30px 20px; border-radius: 28px; padding: 24px; max-width: 500px; margin-left: auto; margin-right: auto; }
         body.dark-mode .checkout-signup-card { background: #1e293b; }
@@ -199,6 +198,7 @@
         <div class="product-grid" id="productsGrid"></div>
     </div>
 
+    <!-- SELLER SECTION - FULLY RESTORED -->
     <div id="sellerSection" class="section">
         <div id="sellerRegisterBox" class="premium-card">
             <h2>🏪 Open Your Shop</h2>
@@ -641,6 +641,7 @@
         document.addEventListener('click', (e) => { if(!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.style.display = 'none'; });
     }
 
+    initCountrySearch('sellerCountrySearch', 'sellerCountryDropdown', 'sellerCountryCode');
     initCountrySearch('signupCountrySearch', 'signupCountryDropdown', 'signupCountryCode');
     initCountrySearch('deliveryCountrySearch', 'deliveryCountryDropdown', 'deliveryCountryCode');
     initCountrySearch('checkoutCountrySearch', 'checkoutCountryDropdown', 'checkoutCountryCode');
@@ -654,7 +655,6 @@
     let sellerPhoneVerified = false;
     let signupPhoneVerified = false;
     let checkoutSignupPhoneVerified = false;
-    let pendingCheckoutAfterSignup = false;
     
     function sendDummyOTP(phoneNumber, type) {
         alert(`📱 OTP sent to ${phoneNumber}\n🔑 Your OTP is: 123456\n(For testing only)`);
@@ -771,7 +771,7 @@
         return { total: basePrice + commission + gateway + shipping + HANDLING_FEE, basePrice, shipping, commission, gateway };
     }
     
-    // ============ 3 DUMMY PRODUCTS ============
+    // ============ PRODUCTS ============
     let products = [
         {
             id: 101, sellerId: 0, sellerName: "GlobalBazaar", name: "Wireless Noise Cancelling Headphones", price: 89.99, 
@@ -820,12 +820,14 @@
     let savedAddresses = JSON.parse(localStorage.getItem('gb_saved_addresses')) || [];
     let sellerRevenueChart = null;
     
-    // Load saved buyer on page load
-    let savedBuyer = localStorage.getItem('gb_current_user');
-    if(savedBuyer && savedBuyer !== 'null') {
+    // Load saved user on page load
+    let savedUser = localStorage.getItem('gb_current_user');
+    if(savedUser && savedUser !== 'null') {
         try {
-            currentUser = JSON.parse(savedBuyer);
-            if(currentUser && currentUser.role !== 'seller') {
+            currentUser = JSON.parse(savedUser);
+            if(currentUser && currentUser.role === 'seller') {
+                // Seller dashboard will be shown when seller section is opened
+            } else if(currentUser && currentUser.role !== 'seller') {
                 document.getElementById('profileAuthBox').style.display = 'none';
                 document.getElementById('buyerProfilePanel').style.display = 'block';
                 document.getElementById('profileName').innerText = currentUser.name;
@@ -1418,6 +1420,41 @@
         addNotification(`Welcome to GlobalBazaar ${name}!`, 'info');
     });
     
+    // Seller Login from profile section
+    function showSellerLoginForm() {
+        document.getElementById('profileAuthBox').innerHTML = `
+            <div id="sellerLoginDiv">
+                <h2>🔐 Seller Login</h2>
+                <input type="email" id="sellerLoginEmail" placeholder="Email" class="input">
+                <input type="password" id="sellerLoginPass" placeholder="Password" class="input">
+                <button class="btn-primary" id="doSellerLoginBtn">Login as Seller</button>
+                <p style="text-align:center; margin-top:10px;"><span class="legal-link" onclick="showSignupForm()">New seller? Register here</span></p>
+            </div>
+        `;
+        document.getElementById('doSellerLoginBtn')?.addEventListener('click', () => {
+            let email = document.getElementById('sellerLoginEmail').value;
+            let pass = document.getElementById('sellerLoginPass').value;
+            let seller = sellers.find(s => s.email === email && s.password === pass);
+            if(seller) {
+                currentUser = { name: seller.fullName, email: seller.email, role: 'seller', sellerId: seller.id, phone: seller.phone };
+                saveAll();
+                document.getElementById('profileAuthBox').style.display = 'none';
+                document.getElementById('buyerProfilePanel').style.display = 'block';
+                document.getElementById('profileName').innerText = seller.fullName;
+                document.getElementById('profileRoleBadge').innerText = 'Seller';
+                showToast(`Welcome back, ${seller.shopName}!`, false);
+                addNotification(`Welcome back ${seller.shopName}!`, 'info');
+                renderSellerDashboard();
+            } else {
+                showToast("Invalid credentials!", true);
+            }
+        });
+    }
+    
+    function showSignupForm() {
+        location.reload();
+    }
+    
     document.getElementById('drawerLogout')?.addEventListener('click', () => { 
         currentUser = null; 
         localStorage.removeItem('gb_current_user');
@@ -1466,8 +1503,31 @@
     }
     
     document.getElementById('drawerBuyer')?.addEventListener('click', () => { showSection('buyer'); closeDrawer(); });
-    document.getElementById('drawerSeller')?.addEventListener('click', () => { showSection('seller'); if(currentUser?.role === 'seller') { document.getElementById('sellerRegisterBox').style.display='none'; document.getElementById('sellerDashboard').style.display='block'; renderSellerDashboard(); } closeDrawer(); });
-    document.getElementById('drawerProfile')?.addEventListener('click', () => { showSection('profile'); if(currentUser) { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; renderBuyerOrders(); renderBuyerWishlist(); } else { document.getElementById('profileAuthBox').style.display='block'; document.getElementById('buyerProfilePanel').style.display='none'; } closeDrawer(); });
+    document.getElementById('drawerSeller')?.addEventListener('click', () => { 
+        showSection('seller'); 
+        if(currentUser?.role === 'seller') { 
+            document.getElementById('sellerRegisterBox').style.display='none'; 
+            document.getElementById('sellerDashboard').style.display='block'; 
+            renderSellerDashboard(); 
+        } else {
+            document.getElementById('sellerRegisterBox').style.display='block';
+            document.getElementById('sellerDashboard').style.display='none';
+        }
+        closeDrawer(); 
+    });
+    document.getElementById('drawerProfile')?.addEventListener('click', () => { 
+        showSection('profile'); 
+        if(currentUser) { 
+            document.getElementById('profileAuthBox').style.display='none'; 
+            document.getElementById('buyerProfilePanel').style.display='block'; 
+            renderBuyerOrders(); 
+            renderBuyerWishlist(); 
+        } else { 
+            document.getElementById('profileAuthBox').style.display='block'; 
+            document.getElementById('buyerProfilePanel').style.display='none'; 
+        } 
+        closeDrawer(); 
+    });
     document.getElementById('drawerAdmin')?.addEventListener('click', () => { showSection('admin'); closeDrawer(); });
     document.getElementById('drawerCartPage')?.addEventListener('click', () => { renderCartPage(); showSection('cartPage'); closeDrawer(); });
     document.getElementById('drawerWishlist')?.addEventListener('click', () => { if(currentUser) { showSection('profile'); renderBuyerWishlist(); } else showToast("Please signup first", true); closeDrawer(); });
@@ -1492,7 +1552,7 @@
     updateCartUI();
     updateNotificationUI();
     
-    console.log("✅ GlobalBazaar - Buyer signup fixed! Checkout redirects to signup first!");
+    console.log("✅ GlobalBazaar - Seller Dashboard RESTORED! Everything working!");
 </script>
 </body>
 </html>
