@@ -23,7 +23,7 @@
         .dark-mode-menu-item:hover { background: #f1f5f9; }
         body.dark-mode .dark-mode-menu-item:hover { background: #334155; }
         
-        .my-shop-btn { background: linear-gradient(145deg, #10b981, #059669); color: white; border-radius: 14px; margin-top: 10px; }
+        .my-shop-btn { background: linear-gradient(145deg, #10b981, #059669); color: white; border-radius: 14px; }
         .my-shop-btn:hover { background: linear-gradient(145deg, #059669, #047857); }
         
         .rating-stars { display: flex; gap: 5px; margin: 10px 0; }
@@ -181,7 +181,7 @@
     <div class="dark-mode-menu-item" id="drawerDarkModeToggle">🌙 Dark Mode</div>
     <div class="drawer-item" id="drawerBuyer">🛒 Buyer Shopping</div>
     <div class="drawer-item" id="drawerSeller">🏪 Seller Dashboard</div>
-    <div class="drawer-item" id="drawerMyShop" style="display:none;" class="my-shop-btn">🏪 My Shop</div>
+    <div class="drawer-item" id="drawerMyShop" class="my-shop-btn">🏪 My Shop</div>
     <div class="drawer-item" id="drawerAdmin">⚙️ Admin Panel</div>
     <div class="drawer-item" id="drawerCartPage">🛍️ My Cart</div>
     <div class="drawer-item" id="drawerWishlist">❤️ Wishlist</div>
@@ -196,7 +196,7 @@
         <div class="product-grid" id="productsGrid"></div>
     </div>
 
-    <!-- SELLER SECTION - Direct Register Form (No Login Popup) -->
+    <!-- SELLER SECTION -->
     <div id="sellerSection" class="section">
         <div id="sellerRegisterBox" class="premium-card">
             <h2>🏪 Open Your Shop</h2>
@@ -218,7 +218,8 @@
                     <button type="button" id="sellerVerifyOtpBtn" class="btn-secondary">Verify OTP</button>
                 </div>
                 <input type="password" id="sellerPassword" placeholder="Password" class="input" required>
-                <input type="date" id="sellerDob" placeholder="Date of Birth" class="input" required>
+                <label style="font-weight:600; margin-top:10px;">🎂 Date of Birth</label>
+                <input type="date" id="sellerDob" class="input" required>
                 <h4>📍 Shop Address</h4>
                 <input type="text" id="sellerHouseNo" placeholder="House No." class="input" required>
                 <input type="text" id="sellerStreet" placeholder="Street" class="input" required>
@@ -727,10 +728,6 @@
     if(savedSeller && savedSeller !== 'null') {
         try {
             currentSeller = JSON.parse(savedSeller);
-            let sellerExists = sellers.find(s => s.id === currentSeller.sellerId);
-            if(sellerExists && sellerExists.kycStatus === 'verified') {
-                document.getElementById('drawerMyShop').style.display = 'flex';
-            }
         } catch(e) {}
     }
     
@@ -1138,8 +1135,16 @@
         reader.readAsDataURL(avatar);
     });
     
-    // My Shop Login Popup
+    // My Shop Login - Always visible, checks KYC status
     function showMyShopLogin() {
+        // Check if any seller is KYC verified
+        let verifiedSellers = sellers.filter(s => s.kycStatus === 'verified');
+        
+        if(verifiedSellers.length === 0) {
+            showToast("No verified seller account found. Please register and get KYC verified first.", true);
+            return;
+        }
+        
         let email = prompt("🏪 My Shop Login\n\nEnter your registered email:");
         if(!email) return;
         let password = prompt("Enter your password:");
@@ -1281,8 +1286,6 @@
                 showToast(`${seller.shopName} Verified!`, false); 
                 await sendTelegramMessage(`✅ KYC Verified: ${seller.shopName}`); 
                 addNotification(`${seller.shopName} KYC Verified!`, 'info');
-                // Show My Shop button in drawer
-                document.getElementById('drawerMyShop').style.display = 'flex';
             } 
         }));
         document.querySelectorAll('.rejectKycBtn').forEach(btn => btn.addEventListener('click', async () => { 
@@ -1344,7 +1347,7 @@
     updateCartUI();
     updateNotificationUI();
     
-    console.log("✅ GlobalBazaar - Seller: Register form direct, My Shop button after KYC, Withdrawal button added, DOB shown!");
+    console.log("✅ GlobalBazaar - My Shop button always visible, KYC verified only can login, DOB label added!");
 </script>
 </body>
 </html>
