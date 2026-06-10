@@ -12,6 +12,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: linear-gradient(135deg, #f5f7fb 0%, #eef2f8 100%); padding-bottom: 90px; transition: all 0.3s ease; }
         
+        /* DARK MODE STYLES */
         body.dark-mode { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f1f5f9; }
         body.dark-mode .header-3d { background: linear-gradient(145deg, #1e293b, #0f172a); border-bottom-color: #3b82f6; }
         body.dark-mode .product-card, body.dark-mode .premium-card, body.dark-mode .chart-container, body.dark-mode .order-card, body.dark-mode .drawer { background: #1e293b; border-color: #334155; color: #f1f5f9; }
@@ -19,10 +20,12 @@
         body.dark-mode .input, body.dark-mode select, body.dark-mode textarea { background: #334155; color: white; border-color: #475569; }
         body.dark-mode .drawer-item:hover { background: #334155; }
         
+        /* Dark mode toggle in menu */
         .dark-mode-menu-item { display: flex; align-items: center; gap: 14px; padding: 14px 20px; font-weight: 600; font-size: 16px; cursor: pointer; margin: 4px 12px; border-radius: 14px; }
         .dark-mode-menu-item:hover { background: #f1f5f9; }
         body.dark-mode .dark-mode-menu-item:hover { background: #334155; }
         
+        /* RATING STYLES */
         .rating-stars { display: flex; gap: 5px; margin: 10px 0; }
         .star { font-size: 24px; cursor: pointer; color: #cbd5e1; transition: 0.1s; }
         .star.active { color: #fbbf24; }
@@ -31,10 +34,12 @@
         .review-item { background: #f8fafc; padding: 12px; border-radius: 12px; margin-bottom: 10px; }
         body.dark-mode .review-item { background: #334155; }
         
+        /* PRODUCT THUMBNAILS - FIXED */
         .product-thumbnails { display: flex; gap: 6px; margin-top: 8px; overflow-x: auto; }
         .product-thumbnails img { width: 50px; height: 50px; object-fit: cover; border-radius: 10px; cursor: pointer; border: 1px solid #e2e8f0; }
         .product-thumbnails img:hover { border-color: #3b82f6; }
         
+        /* NOTIFICATION */
         .notification-bell { position: relative; cursor: pointer; font-size: 22px; background: none; border: none; }
         .notification-badge { position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; font-size: 10px; padding: 2px 6px; border-radius: 50%; }
         .notification-panel { position: fixed; top: 70px; right: 20px; width: 300px; max-height: 400px; background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 1000; display: none; overflow-y: auto; }
@@ -43,6 +48,7 @@
         .notification-item:hover { background: #f1f5f9; }
         body.dark-mode .notification-item:hover { background: #334155; }
         
+        /* HEADER - RIGHT SIDE ALIGNMENT */
         .header-3d { background: linear-gradient(145deg, #ffffff, #f0f4fa); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 10px 25px -8px rgba(0,0,0,0.15); border-bottom: 1px solid rgba(59,130,246,0.15); flex-wrap: wrap; gap: 10px; }
         .header-left { display: flex; align-items: center; gap: 15px; }
         .header-right { display: flex; align-items: center; gap: 10px; }
@@ -51,6 +57,7 @@
         .logo-3d { font-size: 32px; background: radial-gradient(circle at 35% 35%, #ffdd77, #ffaa33); border-radius: 50%; padding: 5px; }
         .currency-dropdown { background: linear-gradient(145deg, #1e2a4a, #0f172f); border: none; padding: 8px 14px; border-radius: 40px; color: #FFD966; font-size: 13px; font-weight: bold; cursor: pointer; }
         
+        /* DRAWER */
         .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); z-index: 200; display: none; }
         .drawer { position: fixed; top: 0; left: -85%; width: 75%; max-width: 280px; height: 100%; background: white; z-index: 201; transition: left 0.3s ease; border-radius: 0 24px 24px 0; padding: 20px 0; overflow-y: auto; }
         .drawer.open { left: 0; }
@@ -123,6 +130,10 @@
         .tracking-steps { display: flex; justify-content: space-between; margin-top: 15px; flex-wrap: wrap; }
         .tracking-step { text-align: center; flex: 1; font-size: 10px; color: #64748b; }
         .tracking-step.active { color: #3b82f6; font-weight: bold; }
+        .filter-bar { display: flex; gap: 10px; margin: 15px 0; flex-wrap: wrap; }
+        .filter-select { padding: 8px 16px; border-radius: 40px; border: 1px solid #e2e8f0; background: white; cursor: pointer; }
+        .price-range { display: flex; gap: 10px; align-items: center; }
+        .price-range input { width: 80px; padding: 8px; border-radius: 12px; border: 1px solid #e2e8f0; }
         
         @media (max-width: 600px) {
             .brand-3d { font-size: 18px; }
@@ -183,6 +194,7 @@
     <div class="drawer-item" id="drawerCartPage">🛍️ My Cart</div>
     <div class="drawer-item" id="drawerWishlist">❤️ Wishlist</div>
     <div class="drawer-item" id="drawerSignup">📝 Sign Up</div>
+    <div class="drawer-item" id="drawerLogin">🔐 Login</div>
     <div class="drawer-item" id="drawerSupport">📞 Support</div>
     <div class="drawer-item" id="drawerLogout">🚪 Logout</div>
 </div>
@@ -243,10 +255,22 @@
 
     <div id="profileSection" class="section">
         <div id="profileAuthBox" class="premium-card">
-            <!-- NO LOGIN FORM - ONLY SIGNUP FOR BUYER -->
-            <div id="signupFormDiv" style="display:block;">
-                <h2>📝 Create Account</h2>
-                <p style="font-size:12px; color:#64748b; margin-bottom:15px;">Sign up once and shop anytime without login!</p>
+            <div id="loginFormDiv">
+                <input type="email" id="loginEmail" placeholder="Email" class="input">
+                <input type="password" id="loginPass" placeholder="Password" class="input">
+                <button class="btn-primary" id="doLoginBtn">Login</button>
+                <div class="otp-login-section" style="margin-top:15px; padding:15px; background:#f1f5f9; border-radius:16px;">
+                    <p style="text-align:center; margin-bottom:10px;">🔐 OR Login with OTP</p>
+                    <input type="tel" id="otpLoginPhone" placeholder="Phone Number with Country Code" class="input">
+                    <button id="sendOtpBtn" class="btn-secondary">Send OTP</button>
+                    <div id="otpVerifySection" style="display:none; margin-top:10px;">
+                        <input type="text" id="otpCode" placeholder="Enter OTP" class="input">
+                        <button id="verifyOtpLoginBtn" class="btn-primary">Verify & Login</button>
+                    </div>
+                </div>
+                <p style="text-align:center; margin-top:10px;"><span class="legal-link" onclick="showSignup()">Create new account</span></p>
+            </div>
+            <div id="signupFormDiv" style="display:none;">
                 <input type="text" id="signupName" placeholder="Full Name" class="input">
                 <input type="date" id="signupDob" class="input">
                 <select id="signupRole" class="input"><option value="buyer">Buyer</option><option value="seller">Seller</option></select>
@@ -267,11 +291,13 @@
                 <div class="checkbox-group"><input type="checkbox" id="termsCheckbox" required><label>Accept <span class="legal-link" onclick="showTerms()">Terms & Conditions</span></label></div>
                 <div class="checkbox-group"><input type="checkbox" id="ageCheckbox" required><label>I am 18 years or older</label></div>
                 <button class="btn-primary" id="doSignupBtn" disabled>Create Account (Verify Phone First)</button>
+                <p style="text-align:center; margin-top:10px;"><span class="legal-link" onclick="showLogin()">Already have an account? Login</span></p>
             </div>
         </div>
         <div id="buyerProfilePanel" style="display:none;">
             <div class="premium-card">
                 <div class="flex-between"><h2>👋 Welcome, <span id="profileName"></span></h2><span class="role-badge" id="profileRoleBadge">Buyer</span></div>
+                <button class="btn-primary" id="logoutBuyerBtn" style="background:#dc2626;">Logout</button>
             </div>
             <div class="premium-card"><h3>📜 My Orders</h3><div id="buyerOrdersList"></div></div>
             <div class="premium-card"><h3>❤️ My Wishlist</h3><div id="buyerWishlistList"></div></div>
@@ -447,6 +473,15 @@
     // ============ RATINGS & REVIEWS ============
     let productReviews = JSON.parse(localStorage.getItem('gb_reviews')) || {};
     
+    function renderRatingStars(productId, containerId, size = 'large') {
+        let reviews = productReviews[productId] || [];
+        let avgRating = reviews.length ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) : 0;
+        let html = `<div class="rating-display"><span class="rating-badge">⭐ ${avgRating}</span><span>(${reviews.length} reviews)</span></div>`;
+        let starContainer = document.getElementById(containerId);
+        if(starContainer) starContainer.innerHTML = html;
+        return avgRating;
+    }
+    
     function renderReviewStars(containerId, onRatingSelect) {
         let container = document.getElementById(containerId);
         if(!container) return;
@@ -492,6 +527,37 @@
             <div style="margin-top:15px;">📮 Tracking #: ${order.trackingNumber || 'Generating...'}</div>
         </div>`;
     }
+    
+    // ============ OTP LOGIN SYSTEM ============
+    let otpPendingPhone = null;
+    
+    document.getElementById('sendOtpBtn')?.addEventListener('click', () => {
+        let phone = document.getElementById('otpLoginPhone').value;
+        if(!phone || phone.length < 8) { showToast("Enter valid phone number", true); return; }
+        otpPendingPhone = phone;
+        alert(`📱 OTP sent to ${phone}\n🔑 Your OTP is: 123456 (Demo)`);
+        document.getElementById('otpVerifySection').style.display = 'block';
+    });
+    
+    document.getElementById('verifyOtpLoginBtn')?.addEventListener('click', () => {
+        let otp = document.getElementById('otpCode').value;
+        if(otp === "123456" && otpPendingPhone) {
+            let existingUser = [...buyers, ...sellers.map(s => ({...s, role: 'seller', name: s.fullName, email: s.email, password: s.password, phone: s.phone}))].find(u => u.phone === otpPendingPhone);
+            if(existingUser) {
+                currentUser = existingUser.role === 'seller' ? { name: existingUser.fullName, email: existingUser.email, role: 'seller', sellerId: existingUser.id, phone: existingUser.phone } : existingUser;
+                saveAll();
+                document.getElementById('profileAuthBox').style.display='none';
+                document.getElementById('buyerProfilePanel').style.display='block';
+                document.getElementById('profileName').innerText = currentUser.name;
+                document.getElementById('profileRoleBadge').innerText = currentUser.role || 'Buyer';
+                renderBuyerOrders(); renderBuyerWishlist();
+                showToast(`Welcome ${currentUser.name}!`, false);
+                addNotification(`Welcome back ${currentUser.name}!`, 'info');
+            } else {
+                showToast("No account found with this number. Please sign up first.", true);
+            }
+        } else { showToast("Invalid OTP! Use 123456", true); }
+    });
     
     // ============ 195+ COUNTRY CODES WITH SEARCH ============
     const countryCodes = [
@@ -609,6 +675,7 @@
         document.addEventListener('click', (e) => { if(!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.style.display = 'none'; });
     }
 
+    initCountrySearch('sellerCountrySearch', 'sellerCountryDropdown', 'sellerCountryCode');
     initCountrySearch('signupCountrySearch', 'signupCountryDropdown', 'signupCountryCode');
     initCountrySearch('deliveryCountrySearch', 'deliveryCountryDropdown', 'deliveryCountryCode');
 
@@ -767,27 +834,11 @@
     let savedAddresses = JSON.parse(localStorage.getItem('gb_saved_addresses')) || [];
     let sellerRevenueChart = null;
     
-    // Load saved buyer on page load
-    let savedBuyer = localStorage.getItem('gb_current_user');
-    if(savedBuyer && savedBuyer !== 'null') {
-        try {
-            currentUser = JSON.parse(savedBuyer);
-            if(currentUser && currentUser.role !== 'seller') {
-                document.getElementById('profileAuthBox').style.display = 'none';
-                document.getElementById('buyerProfilePanel').style.display = 'block';
-                document.getElementById('profileName').innerText = currentUser.name;
-                document.getElementById('profileRoleBadge').innerText = currentUser.role || 'Buyer';
-                renderBuyerOrders();
-                renderBuyerWishlist();
-            }
-        } catch(e) {}
-    }
-    
     function saveAll() {
         localStorage.setItem('gb_sellers', JSON.stringify(sellers));
         localStorage.setItem('gb_products', JSON.stringify(products));
         localStorage.setItem('gb_buyers', JSON.stringify(buyers));
-        if(currentUser) localStorage.setItem('gb_current_user', JSON.stringify(currentUser));
+        localStorage.setItem('gb_current_user', JSON.stringify(currentUser));
         localStorage.setItem('gb_cart', JSON.stringify(cart));
         localStorage.setItem('gb_wishlist', JSON.stringify(wishlist));
         localStorage.setItem('gb_orders', JSON.stringify(orders));
@@ -811,6 +862,8 @@
     function closeSellerAgreementModal() { document.getElementById('sellerAgreementModal').style.display = 'none'; }
     function showSupport() { document.getElementById('supportModal').style.display = 'block'; }
     function closeSupportModal() { document.getElementById('supportModal').style.display = 'none'; }
+    function showSignup() { document.getElementById('signupFormDiv').style.display = 'block'; document.getElementById('loginFormDiv').style.display = 'none'; }
+    function showLogin() { document.getElementById('loginFormDiv').style.display = 'block'; document.getElementById('signupFormDiv').style.display = 'none'; }
     function showPrivacy() { alert("Privacy Policy: We collect name, email, phone, address for order processing."); }
     function calculateAge(dob) { return new Date().getFullYear() - new Date(dob).getFullYear(); }
     
@@ -888,7 +941,7 @@
         document.getElementById('whatsappShareBtn').onclick = () => shareOnWhatsApp(p, final.total);
         
         document.getElementById('submitReviewBtn').onclick = () => {
-            if(!currentUser) { showToast("Please signup first", true); return; }
+            if(!currentUser) { showToast("Please login to review", true); return; }
             let reviewText = document.getElementById('reviewText').value;
             if(!reviewText) { showToast("Please write a review", true); return; }
             if(currentRatingHandler.currentRating === 0) { showToast("Please select a rating", true); return; }
@@ -957,7 +1010,7 @@
     let currentDelivery = null;
     document.getElementById('proceedToCheckoutBtn')?.addEventListener('click', () => {
         if(cart.length === 0) { showToast("Cart is empty!", true); return; }
-        if(!currentUser) { showToast("Please signup first!", true); return; }
+        if(!currentUser) { showToast("Please login first!", true); return; }
         showSection('checkout');
         let savedAddr = savedAddresses.find(a => a.userEmail === currentUser.email);
         if(savedAddr) {
@@ -1278,7 +1331,34 @@
         document.querySelectorAll('.removeWishlistBtn').forEach(btn => btn.addEventListener('click', () => { wishlist = wishlist.filter(id => id !== parseInt(btn.dataset.id)); saveAll(); renderProducts(); renderBuyerWishlist(); showToast("Removed from wishlist", false); }));
     }
     
-    // SIGNUP ONLY - NO LOGIN
+    // Auth Functions
+    document.getElementById('doLoginBtn')?.addEventListener('click', () => {
+        let email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPass').value;
+        let user = buyers.find(b=>b.email===email && b.password===pass);
+        if(user) { 
+            currentUser = user; saveAll(); 
+            document.getElementById('profileAuthBox').style.display='none'; 
+            document.getElementById('buyerProfilePanel').style.display='block'; 
+            document.getElementById('profileName').innerText = user.name; 
+            document.getElementById('profileRoleBadge').innerText = user.role || 'Buyer'; 
+            renderBuyerOrders(); renderBuyerWishlist(); 
+            showToast(`Welcome back, ${user.name}!`, false);
+            addNotification(`Welcome back ${user.name}!`, 'info');
+        } else { 
+            let seller = sellers.find(s=>s.email===email && s.password===pass); 
+            if(seller) { 
+                currentUser = { name: seller.fullName, email: seller.email, role: 'seller', sellerId: seller.id, phone: seller.phone }; 
+                saveAll(); 
+                document.getElementById('profileAuthBox').style.display='none'; 
+                document.getElementById('buyerProfilePanel').style.display='block'; 
+                document.getElementById('profileName').innerText = seller.fullName; 
+                document.getElementById('profileRoleBadge').innerText = 'Seller'; 
+                showToast(`Welcome back, ${seller.shopName}!`, false);
+                addNotification(`Welcome back ${seller.shopName}!`, 'info');
+            } else showToast("Invalid credentials", true); 
+        }
+    });
+    
     document.getElementById('doSignupBtn')?.addEventListener('click', () => {
         if(!signupPhoneVerified) { showToast("Please verify your phone number first!", true); return; }
         if(!document.getElementById('termsCheckbox').checked) { showToast("Accept Terms", true); return; }
@@ -1295,24 +1375,17 @@
         let phone = countryCode + document.getElementById('signupPhone').value;
         
         let newUser = { name, email, phone, password: pass, role, dob, savedAddress: null, joinDate: new Date().toLocaleString() };
-        buyers.push(newUser); 
-        currentUser = newUser; 
-        saveAll();
+        buyers.push(newUser); currentUser = newUser; saveAll();
         document.getElementById('profileAuthBox').style.display='none'; 
         document.getElementById('buyerProfilePanel').style.display='block';
         document.getElementById('profileName').innerText = name; 
         document.getElementById('profileRoleBadge').innerText = role;
         renderBuyerOrders(); renderBuyerWishlist(); 
-        showToast(`Account created! Welcome ${name}! You are now logged in.`, false);
+        showToast(`Account created! Welcome ${name}!`, false);
         addNotification(`Welcome to GlobalBazaar ${name}!`, 'info');
     });
     
-    document.getElementById('drawerLogout')?.addEventListener('click', () => { 
-        currentUser = null; 
-        localStorage.removeItem('gb_current_user');
-        saveAll(); 
-        location.reload(); 
-    });
+    document.getElementById('logoutBuyerBtn')?.addEventListener('click', () => { currentUser = null; saveAll(); location.reload(); });
     
     // Admin Functions
     document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
@@ -1360,9 +1433,11 @@
     document.getElementById('drawerProfile')?.addEventListener('click', () => { showSection('profile'); if(currentUser) { document.getElementById('profileAuthBox').style.display='none'; document.getElementById('buyerProfilePanel').style.display='block'; renderBuyerOrders(); renderBuyerWishlist(); } else { document.getElementById('profileAuthBox').style.display='block'; document.getElementById('buyerProfilePanel').style.display='none'; } closeDrawer(); });
     document.getElementById('drawerAdmin')?.addEventListener('click', () => { showSection('admin'); closeDrawer(); });
     document.getElementById('drawerCartPage')?.addEventListener('click', () => { renderCartPage(); showSection('cartPage'); closeDrawer(); });
-    document.getElementById('drawerWishlist')?.addEventListener('click', () => { if(currentUser) { showSection('profile'); renderBuyerWishlist(); } else showToast("Please signup first", true); closeDrawer(); });
-    document.getElementById('drawerSignup')?.addEventListener('click', () => { showSection('profile'); closeDrawer(); });
+    document.getElementById('drawerWishlist')?.addEventListener('click', () => { if(currentUser) { showSection('profile'); renderBuyerWishlist(); } else showToast("Please login first", true); closeDrawer(); });
+    document.getElementById('drawerSignup')?.addEventListener('click', () => { showSection('profile'); showSignup(); closeDrawer(); });
+    document.getElementById('drawerLogin')?.addEventListener('click', () => { showSection('profile'); showLogin(); closeDrawer(); });
     document.getElementById('drawerSupport')?.addEventListener('click', () => { showSupport(); closeDrawer(); });
+    document.getElementById('drawerLogout')?.addEventListener('click', () => { currentUser=null; saveAll(); location.reload(); });
     document.getElementById('cartFloatBtn')?.addEventListener('click', () => { renderCartPage(); showSection('cartPage'); });
     document.getElementById('closeModalBtn')?.addEventListener('click', () => document.getElementById('productModal').style.display='none');
     document.getElementById('modalAddCartBtn')?.addEventListener('click', () => { if(currentProduct) addToCart(currentProduct.id); document.getElementById('productModal').style.display='none'; });
@@ -1382,7 +1457,7 @@
     updateCartUI();
     updateNotificationUI();
     
-    console.log("✅ GlobalBazaar - Buyer login removed! Signup once and shop forever!");
+    console.log("✅ GlobalBazaar - All fixes applied! Dark mode in menu, bell & currency on right, thumbnails restored!");
 </script>
 </body>
 </html>
