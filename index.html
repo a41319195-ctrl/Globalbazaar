@@ -10,7 +10,55 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background: linear-gradient(135deg, #f5f7fb 0%, #eef2f8 100%); padding-bottom: 90px; }
+        body { background: linear-gradient(135deg, #f5f7fb 0%, #eef2f8 100%); padding-bottom: 90px; transition: all 0.3s ease; }
+        
+        /* DARK MODE STYLES */
+        body.dark-mode { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f1f5f9; }
+        body.dark-mode .header-3d { background: linear-gradient(145deg, #1e293b, #0f172a); border-bottom-color: #3b82f6; }
+        body.dark-mode .product-card, body.dark-mode .premium-card, body.dark-mode .chart-container, body.dark-mode .order-card, body.dark-mode .drawer { background: #1e293b; border-color: #334155; color: #f1f5f9; }
+        body.dark-mode .cat-pill { background: #334155; color: white; }
+        body.dark-mode .input, body.dark-mode select, body.dark-mode textarea { background: #334155; color: white; border-color: #475569; }
+        body.dark-mode .drawer-item:hover { background: #334155; }
+        
+        .dark-mode-toggle { background: linear-gradient(145deg, #1e293b, #0f172a); border: none; padding: 8px 14px; border-radius: 40px; cursor: pointer; font-size: 16px; }
+        
+        /* RATING STYLES */
+        .rating-stars { display: flex; gap: 5px; margin: 10px 0; }
+        .star { font-size: 24px; cursor: pointer; color: #cbd5e1; transition: 0.1s; }
+        .star.active { color: #fbbf24; }
+        .rating-display { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+        .rating-badge { background: #fbbf24; color: #1e293b; padding: 4px 8px; border-radius: 20px; font-weight: bold; font-size: 12px; }
+        .review-item { background: #f8fafc; padding: 12px; border-radius: 12px; margin-bottom: 10px; }
+        body.dark-mode .review-item { background: #334155; }
+        
+        /* FILTER BAR */
+        .filter-bar { display: flex; gap: 10px; margin: 15px 0; flex-wrap: wrap; }
+        .filter-select { padding: 8px 16px; border-radius: 40px; border: 1px solid #e2e8f0; background: white; cursor: pointer; }
+        .price-range { display: flex; gap: 10px; align-items: center; }
+        .price-range input { width: 80px; padding: 8px; border-radius: 12px; border: 1px solid #e2e8f0; }
+        
+        /* NOTIFICATION */
+        .notification-bell { position: relative; cursor: pointer; font-size: 22px; }
+        .notification-badge { position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; font-size: 10px; padding: 2px 6px; border-radius: 50%; }
+        .notification-panel { position: fixed; top: 70px; right: 20px; width: 300px; max-height: 400px; background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 1000; display: none; overflow-y: auto; }
+        body.dark-mode .notification-panel { background: #1e293b; }
+        .notification-item { padding: 12px; border-bottom: 1px solid #e2e8f0; cursor: pointer; }
+        .notification-item:hover { background: #f1f5f9; }
+        body.dark-mode .notification-item:hover { background: #334155; }
+        
+        /* TRACKING MAP */
+        .tracking-map { background: #f1f5f9; border-radius: 16px; padding: 15px; text-align: center; margin-top: 10px; }
+        .tracking-steps { display: flex; justify-content: space-between; margin-top: 15px; flex-wrap: wrap; }
+        .tracking-step { text-align: center; flex: 1; font-size: 10px; color: #64748b; }
+        .tracking-step.active { color: #3b82f6; font-weight: bold; }
+        
+        /* OTP LOGIN */
+        .otp-login-section { margin-top: 15px; padding: 15px; background: #f1f5f9; border-radius: 16px; }
+        body.dark-mode .otp-login-section { background: #334155; }
+        
+        /* WHATSAPP SHARE */
+        .whatsapp-share { background: #25D366; color: white; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; }
+        
         .header-3d { background: linear-gradient(145deg, #ffffff, #f0f4fa); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 10px 25px -8px rgba(0,0,0,0.15); border-bottom: 1px solid rgba(59,130,246,0.15); flex-wrap: wrap; gap: 10px; }
         .header-left { display: flex; align-items: center; gap: 15px; }
         .header-right { display: flex; align-items: center; gap: 10px; }
@@ -62,7 +110,6 @@
         .modal-main-img { width: 100%; height: 200px; object-fit: cover; border-radius: 16px; }
         .modal-thumbnails { display: flex; gap: 10px; margin: 15px 0; overflow-x: auto; }
         .modal-thumbnails img { width: 60px; height: 60px; object-fit: cover; border-radius: 10px; cursor: pointer; border: 2px solid #e2e8f0; }
-        .modal-thumbnails img:hover { border-color: #3b82f6; }
         .seller-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #3b82f6; }
         .role-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; background: #dbeafe; color: #1e40af; }
         .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; z-index: 1000; display: none; font-size: 14px; }
@@ -115,6 +162,8 @@
         <div class="logo-3d">🌍</div>
     </div>
     <div class="header-right">
+        <button class="dark-mode-toggle" id="darkModeToggle">🌙</button>
+        <div class="notification-bell" id="notificationBell">🔔<span class="notification-badge" id="notificationCount">0</span></div>
         <select id="currencySelect" class="currency-dropdown">
             <option value="SAR">🇸🇦 SAR</option>
             <option value="USD">🇺🇸 USD $</option>
@@ -137,6 +186,11 @@
     </div>
 </div>
 
+<div class="notification-panel" id="notificationPanel">
+    <div style="padding: 12px; font-weight: bold; border-bottom: 1px solid #e2e8f0;">🔔 Notifications</div>
+    <div id="notificationsList"></div>
+</div>
+
 <div class="drawer-overlay" id="drawerOverlay"></div>
 <div class="drawer" id="drawer">
     <div class="drawer-header"><h2>GlobalBazaar 🌍</h2><p style="font-size:12px;">Multi‑Seller Hub</p></div>
@@ -154,6 +208,20 @@
 
 <div class="container">
     <div id="buyerSection" class="section active">
+        <div class="filter-bar">
+            <select id="sortSelect" class="filter-select">
+                <option value="default">Sort by: Default</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="rating">Rating: High to Low</option>
+            </select>
+            <div class="price-range">
+                <input type="number" id="minPrice" placeholder="Min $" step="1">
+                <span>-</span>
+                <input type="number" id="maxPrice" placeholder="Max $" step="1">
+                <button id="filterBtn" class="filter-select">🔍 Filter</button>
+            </div>
+        </div>
         <div class="cat-scroll" id="catList"></div>
         <div class="search-container"><input type="text" id="searchInput" placeholder="🔍 Search products..."></div>
         <div class="product-grid" id="productsGrid"></div>
@@ -212,6 +280,15 @@
                 <input type="email" id="loginEmail" placeholder="Email" class="input">
                 <input type="password" id="loginPass" placeholder="Password" class="input">
                 <button class="btn-primary" id="doLoginBtn">Login</button>
+                <div class="otp-login-section">
+                    <p style="text-align:center; margin-bottom:10px;">🔐 OR Login with OTP</p>
+                    <input type="tel" id="otpLoginPhone" placeholder="Phone Number with Country Code" class="input">
+                    <button id="sendOtpBtn" class="btn-secondary">Send OTP</button>
+                    <div id="otpVerifySection" style="display:none; margin-top:10px;">
+                        <input type="text" id="otpCode" placeholder="Enter OTP" class="input">
+                        <button id="verifyOtpLoginBtn" class="btn-primary">Verify & Login</button>
+                    </div>
+                </div>
                 <p style="text-align:center; margin-top:10px;"><span class="legal-link" onclick="showSignup()">Create new account</span></p>
             </div>
             <div id="signupFormDiv" style="display:none;">
@@ -322,8 +399,16 @@
         <p id="modalDesc"></p>
         <div id="modalPriceBreakdown" style="font-size:12px; color:#64748b; margin:10px 0;"></div>
         <h3 id="modalPrice"></h3>
+        <div class="rating-stars" id="modalRatingStars"></div>
+        <div id="productReviews" style="margin: 15px 0; max-height: 200px; overflow-y: auto;"></div>
+        <div id="addReviewSection" style="margin: 15px 0;">
+            <textarea id="reviewText" placeholder="Write a review..." rows="2" style="width:100%; padding:10px; border-radius:12px; border:1px solid #e2e8f0;"></textarea>
+            <div class="rating-stars" id="reviewStars"></div>
+            <button id="submitReviewBtn" class="btn-secondary" style="margin-top:10px;">Submit Review</button>
+        </div>
         <button class="btn-primary" id="modalAddCartBtn">Add to Cart</button>
         <button class="btn-primary" id="modalAddWishBtn" style="background:#64748b; margin-top:10px;">❤️ Wishlist</button>
+        <button class="whatsapp-share" id="whatsappShareBtn">📱 Share on WhatsApp</button>
     </div>
 </div>
 
@@ -350,6 +435,188 @@
         } catch(e) { return false; }
     }
 
+    // ============ NOTIFICATION SYSTEM ============
+    let notifications = JSON.parse(localStorage.getItem('gb_notifications')) || [];
+    
+    function addNotification(message, type = 'info') {
+        let notif = { id: Date.now(), message, type, date: new Date().toLocaleString(), read: false };
+        notifications.unshift(notif);
+        if(notifications.length > 50) notifications.pop();
+        localStorage.setItem('gb_notifications', JSON.stringify(notifications));
+        updateNotificationUI();
+        showToast(message, false);
+    }
+    
+    function updateNotificationUI() {
+        let unreadCount = notifications.filter(n => !n.read).length;
+        document.getElementById('notificationCount').innerText = unreadCount;
+        let listHtml = notifications.map(n => `<div class="notification-item" data-id="${n.id}" style="${n.read ? 'opacity:0.6' : ''}">
+            <strong>${n.type === 'order' ? '🛍️' : (n.type === 'payment' ? '💰' : 'ℹ️')}</strong> ${n.message}<br>
+            <small>${n.date}</small>
+        </div>`).join('');
+        if(notifications.length === 0) listHtml = '<div style="padding:20px; text-align:center;">No notifications</div>';
+        document.getElementById('notificationsList').innerHTML = listHtml;
+        document.querySelectorAll('.notification-item').forEach(el => {
+            el.addEventListener('click', () => {
+                let id = parseInt(el.dataset.id);
+                let notif = notifications.find(n => n.id === id);
+                if(notif) notif.read = true;
+                localStorage.setItem('gb_notifications', JSON.stringify(notifications));
+                updateNotificationUI();
+            });
+        });
+    }
+    
+    document.getElementById('notificationBell')?.addEventListener('click', () => {
+        let panel = document.getElementById('notificationPanel');
+        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    });
+    document.addEventListener('click', (e) => {
+        if(!e.target.closest('.notification-bell') && !e.target.closest('#notificationPanel')) {
+            document.getElementById('notificationPanel').style.display = 'none';
+        }
+    });
+    
+    // ============ DARK MODE ============
+    let isDarkMode = localStorage.getItem('darkMode') === 'true';
+    if(isDarkMode) document.body.classList.add('dark-mode');
+    document.getElementById('darkModeToggle')?.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        document.getElementById('darkModeToggle').innerText = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+    });
+    
+    // ============ RATINGS & REVIEWS ============
+    let productReviews = JSON.parse(localStorage.getItem('gb_reviews')) || {};
+    
+    function renderRatingStars(productId, containerId, size = 'large') {
+        let reviews = productReviews[productId] || [];
+        let avgRating = reviews.length ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) : 0;
+        let html = `<div class="rating-display"><span class="rating-badge">⭐ ${avgRating}</span><span>(${reviews.length} reviews)</span></div>`;
+        let starContainer = document.getElementById(containerId);
+        if(starContainer) starContainer.innerHTML = html;
+        return avgRating;
+    }
+    
+    function renderReviewStars(containerId, onRatingSelect) {
+        let container = document.getElementById(containerId);
+        if(!container) return;
+        container.innerHTML = '';
+        for(let i=1; i<=5; i++) {
+            let star = document.createElement('span');
+            star.innerHTML = '☆';
+            star.style.cssText = 'font-size:28px; cursor:pointer; color:#cbd5e1;';
+            star.addEventListener('mouseenter', () => { for(let s of container.children) s.innerHTML = '☆'; for(let j=0; j<i; j++) container.children[j].innerHTML = '★'; });
+            star.addEventListener('mouseleave', () => { let current = onRatingSelect.currentRating || 0; for(let j=0; j<container.children.length; j++) container.children[j].innerHTML = j < current ? '★' : '☆'; });
+            star.addEventListener('click', () => { onRatingSelect.currentRating = i; onRatingSelect(i); });
+            container.appendChild(star);
+        }
+    }
+    
+    function addReview(productId, rating, reviewText, userName) {
+        if(!productReviews[productId]) productReviews[productId] = [];
+        productReviews[productId].push({ rating, review: reviewText, userName, date: new Date().toLocaleString() });
+        localStorage.setItem('gb_reviews', JSON.stringify(productReviews));
+        addNotification(`New review added for product!`, 'info');
+        if(currentProduct) openProduct(productId);
+    }
+    
+    // ============ ADVANCED FILTERS ============
+    let currentSort = 'default';
+    let minPriceFilter = null;
+    let maxPriceFilter = null;
+    
+    function filterAndSortProducts(productsToFilter) {
+        let filtered = [...productsToFilter];
+        if(minPriceFilter !== null) filtered = filtered.filter(p => p.price >= minPriceFilter);
+        if(maxPriceFilter !== null) filtered = filtered.filter(p => p.price <= maxPriceFilter);
+        
+        if(currentSort === 'price_asc') filtered.sort((a,b) => a.price - b.price);
+        else if(currentSort === 'price_desc') filtered.sort((a,b) => b.price - a.price);
+        else if(currentSort === 'rating') {
+            filtered.sort((a,b) => {
+                let reviewsA = productReviews[a.id] || [];
+                let reviewsB = productReviews[b.id] || [];
+                let avgA = reviewsA.length ? reviewsA.reduce((s,r)=>s+r.rating,0)/reviewsA.length : 0;
+                let avgB = reviewsB.length ? reviewsB.reduce((s,r)=>s+r.rating,0)/reviewsB.length : 0;
+                return avgB - avgA;
+            });
+        }
+        return filtered;
+    }
+    
+    // ============ WHATSAPP SHARE ============
+    function shareOnWhatsApp(product, price) {
+        let text = `Check out this product on GlobalBazaar!\n\n📦 ${product.name}\n💰 Price: ${getCurrencySymbol()}${convertPrice(price)}\n🔗 Shop now on GlobalBazaar!`;
+        let url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+        window.open(url, '_blank');
+    }
+    
+    // ============ TRACKING MAP ============
+    function renderTrackingMap(order) {
+        let steps = [
+            { name: 'Order Placed', status: order.status !== 'Processing' ? 'completed' : (order.status === 'Processing' ? 'active' : 'pending') },
+            { name: 'Processing', status: order.status !== 'Processing' ? 'completed' : 'active' },
+            { name: 'Shipped', status: order.status === 'Shipped' || order.status === 'Delivered' || order.status === 'Completed' ? 'completed' : (order.status === 'Processing' ? 'pending' : 'pending') },
+            { name: 'Delivered', status: order.status === 'Delivered' || order.status === 'Completed' ? 'completed' : 'pending' }
+        ];
+        return `<div class="tracking-map">
+            <div class="tracking-steps">
+                ${steps.map(s => `<div class="tracking-step ${s.status === 'completed' ? 'active' : (s.status === 'active' ? 'active' : '')}">${s.name}</div>`).join('')}
+            </div>
+            <div style="margin-top:15px;">📮 Tracking #: ${order.trackingNumber || 'Generating...'}</div>
+        </div>`;
+    }
+    
+    // ============ OTP LOGIN SYSTEM ============
+    let otpPendingPhone = null;
+    
+    document.getElementById('sendOtpBtn')?.addEventListener('click', () => {
+        let phone = document.getElementById('otpLoginPhone').value;
+        if(!phone || phone.length < 8) { showToast("Enter valid phone number", true); return; }
+        otpPendingPhone = phone;
+        alert(`📱 OTP sent to ${phone}\n🔑 Your OTP is: 123456 (Demo)`);
+        document.getElementById('otpVerifySection').style.display = 'block';
+    });
+    
+    document.getElementById('verifyOtpLoginBtn')?.addEventListener('click', () => {
+        let otp = document.getElementById('otpCode').value;
+        if(otp === "123456" && otpPendingPhone) {
+            let existingUser = [...buyers, ...sellers.map(s => ({...s, role: 'seller', name: s.fullName, email: s.email, password: s.password, phone: s.phone}))].find(u => u.phone === otpPendingPhone);
+            if(existingUser) {
+                currentUser = existingUser.role === 'seller' ? { name: existingUser.fullName, email: existingUser.email, role: 'seller', sellerId: existingUser.id, phone: existingUser.phone } : existingUser;
+                saveAll();
+                document.getElementById('profileAuthBox').style.display='none';
+                document.getElementById('buyerProfilePanel').style.display='block';
+                document.getElementById('profileName').innerText = currentUser.name;
+                document.getElementById('profileRoleBadge').innerText = currentUser.role || 'Buyer';
+                renderBuyerOrders(); renderBuyerWishlist();
+                showToast(`Welcome ${currentUser.name}!`, false);
+                addNotification(`Welcome back ${currentUser.name}!`, 'info');
+            } else {
+                showToast("No account found with this number. Please sign up first.", true);
+            }
+        } else { showToast("Invalid OTP! Use 123456", true); }
+    });
+    
+    // ============ SELLER ANALYTICS UPGRADE ============
+    function renderEnhancedSellerAnalytics(seller) {
+        let myOrders = orders.filter(o => o.sellerId === seller.id);
+        let monthlyData = {};
+        let topProducts = {};
+        myOrders.forEach(o => {
+            let month = new Date(o.date).toLocaleString('default', { month: 'short', year: 'numeric' });
+            monthlyData[month] = (monthlyData[month] || 0) + o.amount;
+            topProducts[o.productName] = (topProducts[o.productName] || 0) + o.qty;
+        });
+        let topProductsList = Object.entries(topProducts).sort((a,b) => b[1] - a[1]).slice(0,5);
+        return `<div class="premium-card">
+            <h3>📊 Advanced Analytics</h3>
+            <div><strong>Top Selling Products:</strong><br>${topProductsList.map(p => `📦 ${p[0]}: ${p[1]} sold`).join('<br>') || 'No sales yet'}</div>
+            <div style="margin-top:10px;"><strong>Monthly Breakdown:</strong><br>${Object.entries(monthlyData).map(([m,amt]) => `${m}: ${getCurrencySymbol()}${convertPrice(amt)}`).join('<br>') || 'No data'}</div>
+        </div>`;
+    }
+    
     // ============ 195+ COUNTRY CODES WITH SEARCH ============
     const countryCodes = [
         { code: "+93", name: "Afghanistan", flag: "🇦🇫" }, { code: "+355", name: "Albania", flag: "🇦🇱" }, { code: "+213", name: "Algeria", flag: "🇩🇿" },
@@ -669,10 +936,13 @@
     function renderProducts() {
         let search = document.getElementById('searchInput')?.value.toLowerCase() || "";
         let filtered = products.filter(p => (currentCategory==="All" || p.category===currentCategory) && p.name.toLowerCase().includes(search));
+        filtered = filterAndSortProducts(filtered);
         let sellerMap = new Map(sellers.map(s=>[s.id, s]));
         let html = filtered.map(p => {
             let seller = sellerMap.get(p.sellerId) || {shopName:"GlobalBazaar", country:"SA"};
             let final = calculateFinalPrice(p.price, seller.country, buyerCountry);
+            let reviews = productReviews[p.id] || [];
+            let avgRating = reviews.length ? (reviews.reduce((sum,r)=>sum+r.rating,0)/reviews.length).toFixed(1) : 0;
             return `<div class="product-card" data-id="${p.id}">
                         <img class="main-img" src="${p.mainImage}" alt="${p.name}">
                         <div class="product-thumbnails">
@@ -680,6 +950,7 @@
                         </div>
                         <div class="seller-name-tag">🏪 ${seller.shopName}</div>
                         <h4>${p.name}</h4>
+                        <div class="rating-display"><span class="rating-badge">⭐ ${avgRating}</span></div>
                         <div class="prod-price">${getCurrencySymbol()}${convertPrice(final.total)}</div>
                         <div class="card-actions">
                             <button class="btn-sm btn-buy addCartBtn" data-id="${p.id}">Buy</button>
@@ -693,12 +964,21 @@
         document.querySelectorAll('.product-card').forEach(card => card.addEventListener('click', () => openProduct(parseInt(card.dataset.id))));
     }
     
+    document.getElementById('sortSelect')?.addEventListener('change', (e) => { currentSort = e.target.value; renderProducts(); });
+    document.getElementById('filterBtn')?.addEventListener('click', () => {
+        minPriceFilter = document.getElementById('minPrice').value ? parseFloat(document.getElementById('minPrice').value) : null;
+        maxPriceFilter = document.getElementById('maxPrice').value ? parseFloat(document.getElementById('maxPrice').value) : null;
+        renderProducts();
+    });
+    
     function changeProductImage(productId, imageUrl) {
         const modalMainImg = document.getElementById('modalMainImg');
         if(modalMainImg) modalMainImg.src = imageUrl;
     }
     
     let currentProduct = null;
+    let currentRatingHandler = { currentRating: 0 };
+    
     function openProduct(id) {
         let p = products.find(x=>x.id===id);
         if(!p) return;
@@ -715,6 +995,28 @@
         if(thumbContainer && p.images && p.images.length > 0) {
             thumbContainer.innerHTML = p.images.map(img => `<img src="${img}" onclick="changeProductImage(${p.id}, '${img}')">`).join('');
         }
+        
+        let reviews = productReviews[p.id] || [];
+        let avgRating = reviews.length ? (reviews.reduce((sum,r)=>sum+r.rating,0)/reviews.length).toFixed(1) : 0;
+        document.getElementById('modalRatingStars').innerHTML = `<div class="rating-display"><span class="rating-badge">⭐ ${avgRating}</span><span>(${reviews.length} reviews)</span></div>`;
+        document.getElementById('productReviews').innerHTML = reviews.map(r => `<div class="review-item"><strong>${r.userName || 'User'}</strong> ⭐${r.rating}<br>${r.review}<br><small>${r.date}</small></div>`).join('');
+        
+        currentRatingHandler.currentRating = 0;
+        renderReviewStars('reviewStars', currentRatingHandler);
+        
+        document.getElementById('whatsappShareBtn').onclick = () => shareOnWhatsApp(p, final.total);
+        
+        document.getElementById('submitReviewBtn').onclick = () => {
+            if(!currentUser) { showToast("Please login to review", true); return; }
+            let reviewText = document.getElementById('reviewText').value;
+            if(!reviewText) { showToast("Please write a review", true); return; }
+            if(currentRatingHandler.currentRating === 0) { showToast("Please select a rating", true); return; }
+            addReview(p.id, currentRatingHandler.currentRating, reviewText, currentUser.name);
+            document.getElementById('reviewText').value = '';
+            currentRatingHandler.currentRating = 0;
+            renderReviewStars('reviewStars', currentRatingHandler);
+        };
+        
         document.getElementById('productModal').style.display = 'block';
     }
     
@@ -728,6 +1030,7 @@
         updateCartUI();
         renderCartPage();
         showToast("Added to cart", false);
+        addNotification(`${p.name} added to cart!`, 'info');
     }
     
     function updateCartUI() { document.getElementById('cartCountBadge').innerText = cart.reduce((a,b)=>a+b.qty,0); }
@@ -871,6 +1174,7 @@
         
         saveAll();
         await sendTelegramMessage(`🛍️ NEW ORDER!\nOrder: ${tracking}\nCustomer: ${currentUser.name}\nAmount: ${getCurrencySymbol()}${convertPrice(totalUSD)}`);
+        addNotification(`New order placed! Order #${tracking}`, 'order');
         
         cart = [];
         saveAll();
@@ -894,6 +1198,7 @@
             showToast("Order marked as Delivered!", false);
             renderBuyerOrders();
             renderSellerDashboard();
+            addNotification(`Order ${order.trackingNumber} delivered! Thank you!`, 'order');
             setTimeout(() => {
                 let ord = orders.find(o => o.id === orderId);
                 if(ord && ord.status === "Delivered") {
@@ -920,6 +1225,7 @@
             showToast(`Order marked as Shipped! Tracking: ${trackingNum}`, false);
             renderSellerDashboard();
             renderBuyerOrders();
+            addNotification(`Your order ${order.trackingNumber} has been shipped! Tracking: ${trackingNum}`, 'order');
         }
     }
     
@@ -933,6 +1239,7 @@
             showToast(`Withdrawal request submitted!`, false);
             renderSellerDashboard();
             sendTelegramMessage(`💰 Withdrawal Request\nSeller: ${seller.shopName}\nAmount: ${getCurrencySymbol()}${convertPrice(newWithdrawal.amount)}`);
+            addNotification(`Withdrawal request submitted for ${getCurrencySymbol()}${convertPrice(newWithdrawal.amount)}`, 'payment');
         } else { showToast("No balance to withdraw", true); }
     }
     
@@ -993,6 +1300,7 @@
             renderSellerDashboard();
             showToast("Shop Registered! KYC Pending.", false);
             await sendTelegramMessage(`🏪 New Seller: ${newSeller.shopName}\nOwner: ${newSeller.fullName}\nEmail: ${newSeller.email}`);
+            addNotification(`Welcome ${newSeller.shopName}! Complete KYC to start selling.`, 'info');
         };
         reader.readAsDataURL(avatar);
     });
@@ -1026,8 +1334,9 @@
         document.getElementById('sellerDashboard').innerHTML = `
             <div class="premium-card"><div class="flex-between"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📍 ${seller.city}, ${seller.country}</p></div><div><span class="kyc-status ${kycClass}">${kycText}</span><br><span class="role-badge">Seller ID: ${seller.id}</span></div></div><div class="flex-between"><span>🏦 ${seller.bankName} - ${seller.accountNo}</span><span>💰 Balance: ${getCurrencySymbol()}${convertPrice(seller.earnings)}</span></div><div class="flex-between"><span>📊 Total Sales: ${getCurrencySymbol()}${convertPrice(totalSales)}</span><span>💸 Total Withdrawn: ${getCurrencySymbol()}${convertPrice(seller.totalWithdrawn || 0)}</span></div>${seller.kycStatus === "verified" ? '<button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Request Withdrawal</button>' : '<button class="btn-primary" style="background:#64748b;" disabled>🔒 KYC Required</button>'}</div>
             <div class="chart-container"><h3>📊 Revenue Chart (Monthly)</h3><canvas id="revenueChart"></canvas></div>
+            ${renderEnhancedSellerAnalytics(seller)}
             ${seller.kycStatus === "verified" ? `
-            <div class="premium-card"><h3>➕ Add New Product</h3><input type="text" id="prodName" placeholder="Product Name" class="input"><input type="number" id="prodPrice" placeholder="Price (USD)" class="input"><select id="prodCat" class="input"><option>Electronics</option><option>Fashion</option><option>Home</option></select><input type="url" id="prodImg" placeholder="Image URL" class="input"><textarea id="prodDesc" placeholder="Product Description" class="input" rows="3"></textarea><button id="publishBtn" class="btn-primary">Publish Product</button></div>
+            <div class="premium-card"><h3>➕ Add New Product</h3><input type="text" id="prodName" placeholder="Product Name" class="input"><input type="number" id="prodPrice" placeholder="Price (USD)" class="input"><select id="prodCat" class="input"><option>Electronics</option><option>Fashion</option><option>Home</option><option>Textile</option><option>Cosmetic</option></select><input type="url" id="prodImg" placeholder="Image URL" class="input"><textarea id="prodDesc" placeholder="Product Description" class="input" rows="3"></textarea><button id="publishBtn" class="btn-primary">Publish Product</button></div>
             <div class="premium-card"><h3>📋 My Products (${myProducts.length})</h3><div id="myProductsList"></div></div>
             <div class="premium-card"><h3>📦 Orders Received (${myOrders.length})</h3><div id="ordersList"></div></div>
             ` : `<div class="premium-card"><h3>⚠️ ${kycText}</h3><p>Your KYC documents are under review by admin.<br><br><strong>Documents submitted:</strong> ${seller.docType} - ${seller.docNumber}</p></div>`}
@@ -1060,10 +1369,11 @@
                 saveAll();
                 renderSellerDashboard(); renderProducts(); showToast("Published!", false);
                 sendTelegramMessage(`📦 New Product: ${name}\nShop: ${seller.shopName}\nPrice: ${getCurrencySymbol()}${convertPrice(price)}`);
+                addNotification(`New product "${name}" published!`, 'info');
             });
             document.getElementById('myProductsList').innerHTML = myProducts.map(p => `<div class="flex-between"><span>📦 ${p.name} - ${getCurrencySymbol()}${convertPrice(p.price)}</span><button class="delProd" data-id="${p.id}" style="background:#dc2626; border:none; padding:6px 14px; border-radius:30px;">Delete</button></div>`).join('');
             document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', () => { products = products.filter(p=>p.id!==parseInt(btn.dataset.id)); saveAll(); renderSellerDashboard(); renderProducts(); showToast("Product deleted", false); }));
-            document.getElementById('ordersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 Order #${o.trackingNumber}</strong><br>Product: ${o.productName} x${o.qty}<br>Amount: ${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: <span style="color:${o.status==='Processing'?'#d97706':(o.status==='Shipped'?'#3b82f6':'#10b981')}">${o.status}</span><br>Buyer: ${o.buyerName}<br>Address: ${o.address}<br>Date: ${o.date}<br>${o.status === "Processing" ? `<button class="shipBtn" data-id="${o.id}" style="background:#3b82f6; margin-top:10px; padding:8px 16px; border-radius:30px;">📦 Mark as Shipped</button>` : ''}${o.status === "Shipped" ? `<br><span style="font-size:11px;">Tracking: ${o.trackingInfo}</span>` : ''}</div>`).join('');
+            document.getElementById('ordersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 Order #${o.trackingNumber}</strong><br>Product: ${o.productName} x${o.qty}<br>Amount: ${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: <span style="color:${o.status==='Processing'?'#d97706':(o.status==='Shipped'?'#3b82f6':'#10b981')}">${o.status}</span><br>Buyer: ${o.buyerName}<br>Address: ${o.address}<br>Date: ${o.date}<br>${renderTrackingMap(o)}<br>${o.status === "Processing" ? `<button class="shipBtn" data-id="${o.id}" style="background:#3b82f6; margin-top:10px; padding:8px 16px; border-radius:30px;">📦 Mark as Shipped</button>` : ''}${o.status === "Shipped" ? `<br><span style="font-size:11px;">Tracking: ${o.trackingInfo}</span>` : ''}</div>`).join('');
             document.querySelectorAll('.shipBtn').forEach(btn => btn.addEventListener('click', () => { let track = prompt("Enter tracking number:"); if(track) markOrderShipped(parseFloat(btn.dataset.id), track); }));
             document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
         }
@@ -1072,7 +1382,7 @@
     function renderBuyerOrders() {
         if(!currentUser) return;
         let myOrders = orders.filter(o=>o.buyerEmail===currentUser.email);
-        document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 Order #${o.trackingNumber}</strong><br>Product: ${o.productName} x${o.qty}<br>Amount: ${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: <span style="color:${o.status==='Processing'?'#d97706':(o.status==='Shipped'?'#3b82f6':'#10b981')}">${o.status}</span><br>Delivery: ${o.address}<br>Date: ${o.date}<br>${o.trackingInfo ? `📮 Tracking: ${o.trackingInfo}<br>` : ''}${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981; margin-top:10px; padding:8px 16px; border-radius:30px;">✅ I have received the product</button>` : ''}</div>`).join('');
+        document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 Order #${o.trackingNumber}</strong><br>Product: ${o.productName} x${o.qty}<br>Amount: ${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: <span style="color:${o.status==='Processing'?'#d97706':(o.status==='Shipped'?'#3b82f6':'#10b981')}">${o.status}</span><br>Delivery: ${o.address}<br>Date: ${o.date}<br>${renderTrackingMap(o)}<br>${o.trackingInfo ? `📮 Tracking: ${o.trackingInfo}<br>` : ''}${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981; margin-top:10px; padding:8px 16px; border-radius:30px;">✅ I have received the product</button>` : ''}</div>`).join('');
         document.querySelectorAll('.confirmReceivedBtn').forEach(btn => btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id))));
     }
     
@@ -1094,7 +1404,8 @@
             document.getElementById('profileName').innerText = user.name; 
             document.getElementById('profileRoleBadge').innerText = user.role || 'Buyer'; 
             renderBuyerOrders(); renderBuyerWishlist(); 
-            showToast(`Welcome back, ${user.name}!`, false); 
+            showToast(`Welcome back, ${user.name}!`, false);
+            addNotification(`Welcome back ${user.name}!`, 'info');
         } else { 
             let seller = sellers.find(s=>s.email===email && s.password===pass); 
             if(seller) { 
@@ -1104,7 +1415,8 @@
                 document.getElementById('buyerProfilePanel').style.display='block'; 
                 document.getElementById('profileName').innerText = seller.fullName; 
                 document.getElementById('profileRoleBadge').innerText = 'Seller'; 
-                showToast(`Welcome back, ${seller.shopName}!`, false); 
+                showToast(`Welcome back, ${seller.shopName}!`, false);
+                addNotification(`Welcome back ${seller.shopName}!`, 'info');
             } else showToast("Invalid credentials", true); 
         }
     });
@@ -1132,6 +1444,7 @@
         document.getElementById('profileRoleBadge').innerText = role;
         renderBuyerOrders(); renderBuyerWishlist(); 
         showToast(`Account created! Welcome ${name}!`, false);
+        addNotification(`Welcome to GlobalBazaar ${name}!`, 'info');
     });
     
     document.getElementById('logoutBuyerBtn')?.addEventListener('click', () => { currentUser = null; saveAll(); location.reload(); });
@@ -1151,13 +1464,13 @@
         
         document.querySelectorAll('.verifyKycBtn').forEach(btn => btn.addEventListener('click', async () => { 
             let seller = sellers.find(s => s.id === parseInt(btn.dataset.id)); 
-            if(seller) { seller.kycStatus = "verified"; saveAll(); loadAdminData(); showToast(`${seller.shopName} Verified!`, false); await sendTelegramMessage(`✅ KYC Verified: ${seller.shopName}`); } 
+            if(seller) { seller.kycStatus = "verified"; saveAll(); loadAdminData(); showToast(`${seller.shopName} Verified!`, false); await sendTelegramMessage(`✅ KYC Verified: ${seller.shopName}`); addNotification(`${seller.shopName} KYC Verified!`, 'info'); } 
         }));
         document.querySelectorAll('.rejectKycBtn').forEach(btn => btn.addEventListener('click', async () => { 
             let reason = prompt("Rejection reason:"); 
             if(reason) { 
                 let seller = sellers.find(s => s.id === parseInt(btn.dataset.id)); 
-                if(seller) { seller.kycStatus = "rejected"; seller.rejectionReason = reason; saveAll(); loadAdminData(); showToast(`${seller.shopName} Rejected!`, false); await sendTelegramMessage(`❌ KYC Rejected: ${seller.shopName}\nReason: ${reason}`); } 
+                if(seller) { seller.kycStatus = "rejected"; seller.rejectionReason = reason; saveAll(); loadAdminData(); showToast(`${seller.shopName} Rejected!`, false); await sendTelegramMessage(`❌ KYC Rejected: ${seller.shopName}\nReason: ${reason}`); addNotification(`${seller.shopName} KYC Rejected!`, 'info'); } 
             } 
         }));
         
@@ -1165,7 +1478,7 @@
         document.getElementById('pendingWithdrawals').innerHTML = pendingWithdrawals.map(w => `<div class="flex-between order-card"><span>💰 ${getCurrencySymbol()}${convertPrice(w.amount)} - ${w.sellerName}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981;">Approve</button></div>`).join('');
         document.querySelectorAll('.approveBtn').forEach(btn => btn.addEventListener('click', async () => { 
             let w = pendingWithdrawals.find(w=>w.id===parseInt(btn.dataset.id)); 
-            if(w) { w.status = "Approved"; w.approvedDate = new Date().toLocaleString(); saveAll(); loadAdminData(); showToast(`Approved ${getCurrencySymbol()}${convertPrice(w.amount)}`, false); await sendTelegramMessage(`💰 Withdrawal Approved: ${w.sellerName}\nAmount: ${getCurrencySymbol()}${convertPrice(w.amount)}`); } 
+            if(w) { w.status = "Approved"; w.approvedDate = new Date().toLocaleString(); saveAll(); loadAdminData(); showToast(`Approved ${getCurrencySymbol()}${convertPrice(w.amount)}`, false); await sendTelegramMessage(`💰 Withdrawal Approved: ${w.sellerName}\nAmount: ${getCurrencySymbol()}${convertPrice(w.amount)}`); addNotification(`Withdrawal approved for ${w.sellerName}!`, 'payment'); } 
         }));
         document.getElementById('adminOrdersList').innerHTML = orders.map(o => `<div class="order-card">🔖 ${o.trackingNumber}<br>${o.productName} x${o.qty}<br>${o.buyerName}<br>Status: ${o.status}</div>`).join('');
     }
@@ -1204,8 +1517,10 @@
     renderCats();
     renderProducts();
     updateCartUI();
+    updateNotificationUI();
     
-    console.log("✅ GlobalBazaar with 3 Products (Electronics, Textile, Cosmetic) and Multiple Photos - Firebase Removed!");
+    console.log("✅ GlobalBazaar with 8 New Features Added! 🚀");
+    console.log("Features: Dark Mode | Notifications | Ratings & Reviews | Advanced Filters | WhatsApp Share | Tracking Map | OTP Login | Enhanced Analytics");
 </script>
 </body>
 </html>
