@@ -20,7 +20,10 @@
         body.dark-mode .input, body.dark-mode select, body.dark-mode textarea { background: #334155; color: white; border-color: #475569; }
         body.dark-mode .drawer-item:hover { background: #334155; }
         
-        .dark-mode-toggle { background: linear-gradient(145deg, #1e293b, #0f172a); border: none; padding: 8px 14px; border-radius: 40px; cursor: pointer; font-size: 16px; }
+        /* Dark mode toggle in menu */
+        .dark-mode-menu-item { display: flex; align-items: center; gap: 14px; padding: 14px 20px; font-weight: 600; font-size: 16px; cursor: pointer; margin: 4px 12px; border-radius: 14px; }
+        .dark-mode-menu-item:hover { background: #f1f5f9; }
+        body.dark-mode .dark-mode-menu-item:hover { background: #334155; }
         
         /* RATING STYLES */
         .rating-stars { display: flex; gap: 5px; margin: 10px 0; }
@@ -31,14 +34,13 @@
         .review-item { background: #f8fafc; padding: 12px; border-radius: 12px; margin-bottom: 10px; }
         body.dark-mode .review-item { background: #334155; }
         
-        /* FILTER BAR */
-        .filter-bar { display: flex; gap: 10px; margin: 15px 0; flex-wrap: wrap; }
-        .filter-select { padding: 8px 16px; border-radius: 40px; border: 1px solid #e2e8f0; background: white; cursor: pointer; }
-        .price-range { display: flex; gap: 10px; align-items: center; }
-        .price-range input { width: 80px; padding: 8px; border-radius: 12px; border: 1px solid #e2e8f0; }
+        /* PRODUCT THUMBNAILS - FIXED */
+        .product-thumbnails { display: flex; gap: 6px; margin-top: 8px; overflow-x: auto; }
+        .product-thumbnails img { width: 50px; height: 50px; object-fit: cover; border-radius: 10px; cursor: pointer; border: 1px solid #e2e8f0; }
+        .product-thumbnails img:hover { border-color: #3b82f6; }
         
         /* NOTIFICATION */
-        .notification-bell { position: relative; cursor: pointer; font-size: 22px; }
+        .notification-bell { position: relative; cursor: pointer; font-size: 22px; background: none; border: none; }
         .notification-badge { position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; font-size: 10px; padding: 2px 6px; border-radius: 50%; }
         .notification-panel { position: fixed; top: 70px; right: 20px; width: 300px; max-height: 400px; background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 1000; display: none; overflow-y: auto; }
         body.dark-mode .notification-panel { background: #1e293b; }
@@ -46,19 +48,7 @@
         .notification-item:hover { background: #f1f5f9; }
         body.dark-mode .notification-item:hover { background: #334155; }
         
-        /* TRACKING MAP */
-        .tracking-map { background: #f1f5f9; border-radius: 16px; padding: 15px; text-align: center; margin-top: 10px; }
-        .tracking-steps { display: flex; justify-content: space-between; margin-top: 15px; flex-wrap: wrap; }
-        .tracking-step { text-align: center; flex: 1; font-size: 10px; color: #64748b; }
-        .tracking-step.active { color: #3b82f6; font-weight: bold; }
-        
-        /* OTP LOGIN */
-        .otp-login-section { margin-top: 15px; padding: 15px; background: #f1f5f9; border-radius: 16px; }
-        body.dark-mode .otp-login-section { background: #334155; }
-        
-        /* WHATSAPP SHARE */
-        .whatsapp-share { background: #25D366; color: white; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; }
-        
+        /* HEADER - RIGHT SIDE ALIGNMENT */
         .header-3d { background: linear-gradient(145deg, #ffffff, #f0f4fa); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 10px 25px -8px rgba(0,0,0,0.15); border-bottom: 1px solid rgba(59,130,246,0.15); flex-wrap: wrap; gap: 10px; }
         .header-left { display: flex; align-items: center; gap: 15px; }
         .header-right { display: flex; align-items: center; gap: 10px; }
@@ -66,12 +56,15 @@
         .brand-3d { font-weight: 800; font-size: 28px; background: linear-gradient(135deg, #1e3a8a, #3b82f6, #06b6d4); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .logo-3d { font-size: 32px; background: radial-gradient(circle at 35% 35%, #ffdd77, #ffaa33); border-radius: 50%; padding: 5px; }
         .currency-dropdown { background: linear-gradient(145deg, #1e2a4a, #0f172f); border: none; padding: 8px 14px; border-radius: 40px; color: #FFD966; font-size: 13px; font-weight: bold; cursor: pointer; }
+        
+        /* DRAWER */
         .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); z-index: 200; display: none; }
         .drawer { position: fixed; top: 0; left: -85%; width: 75%; max-width: 280px; height: 100%; background: white; z-index: 201; transition: left 0.3s ease; border-radius: 0 24px 24px 0; padding: 20px 0; overflow-y: auto; }
         .drawer.open { left: 0; }
         .drawer-header { padding: 20px; border-bottom: 1px solid #eef2f8; }
         .drawer-item { display: flex; align-items: center; gap: 14px; padding: 14px 20px; font-weight: 600; font-size: 16px; cursor: pointer; margin: 4px 12px; border-radius: 14px; }
         .drawer-item:hover { background: #f1f5f9; }
+        
         .container { max-width: 560px; margin: 0 auto; padding: 16px; }
         .section { display: none; }
         .section.active { display: block; }
@@ -84,9 +77,6 @@
         .product-card { background: white; border-radius: 20px; padding: 12px; cursor: pointer; border: 1px solid #eef2f8; transition: 0.2s; }
         .product-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
         .product-card .main-img { width: 100%; height: 140px; object-fit: cover; border-radius: 16px; }
-        .product-thumbnails { display: flex; gap: 6px; margin-top: 8px; }
-        .product-thumbnails img { width: 50px; height: 50px; object-fit: cover; border-radius: 10px; cursor: pointer; border: 1px solid #e2e8f0; }
-        .product-thumbnails img:hover { border-color: #3b82f6; }
         .seller-name-tag { font-size: 11px; color: #3b82f6; margin: 10px 0 6px; font-weight: 600; }
         .prod-price { font-weight: 800; font-size: 16px; color: #1e3a8a; margin-top: 6px; }
         .card-actions { display: flex; gap: 8px; margin-top: 12px; }
@@ -116,8 +106,6 @@
         .checkbox-group { display: flex; align-items: center; gap: 10px; margin: 15px 0; flex-wrap: wrap; }
         .legal-link { color: #3b82f6; text-decoration: none; cursor: pointer; }
         .footer-legal { text-align: center; padding: 20px; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; margin-top: 20px; }
-        .doc-section { background: #f8fafc; padding: 15px; border-radius: 16px; margin-bottom: 20px; }
-        .doc-title { font-weight: 700; margin-bottom: 12px; color: #1e3a8a; }
         .phone-group { display: flex; gap: 10px; margin-bottom: 14px; position: relative; }
         .phone-group select { width: 35%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; }
         .phone-group input { width: 65%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; margin-bottom: 0; }
@@ -137,18 +125,23 @@
         .delivery-form-row { display: flex; gap: 10px; margin-bottom: 14px; }
         .delivery-form-row input, .delivery-form-row select { flex: 1; padding: 12px; border: 1px solid #e2e8f0; border-radius: 16px; }
         .otp-section { display: none; margin-top: 10px; }
+        .whatsapp-share { background: #25D366; color: white; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; }
+        .tracking-map { background: #f1f5f9; border-radius: 16px; padding: 15px; text-align: center; margin-top: 10px; }
+        .tracking-steps { display: flex; justify-content: space-between; margin-top: 15px; flex-wrap: wrap; }
+        .tracking-step { text-align: center; flex: 1; font-size: 10px; color: #64748b; }
+        .tracking-step.active { color: #3b82f6; font-weight: bold; }
+        .filter-bar { display: flex; gap: 10px; margin: 15px 0; flex-wrap: wrap; }
+        .filter-select { padding: 8px 16px; border-radius: 40px; border: 1px solid #e2e8f0; background: white; cursor: pointer; }
+        .price-range { display: flex; gap: 10px; align-items: center; }
+        .price-range input { width: 80px; padding: 8px; border-radius: 12px; border: 1px solid #e2e8f0; }
+        
         @media (max-width: 600px) {
             .brand-3d { font-size: 18px; }
             .logo-3d { font-size: 24px; }
             .fixed-cart { padding: 12px 20px; font-size: 14px; bottom: 15px; right: 15px; }
             .currency-dropdown { font-size: 10px; padding: 4px 8px; }
-            .phone-group { flex-direction: column; }
-            .country-search-select { width: 100%; }
-            .phone-group select, .phone-group input { width: 100%; }
-            .delivery-form-row { flex-direction: column; }
             .product-thumbnails img { width: 40px; height: 40px; }
             .product-card .main-img { height: 120px; }
-            .modal-main-img { height: 180px; }
             .modal-thumbnails img { width: 50px; height: 50px; }
         }
     </style>
@@ -162,8 +155,7 @@
         <div class="logo-3d">🌍</div>
     </div>
     <div class="header-right">
-        <button class="dark-mode-toggle" id="darkModeToggle">🌙</button>
-        <div class="notification-bell" id="notificationBell">🔔<span class="notification-badge" id="notificationCount">0</span></div>
+        <button class="notification-bell" id="notificationBell">🔔<span class="notification-badge" id="notificationCount">0</span></button>
         <select id="currencySelect" class="currency-dropdown">
             <option value="SAR">🇸🇦 SAR</option>
             <option value="USD">🇺🇸 USD $</option>
@@ -194,6 +186,7 @@
 <div class="drawer-overlay" id="drawerOverlay"></div>
 <div class="drawer" id="drawer">
     <div class="drawer-header"><h2>GlobalBazaar 🌍</h2><p style="font-size:12px;">Multi‑Seller Hub</p></div>
+    <div class="dark-mode-menu-item" id="drawerDarkModeToggle">🌙 Dark Mode</div>
     <div class="drawer-item" id="drawerBuyer">🛒 Buyer Shopping</div>
     <div class="drawer-item" id="drawerSeller">🏪 Seller Dashboard</div>
     <div class="drawer-item" id="drawerProfile">👤 My Profile</div>
@@ -208,20 +201,6 @@
 
 <div class="container">
     <div id="buyerSection" class="section active">
-        <div class="filter-bar">
-            <select id="sortSelect" class="filter-select">
-                <option value="default">Sort by: Default</option>
-                <option value="price_asc">Price: Low to High</option>
-                <option value="price_desc">Price: High to Low</option>
-                <option value="rating">Rating: High to Low</option>
-            </select>
-            <div class="price-range">
-                <input type="number" id="minPrice" placeholder="Min $" step="1">
-                <span>-</span>
-                <input type="number" id="maxPrice" placeholder="Max $" step="1">
-                <button id="filterBtn" class="filter-select">🔍 Filter</button>
-            </div>
-        </div>
         <div class="cat-scroll" id="catList"></div>
         <div class="search-container"><input type="text" id="searchInput" placeholder="🔍 Search products..."></div>
         <div class="product-grid" id="productsGrid"></div>
@@ -280,7 +259,7 @@
                 <input type="email" id="loginEmail" placeholder="Email" class="input">
                 <input type="password" id="loginPass" placeholder="Password" class="input">
                 <button class="btn-primary" id="doLoginBtn">Login</button>
-                <div class="otp-login-section">
+                <div class="otp-login-section" style="margin-top:15px; padding:15px; background:#f1f5f9; border-radius:16px;">
                     <p style="text-align:center; margin-bottom:10px;">🔐 OR Login with OTP</p>
                     <input type="tel" id="otpLoginPhone" placeholder="Phone Number with Country Code" class="input">
                     <button id="sendOtpBtn" class="btn-secondary">Send OTP</button>
@@ -480,10 +459,15 @@
     // ============ DARK MODE ============
     let isDarkMode = localStorage.getItem('darkMode') === 'true';
     if(isDarkMode) document.body.classList.add('dark-mode');
-    document.getElementById('darkModeToggle')?.addEventListener('click', () => {
+    
+    function toggleDarkMode() {
         document.body.classList.toggle('dark-mode');
         localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
-        document.getElementById('darkModeToggle').innerText = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+    }
+    
+    document.getElementById('drawerDarkModeToggle')?.addEventListener('click', () => {
+        toggleDarkMode();
+        closeDrawer();
     });
     
     // ============ RATINGS & REVIEWS ============
@@ -519,30 +503,6 @@
         localStorage.setItem('gb_reviews', JSON.stringify(productReviews));
         addNotification(`New review added for product!`, 'info');
         if(currentProduct) openProduct(productId);
-    }
-    
-    // ============ ADVANCED FILTERS ============
-    let currentSort = 'default';
-    let minPriceFilter = null;
-    let maxPriceFilter = null;
-    
-    function filterAndSortProducts(productsToFilter) {
-        let filtered = [...productsToFilter];
-        if(minPriceFilter !== null) filtered = filtered.filter(p => p.price >= minPriceFilter);
-        if(maxPriceFilter !== null) filtered = filtered.filter(p => p.price <= maxPriceFilter);
-        
-        if(currentSort === 'price_asc') filtered.sort((a,b) => a.price - b.price);
-        else if(currentSort === 'price_desc') filtered.sort((a,b) => b.price - a.price);
-        else if(currentSort === 'rating') {
-            filtered.sort((a,b) => {
-                let reviewsA = productReviews[a.id] || [];
-                let reviewsB = productReviews[b.id] || [];
-                let avgA = reviewsA.length ? reviewsA.reduce((s,r)=>s+r.rating,0)/reviewsA.length : 0;
-                let avgB = reviewsB.length ? reviewsB.reduce((s,r)=>s+r.rating,0)/reviewsB.length : 0;
-                return avgB - avgA;
-            });
-        }
-        return filtered;
     }
     
     // ============ WHATSAPP SHARE ============
@@ -598,24 +558,6 @@
             }
         } else { showToast("Invalid OTP! Use 123456", true); }
     });
-    
-    // ============ SELLER ANALYTICS UPGRADE ============
-    function renderEnhancedSellerAnalytics(seller) {
-        let myOrders = orders.filter(o => o.sellerId === seller.id);
-        let monthlyData = {};
-        let topProducts = {};
-        myOrders.forEach(o => {
-            let month = new Date(o.date).toLocaleString('default', { month: 'short', year: 'numeric' });
-            monthlyData[month] = (monthlyData[month] || 0) + o.amount;
-            topProducts[o.productName] = (topProducts[o.productName] || 0) + o.qty;
-        });
-        let topProductsList = Object.entries(topProducts).sort((a,b) => b[1] - a[1]).slice(0,5);
-        return `<div class="premium-card">
-            <h3>📊 Advanced Analytics</h3>
-            <div><strong>Top Selling Products:</strong><br>${topProductsList.map(p => `📦 ${p[0]}: ${p[1]} sold`).join('<br>') || 'No sales yet'}</div>
-            <div style="margin-top:10px;"><strong>Monthly Breakdown:</strong><br>${Object.entries(monthlyData).map(([m,amt]) => `${m}: ${getCurrencySymbol()}${convertPrice(amt)}`).join('<br>') || 'No data'}</div>
-        </div>`;
-    }
     
     // ============ 195+ COUNTRY CODES WITH SEARCH ============
     const countryCodes = [
@@ -843,7 +785,7 @@
         return { total: basePrice + commission + gateway + shipping + HANDLING_FEE, basePrice, shipping, commission, gateway };
     }
     
-    // ============ 3 DUMMY PRODUCTS (NO FIREBASE - DIRECT LOCALSTORAGE) ============
+    // ============ 3 DUMMY PRODUCTS ============
     let products = [
         {
             id: 101, sellerId: 0, sellerName: "GlobalBazaar", name: "Wireless Noise Cancelling Headphones", price: 89.99, 
@@ -936,7 +878,6 @@
     function renderProducts() {
         let search = document.getElementById('searchInput')?.value.toLowerCase() || "";
         let filtered = products.filter(p => (currentCategory==="All" || p.category===currentCategory) && p.name.toLowerCase().includes(search));
-        filtered = filterAndSortProducts(filtered);
         let sellerMap = new Map(sellers.map(s=>[s.id, s]));
         let html = filtered.map(p => {
             let seller = sellerMap.get(p.sellerId) || {shopName:"GlobalBazaar", country:"SA"};
@@ -963,13 +904,6 @@
         document.querySelectorAll('.wishBtn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); toggleWish(parseInt(btn.dataset.id)); }));
         document.querySelectorAll('.product-card').forEach(card => card.addEventListener('click', () => openProduct(parseInt(card.dataset.id))));
     }
-    
-    document.getElementById('sortSelect')?.addEventListener('change', (e) => { currentSort = e.target.value; renderProducts(); });
-    document.getElementById('filterBtn')?.addEventListener('click', () => {
-        minPriceFilter = document.getElementById('minPrice').value ? parseFloat(document.getElementById('minPrice').value) : null;
-        maxPriceFilter = document.getElementById('maxPrice').value ? parseFloat(document.getElementById('maxPrice').value) : null;
-        renderProducts();
-    });
     
     function changeProductImage(productId, imageUrl) {
         const modalMainImg = document.getElementById('modalMainImg');
@@ -1331,10 +1265,14 @@
         let kycClass = seller.kycStatus === "pending" ? "kyc-pending" : (seller.kycStatus === "verified" ? "kyc-verified" : "kyc-rejected");
         let kycText = seller.kycStatus === "pending" ? "KYC Pending" : (seller.kycStatus === "verified" ? "KYC Verified ✓" : "KYC Rejected ✗");
         
+        let topProducts = {};
+        myOrders.forEach(o => { topProducts[o.productName] = (topProducts[o.productName] || 0) + o.qty; });
+        let topProductsList = Object.entries(topProducts).sort((a,b) => b[1] - a[1]).slice(0,5);
+        
         document.getElementById('sellerDashboard').innerHTML = `
             <div class="premium-card"><div class="flex-between"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📍 ${seller.city}, ${seller.country}</p></div><div><span class="kyc-status ${kycClass}">${kycText}</span><br><span class="role-badge">Seller ID: ${seller.id}</span></div></div><div class="flex-between"><span>🏦 ${seller.bankName} - ${seller.accountNo}</span><span>💰 Balance: ${getCurrencySymbol()}${convertPrice(seller.earnings)}</span></div><div class="flex-between"><span>📊 Total Sales: ${getCurrencySymbol()}${convertPrice(totalSales)}</span><span>💸 Total Withdrawn: ${getCurrencySymbol()}${convertPrice(seller.totalWithdrawn || 0)}</span></div>${seller.kycStatus === "verified" ? '<button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Request Withdrawal</button>' : '<button class="btn-primary" style="background:#64748b;" disabled>🔒 KYC Required</button>'}</div>
             <div class="chart-container"><h3>📊 Revenue Chart (Monthly)</h3><canvas id="revenueChart"></canvas></div>
-            ${renderEnhancedSellerAnalytics(seller)}
+            <div class="premium-card"><h3>📈 Top Selling Products</h3>${topProductsList.map(p => `📦 ${p[0]}: ${p[1]} sold`).join('<br>') || 'No sales yet'}</div>
             ${seller.kycStatus === "verified" ? `
             <div class="premium-card"><h3>➕ Add New Product</h3><input type="text" id="prodName" placeholder="Product Name" class="input"><input type="number" id="prodPrice" placeholder="Price (USD)" class="input"><select id="prodCat" class="input"><option>Electronics</option><option>Fashion</option><option>Home</option><option>Textile</option><option>Cosmetic</option></select><input type="url" id="prodImg" placeholder="Image URL" class="input"><textarea id="prodDesc" placeholder="Product Description" class="input" rows="3"></textarea><button id="publishBtn" class="btn-primary">Publish Product</button></div>
             <div class="premium-card"><h3>📋 My Products (${myProducts.length})</h3><div id="myProductsList"></div></div>
@@ -1519,8 +1457,7 @@
     updateCartUI();
     updateNotificationUI();
     
-    console.log("✅ GlobalBazaar with 8 New Features Added! 🚀");
-    console.log("Features: Dark Mode | Notifications | Ratings & Reviews | Advanced Filters | WhatsApp Share | Tracking Map | OTP Login | Enhanced Analytics");
+    console.log("✅ GlobalBazaar - All fixes applied! Dark mode in menu, bell & currency on right, thumbnails restored!");
 </script>
 </body>
 </html>
