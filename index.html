@@ -124,11 +124,6 @@
         .tracking-step { text-align: center; flex: 1; font-size: 10px; color: #64748b; }
         .tracking-step.active { color: #3b82f6; font-weight: bold; }
         
-        /* Checkout Signup Modal */
-        .checkout-signup-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; overflow-y: auto; }
-        .checkout-signup-card { background: white; margin: 30px 20px; border-radius: 28px; padding: 24px; max-width: 500px; margin-left: auto; margin-right: auto; }
-        body.dark-mode .checkout-signup-card { background: #1e293b; }
-        
         @media (max-width: 600px) {
             .brand-3d { font-size: 18px; }
             .logo-3d { font-size: 24px; }
@@ -248,9 +243,10 @@
 
     <div id="profileSection" class="section">
         <div id="profileAuthBox" class="premium-card">
+            <!-- NO LOGIN FORM - ONLY SIGNUP FOR BUYER -->
             <div id="signupFormDiv" style="display:block;">
                 <h2>📝 Create Account</h2>
-                <p style="font-size:12px; color:#64748b; margin-bottom:15px;">Sign up to start shopping!</p>
+                <p style="font-size:12px; color:#64748b; margin-bottom:15px;">Sign up once and shop anytime without login!</p>
                 <input type="text" id="signupName" placeholder="Full Name" class="input">
                 <input type="date" id="signupDob" class="input">
                 <select id="signupRole" class="input"><option value="buyer">Buyer</option><option value="seller">Seller</option></select>
@@ -366,34 +362,6 @@
         <button class="btn-primary" id="modalAddCartBtn">Add to Cart</button>
         <button class="btn-primary" id="modalAddWishBtn" style="background:#64748b; margin-top:10px;">❤️ Wishlist</button>
         <button class="whatsapp-share" id="whatsappShareBtn">📱 Share on WhatsApp</button>
-    </div>
-</div>
-
-<!-- Checkout Signup Modal -->
-<div id="checkoutSignupModal" class="checkout-signup-modal">
-    <div class="checkout-signup-card">
-        <span class="close-modal" onclick="closeCheckoutSignupModal()">&times;</span>
-        <h2>📝 Complete Signup to Checkout</h2>
-        <p style="font-size:12px; color:#64748b; margin-bottom:15px;">Please create an account to continue with your order!</p>
-        <input type="text" id="checkoutSignupName" placeholder="Full Name" class="input">
-        <input type="date" id="checkoutSignupDob" class="input">
-        <input type="email" id="checkoutSignupEmail" placeholder="Email" class="input">
-        <div class="phone-group">
-            <div class="country-search-select" id="checkoutCountrySearchContainer">
-                <input type="text" id="checkoutCountrySearch" placeholder="🔍 Search country..." autocomplete="off">
-                <div class="country-dropdown-list" id="checkoutCountryDropdown"></div>
-                <select id="checkoutCountryCode" style="display:none;"></select>
-            </div>
-            <input type="tel" id="checkoutSignupPhone" placeholder="Phone Number" class="input">
-        </div>
-        <div class="otp-section" id="checkoutOtpSection">
-            <input type="text" id="checkoutOtp" placeholder="Enter OTP" class="input">
-            <button type="button" id="checkoutVerifyOtpBtn" class="btn-secondary">Verify OTP</button>
-        </div>
-        <input type="password" id="checkoutSignupPass" placeholder="Password" class="input">
-        <div class="checkbox-group"><input type="checkbox" id="checkoutTermsCheckbox" required><label>Accept <span class="legal-link" onclick="showTerms()">Terms & Conditions</span></label></div>
-        <div class="checkbox-group"><input type="checkbox" id="checkoutAgeCheckbox" required><label>I am 18 years or older</label></div>
-        <button class="btn-primary" id="checkoutDoSignupBtn" disabled>Create Account & Continue</button>
     </div>
 </div>
 
@@ -643,7 +611,6 @@
 
     initCountrySearch('signupCountrySearch', 'signupCountryDropdown', 'signupCountryCode');
     initCountrySearch('deliveryCountrySearch', 'deliveryCountryDropdown', 'deliveryCountryCode');
-    initCountrySearch('checkoutCountrySearch', 'checkoutCountryDropdown', 'checkoutCountryCode');
 
     const deliveryCountrySelect = document.getElementById('deliveryCountry');
     if(deliveryCountrySelect) { shippingCountries.forEach(country => { let opt = document.createElement('option'); opt.value = country; opt.textContent = country; deliveryCountrySelect.appendChild(opt); }); }
@@ -653,8 +620,6 @@
     // ============ PHONE VERIFICATION (DUMMY OTP: 123456) ============
     let sellerPhoneVerified = false;
     let signupPhoneVerified = false;
-    let checkoutSignupPhoneVerified = false;
-    let pendingCheckoutAfterSignup = false;
     
     function sendDummyOTP(phoneNumber, type) {
         alert(`📱 OTP sent to ${phoneNumber}\n🔑 Your OTP is: 123456\n(For testing only)`);
@@ -662,8 +627,6 @@
             document.getElementById('sellerOtpSection').style.display = 'block';
         } else if(type === 'signup') {
             document.getElementById('signupOtpSection').style.display = 'block';
-        } else if(type === 'checkout') {
-            document.getElementById('checkoutOtpSection').style.display = 'block';
         }
     }
     
@@ -680,12 +643,6 @@
                 document.getElementById('doSignupBtn').disabled = false;
                 document.getElementById('doSignupBtn').innerHTML = 'Create Account';
                 document.getElementById('signupOtpSection').style.display = 'none';
-                showToast("✅ Phone verified successfully!", false);
-            } else if(type === 'checkout') {
-                checkoutSignupPhoneVerified = true;
-                document.getElementById('checkoutDoSignupBtn').disabled = false;
-                document.getElementById('checkoutDoSignupBtn').innerHTML = 'Create Account & Continue';
-                document.getElementById('checkoutOtpSection').style.display = 'none';
                 showToast("✅ Phone verified successfully!", false);
             }
             return true;
@@ -707,22 +664,12 @@
         if(phone && phone.length >= 8) sendDummyOTP(countryCode + phone, 'signup');
     });
     
-    document.getElementById('checkoutSignupPhone')?.addEventListener('blur', function() {
-        let phone = this.value;
-        let countryCode = document.getElementById('checkoutCountryCode').value;
-        if(phone && phone.length >= 8) sendDummyOTP(countryCode + phone, 'checkout');
-    });
-    
     document.getElementById('sellerVerifyOtpBtn')?.addEventListener('click', function() {
         verifyDummyOTP(document.getElementById('sellerOtp').value, 'seller');
     });
     
     document.getElementById('signupVerifyOtpBtn')?.addEventListener('click', function() {
         verifyDummyOTP(document.getElementById('signupOtp').value, 'signup');
-    });
-    
-    document.getElementById('checkoutVerifyOtpBtn')?.addEventListener('click', function() {
-        verifyDummyOTP(document.getElementById('checkoutOtp').value, 'checkout');
     });
 
     // ============ DYNAMIC CURRENCY ============
@@ -867,14 +814,6 @@
     function showPrivacy() { alert("Privacy Policy: We collect name, email, phone, address for order processing."); }
     function calculateAge(dob) { return new Date().getFullYear() - new Date(dob).getFullYear(); }
     
-    function openCheckoutSignupModal() {
-        document.getElementById('checkoutSignupModal').style.display = 'block';
-    }
-    
-    function closeCheckoutSignupModal() {
-        document.getElementById('checkoutSignupModal').style.display = 'none';
-    }
-    
     // Products Rendering
     let currentCategory = "All";
     function renderCats() {
@@ -1018,12 +957,7 @@
     let currentDelivery = null;
     document.getElementById('proceedToCheckoutBtn')?.addEventListener('click', () => {
         if(cart.length === 0) { showToast("Cart is empty!", true); return; }
-        
-        if(!currentUser) {
-            openCheckoutSignupModal();
-            return;
-        }
-        
+        if(!currentUser) { showToast("Please signup first!", true); return; }
         showSection('checkout');
         let savedAddr = savedAddresses.find(a => a.userEmail === currentUser.email);
         if(savedAddr) {
@@ -1036,51 +970,6 @@
             document.getElementById('deliveryHouseNo').value = savedAddr.houseNo || '';
             document.getElementById('saveAddressCheckbox').checked = true;
         }
-    });
-    
-    // Checkout Signup
-    document.getElementById('checkoutDoSignupBtn')?.addEventListener('click', () => {
-        if(!checkoutSignupPhoneVerified) { showToast("Please verify your phone number first!", true); return; }
-        if(!document.getElementById('checkoutTermsCheckbox').checked) { showToast("Accept Terms", true); return; }
-        if(!document.getElementById('checkoutAgeCheckbox').checked) { showToast("You must be 18+", true); return; }
-        
-        let name = document.getElementById('checkoutSignupName').value;
-        let email = document.getElementById('checkoutSignupEmail').value;
-        let pass = document.getElementById('checkoutSignupPass').value;
-        let dob = document.getElementById('checkoutSignupDob').value;
-        let role = 'buyer';
-        
-        if(!name || !email || !pass) { showToast("Fill all fields", true); return; }
-        if(calculateAge(dob) < 18) { showToast("You must be 18+", true); return; }
-        if(buyers.find(b=>b.email===email)) { showToast("Email exists", true); return; }
-        
-        let countryCodeSelect = document.getElementById('checkoutCountryCode');
-        let countryCode = countryCodeSelect.value || "+91";
-        let phone = countryCode + document.getElementById('checkoutSignupPhone').value;
-        
-        let newUser = { name, email, phone, password: pass, role, dob, savedAddress: null, joinDate: new Date().toLocaleString() };
-        buyers.push(newUser);
-        currentUser = newUser;
-        saveAll();
-        
-        closeCheckoutSignupModal();
-        
-        // Clear checkout signup form
-        document.getElementById('checkoutSignupName').value = '';
-        document.getElementById('checkoutSignupEmail').value = '';
-        document.getElementById('checkoutSignupPass').value = '';
-        document.getElementById('checkoutSignupDob').value = '';
-        document.getElementById('checkoutSignupPhone').value = '';
-        document.getElementById('checkoutCountrySearch').value = '';
-        checkoutSignupPhoneVerified = false;
-        document.getElementById('checkoutDoSignupBtn').disabled = true;
-        document.getElementById('checkoutDoSignupBtn').innerHTML = 'Create Account & Continue';
-        
-        showToast(`Account created! Welcome ${name}!`, false);
-        addNotification(`Welcome to GlobalBazaar ${name}!`, 'info');
-        
-        // Now proceed to checkout
-        document.getElementById('proceedToCheckoutBtn').click();
     });
     
     document.getElementById('confirmDeliveryBtn')?.addEventListener('click', () => {
@@ -1389,7 +1278,7 @@
         document.querySelectorAll('.removeWishlistBtn').forEach(btn => btn.addEventListener('click', () => { wishlist = wishlist.filter(id => id !== parseInt(btn.dataset.id)); saveAll(); renderProducts(); renderBuyerWishlist(); showToast("Removed from wishlist", false); }));
     }
     
-    // Signup from profile section
+    // SIGNUP ONLY - NO LOGIN
     document.getElementById('doSignupBtn')?.addEventListener('click', () => {
         if(!signupPhoneVerified) { showToast("Please verify your phone number first!", true); return; }
         if(!document.getElementById('termsCheckbox').checked) { showToast("Accept Terms", true); return; }
@@ -1406,21 +1295,22 @@
         let phone = countryCode + document.getElementById('signupPhone').value;
         
         let newUser = { name, email, phone, password: pass, role, dob, savedAddress: null, joinDate: new Date().toLocaleString() };
-        buyers.push(newUser);
-        currentUser = newUser;
+        buyers.push(newUser); 
+        currentUser = newUser; 
         saveAll();
-        document.getElementById('profileAuthBox').style.display = 'none';
-        document.getElementById('buyerProfilePanel').style.display = 'block';
-        document.getElementById('profileName').innerText = name;
+        document.getElementById('profileAuthBox').style.display='none'; 
+        document.getElementById('buyerProfilePanel').style.display='block';
+        document.getElementById('profileName').innerText = name; 
         document.getElementById('profileRoleBadge').innerText = role;
-        renderBuyerOrders(); renderBuyerWishlist();
-        showToast(`Account created! Welcome ${name}!`, false);
+        renderBuyerOrders(); renderBuyerWishlist(); 
+        showToast(`Account created! Welcome ${name}! You are now logged in.`, false);
         addNotification(`Welcome to GlobalBazaar ${name}!`, 'info');
     });
     
     document.getElementById('drawerLogout')?.addEventListener('click', () => { 
         currentUser = null; 
         localStorage.removeItem('gb_current_user');
+        saveAll(); 
         location.reload(); 
     });
     
@@ -1492,7 +1382,7 @@
     updateCartUI();
     updateNotificationUI();
     
-    console.log("✅ GlobalBazaar - Buyer signup fixed! Checkout redirects to signup first!");
+    console.log("✅ GlobalBazaar - Buyer login removed! Signup once and shop forever!");
 </script>
 </body>
 </html>
