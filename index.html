@@ -780,6 +780,14 @@
         } catch(e) {}
     }
     
+    // Load saved sellers from localStorage
+    let savedSellers = localStorage.getItem('gb_sellers');
+    if(savedSellers && savedSellers !== 'null') {
+        try {
+            sellers = JSON.parse(savedSellers);
+        } catch(e) {}
+    }
+    
     function saveAll() {
         localStorage.setItem('gb_sellers', JSON.stringify(sellers));
         localStorage.setItem('gb_products', JSON.stringify(products));
@@ -791,6 +799,7 @@
         localStorage.setItem('gb_saved_cards', JSON.stringify(savedCards));
         localStorage.setItem('gb_saved_addresses', JSON.stringify(savedAddresses));
         if(currentSeller) localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
+        console.log("✅ Data saved. Total sellers:", sellers.length);
     }
     
     function showToast(msg, isError) { 
@@ -1131,21 +1140,32 @@
     setInterval(processWeeklyWithdrawals, 3600000);
     processWeeklyWithdrawals();
     
-    // ============ SELLER REGISTRATION (DOCUMENT COMPULSORY, AVATAR OPTIONAL) ============
+    // ============ SELLER REGISTRATION - FIXED ============
     document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         
+        console.log("🔵 Registration started...");
+        
         // Check phone verification
-        if(!sellerPhoneVerified) { showToast("Please verify your phone number first!", true); return; }
+        if(!sellerPhoneVerified) { 
+            showToast("Please verify your phone number first!", true); 
+            return; 
+        }
         
         // Check agreement
-        if(!document.getElementById('sellerAgreement').checked) { showToast("Accept Seller Agreement", true); return; }
+        if(!document.getElementById('sellerAgreement').checked) { 
+            showToast("Accept Seller Agreement", true); 
+            return; 
+        }
         
         // Check age
         let dob = document.getElementById('sellerDob').value;
-        if(calculateAge(dob) < 18) { showToast("You must be 18+", true); return; }
+        if(calculateAge(dob) < 18) { 
+            showToast("You must be 18+", true); 
+            return; 
+        }
         
-        // ✅ CHECK: Document image is COMPULSORY (KYC ke liye)
+        // ✅ CHECK: Document image is COMPULSORY
         let docImageFile = document.getElementById('sellerDocImage').files[0];
         if(!docImageFile) {
             showToast("❌ KYC Document Image is required! Please upload your document.", true);
@@ -1169,41 +1189,32 @@
         let countryCodeSelect = document.getElementById('sellerCountryCode');
         let countryCode = countryCodeSelect.value || "+91";
         
-        // Handle avatar (optional - default if not provided)
-        let avatarFile = document.getElementById('sellerAvatar').files[0];
-        
-        if(avatarFile) {
-            let reader = new FileReader();
-            reader.onload = async (ev) => {
-                await registerSeller(ev.target.result, countryCode);
-            };
-            reader.readAsDataURL(avatarFile);
-        } else {
-            // Default avatar if not uploaded
-            let defaultAvatar = "https://randomuser.me/api/portraits/lego/1.jpg";
-            await registerSeller(defaultAvatar, countryCode);
-        }
-    });
-    
-    async function registerSeller(avatarData, countryCode) {
-        let docImageFile = document.getElementById('sellerDocImage').files[0];
-        
-        if(!docImageFile) {
-            showToast("❌ KYC Document is required!", true);
-            return;
-        }
-        
+        // Read document image first (COMPULSORY)
         let docReader = new FileReader();
         docReader.onload = async (docEv) => {
             let docImageData = docEv.target.result;
-            await saveSellerData(avatarData, docImageData, countryCode);
+            
+            // Read avatar (optional)
+            let avatarFile = document.getElementById('sellerAvatar').files[0];
+            let avatarData = "https://randomuser.me/api/portraits/lego/1.jpg"; // default
+            
+            if(avatarFile) {
+                let avatarReader = new FileReader();
+                avatarReader.onload = async (avEv) => {
+                    await saveSellerData(avEv.target.result, docImageData, countryCode);
+                };
+                avatarReader.readAsDataURL(avatarFile);
+            } else {
+                await saveSellerData(avatarData, docImageData, countryCode);
+            }
         };
         docReader.readAsDataURL(docImageFile);
-    }
+    });
     
     async function saveSellerData(avatarData, docImageData, countryCode) {
         let newSeller = {
-            id: Date.now(), avatar: avatarData,
+            id: Date.now(), 
+            avatar: avatarData,
             fullName: document.getElementById('sellerFullName').value,
             shopName: document.getElementById('sellerShopName').value,
             email: document.getElementById('sellerEmail').value,
@@ -1223,11 +1234,17 @@
             accountNo: document.getElementById('sellerAccountNo').value,
             ifsc: document.getElementById('sellerIfsc').value,
             accountHolder: document.getElementById('sellerAccountHolder').value,
-            earnings: 0, kycStatus: "pending", totalSales: 0, totalWithdrawn: 0
+            earnings: 0, 
+            kycStatus: "pending", 
+            totalSales: 0, 
+            totalWithdrawn: 0
         };
         
         sellers.push(newSeller);
         saveAll();
+        
+        console.log("✅ Seller saved:", newSeller.shopName, "KYC Status:", newSeller.kycStatus);
+        console.log("📋 Total sellers now:", sellers.length);
         
         document.getElementById('sellerRegisterBox').style.display = 'block';
         document.getElementById('sellerDashboard').style.display = 'none';
@@ -1261,7 +1278,6 @@
         let seller = sellers.find(s => s.email === email && s.password === password);
         
         if(seller) {
-            // ✅ ONLY verified sellers can login
             if(seller.kycStatus !== 'verified') {
                 showToast("❌ Your KYC is not verified yet. Please wait for admin approval.", true);
                 return;
@@ -1376,7 +1392,7 @@
         document.querySelectorAll('.removeWishlistBtn').forEach(btn => btn.addEventListener('click', () => { wishlist = wishlist.filter(id => id !== parseInt(btn.dataset.id)); saveAll(); renderProducts(); renderBuyerWishlist(); showToast("Removed from wishlist", false); }));
     }
     
-    // ============ ADMIN FUNCTIONS (ONLY OWNER CAN VERIFY KYC) ============
+    // ============ ADMIN FUNCTIONS - KYC VERIFICATION ONLY HERE ============
     document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
         if(document.getElementById('adminKey').value === 'admin123') {
             document.getElementById('adminLoginBox').style.display = 'none';
@@ -1387,12 +1403,14 @@
     });
     
     function loadAdminData() {
-        // Separate sellers by KYC status
+        console.log("🔵 Loading admin data, total sellers:", sellers.length);
+        
         let pendingSellers = sellers.filter(s => s.kycStatus === 'pending');
         let verifiedSellers = sellers.filter(s => s.kycStatus === 'verified');
         let rejectedSellers = sellers.filter(s => s.kycStatus === 'rejected');
         
-        // Pending KYC Requests Table - ONLY OWNER CAN SEE THIS
+        console.log("Pending sellers:", pendingSellers.length);
+        
         let pendingHtml = '';
         if(pendingSellers.length === 0) {
             pendingHtml = '<div style="padding: 20px; text-align: center; background: #f8fafc; border-radius: 12px;">✅ No pending KYC requests</div>';
@@ -1419,7 +1437,6 @@
         }
         document.getElementById('pendingKycList').innerHTML = pendingHtml;
         
-        // Verified Sellers List
         let verifiedHtml = '';
         if(verifiedSellers.length === 0) {
             verifiedHtml = '<div style="padding: 20px; text-align: center; background: #f8fafc; border-radius: 12px;">No verified sellers yet</div>';
@@ -1437,7 +1454,6 @@
         }
         document.getElementById('verifiedSellersList').innerHTML = verifiedHtml;
         
-        // Rejected Sellers List
         let rejectedHtml = '';
         if(rejectedSellers.length === 0) {
             rejectedHtml = '<div style="padding: 20px; text-align: center; background: #f8fafc; border-radius: 12px;">No rejected sellers</div>';
@@ -1455,7 +1471,6 @@
         }
         document.getElementById('rejectedSellersList').innerHTML = rejectedHtml;
         
-        // Attach approve/reject events (ONLY OWNER)
         document.querySelectorAll('.btn-approve').forEach(btn => btn.addEventListener('click', async () => { 
             let seller = sellers.find(s => s.id === parseInt(btn.dataset.id)); 
             if(seller) { 
@@ -1486,7 +1501,6 @@
             }
         }));
         
-        // Platform Earnings and Withdrawals
         document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
         document.getElementById('pendingWithdrawals').innerHTML = pendingWithdrawals.map(w => `<div class="flex-between order-card"><span>💰 ${getCurrencySymbol()}${convertPrice(w.amount)} - ${w.sellerName}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981;">Approve</button></div>`).join('');
         document.querySelectorAll('.approveBtn').forEach(btn => btn.addEventListener('click', async () => { 
@@ -1496,7 +1510,6 @@
         document.getElementById('adminOrdersList').innerHTML = orders.map(o => `<div class="order-card">🔖 ${o.trackingNumber}<br>${o.productName} x${o.qty}<br>${o.buyerName}<br>Status: ${o.status}</div>`).join('');
     }
     
-    // Global function for viewing document from admin panel
     window.viewSellerDocument = function(docImage, docType, sellerName) {
         if(docImage && docImage.startsWith('data:image')) {
             let modalImg = document.getElementById('documentModalImg');
@@ -1512,7 +1525,6 @@
     
     document.getElementById('refreshAdminBtn')?.addEventListener('click', loadAdminData);
     
-    // Navigation
     function showSection(section) { 
         document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); 
         document.getElementById(section + "Section").classList.add('active'); 
@@ -1547,13 +1559,12 @@
     document.getElementById('cardNumber')?.addEventListener('input', function(e) { let v = e.target.value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim(); e.target.value = v; });
     document.getElementById('expiryDate')?.addEventListener('input', function(e) { let v = e.target.value.replace(/\//g, ''); if(v.length >= 2) v = v.slice(0,2) + '/' + v.slice(2,4); e.target.value = v; });
     
-    // Initialize
     renderCats();
     renderProducts();
     updateCartUI();
     updateNotificationUI();
     
-    console.log("✅ GlobalBazaar - Fully Fixed: KYC only by Admin, Document Compulsory, Avatar Optional");
+    console.log("✅ GlobalBazaar Ready - KYC Verification ONLY in Admin Panel");
 </script>
 </body>
 </html>
