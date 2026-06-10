@@ -200,6 +200,7 @@
 
     <!-- SELLER SECTION - COMPLETE WITH REGISTER, LOGIN, KYC, DASHBOARD -->
     <div id="sellerSection" class="section">
+        <!-- Seller Register Form -->
         <div id="sellerRegisterBox" class="premium-card">
             <h2>🏪 Open Your Shop</h2>
             <input type="file" id="sellerAvatar" accept="image/*" class="input" required>
@@ -243,6 +244,7 @@
             <p style="text-align:center; margin-top:15px;"><span class="legal-link" onclick="showSellerLoginForm()">🔐 Already have a shop? Login here</span></p>
         </div>
         
+        <!-- Seller Login Form -->
         <div id="sellerLoginDiv" style="display:none;" class="premium-card">
             <h2>🔐 Seller Login</h2>
             <input type="email" id="sellerLoginEmail" placeholder="Email" class="input">
@@ -251,6 +253,7 @@
             <p style="text-align:center; margin-top:15px;"><span class="legal-link" onclick="showSellerRegisterForm()">⬅️ Back to Register</span></p>
         </div>
         
+        <!-- Seller Dashboard Panel -->
         <div id="sellerDashboardPanel" style="display:none;"></div>
     </div>
 
@@ -745,8 +748,8 @@
         SGD: "$", MYR: "RM ", THB: "฿", JPY: "¥", CNY: "¥"
     };
     
-    let selectedCurrency = localStorage.getItem('selectedCurrency') || 'NPR';
-    let buyerCountry = localStorage.getItem('buyerCountry') || 'NP';
+    let selectedCurrency = localStorage.getItem('selectedCurrency') || 'AED';
+    let buyerCountry = localStorage.getItem('buyerCountry') || 'AE';
     
     function convertPrice(usd) { return (usd * fxRates[selectedCurrency]).toFixed(2); }
     function getCurrencySymbol() { return currencySymbols[selectedCurrency]; }
@@ -755,7 +758,6 @@
     document.getElementById('currencySelect').addEventListener('change', (e) => {
         selectedCurrency = e.target.value;
         localStorage.setItem('selectedCurrency', selectedCurrency);
-        // Re-render everything with new currency
         renderProducts();
         updateCartUI();
         renderCartPage();
@@ -1368,7 +1370,7 @@
         let topProductsList = Object.entries(topProducts).sort((a,b) => b[1] - a[1]).slice(0,5);
         
         document.getElementById('sellerDashboardPanel').innerHTML = `
-            <div class="premium-card"><div class="flex-between"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📍 ${seller.city}, ${seller.country}</p></div><div><span class="kyc-status ${kycClass}">${kycText}</span><br><span class="role-badge">Seller ID: ${seller.id}</span></div></div><div class="flex-between"><span>🏦 ${seller.bankName} - ${seller.accountNo}</span><span>💰 Balance: ${getCurrencySymbol()}${convertPrice(seller.earnings)}</span></div><div class="flex-between"><span>📊 Total Sales: ${getCurrencySymbol()}${convertPrice(totalSales)}</span><span>💸 Total Withdrawn: ${getCurrencySymbol()}${convertPrice(seller.totalWithdrawn || 0)}</span></div>${seller.kycStatus === "verified" ? '<button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Request Withdrawal</button>' : '<button class="btn-primary" style="background:#64748b;" disabled>🔒 KYC Required (Wait for Admin)</button>'}</div>
+            <div class="premium-card"><div class="flex-between"><div><img src="${seller.avatar}" class="seller-avatar" style="width:60px;height:60px;border-radius:50%;object-fit:cover;"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📍 ${seller.city}, ${seller.country}</p></div><div><span class="kyc-status ${kycClass}">${kycText}</span><br><span class="role-badge">Seller ID: ${seller.id}</span></div></div><div class="flex-between"><span>🏦 ${seller.bankName} - ${seller.accountNo}</span><span>💰 Balance: ${getCurrencySymbol()}${convertPrice(seller.earnings)}</span></div><div class="flex-between"><span>📊 Total Sales: ${getCurrencySymbol()}${convertPrice(totalSales)}</span><span>💸 Total Withdrawn: ${getCurrencySymbol()}${convertPrice(seller.totalWithdrawn || 0)}</span></div>${seller.kycStatus === "verified" ? '<button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Request Withdrawal</button>' : '<button class="btn-primary" style="background:#64748b;" disabled>🔒 KYC Required (Wait for Admin)</button>'}</div>
             <div class="chart-container"><h3>📊 Revenue Chart (Monthly)</h3><canvas id="revenueChart"></canvas></div>
             <div class="premium-card"><h3>📈 Top Selling Products</h3>${topProductsList.map(p => `📦 ${p[0]}: ${p[1]} sold`).join('<br>') || 'No sales yet'}</div>
             ${seller.kycStatus === "verified" ? `
@@ -1565,7 +1567,7 @@
     updateCartUI();
     updateNotificationUI();
     
-    console.log("✅ GlobalBazaar - Complete with Seller Registration, KYC, Login, Withdrawal, Images, Currency Fix!");
+    console.log("✅ GlobalBazaar - Seller Dashboard WORKING!");
 </script>
 </body>
 </html>
