@@ -198,7 +198,7 @@
         <div class="product-grid" id="productsGrid"></div>
     </div>
 
-    <!-- SELLER SECTION - FULLY RESTORED -->
+    <!-- SELLER SECTION - COMPLETELY RESTORED -->
     <div id="sellerSection" class="section">
         <div id="sellerRegisterBox" class="premium-card">
             <h2>🏪 Open Your Shop</h2>
@@ -1428,7 +1428,7 @@
                 <input type="email" id="sellerLoginEmail" placeholder="Email" class="input">
                 <input type="password" id="sellerLoginPass" placeholder="Password" class="input">
                 <button class="btn-primary" id="doSellerLoginBtn">Login as Seller</button>
-                <p style="text-align:center; margin-top:10px;"><span class="legal-link" onclick="showSignupForm()">New seller? Register here</span></p>
+                <p style="text-align:center; margin-top:10px;"><span class="legal-link" onclick="location.reload()">New seller? Register here</span></p>
             </div>
         `;
         document.getElementById('doSellerLoginBtn')?.addEventListener('click', () => {
@@ -1449,10 +1449,6 @@
                 showToast("Invalid credentials!", true);
             }
         });
-    }
-    
-    function showSignupForm() {
-        location.reload();
     }
     
     document.getElementById('drawerLogout')?.addEventListener('click', () => { 
@@ -1552,7 +1548,7 @@
     updateCartUI();
     updateNotificationUI();
     
-    console.log("✅ GlobalBazaar - Seller Dashboard RESTORED! Everything working!");
+    console.log("✅ GlobalBazaar - Seller Dashboard FULLY RESTORED!");
 </script>
 </body>
 </html>
