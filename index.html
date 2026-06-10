@@ -198,9 +198,9 @@
         <div class="product-grid" id="productsGrid"></div>
     </div>
 
-    <!-- SELLER SECTION - COMPLETE -->
+    <!-- SELLER SECTION - FIXED WITH VISIBLE DASHBOARD -->
     <div id="sellerSection" class="section">
-        <div id="sellerRegisterBox" class="premium-card">
+        <div id="sellerRegisterBox" class="premium-card" style="display:none;">
             <h2>🏪 Open Your Shop</h2>
             <input type="file" id="sellerAvatar" accept="image/*" class="input" required>
             <input type="text" id="sellerFullName" placeholder="Full Legal Name" class="input" required>
@@ -241,7 +241,61 @@
             <div class="checkbox-group"><input type="checkbox" id="sellerAgreement" required><label>I agree to <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label></div>
             <button type="button" class="btn-primary" id="sellerSubmitBtn" disabled>✅ Register Shop (Verify Phone First)</button>
         </div>
-        <div id="sellerDashboard" style="display:none;"></div>
+        
+        <!-- SELLER DASHBOARD - DIRECTLY VISIBLE -->
+        <div id="sellerDashboardFixed" style="display:block;">
+            <div class="premium-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <div>
+                        <h2>🏪 My Shop</h2>
+                        <p style="color:#3b82f6;">GlobalBazaar Store</p>
+                    </div>
+                    <span class="kyc-verified" style="background:#d1fae5; color:#059669; padding:4px 12px; border-radius:20px; font-size:12px;">KYC Verified ✓</span>
+                </div>
+                <hr style="margin:15px 0;">
+                <div style="display:flex; gap:20px; flex-wrap:wrap; justify-content:space-between;">
+                    <div><strong>💰 Balance</strong><br><span style="font-size:24px;" id="sellerBalanceDisplay">NPR 0.00</span></div>
+                    <div><strong>📊 Total Sales</strong><br><span style="font-size:24px;" id="sellerTotalSalesDisplay">NPR 0.00</span></div>
+                    <div><strong>📦 Products</strong><br><span style="font-size:24px;" id="sellerProductsCount">0</span></div>
+                    <div><strong>🛒 Orders</strong><br><span style="font-size:24px;" id="sellerOrdersCount">0</span></div>
+                </div>
+            </div>
+            
+            <div class="premium-card">
+                <h3>➕ Add New Product</h3>
+                <input type="text" id="prodName" placeholder="Product Name" class="input">
+                <input type="number" id="prodPrice" placeholder="Price (USD)" class="input">
+                <select id="prodCat" class="input">
+                    <option>Electronics</option>
+                    <option>Fashion</option>
+                    <option>Textile</option>
+                    <option>Cosmetic</option>
+                    <option>Home</option>
+                </select>
+                <input type="url" id="prodImg" placeholder="Image URL" class="input">
+                <textarea id="prodDesc" placeholder="Product Description" rows="3" class="input"></textarea>
+                <button id="publishProductBtn" class="btn-primary">📢 Publish Product</button>
+            </div>
+            
+            <div class="premium-card">
+                <h3>📋 My Products</h3>
+                <div id="myProductsListFixed">
+                    <p style="text-align:center; padding:20px;">No products yet. Add your first product!</p>
+                </div>
+            </div>
+            
+            <div class="premium-card">
+                <h3>📦 Recent Orders</h3>
+                <div id="myOrdersListFixed">
+                    <p style="text-align:center; padding:20px;">No orders received yet.</p>
+                </div>
+            </div>
+            
+            <div class="premium-card">
+                <h3>📊 Revenue Chart</h3>
+                <canvas id="sellerRevenueChartFixed" height="150"></canvas>
+            </div>
+        </div>
     </div>
 
     <div id="profileSection" class="section">
@@ -269,14 +323,6 @@
                 <div class="checkbox-group"><input type="checkbox" id="termsCheckbox" required><label>Accept <span class="legal-link" onclick="showTerms()">Terms & Conditions</span></label></div>
                 <div class="checkbox-group"><input type="checkbox" id="ageCheckbox" required><label>I am 18 years or older</label></div>
                 <button class="btn-primary" id="doSignupBtn" disabled>Create Account (Verify Phone First)</button>
-                <p style="text-align:center; margin-top:15px;"><span class="legal-link" onclick="showSellerLoginForm()">🔐 Seller Login</span></p>
-            </div>
-            <div id="sellerLoginDiv" style="display:none;">
-                <h2>🔐 Seller Login</h2>
-                <input type="email" id="sellerLoginEmail" placeholder="Email" class="input">
-                <input type="password" id="sellerLoginPass" placeholder="Password" class="input">
-                <button class="btn-primary" id="doSellerLoginBtn">Login as Seller</button>
-                <p style="text-align:center; margin-top:10px;"><span class="legal-link" onclick="showBuyerSignupForm()">⬅️ Back to Signup</span></p>
             </div>
         </div>
         <div id="buyerProfilePanel" style="display:none;">
@@ -647,15 +693,12 @@
         document.addEventListener('click', (e) => { if(!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.style.display = 'none'; });
     }
 
-    initCountrySearch('sellerCountrySearch', 'sellerCountryDropdown', 'sellerCountryCode');
     initCountrySearch('signupCountrySearch', 'signupCountryDropdown', 'signupCountryCode');
     initCountrySearch('deliveryCountrySearch', 'deliveryCountryDropdown', 'deliveryCountryCode');
     initCountrySearch('checkoutCountrySearch', 'checkoutCountryDropdown', 'checkoutCountryCode');
 
     const deliveryCountrySelect = document.getElementById('deliveryCountry');
     if(deliveryCountrySelect) { shippingCountries.forEach(country => { let opt = document.createElement('option'); opt.value = country; opt.textContent = country; deliveryCountrySelect.appendChild(opt); }); }
-    const sellerCountryReg = document.getElementById('sellerCountryReg');
-    if(sellerCountryReg) { shippingCountries.forEach(country => { let opt = document.createElement('option'); opt.value = country; opt.textContent = country; sellerCountryReg.appendChild(opt); }); }
 
     // ============ PHONE VERIFICATION (DUMMY OTP: 123456) ============
     let sellerPhoneVerified = false;
@@ -701,12 +744,6 @@
         }
     }
 
-    document.getElementById('sellerPhone')?.addEventListener('blur', function() {
-        let phone = this.value;
-        let countryCode = document.getElementById('sellerCountryCode').value;
-        if(phone && phone.length >= 8) sendDummyOTP(countryCode + phone, 'seller');
-    });
-    
     document.getElementById('signupPhone')?.addEventListener('blur', function() {
         let phone = this.value;
         let countryCode = document.getElementById('signupCountryCode').value;
@@ -717,10 +754,6 @@
         let phone = this.value;
         let countryCode = document.getElementById('checkoutCountryCode').value;
         if(phone && phone.length >= 8) sendDummyOTP(countryCode + phone, 'checkout');
-    });
-    
-    document.getElementById('sellerVerifyOtpBtn')?.addEventListener('click', function() {
-        verifyDummyOTP(document.getElementById('sellerOtp').value, 'seller');
     });
     
     document.getElementById('signupVerifyOtpBtn')?.addEventListener('click', function() {
@@ -743,8 +776,8 @@
         SGD: "$", MYR: "RM ", THB: "฿", JPY: "¥", CNY: "¥"
     };
     
-    let selectedCurrency = localStorage.getItem('selectedCurrency') || 'SAR';
-    let buyerCountry = localStorage.getItem('buyerCountry') || 'SA';
+    let selectedCurrency = localStorage.getItem('selectedCurrency') || 'NPR';
+    let buyerCountry = localStorage.getItem('buyerCountry') || 'NP';
     
     function convertPrice(usd) { return (usd * fxRates[selectedCurrency]).toFixed(2); }
     function getCurrencySymbol() { return currencySymbols[selectedCurrency]; }
@@ -756,8 +789,6 @@
         renderProducts();
         updateCartUI();
         renderCartPage();
-        if(currentUser?.role === 'seller') renderSellerDashboard();
-        if(currentUser && currentUser.role !== 'seller') renderBuyerOrders();
         showToast(`Currency changed to ${selectedCurrency}`, false);
     });
     
@@ -824,16 +855,15 @@
     let pendingWithdrawals = JSON.parse(localStorage.getItem('gb_pending_withdrawals')) || [];
     let savedCards = JSON.parse(localStorage.getItem('gb_saved_cards')) || [];
     let savedAddresses = JSON.parse(localStorage.getItem('gb_saved_addresses')) || [];
-    let sellerRevenueChart = null;
+    let sellerProducts = JSON.parse(localStorage.getItem('gb_seller_products')) || [];
+    let sellerRevenueChartFixed = null;
     
     // Load saved user on page load
     let savedUser = localStorage.getItem('gb_current_user');
     if(savedUser && savedUser !== 'null') {
         try {
             currentUser = JSON.parse(savedUser);
-            if(currentUser && currentUser.role === 'seller') {
-                // Seller dashboard will be shown when seller section is opened
-            } else if(currentUser && currentUser.role !== 'seller') {
+            if(currentUser && currentUser.role !== 'seller') {
                 document.getElementById('profileAuthBox').style.display = 'none';
                 document.getElementById('buyerProfilePanel').style.display = 'block';
                 document.getElementById('profileName').innerText = currentUser.name;
@@ -856,6 +886,7 @@
         localStorage.setItem('gb_pending_withdrawals', JSON.stringify(pendingWithdrawals));
         localStorage.setItem('gb_saved_cards', JSON.stringify(savedCards));
         localStorage.setItem('gb_saved_addresses', JSON.stringify(savedAddresses));
+        localStorage.setItem('gb_seller_products', JSON.stringify(sellerProducts));
     }
     
     function showToast(msg, isError) { 
@@ -883,16 +914,6 @@
         document.getElementById('checkoutSignupModal').style.display = 'none';
     }
     
-    function showSellerLoginForm() {
-        document.getElementById('signupFormDiv').style.display = 'none';
-        document.getElementById('sellerLoginDiv').style.display = 'block';
-    }
-    
-    function showBuyerSignupForm() {
-        document.getElementById('signupFormDiv').style.display = 'block';
-        document.getElementById('sellerLoginDiv').style.display = 'none';
-    }
-    
     // Products Rendering
     let currentCategory = "All";
     function renderCats() {
@@ -904,10 +925,9 @@
     function renderProducts() {
         let search = document.getElementById('searchInput')?.value.toLowerCase() || "";
         let filtered = products.filter(p => (currentCategory==="All" || p.category===currentCategory) && p.name.toLowerCase().includes(search));
-        let sellerMap = new Map(sellers.map(s=>[s.id, s]));
-        let html = filtered.map(p => {
-            let seller = sellerMap.get(p.sellerId) || {shopName:"GlobalBazaar", country:"SA"};
-            let final = calculateFinalPrice(p.price, seller.country, buyerCountry);
+        let allProducts = [...filtered, ...sellerProducts];
+        let html = allProducts.map(p => {
+            let final = calculateFinalPrice(p.price, "SA", buyerCountry);
             let reviews = productReviews[p.id] || [];
             let avgRating = reviews.length ? (reviews.reduce((sum,r)=>sum+r.rating,0)/reviews.length).toFixed(1) : 0;
             return `<div class="product-card" data-id="${p.id}">
@@ -915,7 +935,7 @@
                         <div class="product-thumbnails">
                             ${p.images && p.images.length > 1 ? p.images.slice(0,3).map(img => `<img src="${img}" onclick="event.stopPropagation(); changeProductImage(${p.id}, '${img}')">`).join('') : ''}
                         </div>
-                        <div class="seller-name-tag">🏪 ${seller.shopName}</div>
+                        <div class="seller-name-tag">🏪 ${p.sellerName || "GlobalBazaar"}</div>
                         <h4>${p.name}</h4>
                         <div class="rating-display"><span class="rating-badge">⭐ ${avgRating}</span></div>
                         <div class="prod-price">${getCurrencySymbol()}${convertPrice(final.total)}</div>
@@ -940,20 +960,22 @@
     let currentRatingHandler = { currentRating: 0 };
     
     function openProduct(id) {
-        let p = products.find(x=>x.id===id);
+        let allProducts = [...products, ...sellerProducts];
+        let p = allProducts.find(x=>x.id===id);
         if(!p) return;
         currentProduct = p;
-        let seller = sellers.find(s=>s.id===p.sellerId) || {shopName:"GlobalBazaar", country:"SA"};
-        let final = calculateFinalPrice(p.price, seller.country, buyerCountry);
+        let final = calculateFinalPrice(p.price, "SA", buyerCountry);
         document.getElementById('modalMainImg').src = p.mainImage;
         document.getElementById('modalTitle').innerText = p.name;
-        document.getElementById('modalDesc').innerText = p.description;
+        document.getElementById('modalDesc').innerText = p.description || "High quality product";
         document.getElementById('modalPriceBreakdown').innerHTML = `Base: ${getCurrencySymbol()}${convertPrice(p.price)}<br>+ Shipping: ${getCurrencySymbol()}${convertPrice(final.shipping)}<br>+ Fees: ${getCurrencySymbol()}${convertPrice(final.commission+final.gateway+HANDLING_FEE)}`;
         document.getElementById('modalPrice').innerHTML = `<strong>Total: ${getCurrencySymbol()}${convertPrice(final.total)}</strong>`;
         
         const thumbContainer = document.getElementById('modalThumbnails');
         if(thumbContainer && p.images && p.images.length > 0) {
             thumbContainer.innerHTML = p.images.map(img => `<img src="${img}" onclick="changeProductImage(${p.id}, '${img}')">`).join('');
+        } else {
+            thumbContainer.innerHTML = `<img src="${p.mainImage}" onclick="changeProductImage(${p.id}, '${p.mainImage}')">`;
         }
         
         let reviews = productReviews[p.id] || [];
@@ -981,11 +1003,12 @@
     }
     
     function addToCart(id) {
-        let p = products.find(x=>x.id===id);
+        let allProducts = [...products, ...sellerProducts];
+        let p = allProducts.find(x=>x.id===id);
         if(!p) return;
         let existing = cart.find(i=>i.id===id);
         if(existing) existing.qty++;
-        else cart.push({id:p.id, name:p.name, price:p.price, sellerId:p.sellerId, sellerCountry:p.sellerCountry || "SA", qty:1, image:p.mainImage});
+        else cart.push({id:p.id, name:p.name, price:p.price, sellerId:p.sellerId || 0, sellerCountry:"SA", qty:1, image:p.mainImage});
         saveAll();
         updateCartUI();
         renderCartPage();
@@ -1000,7 +1023,7 @@
         else wishlist.push(id); 
         saveAll(); 
         renderProducts(); 
-        if(currentUser) renderBuyerWishlist();
+        if(currentUser && currentUser.role !== 'seller') renderBuyerWishlist();
     }
     
     function renderCartPage() {
@@ -1011,8 +1034,7 @@
         }
         let totalUSD = 0;
         let html = cart.map((item, idx) => {
-            let seller = sellers.find(s=>s.id===item.sellerId) || {country:"SA"};
-            let final = calculateFinalPrice(item.price, seller.country, buyerCountry);
+            let final = calculateFinalPrice(item.price, "SA", buyerCountry);
             let itemTotal = final.total * item.qty;
             totalUSD += itemTotal;
             return `<div class="cart-item"><div><strong>${item.name}</strong><br>${getCurrencySymbol()}${convertPrice(final.total)} each</div><div class="cart-item-controls"><button class="cart-qty-btn" data-idx="${idx}" data-dir="dec">-</button><span>${item.qty}</span><button class="cart-qty-btn" data-idx="${idx}" data-dir="inc">+</button><button class="cart-remove" data-idx="${idx}">Remove</button></div></div>`;
@@ -1158,18 +1180,16 @@
         }
         
         let totalUSD = cart.reduce((sum, item) => {
-            let seller = sellers.find(s=>s.id===item.sellerId);
-            let final = calculateFinalPrice(item.price, seller?.country || "SA", buyerCountry);
+            let final = calculateFinalPrice(item.price, "SA", buyerCountry);
             return sum + (final.total * item.qty);
         }, 0);
         let tracking = "GB" + Date.now();
         
         cart.forEach(item => {
-            let seller = sellers.find(s=>s.id===item.sellerId);
-            let final = calculateFinalPrice(item.price, seller?.country || "SA", buyerCountry);
+            let final = calculateFinalPrice(item.price, "SA", buyerCountry);
             let newOrder = {
                 id: Date.now()+Math.random(), trackingNumber: tracking,
-                sellerId: item.sellerId, sellerName: item.sellerName,
+                sellerId: 0, sellerName: "GlobalBazaar",
                 buyerEmail: currentUser.email, buyerName: currentUser.name,
                 productName: item.name, amount: final.total, basePrice: item.price,
                 address: currentDelivery.fullAddress, date: new Date().toLocaleString(),
@@ -1189,8 +1209,7 @@
         updateCartUI();
         showToast(`✅ Payment Successful! Order ID: ${tracking}`, false);
         showSection('buyer');
-        renderBuyerOrders();
-        if(currentUser?.role === 'seller') renderSellerDashboard();
+        if(currentUser && currentUser.role !== 'seller') renderBuyerOrders();
         
         document.getElementById('cardNumber').value = '';
         document.getElementById('cardHolderName').value = '';
@@ -1204,223 +1223,30 @@
             order.status = "Delivered";
             saveAll();
             showToast("Order marked as Delivered!", false);
-            renderBuyerOrders();
-            renderSellerDashboard();
+            if(currentUser && currentUser.role !== 'seller') renderBuyerOrders();
             addNotification(`Order ${order.trackingNumber} delivered! Thank you!`, 'order');
             setTimeout(() => {
                 let ord = orders.find(o => o.id === orderId);
                 if(ord && ord.status === "Delivered") {
                     ord.status = "Completed";
-                    let seller = sellers.find(s => s.id === ord.sellerId);
-                    if(seller) {
-                        let sellerEarning = ord.basePrice - ord.shippingCost - HANDLING_FEE;
-                        seller.earnings = (seller.earnings || 0) + (sellerEarning * ord.qty);
-                        saveAll();
-                        showToast(`Payment released to seller`, false);
-                        renderSellerDashboard();
-                    }
+                    saveAll();
+                    showToast(`Order completed!`, false);
                 }
             }, 5000);
         } else { showToast("Order not shipped yet!", true); }
     }
     
-    function markOrderShipped(orderId, trackingNum) {
-        let order = orders.find(o => o.id === orderId);
-        if(order && order.status === "Processing") {
-            order.status = "Shipped";
-            order.trackingInfo = trackingNum;
-            saveAll();
-            showToast(`Order marked as Shipped! Tracking: ${trackingNum}`, false);
-            renderSellerDashboard();
-            renderBuyerOrders();
-            addNotification(`Your order ${order.trackingNumber} has been shipped! Tracking: ${trackingNum}`, 'order');
-        }
-    }
-    
-    function requestWithdrawal(sellerId) {
-        let seller = sellers.find(s => s.id === sellerId);
-        if(seller && seller.earnings > 0) {
-            let newWithdrawal = { id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, amount: seller.earnings, bank: seller.bankName, account: seller.accountNo, ifsc: seller.ifsc, date: new Date().toLocaleString(), status: "Pending" };
-            pendingWithdrawals.push(newWithdrawal);
-            seller.earnings = 0;
-            saveAll();
-            showToast(`Withdrawal request submitted!`, false);
-            renderSellerDashboard();
-            sendTelegramMessage(`💰 Withdrawal Request\nSeller: ${seller.shopName}\nAmount: ${getCurrencySymbol()}${convertPrice(newWithdrawal.amount)}`);
-            addNotification(`Withdrawal request submitted for ${getCurrencySymbol()}${convertPrice(newWithdrawal.amount)}`, 'payment');
-        } else { showToast("No balance to withdraw", true); }
-    }
-    
-    function processWeeklyWithdrawals() {
-        let lastProcessed = localStorage.getItem('gb_last_withdrawal');
-        let now = new Date();
-        let day = now.getDay();
-        if((day === 1 || day === 5) && (!lastProcessed || new Date(lastProcessed).getDate() !== now.getDate())) {
-            pendingWithdrawals.forEach(w => { if(w.status === "Pending") w.status = "Approved"; });
-            saveAll();
-            localStorage.setItem('gb_last_withdrawal', now.toString());
-        }
-    }
-    setInterval(processWeeklyWithdrawals, 3600000);
-    processWeeklyWithdrawals();
-    
-    // SELLER REGISTER
-    document.getElementById('sellerSubmitBtn')?.addEventListener('click', async () => {
-        if(!sellerPhoneVerified) { showToast("Please verify your phone number first!", true); return; }
-        if(!document.getElementById('sellerAgreement').checked) { showToast("Accept Seller Agreement", true); return; }
-        let dob = document.getElementById('sellerDob').value;
-        if(calculateAge(dob) < 18) { showToast("You must be 18+", true); return; }
-        let avatar = document.getElementById('sellerAvatar').files[0];
-        if(!avatar) { showToast("Upload shop logo", true); return; }
-        
-        let countryCodeSelect = document.getElementById('sellerCountryCode');
-        let countryCode = countryCodeSelect.value || "+91";
-        
-        let reader = new FileReader();
-        reader.onload = async (ev) => {
-            let newSeller = {
-                id: Date.now(), avatar: ev.target.result,
-                fullName: document.getElementById('sellerFullName').value,
-                shopName: document.getElementById('sellerShopName').value,
-                email: document.getElementById('sellerEmail').value,
-                phone: countryCode + document.getElementById('sellerPhone').value,
-                password: document.getElementById('sellerPassword').value,
-                dob: dob,
-                houseNo: document.getElementById('sellerHouseNo').value,
-                street: document.getElementById('sellerStreet').value,
-                city: document.getElementById('sellerCity').value,
-                state: document.getElementById('sellerState').value,
-                pincode: document.getElementById('sellerPincode').value,
-                country: document.getElementById('sellerCountryReg').value,
-                docType: document.getElementById('sellerDocType').value,
-                docNumber: document.getElementById('sellerDocNumber').value,
-                bankName: document.getElementById('sellerBank').value,
-                accountNo: document.getElementById('sellerAccountNo').value,
-                ifsc: document.getElementById('sellerIfsc').value,
-                accountHolder: document.getElementById('sellerAccountHolder').value,
-                earnings: 0, kycStatus: "pending", totalSales: 0, totalWithdrawn: 0
-            };
-            sellers.push(newSeller);
-            currentUser = { name: newSeller.fullName, email: newSeller.email, role: 'seller', sellerId: newSeller.id, phone: newSeller.phone };
-            saveAll();
-            document.getElementById('sellerRegisterBox').style.display = 'none';
-            document.getElementById('sellerDashboard').style.display = 'block';
-            renderSellerDashboard();
-            showToast("Shop Registered! KYC Pending.", false);
-            await sendTelegramMessage(`🏪 New Seller: ${newSeller.shopName}\nOwner: ${newSeller.fullName}\nEmail: ${newSeller.email}`);
-            addNotification(`Welcome ${newSeller.shopName}! Complete KYC to start selling.`, 'info');
-        };
-        reader.readAsDataURL(avatar);
-    });
-    
-    // SELLER LOGIN
-    document.getElementById('doSellerLoginBtn')?.addEventListener('click', () => {
-        let email = document.getElementById('sellerLoginEmail').value;
-        let pass = document.getElementById('sellerLoginPass').value;
-        let seller = sellers.find(s => s.email === email && s.password === pass);
-        if(seller) {
-            currentUser = { name: seller.fullName, email: seller.email, role: 'seller', sellerId: seller.id, phone: seller.phone };
-            saveAll();
-            document.getElementById('profileAuthBox').style.display = 'none';
-            document.getElementById('buyerProfilePanel').style.display = 'block';
-            document.getElementById('profileName').innerText = seller.fullName;
-            document.getElementById('profileRoleBadge').innerText = 'Seller';
-            showToast(`Welcome back, ${seller.shopName}!`, false);
-            addNotification(`Welcome back ${seller.shopName}!`, 'info');
-            renderSellerDashboard();
-        } else {
-            showToast("Invalid credentials!", true);
-        }
-    });
-    
-    function renderSellerDashboard() {
-        if(!currentUser?.sellerId) return;
-        let seller = sellers.find(s=>s.id === currentUser.sellerId);
-        if(!seller) return;
-        let myProducts = products.filter(p=>p.sellerId === seller.id);
-        let myOrders = orders.filter(o=>o.sellerId === seller.id);
-        let totalSales = 0;
-        let monthlyRevenue = {};
-        
-        myOrders.forEach(o => {
-            if(o.status === "Completed") {
-                let sellerEarning = (o.basePrice - o.shippingCost - HANDLING_FEE) * o.qty;
-                totalSales += sellerEarning;
-                let date = new Date(o.date);
-                let monthYear = `${date.getMonth()+1}/${date.getFullYear()}`;
-                monthlyRevenue[monthYear] = (monthlyRevenue[monthYear] || 0) + sellerEarning;
-            }
-        });
-        
-        let chartLabels = Object.keys(monthlyRevenue);
-        let chartData = Object.values(monthlyRevenue);
-        if(chartLabels.length === 0) { chartLabels = ["No Data"]; chartData = [0]; }
-        
-        let kycClass = seller.kycStatus === "pending" ? "kyc-pending" : (seller.kycStatus === "verified" ? "kyc-verified" : "kyc-rejected");
-        let kycText = seller.kycStatus === "pending" ? "KYC Pending" : (seller.kycStatus === "verified" ? "KYC Verified ✓" : "KYC Rejected ✗");
-        
-        let topProducts = {};
-        myOrders.forEach(o => { topProducts[o.productName] = (topProducts[o.productName] || 0) + o.qty; });
-        let topProductsList = Object.entries(topProducts).sort((a,b) => b[1] - a[1]).slice(0,5);
-        
-        document.getElementById('sellerDashboard').innerHTML = `
-            <div class="premium-card"><div class="flex-between"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📍 ${seller.city}, ${seller.country}</p></div><div><span class="kyc-status ${kycClass}">${kycText}</span><br><span class="role-badge">Seller ID: ${seller.id}</span></div></div><div class="flex-between"><span>🏦 ${seller.bankName} - ${seller.accountNo}</span><span>💰 Balance: ${getCurrencySymbol()}${convertPrice(seller.earnings)}</span></div><div class="flex-between"><span>📊 Total Sales: ${getCurrencySymbol()}${convertPrice(totalSales)}</span><span>💸 Total Withdrawn: ${getCurrencySymbol()}${convertPrice(seller.totalWithdrawn || 0)}</span></div>${seller.kycStatus === "verified" ? '<button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Request Withdrawal</button>' : '<button class="btn-primary" style="background:#64748b;" disabled>🔒 KYC Required</button>'}</div>
-            <div class="chart-container"><h3>📊 Revenue Chart (Monthly)</h3><canvas id="revenueChart"></canvas></div>
-            <div class="premium-card"><h3>📈 Top Selling Products</h3>${topProductsList.map(p => `📦 ${p[0]}: ${p[1]} sold`).join('<br>') || 'No sales yet'}</div>
-            ${seller.kycStatus === "verified" ? `
-            <div class="premium-card"><h3>➕ Add New Product</h3><input type="text" id="prodName" placeholder="Product Name" class="input"><input type="number" id="prodPrice" placeholder="Price (USD)" class="input"><select id="prodCat" class="input"><option>Electronics</option><option>Fashion</option><option>Home</option><option>Textile</option><option>Cosmetic</option></select><input type="url" id="prodImg" placeholder="Image URL" class="input"><textarea id="prodDesc" placeholder="Product Description" class="input" rows="3"></textarea><button id="publishBtn" class="btn-primary">Publish Product</button></div>
-            <div class="premium-card"><h3>📋 My Products (${myProducts.length})</h3><div id="myProductsList"></div></div>
-            <div class="premium-card"><h3>📦 Orders Received (${myOrders.length})</h3><div id="ordersList"></div></div>
-            ` : `<div class="premium-card"><h3>⚠️ ${kycText}</h3><p>Your KYC documents are under review by admin.<br><br><strong>Documents submitted:</strong> ${seller.docType} - ${seller.docNumber}</p></div>`}
-        `;
-        
-        let ctx = document.getElementById('revenueChart')?.getContext('2d');
-        if(ctx) {
-            if(sellerRevenueChart) sellerRevenueChart.destroy();
-            sellerRevenueChart = new Chart(ctx, {
-                type: 'bar',
-                data: { labels: chartLabels, datasets: [{ label: 'Revenue ('+getCurrencySymbol()+')', data: chartData.map(v=>parseFloat(convertPrice(v))), backgroundColor: '#3b82f6', borderRadius: 8 }] },
-                options: { responsive: true, maintainAspectRatio: true }
-            });
-        }
-        
-        if(seller.kycStatus === "verified") {
-            document.getElementById('publishBtn')?.addEventListener('click', () => {
-                let name = document.getElementById('prodName').value;
-                let desc = document.getElementById('prodDesc').value;
-                let price = parseFloat(document.getElementById('prodPrice').value);
-                if(!name || !price) { showToast("Fill name & price", true); return; }
-                let newProduct = { 
-                    id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, 
-                    name, price, category: document.getElementById('prodCat').value, 
-                    mainImage: document.getElementById('prodImg').value || "https://placehold.co/200x200", 
-                    images: [document.getElementById('prodImg').value || "https://placehold.co/200x200"],
-                    description: desc, sellerCountry: seller.country, rating: 0
-                };
-                products.push(newProduct);
-                saveAll();
-                renderSellerDashboard(); renderProducts(); showToast("Published!", false);
-                sendTelegramMessage(`📦 New Product: ${name}\nShop: ${seller.shopName}\nPrice: ${getCurrencySymbol()}${convertPrice(price)}`);
-                addNotification(`New product "${name}" published!`, 'info');
-            });
-            document.getElementById('myProductsList').innerHTML = myProducts.map(p => `<div class="flex-between"><span>📦 ${p.name} - ${getCurrencySymbol()}${convertPrice(p.price)}</span><button class="delProd" data-id="${p.id}" style="background:#dc2626; border:none; padding:6px 14px; border-radius:30px;">Delete</button></div>`).join('');
-            document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', () => { products = products.filter(p=>p.id!==parseInt(btn.dataset.id)); saveAll(); renderSellerDashboard(); renderProducts(); showToast("Product deleted", false); }));
-            document.getElementById('ordersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 Order #${o.trackingNumber}</strong><br>Product: ${o.productName} x${o.qty}<br>Amount: ${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: <span style="color:${o.status==='Processing'?'#d97706':(o.status==='Shipped'?'#3b82f6':'#10b981')}">${o.status}</span><br>Buyer: ${o.buyerName}<br>Address: ${o.address}<br>Date: ${o.date}<br>${renderTrackingMap(o)}<br>${o.status === "Processing" ? `<button class="shipBtn" data-id="${o.id}" style="background:#3b82f6; margin-top:10px; padding:8px 16px; border-radius:30px;">📦 Mark as Shipped</button>` : ''}${o.status === "Shipped" ? `<br><span style="font-size:11px;">Tracking: ${o.trackingInfo}</span>` : ''}</div>`).join('');
-            document.querySelectorAll('.shipBtn').forEach(btn => btn.addEventListener('click', () => { let track = prompt("Enter tracking number:"); if(track) markOrderShipped(parseFloat(btn.dataset.id), track); }));
-            document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
-        }
-    }
-    
     function renderBuyerOrders() {
-        if(!currentUser) return;
+        if(!currentUser || currentUser.role === 'seller') return;
         let myOrders = orders.filter(o=>o.buyerEmail===currentUser.email);
         document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 Order #${o.trackingNumber}</strong><br>Product: ${o.productName} x${o.qty}<br>Amount: ${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: <span style="color:${o.status==='Processing'?'#d97706':(o.status==='Shipped'?'#3b82f6':'#10b981')}">${o.status}</span><br>Delivery: ${o.address}<br>Date: ${o.date}<br>${renderTrackingMap(o)}<br>${o.trackingInfo ? `📮 Tracking: ${o.trackingInfo}<br>` : ''}${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981; margin-top:10px; padding:8px 16px; border-radius:30px;">✅ I have received the product</button>` : ''}</div>`).join('');
         document.querySelectorAll('.confirmReceivedBtn').forEach(btn => btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id))));
     }
     
     function renderBuyerWishlist() {
-        if(!currentUser) return;
-        let wishlistProducts = products.filter(p => wishlist.includes(p.id));
+        if(!currentUser || currentUser.role === 'seller') return;
+        let allProducts = [...products, ...sellerProducts];
+        let wishlistProducts = allProducts.filter(p => wishlist.includes(p.id));
         document.getElementById('buyerWishlistList').innerHTML = wishlistProducts.map(p => `<div class="order-card"><strong>${p.name}</strong><br>Price: ${getCurrencySymbol()}${convertPrice(p.price)}<br><button class="removeWishlistBtn" data-id="${p.id}" style="background:#dc2626; border:none; padding:6px 12px; border-radius:20px;">Remove</button></div>`).join('');
         document.querySelectorAll('.removeWishlistBtn').forEach(btn => btn.addEventListener('click', () => { wishlist = wishlist.filter(id => id !== parseInt(btn.dataset.id)); saveAll(); renderProducts(); renderBuyerWishlist(); showToast("Removed from wishlist", false); }));
     }
@@ -1453,6 +1279,94 @@
         showToast(`Account created! Welcome ${name}!`, false);
         addNotification(`Welcome to GlobalBazaar ${name}!`, 'info');
     });
+    
+    // SELLER PRODUCT PUBLISH
+    document.getElementById('publishProductBtn')?.addEventListener('click', () => {
+        let name = document.getElementById('prodName').value;
+        let price = parseFloat(document.getElementById('prodPrice').value);
+        let category = document.getElementById('prodCat').value;
+        let imageUrl = document.getElementById('prodImg').value;
+        let description = document.getElementById('prodDesc').value;
+        
+        if(!name || !price) { showToast("Please fill product name and price", true); return; }
+        if(!imageUrl) imageUrl = "https://placehold.co/400x400/1e3a8a/white?text=" + encodeURIComponent(name);
+        
+        let newProduct = {
+            id: Date.now(),
+            sellerId: 1,
+            sellerName: "My Shop",
+            name: name,
+            price: price,
+            category: category,
+            mainImage: imageUrl,
+            images: [imageUrl],
+            description: description || "High quality product",
+            sellerCountry: "NP",
+            rating: 0
+        };
+        
+        sellerProducts.push(newProduct);
+        saveAll();
+        updateSellerDashboardDisplay();
+        renderProducts();
+        showToast("Product published successfully!", false);
+        addNotification(`New product "${name}" published!`, 'info');
+        
+        document.getElementById('prodName').value = '';
+        document.getElementById('prodPrice').value = '';
+        document.getElementById('prodImg').value = '';
+        document.getElementById('prodDesc').value = '';
+    });
+    
+    function updateSellerDashboardDisplay() {
+        let productCount = sellerProducts.length;
+        let orderCount = orders.filter(o => o.sellerId === 1).length;
+        let totalSales = orders.filter(o => o.sellerId === 1 && o.status === "Completed").reduce((sum, o) => sum + o.amount, 0);
+        
+        document.getElementById('sellerProductsCount').innerText = productCount;
+        document.getElementById('sellerOrdersCount').innerText = orderCount;
+        document.getElementById('sellerTotalSalesDisplay').innerHTML = `${getCurrencySymbol()}${convertPrice(totalSales)}`;
+        
+        let myProductsHtml = sellerProducts.map(p => `<div class="flex-between" style="margin-bottom:10px;"><span>📦 ${p.name} - ${getCurrencySymbol()}${convertPrice(p.price)}</span><button class="deleteProductBtn" data-id="${p.id}" style="background:#dc2626; border:none; padding:6px 12px; border-radius:20px;">Delete</button></div>`).join('');
+        if(sellerProducts.length === 0) myProductsHtml = '<p style="text-align:center; padding:20px;">No products yet. Add your first product!</p>';
+        document.getElementById('myProductsListFixed').innerHTML = myProductsHtml;
+        
+        document.querySelectorAll('.deleteProductBtn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                let id = parseInt(btn.dataset.id);
+                sellerProducts = sellerProducts.filter(p => p.id !== id);
+                saveAll();
+                updateSellerDashboardDisplay();
+                renderProducts();
+                showToast("Product deleted", false);
+            });
+        });
+        
+        let myOrdersHtml = orders.filter(o => o.sellerId === 1).map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty}<br>${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: ${o.status}<br>Buyer: ${o.buyerName}</div>`).join('');
+        if(orders.filter(o => o.sellerId === 1).length === 0) myOrdersHtml = '<p style="text-align:center; padding:20px;">No orders received yet.</p>';
+        document.getElementById('myOrdersListFixed').innerHTML = myOrdersHtml;
+        
+        let monthlyRevenue = {};
+        orders.filter(o => o.sellerId === 1 && o.status === "Completed").forEach(o => {
+            let date = new Date(o.date);
+            let monthYear = `${date.getMonth()+1}/${date.getFullYear()}`;
+            monthlyRevenue[monthYear] = (monthlyRevenue[monthYear] || 0) + o.amount;
+        });
+        
+        let chartLabels = Object.keys(monthlyRevenue);
+        let chartData = Object.values(monthlyRevenue);
+        if(chartLabels.length === 0) { chartLabels = ["No Data"]; chartData = [0]; }
+        
+        let ctx = document.getElementById('sellerRevenueChartFixed')?.getContext('2d');
+        if(ctx) {
+            if(sellerRevenueChartFixed) sellerRevenueChartFixed.destroy();
+            sellerRevenueChartFixed = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: chartLabels, datasets: [{ label: 'Revenue ('+getCurrencySymbol()+')', data: chartData.map(v=>parseFloat(convertPrice(v))), backgroundColor: '#3b82f6', borderRadius: 8 }] },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+        }
+    }
     
     // LOGOUT
     document.getElementById('logoutBtn')?.addEventListener('click', () => { 
@@ -1504,36 +1418,38 @@
     
     document.getElementById('drawerBuyer')?.addEventListener('click', () => { showSection('buyer'); closeDrawer(); });
     document.getElementById('drawerSeller')?.addEventListener('click', () => { 
-        showSection('seller'); 
-        if(currentUser?.role === 'seller') { 
-            document.getElementById('sellerRegisterBox').style.display='none'; 
-            document.getElementById('sellerDashboard').style.display='block'; 
-            renderSellerDashboard(); 
-        } else {
-            document.getElementById('sellerRegisterBox').style.display='block';
-            document.getElementById('sellerDashboard').style.display='none';
-        }
+        showSection('seller');
+        updateSellerDashboardDisplay();
         closeDrawer(); 
     });
     document.getElementById('drawerProfile')?.addEventListener('click', () => { 
         showSection('profile'); 
-        if(currentUser) { 
+        if(currentUser && currentUser.role !== 'seller') { 
             document.getElementById('profileAuthBox').style.display='none'; 
             document.getElementById('buyerProfilePanel').style.display='block'; 
-            if(currentUser.role === 'seller') renderSellerDashboard();
-            else { renderBuyerOrders(); renderBuyerWishlist(); }
+            renderBuyerOrders(); 
+            renderBuyerWishlist(); 
+        } else if(currentUser && currentUser.role === 'seller') {
+            document.getElementById('profileAuthBox').style.display='none'; 
+            document.getElementById('buyerProfilePanel').style.display='block';
+            document.getElementById('profileName').innerText = currentUser.name;
+            document.getElementById('profileRoleBadge').innerText = 'Seller';
         } else { 
             document.getElementById('profileAuthBox').style.display='block'; 
             document.getElementById('buyerProfilePanel').style.display='none'; 
-            showBuyerSignupForm();
         } 
         closeDrawer(); 
     });
     document.getElementById('drawerAdmin')?.addEventListener('click', () => { showSection('admin'); closeDrawer(); });
     document.getElementById('drawerCartPage')?.addEventListener('click', () => { renderCartPage(); showSection('cartPage'); closeDrawer(); });
-    document.getElementById('drawerWishlist')?.addEventListener('click', () => { if(currentUser) { showSection('profile'); renderBuyerWishlist(); } else showToast("Please signup first", true); closeDrawer(); });
+    document.getElementById('drawerWishlist')?.addEventListener('click', () => { if(currentUser && currentUser.role !== 'seller') { showSection('profile'); renderBuyerWishlist(); } else showToast("Please signup first", true); closeDrawer(); });
     document.getElementById('drawerSignup')?.addEventListener('click', () => { showSection('profile'); closeDrawer(); });
     document.getElementById('drawerSupport')?.addEventListener('click', () => { showSupport(); closeDrawer(); });
+    document.getElementById('drawerLogout')?.addEventListener('click', () => { 
+        currentUser = null; 
+        localStorage.removeItem('gb_current_user');
+        location.reload(); 
+    });
     document.getElementById('cartFloatBtn')?.addEventListener('click', () => { renderCartPage(); showSection('cartPage'); });
     document.getElementById('closeModalBtn')?.addEventListener('click', () => document.getElementById('productModal').style.display='none');
     document.getElementById('modalAddCartBtn')?.addEventListener('click', () => { if(currentProduct) addToCart(currentProduct.id); document.getElementById('productModal').style.display='none'; });
@@ -1552,8 +1468,9 @@
     renderProducts();
     updateCartUI();
     updateNotificationUI();
+    updateSellerDashboardDisplay();
     
-    console.log("✅ GlobalBazaar - FULLY WORKING with Seller Dashboard!");
+    console.log("✅ GlobalBazaar - Seller Dashboard VISIBLE and WORKING!");
 </script>
 </body>
 </html>
