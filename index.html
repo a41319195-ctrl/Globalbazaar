@@ -9,12 +9,11 @@
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
-    <!-- ============ FIREBASE SDK (ADDED - SIRF YAHI 2 LINES) ============ -->
+    <!-- ============ FIREBASE SDK ============ -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     
     <style>
-        /* SAME AS YOUR EXISTING CSS - NO CHANGE */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: linear-gradient(135deg, #f5f7fb 0%, #eef2f8 100%); padding-bottom: 90px; transition: all 0.3s ease; }
         body.dark-mode { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f1f5f9; }
@@ -393,7 +392,7 @@
 <div class="footer-legal">© 2026 GlobalBazaar Marketplace | <span class="legal-link" onclick="showTerms()">Terms</span> | <span class="legal-link" onclick="showPrivacy()">Privacy</span> | <span class="legal-link" onclick="showSupport()">Support</span></div>
 
 <script>
-    // ============ 🔥 FIREBASE CONFIG (ADDED - APKI CONFIG) ============
+    // ============ 🔥 FIREBASE CONFIG ============
     const firebaseConfig = {
         apiKey: "AIzaSyAvbSJkEH3NDNy_SIaf0bJk0hkhknTRhno",
         authDomain: "globalbazaar-2c6cb.firebaseapp.com",
@@ -403,11 +402,9 @@
         appId: "1:734113870757:web:653ac103c064685cbaee4c"
     };
     
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // ============ YOUR EXISTING CODE (NO CHANGE) ============
     const TELEGRAM_BOT_TOKEN = "8328824652:AAE-b4o6DaFDa9WPtZfrOfM7SYGU9gUa9HQ";
     const TELEGRAM_CHAT_ID = "7111653640";
     
@@ -615,13 +612,15 @@
         }
     }
     
+    // ============ FIXED KYC THANK YOU POPUP ============
     function showKYCThankYouPopup() {
         let popupHtml = `
             <div class="kyc-thankyou-popup" id="kycThankYouPopup">
-                <h3>🙏 Thank You!</h3>
-                <p>Your KYC documents have been submitted.</p>
-                <p>⏳ Waiting for admin to verify...</p>
+                <h3>🙏 Thank You for Registering!</h3>
+                <p>Your KYC documents have been submitted successfully.</p>
+                <p>⏳ <strong>Waiting for Admin to verify...</strong></p>
                 <p>You will be notified once verified.</p>
+                <p style="font-size:12px; color:#64748b; margin-top:15px;">Redirecting to home page...</p>
                 <button id="kycThankYouCloseBtn" class="btn-primary" style="margin-top:15px;">OK</button>
             </div>
         `;
@@ -630,13 +629,15 @@
         document.body.insertAdjacentHTML('beforeend', popupHtml);
         document.getElementById('kycThankYouCloseBtn').addEventListener('click', () => {
             document.getElementById('kycThankYouPopup').remove();
+            showSection('buyer');
+            showToast("Redirected to Home Page", false);
         });
         setTimeout(() => {
             let popup = document.getElementById('kycThankYouPopup');
             if(popup) popup.remove();
             showSection('buyer');
-            showToast("Redirected to Home Page", false);
-        }, 3000);
+            showToast("Registration complete! Waiting for admin approval.", false);
+        }, 5000);
     }
     
     const countryCodes = [
@@ -874,7 +875,6 @@
     let savedSellers = localStorage.getItem('gb_sellers');
     if(savedSellers && savedSellers !== 'null') { try { sellers = JSON.parse(savedSellers); } catch(e) {} }
     
-    // ============ FIREBASE SYNC FUNCTIONS (ADDED) ============
     async function syncSellersFromFirebase() {
         try {
             const snapshot = await database.ref('sellers').once('value');
@@ -1201,7 +1201,7 @@
     setInterval(processWeeklyWithdrawals, 3600000);
     processWeeklyWithdrawals();
     
-    // ============ SELLER REGISTRATION WITH FIREBASE SAVE ============
+    // ============ FIXED SELLER REGISTRATION ============
     document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         if(!sellerPhoneVerified) { showToast("Please verify your phone number first!", true); return; }
@@ -1230,33 +1230,75 @@
         docReader.readAsDataURL(docImageFile);
     });
     
+    // ============ FIXED saveSellerData FUNCTION ============
     async function saveSellerData(avatarData, docImageData, countryCode) {
-        let newSeller = {
-            id: Date.now(), avatar: avatarData, fullName: document.getElementById('sellerFullName').value,
-            shopName: document.getElementById('sellerShopName').value, email: document.getElementById('sellerEmail').value,
-            phone: countryCode + document.getElementById('sellerPhone').value, password: document.getElementById('sellerPassword').value,
-            dob: document.getElementById('sellerDob').value, houseNo: document.getElementById('sellerHouseNo').value,
-            street: document.getElementById('sellerStreet').value, city: document.getElementById('sellerCity').value,
-            state: document.getElementById('sellerState').value, pincode: document.getElementById('sellerPincode').value,
-            country: document.getElementById('sellerCountryReg').value, docType: document.getElementById('sellerDocType').value,
-            docNumber: document.getElementById('sellerDocNumber').value, docImage: docImageData,
-            bankName: document.getElementById('sellerBank').value, accountNo: document.getElementById('sellerAccountNo').value,
-            ifsc: document.getElementById('sellerIfsc').value, accountHolder: document.getElementById('sellerAccountHolder').value,
-            earnings: 0, kycStatus: "pending", totalSales: 0, totalWithdrawn: 0
-        };
-        sellers.push(newSeller);
-        saveSellerToFirebase(newSeller);
-        saveAll();
-        document.getElementById('sellerRegisterBox').style.display = 'block';
-        document.getElementById('sellerDashboard').style.display = 'none';
-        document.getElementById('sellerRegForm').reset();
-        sellerPhoneVerified = false;
-        document.getElementById('sellerSubmitBtn').disabled = true;
-        document.getElementById('sellerSubmitBtn').innerHTML = '✅ Register Shop (Verify Phone First)';
-        showKYCThankYouPopup();
-        await sendTelegramMessage(`🏪 New Seller Registered: ${newSeller.shopName}\nOwner: ${newSeller.fullName}\nEmail: ${newSeller.email}\nKYC Status: Pending`);
-        addNotification(`New seller ${newSeller.shopName} registered! KYC pending.`, 'info');
-        if(document.getElementById('adminContent').style.display === 'block') loadAdminData();
+        try {
+            let newSeller = {
+                id: Date.now(),
+                avatar: avatarData,
+                fullName: document.getElementById('sellerFullName').value,
+                shopName: document.getElementById('sellerShopName').value,
+                email: document.getElementById('sellerEmail').value,
+                phone: countryCode + document.getElementById('sellerPhone').value,
+                password: document.getElementById('sellerPassword').value,
+                dob: document.getElementById('sellerDob').value,
+                houseNo: document.getElementById('sellerHouseNo').value,
+                street: document.getElementById('sellerStreet').value,
+                city: document.getElementById('sellerCity').value,
+                state: document.getElementById('sellerState').value,
+                pincode: document.getElementById('sellerPincode').value,
+                country: document.getElementById('sellerCountryReg').value,
+                docType: document.getElementById('sellerDocType').value,
+                docNumber: document.getElementById('sellerDocNumber').value,
+                docImage: docImageData,
+                bankName: document.getElementById('sellerBank').value,
+                accountNo: document.getElementById('sellerAccountNo').value,
+                ifsc: document.getElementById('sellerIfsc').value,
+                accountHolder: document.getElementById('sellerAccountHolder').value,
+                earnings: 0,
+                kycStatus: "pending",
+                totalSales: 0,
+                totalWithdrawn: 0,
+                registeredAt: new Date().toISOString()
+            };
+            
+            sellers.push(newSeller);
+            saveSellerToFirebase(newSeller);
+            saveAll();
+            
+            // Reset form completely
+            document.getElementById('sellerRegForm').reset();
+            sellerPhoneVerified = false;
+            document.getElementById('sellerSubmitBtn').disabled = true;
+            document.getElementById('sellerSubmitBtn').innerHTML = '✅ Register Shop (Verify Phone First)';
+            document.getElementById('sellerOtpSection').style.display = 'none';
+            
+            // Clear any image previews
+            if(typeof currentProductImages !== 'undefined') {
+                currentProductImages = [];
+                currentImagePreviews = [];
+            }
+            const previewContainer = document.getElementById('imagePreviewContainer');
+            if(previewContainer) previewContainer.innerHTML = '';
+            
+            // Show success popup
+            showKYCThankYouPopup();
+            
+            // Send notifications
+            await sendTelegramMessage(`🏪 NEW SELLER REGISTERED!\n\nShop: ${newSeller.shopName}\nOwner: ${newSeller.fullName}\nEmail: ${newSeller.email}\nPhone: ${newSeller.phone}\nCountry: ${newSeller.country}\n\n⏳ KYC Status: PENDING ADMIN APPROVAL`);
+            addNotification(`🆕 New seller "${newSeller.shopName}" registered! KYC verification pending.`, 'info');
+            
+            // Refresh admin panel if open
+            if(document.getElementById('adminContent') && document.getElementById('adminContent').style.display === 'block') {
+                loadAdminData();
+            }
+            
+            console.log("✅ Seller registration complete:", newSeller.shopName, "ID:", newSeller.id);
+            
+        } catch(error) {
+            console.error("❌ Seller registration error:", error);
+            showToast("Registration failed! Please try again.", true);
+        }
     }
     
     function showMyShopLogin() {
@@ -1383,7 +1425,7 @@
         document.querySelectorAll('.removeWishlistBtn').forEach(btn => btn.addEventListener('click', () => { wishlist = wishlist.filter(id => id !== parseInt(btn.dataset.id)); saveAll(); renderProducts(); renderBuyerWishlist(); showToast("Removed from wishlist", false); }));
     }
     
-    // ============ ADMIN PANEL WITH FIREBASE SYNC ============
+    // ============ ADMIN PANEL WITH FIXED APPROVE/REJECT ============
     document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
         if(document.getElementById('adminKey').value === 'admin123') {
             document.getElementById('adminLoginBox').style.display = 'none';
@@ -1412,6 +1454,7 @@
         else { rejectedHtml = `<table class="kyc-table"><thead><tr><th>Shop Name</th><th>Owner</th><th>Email</th><th>Reason</th></tr></thead><tbody>${rejectedSellers.map(s => `<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td><span class="badge-rejected">${s.rejectionReason || 'No reason provided'}</span></td></tr>`).join('')}</tbody></table>`; }
         document.getElementById('rejectedSellersList').innerHTML = rejectedHtml;
         
+        // Fixed Approve Button
         document.querySelectorAll('.btn-approve').forEach(btn => btn.addEventListener('click', async () => { 
             let seller = sellers.find(s => s.id === parseInt(btn.dataset.id)); 
             if(seller) { 
@@ -1420,11 +1463,13 @@
                 saveAll(); 
                 loadAdminData(); 
                 showToast(`${seller.shopName} Verified!`, false); 
-                await sendTelegramMessage(`✅ KYC Verified: ${seller.shopName}`); 
-                addNotification(`${seller.shopName} KYC Verified!`, 'info'); 
+                await sendTelegramMessage(`✅ KYC VERIFIED: ${seller.shopName}\n\nSeller can now login and start selling!`); 
+                addNotification(`✅ ${seller.shopName} KYC Verified! Seller can now sell products.`, 'info');
+                showToast(`✅ ${seller.shopName} has been verified!`, false);
             } 
         }));
         
+        // Fixed Reject Button
         document.querySelectorAll('.btn-reject').forEach(btn => btn.addEventListener('click', async () => { 
             let reason = prompt("Enter rejection reason:"); 
             if(reason && reason.trim() !== "") { 
@@ -1436,10 +1481,13 @@
                     saveAll(); 
                     loadAdminData(); 
                     showToast(`${seller.shopName} Rejected!`, false); 
-                    await sendTelegramMessage(`❌ KYC Rejected: ${seller.shopName}\nReason: ${reason}`); 
-                    addNotification(`${seller.shopName} KYC Rejected!`, 'info'); 
+                    await sendTelegramMessage(`❌ KYC REJECTED: ${seller.shopName}\nReason: ${reason}`); 
+                    addNotification(`❌ ${seller.shopName} KYC Rejected! Reason: ${reason}`, 'info');
+                    showToast(`❌ ${seller.shopName} has been rejected. Reason: ${reason}`, false);
                 } 
-            } else if(reason === "") { showToast("Please enter a rejection reason", true); }
+            } else if(reason === "") { 
+                showToast("Please enter a rejection reason", true); 
+            } 
         }));
         
         document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
@@ -1475,18 +1523,16 @@
     document.getElementById('cardNumber')?.addEventListener('input', function(e) { let v = e.target.value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim(); e.target.value = v; });
     document.getElementById('expiryDate')?.addEventListener('input', function(e) { let v = e.target.value.replace(/\//g, ''); if(v.length >= 2) v = v.slice(0,2) + '/' + v.slice(2,4); e.target.value = v; });
     
-    // Initialize: First load local data, then sync from Firebase
     renderCats();
     renderProducts();
     updateCartUI();
     updateNotificationUI();
     
-    // Sync from Firebase after 1 second (dashboard pehle dikhega)
     setTimeout(() => {
         syncSellersFromFirebase();
     }, 1000);
     
-    console.log("✅ GlobalBazaar Ready - Firebase KYC Sync Enabled!");
+    console.log("✅ GlobalBazaar Ready - Seller Registration & KYC Fixed!");
 </script>
 </body>
 </html>
