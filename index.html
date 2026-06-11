@@ -144,7 +144,6 @@
         .btn-reject { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; }
         .btn-view-doc { background: #3b82f6; color: white; border: none; padding: 4px 10px; border-radius: 15px; cursor: pointer; font-size: 11px; }
         
-        /* Image upload styles */
         .image-upload-area { border: 2px dashed #cbd5e1; border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 15px; cursor: pointer; transition: 0.2s; }
         .image-upload-area:hover { border-color: #3b82f6; background: #f8fafc; }
         body.dark-mode .image-upload-area:hover { background: #334155; }
@@ -153,7 +152,6 @@
         .preview-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; border: 2px solid #e2e8f0; }
         .preview-item button { position: absolute; top: -8px; right: -8px; background: #dc2626; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-size: 12px; }
         
-        /* Sold Out Popup */
         .soldout-popup-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .soldout-popup { background: white; padding: 24px; border-radius: 24px; max-width: 350px; text-align: center; }
         body.dark-mode .soldout-popup { background: #1e293b; }
@@ -161,7 +159,6 @@
         .soldout-yes-btn { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 40px; cursor: pointer; }
         .soldout-no-btn { background: #dc2626; color: white; border: none; padding: 10px 20px; border-radius: 40px; cursor: pointer; }
         
-        /* KYC Thank You Popup */
         .kyc-thankyou-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 24px; text-align: center; z-index: 1000; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
         body.dark-mode .kyc-thankyou-popup { background: #1e293b; }
         
@@ -238,7 +235,6 @@
         <div class="product-grid" id="productsGrid"></div>
     </div>
 
-    <!-- SELLER SECTION -->
     <div id="sellerSection" class="section">
         <div id="sellerRegisterBox" class="premium-card">
             <h2>🏪 Open Your Shop</h2>
@@ -306,17 +302,14 @@
                     <div class="kyc-section-title">⏳ Pending KYC Verification Requests</div>
                     <div id="pendingKycList"></div>
                 </div>
-                
                 <div style="margin-bottom: 25px;">
                     <div class="kyc-section-title">✅ Verified Sellers</div>
                     <div id="verifiedSellersList"></div>
                 </div>
-                
                 <div style="margin-bottom: 25px;">
                     <div class="kyc-section-title">❌ Rejected Sellers</div>
                     <div id="rejectedSellersList"></div>
                 </div>
-                
                 <div class="flex-between"><h3>💰 Platform Earnings</h3><button id="refreshAdminBtn" style="background:#64748b; padding:8px 16px; border-radius:30px;">Refresh</button></div>
                 <div id="platformEarnings"></div>
                 <h3>💸 Pending Withdrawals</h3>
@@ -408,7 +401,6 @@
 <div class="footer-legal">© 2026 GlobalBazaar Marketplace | <span class="legal-link" onclick="showTerms()">Terms</span> | <span class="legal-link" onclick="showPrivacy()">Privacy</span> | <span class="legal-link" onclick="showSupport()">Support</span></div>
 
 <script>
-    // ============ TELEGRAM BOT ============
     const TELEGRAM_BOT_TOKEN = "8328824652:AAE-b4o6DaFDa9WPtZfrOfM7SYGU9gUa9HQ";
     const TELEGRAM_CHAT_ID = "7111653640";
     
@@ -424,7 +416,6 @@
         } catch(e) { return false; }
     }
 
-    // ============ NOTIFICATION SYSTEM WITH MARK AS READ ============
     let notifications = JSON.parse(localStorage.getItem('gb_notifications')) || [];
     
     function addNotification(message, type = 'info') {
@@ -464,20 +455,6 @@
                 updateNotificationUI();
             });
         });
-        
-        document.querySelectorAll('.notification-item').forEach(el => {
-            if(!el.querySelector('.mark-read-btn')) {
-                el.addEventListener('click', () => {
-                    let id = parseInt(el.dataset.id);
-                    let notif = notifications.find(n => n.id === id);
-                    if(notif && !notif.read) {
-                        notif.read = true;
-                        localStorage.setItem('gb_notifications', JSON.stringify(notifications));
-                        updateNotificationUI();
-                    }
-                });
-            }
-        });
     }
     
     document.getElementById('markAllReadBtn')?.addEventListener('click', () => {
@@ -498,7 +475,6 @@
         }
     });
     
-    // ============ DARK MODE ============
     let isDarkMode = localStorage.getItem('darkMode') === 'true';
     if(isDarkMode) document.body.classList.add('dark-mode');
     
@@ -512,7 +488,6 @@
         closeDrawer();
     });
     
-    // ============ RATINGS & REVIEWS ============
     let productReviews = JSON.parse(localStorage.getItem('gb_reviews')) || {};
     
     function renderReviewStars(containerId, onRatingSelect) {
@@ -538,14 +513,12 @@
         if(currentProduct) openProduct(productId);
     }
     
-    // ============ WHATSAPP SHARE ============
     function shareOnWhatsApp(product, price) {
         let text = `Check out this product on GlobalBazaar!\n\n📦 ${product.name}\n💰 Price: ${getCurrencySymbol()}${convertPrice(price)}\n🔗 Shop now on GlobalBazaar!`;
         let url = `https://wa.me/?text=${encodeURIComponent(text)}`;
         window.open(url, '_blank');
     }
     
-    // ============ TRACKING MAP ============
     function renderTrackingMap(order) {
         let steps = [
             { name: 'Order Placed', status: order.status !== 'Processing' ? 'completed' : (order.status === 'Processing' ? 'active' : 'pending') },
@@ -561,7 +534,6 @@
         </div>`;
     }
     
-    // ============ DOCUMENT VIEW MODAL ============
     function showDocumentModal(docData, docType, sellerName) {
         let modalImg = document.getElementById('documentModalImg');
         let modalText = document.getElementById('documentModalText');
@@ -576,11 +548,8 @@
         document.getElementById('documentModal').style.display = 'block';
     }
     
-    function closeDocumentModal() {
-        document.getElementById('documentModal').style.display = 'none';
-    }
+    function closeDocumentModal() { document.getElementById('documentModal').style.display = 'none'; }
     
-    // ============ SOLD OUT POPUP FUNCTION ============
     let currentSoldOutProduct = null;
     
     function showSoldOutPopup(product, sellerId) {
@@ -598,15 +567,11 @@
                 </div>
             </div>
         `;
-        
-        // Remove existing popup if any
         let existing = document.getElementById('soldOutPopupOverlay');
         if(existing) existing.remove();
-        
         document.body.insertAdjacentHTML('beforeend', popupHtml);
         
         document.getElementById('soldOutYesBtn').addEventListener('click', () => {
-            // Keep product as is, just mark that stock is still there
             let productIndex = products.findIndex(p => p.id === product.id);
             if(productIndex !== -1) {
                 products[productIndex].inStock = true;
@@ -618,7 +583,6 @@
         });
         
         document.getElementById('soldOutNoBtn').addEventListener('click', () => {
-            // Mark product as sold out
             let productIndex = products.findIndex(p => p.id === product.id);
             if(productIndex !== -1) {
                 products[productIndex].inStock = false;
@@ -633,24 +597,17 @@
         });
     }
     
-    // Check for sold products and show popup to seller
     function checkAndShowSoldOutPopup(productId, sellerId, productName, productPrice) {
-        // Check if this product was recently sold and not yet prompted
         let lastPrompted = localStorage.getItem(`soldout_prompted_${productId}`);
         if(lastPrompted) return;
-        
         let product = products.find(p => p.id === productId);
         if(product && product.inStock !== false) {
             localStorage.setItem(`soldout_prompted_${productId}`, Date.now().toString());
             showSoldOutPopup(product, sellerId);
-            // Clear after 1 hour so it can prompt again if sold again
-            setTimeout(() => {
-                localStorage.removeItem(`soldout_prompted_${productId}`);
-            }, 3600000);
+            setTimeout(() => { localStorage.removeItem(`soldout_prompted_${productId}`); }, 3600000);
         }
     }
     
-    // ============ KYC THANK YOU POPUP ============
     function showKYCThankYouPopup() {
         let popupHtml = `
             <div class="kyc-thankyou-popup" id="kycThankYouPopup">
@@ -664,12 +621,9 @@
         let existing = document.getElementById('kycThankYouPopup');
         if(existing) existing.remove();
         document.body.insertAdjacentHTML('beforeend', popupHtml);
-        
         document.getElementById('kycThankYouCloseBtn').addEventListener('click', () => {
             document.getElementById('kycThankYouPopup').remove();
         });
-        
-        // Auto redirect after 3 seconds to home page
         setTimeout(() => {
             let popup = document.getElementById('kycThankYouPopup');
             if(popup) popup.remove();
@@ -678,7 +632,6 @@
         }, 3000);
     }
     
-    // ============ 195+ COUNTRY CODES WITH SEARCH ============
     const countryCodes = [
         { code: "+93", name: "Afghanistan", flag: "🇦🇫" }, { code: "+355", name: "Albania", flag: "🇦🇱" }, { code: "+213", name: "Algeria", flag: "🇩🇿" },
         { code: "+376", name: "Andorra", flag: "🇦🇩" }, { code: "+244", name: "Angola", flag: "🇦🇴" }, { code: "+1", name: "Antigua", flag: "🇦🇬" },
@@ -802,14 +755,11 @@
     const sellerCountryReg = document.getElementById('sellerCountryReg');
     if(sellerCountryReg) { shippingCountries.forEach(country => { let opt = document.createElement('option'); opt.value = country; opt.textContent = country; sellerCountryReg.appendChild(opt); }); }
 
-    // ============ PHONE VERIFICATION (DUMMY OTP: 123456) ============
     let sellerPhoneVerified = false;
     
     function sendDummyOTP(phoneNumber, type) {
         alert(`📱 OTP sent to ${phoneNumber}\n🔑 Your OTP is: 123456\n(For testing only)`);
-        if(type === 'seller') {
-            document.getElementById('sellerOtpSection').style.display = 'block';
-        }
+        if(type === 'seller') { document.getElementById('sellerOtpSection').style.display = 'block'; }
     }
     
     function verifyDummyOTP(enteredOtp, type) {
@@ -838,7 +788,6 @@
         verifyDummyOTP(document.getElementById('sellerOtp').value, 'seller');
     });
 
-    // ============ DYNAMIC CURRENCY ============
     const fxRates = {
         SAR: 3.75, USD: 1, EUR: 0.92, GBP: 0.78, INR: 83.5, PKR: 278,
         NPR: 133.5, BDT: 117, LKR: 305, AED: 3.67, CAD: 1.36, AUD: 1.52,
@@ -883,7 +832,7 @@
         return { total: basePrice + commission + gateway + shipping + HANDLING_FEE, basePrice, shipping, commission, gateway };
     }
     
-    // ============ PRODUCTS ============
+    // ============ 🔧 FIXED: PRODUCTS ARRAY WITH DEFAULT PRODUCTS ============
     let products = [
         {
             id: 101, sellerId: 0, sellerName: "GlobalBazaar", name: "Wireless Noise Cancelling Headphones", price: 89.99, 
@@ -898,7 +847,7 @@
         },
         {
             id: 102, sellerId: 0, sellerName: "GlobalBazaar", name: "Premium Cotton T-Shirt", price: 24.99, 
-            category: "Textile", sellerCountry: "SA", rating: 4.5, inStock: true, stockStatus: "available",
+            category: "Fashion", sellerCountry: "SA", rating: 4.5, inStock: true, stockStatus: "available",
             mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400",
             images: [
                 "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400",
@@ -909,7 +858,7 @@
         },
         {
             id: 103, sellerId: 0, sellerName: "GlobalBazaar", name: "Matte Lipstick Set (6 Colors)", price: 29.99, 
-            category: "Cosmetic", sellerCountry: "SA", rating: 4.9, inStock: true, stockStatus: "available",
+            category: "Beauty", sellerCountry: "SA", rating: 4.9, inStock: true, stockStatus: "available",
             mainImage: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400",
             images: [
                 "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400",
@@ -931,20 +880,26 @@
     let savedAddresses = JSON.parse(localStorage.getItem('gb_saved_addresses')) || [];
     let sellerRevenueChart = null;
     
-    // Load saved seller
-    let savedSeller = localStorage.getItem('gb_current_seller');
-    if(savedSeller && savedSeller !== 'null') {
+    // Load saved products from localStorage
+    let savedProducts = localStorage.getItem('gb_products');
+    if(savedProducts && savedProducts !== 'null') {
         try {
-            currentSeller = JSON.parse(savedSeller);
-        } catch(e) {}
+            let parsed = JSON.parse(savedProducts);
+            if(parsed && parsed.length > 0) {
+                products = parsed;
+                console.log("✅ Loaded", products.length, "products from localStorage");
+            }
+        } catch(e) { console.log("Error loading products:", e); }
     }
     
-    // Load saved sellers from localStorage
+    let savedSeller = localStorage.getItem('gb_current_seller');
+    if(savedSeller && savedSeller !== 'null') {
+        try { currentSeller = JSON.parse(savedSeller); } catch(e) {}
+    }
+    
     let savedSellers = localStorage.getItem('gb_sellers');
     if(savedSellers && savedSellers !== 'null') {
-        try {
-            sellers = JSON.parse(savedSellers);
-        } catch(e) {}
+        try { sellers = JSON.parse(savedSellers); } catch(e) {}
     }
     
     function saveAll() {
@@ -958,7 +913,7 @@
         localStorage.setItem('gb_saved_cards', JSON.stringify(savedCards));
         localStorage.setItem('gb_saved_addresses', JSON.stringify(savedAddresses));
         if(currentSeller) localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
-        console.log("✅ Data saved. Total sellers:", sellers.length);
+        console.log("✅ Data saved. Products count:", products.length);
     }
     
     function showToast(msg, isError) { 
@@ -978,7 +933,6 @@
     function showPrivacy() { alert("Privacy Policy: We collect name, email, phone, address for order processing."); }
     function calculateAge(dob) { return new Date().getFullYear() - new Date(dob).getFullYear(); }
     
-    // Products Rendering with Sold Out badge
     let currentCategory = "All";
     function renderCats() {
         let cats = ["All", ...new Set(products.map(p=>p.category))];
@@ -1012,6 +966,7 @@
                         </div>
                     </div>`;
         }).join('');
+        if(html === '') html = '<div style="text-align:center; padding:40px;">No products found</div>';
         document.getElementById('productsGrid').innerHTML = html;
         document.querySelectorAll('.addCartBtn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); addToCart(parseInt(btn.dataset.id)); }));
         document.querySelectorAll('.wishBtn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); toggleWish(parseInt(btn.dataset.id)); }));
@@ -1222,11 +1177,8 @@
             orders.push(newOrder);
             platformEarnings += final.commission * item.qty;
             
-            // 🆕 Show sold out popup to seller if product is in stock
             if(seller && item.inStock !== false) {
-                setTimeout(() => {
-                    checkAndShowSoldOutPopup(item.id, seller.id, item.name, item.price);
-                }, 1000);
+                setTimeout(() => { checkAndShowSoldOutPopup(item.id, seller.id, item.name, item.price); }, 1000);
             }
         }
         
@@ -1312,12 +1264,8 @@
     setInterval(processWeeklyWithdrawals, 3600000);
     processWeeklyWithdrawals();
     
-    // ============ SELLER REGISTRATION WITH KYC THANK YOU ============
     document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
-        console.log("🔵 Registration started...");
-        
         if(!sellerPhoneVerified) { showToast("Please verify your phone number first!", true); return; }
         if(!document.getElementById('sellerAgreement').checked) { showToast("Accept Seller Agreement", true); return; }
         let dob = document.getElementById('sellerDob').value;
@@ -1325,10 +1273,8 @@
         
         let docImageFile = document.getElementById('sellerDocImage').files[0];
         if(!docImageFile) { showToast("❌ KYC Document Image is required!", true); return; }
-        
         let docNumber = document.getElementById('sellerDocNumber').value;
         if(!docNumber || docNumber.trim() === "") { showToast("❌ Document Number is required!", true); return; }
-        
         let docType = document.getElementById('sellerDocType').value;
         if(!docType || docType === "") { showToast("❌ Please select Document Type!", true); return; }
         
@@ -1343,50 +1289,29 @@
             
             if(avatarFile) {
                 let avatarReader = new FileReader();
-                avatarReader.onload = async (avEv) => {
-                    await saveSellerData(avEv.target.result, docImageData, countryCode);
-                };
+                avatarReader.onload = async (avEv) => { await saveSellerData(avEv.target.result, docImageData, countryCode); };
                 avatarReader.readAsDataURL(avatarFile);
-            } else {
-                await saveSellerData(avatarData, docImageData, countryCode);
-            }
+            } else { await saveSellerData(avatarData, docImageData, countryCode); }
         };
         docReader.readAsDataURL(docImageFile);
     });
     
     async function saveSellerData(avatarData, docImageData, countryCode) {
         let newSeller = {
-            id: Date.now(), 
-            avatar: avatarData,
-            fullName: document.getElementById('sellerFullName').value,
-            shopName: document.getElementById('sellerShopName').value,
-            email: document.getElementById('sellerEmail').value,
-            phone: countryCode + document.getElementById('sellerPhone').value,
-            password: document.getElementById('sellerPassword').value,
-            dob: document.getElementById('sellerDob').value,
-            houseNo: document.getElementById('sellerHouseNo').value,
-            street: document.getElementById('sellerStreet').value,
-            city: document.getElementById('sellerCity').value,
-            state: document.getElementById('sellerState').value,
-            pincode: document.getElementById('sellerPincode').value,
-            country: document.getElementById('sellerCountryReg').value,
-            docType: document.getElementById('sellerDocType').value,
-            docNumber: document.getElementById('sellerDocNumber').value,
-            docImage: docImageData,
-            bankName: document.getElementById('sellerBank').value,
-            accountNo: document.getElementById('sellerAccountNo').value,
-            ifsc: document.getElementById('sellerIfsc').value,
-            accountHolder: document.getElementById('sellerAccountHolder').value,
-            earnings: 0, 
-            kycStatus: "pending", 
-            totalSales: 0, 
-            totalWithdrawn: 0
+            id: Date.now(), avatar: avatarData, fullName: document.getElementById('sellerFullName').value,
+            shopName: document.getElementById('sellerShopName').value, email: document.getElementById('sellerEmail').value,
+            phone: countryCode + document.getElementById('sellerPhone').value, password: document.getElementById('sellerPassword').value,
+            dob: document.getElementById('sellerDob').value, houseNo: document.getElementById('sellerHouseNo').value,
+            street: document.getElementById('sellerStreet').value, city: document.getElementById('sellerCity').value,
+            state: document.getElementById('sellerState').value, pincode: document.getElementById('sellerPincode').value,
+            country: document.getElementById('sellerCountryReg').value, docType: document.getElementById('sellerDocType').value,
+            docNumber: document.getElementById('sellerDocNumber').value, docImage: docImageData,
+            bankName: document.getElementById('sellerBank').value, accountNo: document.getElementById('sellerAccountNo').value,
+            ifsc: document.getElementById('sellerIfsc').value, accountHolder: document.getElementById('sellerAccountHolder').value,
+            earnings: 0, kycStatus: "pending", totalSales: 0, totalWithdrawn: 0
         };
-        
         sellers.push(newSeller);
         saveAll();
-        
-        console.log("✅ Seller saved:", newSeller.shopName, "KYC Status:", newSeller.kycStatus);
         
         document.getElementById('sellerRegisterBox').style.display = 'block';
         document.getElementById('sellerDashboard').style.display = 'none';
@@ -1395,31 +1320,22 @@
         document.getElementById('sellerSubmitBtn').disabled = true;
         document.getElementById('sellerSubmitBtn').innerHTML = '✅ Register Shop (Verify Phone First)';
         
-        // 🆕 Show KYC Thank You Popup with redirect
         showKYCThankYouPopup();
-        
         await sendTelegramMessage(`🏪 New Seller Registered: ${newSeller.shopName}\nOwner: ${newSeller.fullName}\nEmail: ${newSeller.email}\nKYC Status: Pending`);
         addNotification(`New seller ${newSeller.shopName} registered! KYC pending.`, 'info');
-        
-        if(document.getElementById('adminContent').style.display === 'block') {
-            loadAdminData();
-        }
+        if(document.getElementById('adminContent').style.display === 'block') loadAdminData();
     }
     
-    // My Shop Login - ONLY verified sellers can login
     function showMyShopLogin() {
         let verifiedSellers = sellers.filter(s => s.kycStatus === 'verified');
-        
         if(verifiedSellers.length === 0) {
             showToast("No verified seller account found. Please register and get KYC verified first.", true);
             return;
         }
-        
         let email = prompt("🏪 My Shop Login\n\nEnter your registered email:");
         if(!email) return;
         let password = prompt("Enter your password:");
         let seller = sellers.find(s => s.email === email && s.password === password);
-        
         if(seller) {
             if(seller.kycStatus !== 'verified') {
                 showToast("❌ Your KYC is not verified yet. Please wait for admin approval.", true);
@@ -1434,18 +1350,34 @@
             addNotification(`Welcome back ${seller.shopName}!`, 'info');
             closeDrawer();
             showSection('seller');
-        } else {
-            showToast("Invalid email or password!", true);
-        }
+        } else { showToast("Invalid email or password!", true); }
     }
     
-    document.getElementById('drawerMyShop')?.addEventListener('click', () => {
-        showMyShopLogin();
-    });
+    document.getElementById('drawerMyShop')?.addEventListener('click', () => { showMyShopLogin(); });
     
-    // ============ SELLER DASHBOARD WITH MULTIPLE IMAGE UPLOAD ============
     let currentProductImages = [];
     let currentImagePreviews = [];
+    
+    function updateImagePreviewDisplay() {
+        const container = document.getElementById('imagePreviewContainer');
+        if(!container) return;
+        if(currentImagePreviews.length === 0) {
+            container.innerHTML = '<div style="color:#64748b; text-align:center; padding:20px;">No images selected. Click above to upload.</div>';
+            return;
+        }
+        container.innerHTML = currentImagePreviews.map((preview, idx) => `
+            <div class="preview-item">
+                <img src="${preview}" alt="Preview ${idx}">
+                <button onclick="removeImageFromUpload(${idx})">✖</button>
+            </div>
+        `).join('');
+    }
+    
+    window.removeImageFromUpload = function(index) {
+        currentProductImages.splice(index, 1);
+        currentImagePreviews.splice(index, 1);
+        updateImagePreviewDisplay();
+    };
     
     function renderSellerDashboard() {
         if(!currentSeller?.sellerId) return;
@@ -1486,17 +1418,14 @@
                 <h3>➕ Add New Product</h3>
                 <input type="text" id="prodName" placeholder="Product Name" class="input">
                 <input type="number" id="prodPrice" placeholder="Price (USD)" class="input">
-                <select id="prodCat" class="input"><option>Electronics</option><option>Fashion</option><option>Home</option><option>Textile</option><option>Cosmetic</option></select>
+                <select id="prodCat" class="input"><option>Electronics</option><option>Fashion</option><option>Home</option><option>Beauty</option></select>
                 <textarea id="prodDesc" placeholder="Product Description" class="input" rows="3"></textarea>
-                
-                <!-- 🆕 MULTIPLE IMAGE UPLOAD -->
                 <div class="image-upload-area" id="imageUploadArea">
                     <div>📸 Click or drag to upload product images (Multiple)</div>
                     <input type="file" id="prodImages" accept="image/*" multiple style="display:none;">
                     <button type="button" id="selectImagesBtn" class="btn-secondary" style="margin-top:10px;">Select Images</button>
                 </div>
                 <div id="imagePreviewContainer" class="image-previews"></div>
-                
                 <button id="publishBtn" class="btn-primary" style="margin-top:15px;">📢 Publish Product</button>
             </div>
             <div class="premium-card"><h3>📋 My Products (${myProducts.length})</h3><div id="myProductsList"></div></div>
@@ -1515,15 +1444,11 @@
         }
         
         if(seller.kycStatus === "verified") {
-            // Initialize multiple image upload
             currentProductImages = [];
             currentImagePreviews = [];
             updateImagePreviewDisplay();
             
-            document.getElementById('selectImagesBtn')?.addEventListener('click', () => {
-                document.getElementById('prodImages').click();
-            });
-            
+            document.getElementById('selectImagesBtn')?.addEventListener('click', () => { document.getElementById('prodImages').click(); });
             document.getElementById('prodImages')?.addEventListener('change', (e) => {
                 const files = Array.from(e.target.files);
                 files.forEach(file => {
@@ -1543,16 +1468,14 @@
                 if(!name || !price) { showToast("Fill name & price", true); return; }
                 if(currentProductImages.length === 0) { showToast("Please upload at least 1 product image!", true); return; }
                 
-                showToast("Uploading images...", false);
+                showToast("Publishing product...", false);
                 
-                // For demo, we'll use local image URLs (in real app, you'd upload to cloud)
                 let imageUrls = currentImagePreviews;
-                
                 let newProduct = { 
                     id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, 
                     name, price, category, 
-                    mainImage: imageUrls[0] || "https://placehold.co/400x400/1e3a8a/white?text=" + encodeURIComponent(name), 
-                    images: imageUrls.length > 0 ? imageUrls : [imageUrls[0]],
+                    mainImage: imageUrls[0], 
+                    images: imageUrls,
                     description: desc || "High quality product", 
                     sellerCountry: seller.country, rating: 0,
                     inStock: true, stockStatus: "available"
@@ -1560,7 +1483,6 @@
                 products.push(newProduct);
                 saveAll();
                 
-                // Reset form
                 currentProductImages = [];
                 currentImagePreviews = [];
                 updateImagePreviewDisplay();
@@ -1569,9 +1491,9 @@
                 document.getElementById('prodDesc').value = '';
                 document.getElementById('prodImages').value = '';
                 
-                renderSellerDashboard(); 
-                renderProducts(); 
-                showToast("Product published with " + imageUrls.length + " images!", false);
+                renderSellerDashboard();
+                renderProducts();
+                showToast(`✅ Product "${name}" published with ${imageUrls.length} images!`, false);
                 sendTelegramMessage(`📦 New Product: ${name}\nShop: ${seller.shopName}\nPrice: $${price}`);
                 addNotification(`New product "${name}" published!`, 'info');
             });
@@ -1585,29 +1507,6 @@
         }
     }
     
-    function updateImagePreviewDisplay() {
-        const container = document.getElementById('imagePreviewContainer');
-        if(!container) return;
-        
-        if(currentImagePreviews.length === 0) {
-            container.innerHTML = '<div style="color:#64748b; text-align:center; padding:20px;">No images selected. Click above to upload.</div>';
-            return;
-        }
-        
-        container.innerHTML = currentImagePreviews.map((preview, idx) => `
-            <div class="preview-item">
-                <img src="${preview}" alt="Preview ${idx}">
-                <button onclick="removeImageFromUpload(${idx})">✖</button>
-            </div>
-        `).join('');
-    }
-    
-    window.removeImageFromUpload = function(index) {
-        currentProductImages.splice(index, 1);
-        currentImagePreviews.splice(index, 1);
-        updateImagePreviewDisplay();
-    };
-    
     function renderBuyerOrders() {
         let myOrders = orders.filter(o=>o.buyerEmail === "guest@globalbazaar.com");
         document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 Order #${o.trackingNumber}</strong><br>Product: ${o.productName} x${o.qty}<br>Amount: ${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: <span style="color:${o.status==='Processing'?'#d97706':(o.status==='Shipped'?'#3b82f6':'#10b981')}">${o.status}</span><br>Delivery: ${o.address}<br>Date: ${o.date}<br>${renderTrackingMap(o)}<br>${o.trackingInfo ? `📮 Tracking: ${o.trackingInfo}<br>` : ''}${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981; margin-top:10px; padding:8px 16px; border-radius:30px;">✅ I have received the product</button>` : ''}</div>`).join('');
@@ -1620,7 +1519,6 @@
         document.querySelectorAll('.removeWishlistBtn').forEach(btn => btn.addEventListener('click', () => { wishlist = wishlist.filter(id => id !== parseInt(btn.dataset.id)); saveAll(); renderProducts(); renderBuyerWishlist(); showToast("Removed from wishlist", false); }));
     }
     
-    // ============ ADMIN FUNCTIONS - KYC VERIFICATION ONLY HERE ============
     document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
         if(document.getElementById('adminKey').value === 'admin123') {
             document.getElementById('adminLoginBox').style.display = 'none';
@@ -1631,37 +1529,15 @@
     });
     
     function loadAdminData() {
-        console.log("🔵 Loading admin data, total sellers:", sellers.length);
-        
         let pendingSellers = sellers.filter(s => s.kycStatus === 'pending');
         let verifiedSellers = sellers.filter(s => s.kycStatus === 'verified');
         let rejectedSellers = sellers.filter(s => s.kycStatus === 'rejected');
-        
-        console.log("Pending sellers:", pendingSellers.length);
         
         let pendingHtml = '';
         if(pendingSellers.length === 0) {
             pendingHtml = '<div style="padding: 20px; text-align: center; background: #f8fafc; border-radius: 12px;">✅ No pending KYC requests</div>';
         } else {
-            pendingHtml = `
-                <table class="kyc-table">
-                    <thead>
-                        <tr><th>Shop Name</th><th>Owner Name</th><th>Email</th><th>Phone</th><th>Document</th><th>Action</th></tr>
-                    </thead>
-                    <tbody>
-                        ${pendingSellers.map(s => `
-                            <tr>
-                                <td><strong>${s.shopName}</strong><br><small>📍 ${s.city}, ${s.country}</small></td>
-                                <td>${s.fullName}<br><small>DOB: ${s.dob}</small></td>
-                                <td>${s.email}<br><small>${s.phone}</small></td>
-                                <td>${s.docType}<br><small>${s.docNumber}</small></td>
-                                <td><button class="btn-view-doc" onclick='viewSellerDocument(${JSON.stringify(s.docImage)}, "${s.docType}", "${s.shopName}")'>📄 View Document</button></td>
-                                <td><button class="btn-approve" data-id="${s.id}">✅ Approve</button><button class="btn-reject" data-id="${s.id}">❌ Reject</button></td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
+            pendingHtml = `<table class="kyc-table"><thead><tr><th>Shop Name</th><th>Owner Name</th><th>Email</th><th>Document</th><th>Action</th></tr></thead><tbody>${pendingSellers.map(s => `<tr><td><strong>${s.shopName}</strong><br><small>📍 ${s.city}</small></td><td>${s.fullName}</td><td>${s.email}</td><td>${s.docType}<br><small>${s.docNumber}</small></td><td><button class="btn-approve" data-id="${s.id}">✅ Approve</button><button class="btn-reject" data-id="${s.id}">❌ Reject</button></td></tr>`).join('')}</tbody></table>`;
         }
         document.getElementById('pendingKycList').innerHTML = pendingHtml;
         
@@ -1669,21 +1545,7 @@
         if(verifiedSellers.length === 0) {
             verifiedHtml = '<div style="padding: 20px; text-align: center; background: #f8fafc; border-radius: 12px;">No verified sellers yet</div>';
         } else {
-            verifiedHtml = `
-                <table class="kyc-table">
-                    <thead><tr><th>Shop Name</th><th>Owner</th><th>Email</th><th>Joined</th></tr></thead>
-                    <tbody>
-                        ${verifiedSellers.map(s => `
-                            <tr>
-                                <td>🏪 ${s.shopName}</span><br><small>📍 ${s.city}</small></td>
-                                <td>${s.fullName}</td>
-                                <td>${s.email}</td>
-                                <td>${new Date(s.id).toLocaleDateString()}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
+            verifiedHtml = `<table class="kyc-table"><thead><tr><th>Shop Name</th><th>Owner</th><th>Email</th><th>Joined</th></tr></thead><tbody>${verifiedSellers.map(s => `<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td>${new Date(s.id).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
         }
         document.getElementById('verifiedSellersList').innerHTML = verifiedHtml;
         
@@ -1691,52 +1553,20 @@
         if(rejectedSellers.length === 0) {
             rejectedHtml = '<div style="padding: 20px; text-align: center; background: #f8fafc; border-radius: 12px;">No rejected sellers</div>';
         } else {
-            rejectedHtml = `
-                <table class="kyc-table">
-                    <thead><tr><th>Shop Name</th><th>Owner</th><th>Email</th><th>Reason</th></tr></thead>
-                    <tbody>
-                        ${rejectedSellers.map(s => `
-                            <tr>
-                                <td>🏪 ${s.shopName}</td>
-                                <td>${s.fullName}</span><br><small>${s.phone}</small></td>
-                                <td>${s.email}</td>
-                                <td><span class="badge-rejected">${s.rejectionReason || 'No reason provided'}</span></td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
+            rejectedHtml = `<table class="kyc-table"><thead><tr><th>Shop Name</th><th>Owner</th><th>Email</th><th>Reason</th></tr></thead><tbody>${rejectedSellers.map(s => `<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td><span class="badge-rejected">${s.rejectionReason || 'No reason provided'}</span></td></tr>`).join('')}</tbody></table>`;
         }
         document.getElementById('rejectedSellersList').innerHTML = rejectedHtml;
         
         document.querySelectorAll('.btn-approve').forEach(btn => btn.addEventListener('click', async () => { 
             let seller = sellers.find(s => s.id === parseInt(btn.dataset.id)); 
-            if(seller) { 
-                seller.kycStatus = "verified"; 
-                saveAll(); 
-                loadAdminData(); 
-                showToast(`${seller.shopName} Verified! Now they can login and sell.`, false); 
-                await sendTelegramMessage(`✅ KYC Verified: ${seller.shopName}\nOwner: ${seller.fullName}\nEmail: ${seller.email}`); 
-                addNotification(`${seller.shopName} KYC Verified!`, 'info');
-            } 
+            if(seller) { seller.kycStatus = "verified"; saveAll(); loadAdminData(); showToast(`${seller.shopName} Verified!`, false); await sendTelegramMessage(`✅ KYC Verified: ${seller.shopName}`); addNotification(`${seller.shopName} KYC Verified!`, 'info'); } 
         }));
-        
         document.querySelectorAll('.btn-reject').forEach(btn => btn.addEventListener('click', async () => { 
             let reason = prompt("Enter rejection reason:"); 
             if(reason && reason.trim() !== "") { 
                 let seller = sellers.find(s => s.id === parseInt(btn.dataset.id)); 
-                if(seller) { 
-                    seller.kycStatus = "rejected"; 
-                    seller.rejectionReason = reason; 
-                    saveAll(); 
-                    loadAdminData(); 
-                    showToast(`${seller.shopName} Rejected!`, false); 
-                    await sendTelegramMessage(`❌ KYC Rejected: ${seller.shopName}\nOwner: ${seller.fullName}\nReason: ${reason}`); 
-                    addNotification(`${seller.shopName} KYC Rejected!`, 'info'); 
-                } 
-            } else if(reason === "") {
-                showToast("Please enter a rejection reason", true);
-            }
+                if(seller) { seller.kycStatus = "rejected"; seller.rejectionReason = reason; saveAll(); loadAdminData(); showToast(`${seller.shopName} Rejected!`, false); await sendTelegramMessage(`❌ KYC Rejected: ${seller.shopName}\nReason: ${reason}`); addNotification(`${seller.shopName} KYC Rejected!`, 'info'); } 
+            } else if(reason === "") { showToast("Please enter a rejection reason", true); }
         }));
         
         document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
@@ -1748,19 +1578,6 @@
         document.getElementById('adminOrdersList').innerHTML = orders.map(o => `<div class="order-card">🔖 ${o.trackingNumber}<br>${o.productName} x${o.qty}<br>${o.buyerName}<br>Status: ${o.status}</div>`).join('');
     }
     
-    window.viewSellerDocument = function(docImage, docType, sellerName) {
-        if(docImage && docImage.startsWith('data:image')) {
-            let modalImg = document.getElementById('documentModalImg');
-            let modalText = document.getElementById('documentModalText');
-            modalImg.style.display = 'block';
-            modalImg.src = docImage;
-            modalText.innerHTML = `<strong>${sellerName}</strong><br>Document Type: ${docType}<br>Click outside to close.`;
-            document.getElementById('documentModal').style.display = 'block';
-        } else {
-            alert(`No document image uploaded for ${sellerName}\nDocument Type: ${docType}`);
-        }
-    };
-    
     document.getElementById('refreshAdminBtn')?.addEventListener('click', loadAdminData);
     
     function showSection(section) { 
@@ -1769,21 +1586,12 @@
     }
     
     document.getElementById('drawerBuyer')?.addEventListener('click', () => { showSection('buyer'); closeDrawer(); });
-    document.getElementById('drawerSeller')?.addEventListener('click', () => { 
-        showSection('seller');
-        document.getElementById('sellerRegisterBox').style.display = 'block';
-        document.getElementById('sellerDashboard').style.display = 'none';
-        closeDrawer(); 
-    });
+    document.getElementById('drawerSeller')?.addEventListener('click', () => { showSection('seller'); document.getElementById('sellerRegisterBox').style.display = 'block'; document.getElementById('sellerDashboard').style.display = 'none'; closeDrawer(); });
     document.getElementById('drawerAdmin')?.addEventListener('click', () => { showSection('admin'); closeDrawer(); });
     document.getElementById('drawerCartPage')?.addEventListener('click', () => { renderCartPage(); showSection('cartPage'); closeDrawer(); });
     document.getElementById('drawerWishlist')?.addEventListener('click', () => { showSection('profile'); renderBuyerWishlist(); closeDrawer(); });
     document.getElementById('drawerSupport')?.addEventListener('click', () => { showSupport(); closeDrawer(); });
-    document.getElementById('drawerLogout')?.addEventListener('click', () => { 
-        currentSeller = null; 
-        localStorage.removeItem('gb_current_seller');
-        location.reload(); 
-    });
+    document.getElementById('drawerLogout')?.addEventListener('click', () => { currentSeller = null; localStorage.removeItem('gb_current_seller'); location.reload(); });
     document.getElementById('cartFloatBtn')?.addEventListener('click', () => { renderCartPage(); showSection('cartPage'); });
     document.getElementById('closeModalBtn')?.addEventListener('click', () => document.getElementById('productModal').style.display='none');
     document.getElementById('modalAddCartBtn')?.addEventListener('click', () => { if(currentProduct) addToCart(currentProduct.id); document.getElementById('productModal').style.display='none'; });
@@ -1802,7 +1610,7 @@
     updateCartUI();
     updateNotificationUI();
     
-    console.log("✅ GlobalBazaar Ready - All 4 features added!");
+    console.log("✅ GlobalBazaar Ready - Product save bug fixed!");
 </script>
 </body>
 </html>
