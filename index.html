@@ -42,9 +42,12 @@
         .notification-badge { position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; font-size: 10px; padding: 2px 6px; border-radius: 50%; }
         .notification-panel { position: fixed; top: 70px; right: 20px; width: 300px; max-height: 400px; background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 1000; display: none; overflow-y: auto; }
         body.dark-mode .notification-panel { background: #1e293b; }
-        .notification-item { padding: 12px; border-bottom: 1px solid #e2e8f0; cursor: pointer; }
+        .notification-item { padding: 12px; border-bottom: 1px solid #e2e8f0; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
         .notification-item:hover { background: #f1f5f9; }
         body.dark-mode .notification-item:hover { background: #334155; }
+        .mark-read-btn { background: #3b82f6; color: white; border: none; padding: 4px 10px; border-radius: 20px; font-size: 11px; cursor: pointer; }
+        .mark-read-btn:hover { background: #2563eb; }
+        .mark-all-btn { background: #10b981; color: white; border: none; padding: 4px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; margin-left: 10px; }
         
         .header-3d { background: linear-gradient(145deg, #ffffff, #f0f4fa); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 10px 25px -8px rgba(0,0,0,0.15); border-bottom: 1px solid rgba(59,130,246,0.15); flex-wrap: wrap; gap: 10px; }
         .header-left { display: flex; align-items: center; gap: 15px; }
@@ -72,6 +75,8 @@
         .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
         .product-card { background: white; border-radius: 20px; padding: 12px; cursor: pointer; border: 1px solid #eef2f8; transition: 0.2s; }
         .product-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .product-card.sold-out { opacity: 0.6; position: relative; }
+        .sold-out-badge { position: absolute; top: 10px; right: 10px; background: #dc2626; color: white; padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: bold; }
         .product-card .main-img { width: 100%; height: 140px; object-fit: cover; border-radius: 16px; }
         .seller-name-tag { font-size: 11px; color: #3b82f6; margin: 10px 0 6px; font-weight: 600; }
         .prod-price { font-weight: 800; font-size: 16px; color: #1e3a8a; margin-top: 6px; }
@@ -139,6 +144,27 @@
         .btn-reject { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; }
         .btn-view-doc { background: #3b82f6; color: white; border: none; padding: 4px 10px; border-radius: 15px; cursor: pointer; font-size: 11px; }
         
+        /* Image upload styles */
+        .image-upload-area { border: 2px dashed #cbd5e1; border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 15px; cursor: pointer; transition: 0.2s; }
+        .image-upload-area:hover { border-color: #3b82f6; background: #f8fafc; }
+        body.dark-mode .image-upload-area:hover { background: #334155; }
+        .image-previews { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+        .preview-item { position: relative; width: 80px; height: 80px; }
+        .preview-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; border: 2px solid #e2e8f0; }
+        .preview-item button { position: absolute; top: -8px; right: -8px; background: #dc2626; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-size: 12px; }
+        
+        /* Sold Out Popup */
+        .soldout-popup-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .soldout-popup { background: white; padding: 24px; border-radius: 24px; max-width: 350px; text-align: center; }
+        body.dark-mode .soldout-popup { background: #1e293b; }
+        .soldout-popup-buttons { display: flex; gap: 12px; justify-content: center; margin-top: 20px; }
+        .soldout-yes-btn { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 40px; cursor: pointer; }
+        .soldout-no-btn { background: #dc2626; color: white; border: none; padding: 10px 20px; border-radius: 40px; cursor: pointer; }
+        
+        /* KYC Thank You Popup */
+        .kyc-thankyou-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 24px; text-align: center; z-index: 1000; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        body.dark-mode .kyc-thankyou-popup { background: #1e293b; }
+        
         @media (max-width: 600px) {
             .brand-3d { font-size: 18px; }
             .logo-3d { font-size: 24px; }
@@ -184,7 +210,10 @@
 </div>
 
 <div class="notification-panel" id="notificationPanel">
-    <div style="padding: 12px; font-weight: bold; border-bottom: 1px solid #e2e8f0;">🔔 Notifications</div>
+    <div style="padding: 12px; font-weight: bold; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+        <span>🔔 Notifications</span>
+        <button id="markAllReadBtn" class="mark-all-btn" style="display:none;">Mark All Read</button>
+    </div>
     <div id="notificationsList"></div>
 </div>
 
@@ -395,7 +424,7 @@
         } catch(e) { return false; }
     }
 
-    // ============ NOTIFICATION SYSTEM ============
+    // ============ NOTIFICATION SYSTEM WITH MARK AS READ ============
     let notifications = JSON.parse(localStorage.getItem('gb_notifications')) || [];
     
     function addNotification(message, type = 'info') {
@@ -410,26 +439,58 @@
     function updateNotificationUI() {
         let unreadCount = notifications.filter(n => !n.read).length;
         document.getElementById('notificationCount').innerText = unreadCount;
-        let listHtml = notifications.map(n => `<div class="notification-item" data-id="${n.id}" style="${n.read ? 'opacity:0.6' : ''}">
-            <strong>${n.type === 'order' ? '🛍️' : (n.type === 'payment' ? '💰' : 'ℹ️')}</strong> ${n.message}<br>
-            <small>${n.date}</small>
-        </div>`).join('');
+        let markAllBtn = document.getElementById('markAllReadBtn');
+        if(markAllBtn) markAllBtn.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+        
+        let listHtml = notifications.map(n => `
+            <div class="notification-item" data-id="${n.id}" style="${n.read ? 'opacity:0.6' : ''}">
+                <div style="flex:1;">
+                    <strong>${n.type === 'order' ? '🛍️' : (n.type === 'payment' ? '💰' : 'ℹ️')}</strong> ${n.message}<br>
+                    <small>${n.date}</small>
+                </div>
+                ${!n.read ? `<button class="mark-read-btn" data-id="${n.id}">✓ Read</button>` : ''}
+            </div>
+        `).join('');
         if(notifications.length === 0) listHtml = '<div style="padding:20px; text-align:center;">No notifications</div>';
         document.getElementById('notificationsList').innerHTML = listHtml;
-        document.querySelectorAll('.notification-item').forEach(el => {
-            el.addEventListener('click', () => {
-                let id = parseInt(el.dataset.id);
+        
+        document.querySelectorAll('.mark-read-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                let id = parseInt(btn.dataset.id);
                 let notif = notifications.find(n => n.id === id);
                 if(notif) notif.read = true;
                 localStorage.setItem('gb_notifications', JSON.stringify(notifications));
                 updateNotificationUI();
             });
         });
+        
+        document.querySelectorAll('.notification-item').forEach(el => {
+            if(!el.querySelector('.mark-read-btn')) {
+                el.addEventListener('click', () => {
+                    let id = parseInt(el.dataset.id);
+                    let notif = notifications.find(n => n.id === id);
+                    if(notif && !notif.read) {
+                        notif.read = true;
+                        localStorage.setItem('gb_notifications', JSON.stringify(notifications));
+                        updateNotificationUI();
+                    }
+                });
+            }
+        });
     }
+    
+    document.getElementById('markAllReadBtn')?.addEventListener('click', () => {
+        notifications.forEach(n => n.read = true);
+        localStorage.setItem('gb_notifications', JSON.stringify(notifications));
+        updateNotificationUI();
+        showToast("All notifications marked as read", false);
+    });
     
     document.getElementById('notificationBell')?.addEventListener('click', () => {
         let panel = document.getElementById('notificationPanel');
         panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+        updateNotificationUI();
     });
     document.addEventListener('click', (e) => {
         if(!e.target.closest('.notification-bell') && !e.target.closest('#notificationPanel')) {
@@ -517,6 +578,104 @@
     
     function closeDocumentModal() {
         document.getElementById('documentModal').style.display = 'none';
+    }
+    
+    // ============ SOLD OUT POPUP FUNCTION ============
+    let currentSoldOutProduct = null;
+    
+    function showSoldOutPopup(product, sellerId) {
+        currentSoldOutProduct = { product, sellerId };
+        let popupHtml = `
+            <div class="soldout-popup-overlay" id="soldOutPopupOverlay">
+                <div class="soldout-popup">
+                    <h3>⚠️ Product Sold!</h3>
+                    <p>Your product <strong>"${product.name}"</strong> has been sold.</p>
+                    <p>Do you have more stock available?</p>
+                    <div class="soldout-popup-buttons">
+                        <button class="soldout-yes-btn" id="soldOutYesBtn">✅ Yes, I have more</button>
+                        <button class="soldout-no-btn" id="soldOutNoBtn">❌ No, it's Sold Out</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove existing popup if any
+        let existing = document.getElementById('soldOutPopupOverlay');
+        if(existing) existing.remove();
+        
+        document.body.insertAdjacentHTML('beforeend', popupHtml);
+        
+        document.getElementById('soldOutYesBtn').addEventListener('click', () => {
+            // Keep product as is, just mark that stock is still there
+            let productIndex = products.findIndex(p => p.id === product.id);
+            if(productIndex !== -1) {
+                products[productIndex].inStock = true;
+                products[productIndex].stockStatus = "available";
+                saveAll();
+            }
+            document.getElementById('soldOutPopupOverlay').remove();
+            showToast("Stock updated! Product still available.", false);
+        });
+        
+        document.getElementById('soldOutNoBtn').addEventListener('click', () => {
+            // Mark product as sold out
+            let productIndex = products.findIndex(p => p.id === product.id);
+            if(productIndex !== -1) {
+                products[productIndex].inStock = false;
+                products[productIndex].stockStatus = "sold_out";
+                saveAll();
+                addNotification(`Product "${product.name}" is now SOLD OUT!`, 'order');
+            }
+            document.getElementById('soldOutPopupOverlay').remove();
+            showToast("Product marked as SOLD OUT!", false);
+            renderProducts();
+            if(currentSeller) renderSellerDashboard();
+        });
+    }
+    
+    // Check for sold products and show popup to seller
+    function checkAndShowSoldOutPopup(productId, sellerId, productName, productPrice) {
+        // Check if this product was recently sold and not yet prompted
+        let lastPrompted = localStorage.getItem(`soldout_prompted_${productId}`);
+        if(lastPrompted) return;
+        
+        let product = products.find(p => p.id === productId);
+        if(product && product.inStock !== false) {
+            localStorage.setItem(`soldout_prompted_${productId}`, Date.now().toString());
+            showSoldOutPopup(product, sellerId);
+            // Clear after 1 hour so it can prompt again if sold again
+            setTimeout(() => {
+                localStorage.removeItem(`soldout_prompted_${productId}`);
+            }, 3600000);
+        }
+    }
+    
+    // ============ KYC THANK YOU POPUP ============
+    function showKYCThankYouPopup() {
+        let popupHtml = `
+            <div class="kyc-thankyou-popup" id="kycThankYouPopup">
+                <h3>🙏 Thank You!</h3>
+                <p>Your KYC documents have been submitted.</p>
+                <p>⏳ Waiting for admin to verify...</p>
+                <p>You will be notified once verified.</p>
+                <button id="kycThankYouCloseBtn" class="btn-primary" style="margin-top:15px;">OK</button>
+            </div>
+        `;
+        let existing = document.getElementById('kycThankYouPopup');
+        if(existing) existing.remove();
+        document.body.insertAdjacentHTML('beforeend', popupHtml);
+        
+        document.getElementById('kycThankYouCloseBtn').addEventListener('click', () => {
+            document.getElementById('kycThankYouPopup').remove();
+        });
+        
+        // Auto redirect after 3 seconds to home page
+        setTimeout(() => {
+            let popup = document.getElementById('kycThankYouPopup');
+            if(popup) popup.remove();
+            showSection('buyer');
+            showToast("Redirected to Home Page", false);
+        }, 3000);
     }
     
     // ============ 195+ COUNTRY CODES WITH SEARCH ============
@@ -728,7 +887,7 @@
     let products = [
         {
             id: 101, sellerId: 0, sellerName: "GlobalBazaar", name: "Wireless Noise Cancelling Headphones", price: 89.99, 
-            category: "Electronics", sellerCountry: "SA", rating: 4.8,
+            category: "Electronics", sellerCountry: "SA", rating: 4.8, inStock: true, stockStatus: "available",
             mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400",
             images: [
                 "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400",
@@ -739,7 +898,7 @@
         },
         {
             id: 102, sellerId: 0, sellerName: "GlobalBazaar", name: "Premium Cotton T-Shirt", price: 24.99, 
-            category: "Textile", sellerCountry: "SA", rating: 4.5,
+            category: "Textile", sellerCountry: "SA", rating: 4.5, inStock: true, stockStatus: "available",
             mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400",
             images: [
                 "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400",
@@ -750,7 +909,7 @@
         },
         {
             id: 103, sellerId: 0, sellerName: "GlobalBazaar", name: "Matte Lipstick Set (6 Colors)", price: 29.99, 
-            category: "Cosmetic", sellerCountry: "SA", rating: 4.9,
+            category: "Cosmetic", sellerCountry: "SA", rating: 4.9, inStock: true, stockStatus: "available",
             mainImage: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400",
             images: [
                 "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400",
@@ -819,7 +978,7 @@
     function showPrivacy() { alert("Privacy Policy: We collect name, email, phone, address for order processing."); }
     function calculateAge(dob) { return new Date().getFullYear() - new Date(dob).getFullYear(); }
     
-    // Products Rendering
+    // Products Rendering with Sold Out badge
     let currentCategory = "All";
     function renderCats() {
         let cats = ["All", ...new Set(products.map(p=>p.category))];
@@ -836,8 +995,10 @@
             let final = calculateFinalPrice(p.price, seller.country, buyerCountry);
             let reviews = productReviews[p.id] || [];
             let avgRating = reviews.length ? (reviews.reduce((sum,r)=>sum+r.rating,0)/reviews.length).toFixed(1) : 0;
-            return `<div class="product-card" data-id="${p.id}">
+            let isSoldOut = p.stockStatus === "sold_out" || p.inStock === false;
+            return `<div class="product-card ${isSoldOut ? 'sold-out' : ''}" data-id="${p.id}">
                         <img class="main-img" src="${p.mainImage}" alt="${p.name}">
+                        ${isSoldOut ? '<div class="sold-out-badge">🔴 SOLD OUT</div>' : ''}
                         <div class="product-thumbnails">
                             ${p.images && p.images.length > 1 ? p.images.slice(0,3).map(img => `<img src="${img}" onclick="event.stopPropagation(); changeProductImage(${p.id}, '${img}')">`).join('') : ''}
                         </div>
@@ -846,7 +1007,7 @@
                         <div class="rating-display"><span class="rating-badge">⭐ ${avgRating}</span></div>
                         <div class="prod-price">${getCurrencySymbol()}${convertPrice(final.total)}</div>
                         <div class="card-actions">
-                            <button class="btn-sm btn-buy addCartBtn" data-id="${p.id}">Buy</button>
+                            <button class="btn-sm btn-buy addCartBtn" data-id="${p.id}" ${isSoldOut ? 'disabled style="opacity:0.5;"' : ''}>${isSoldOut ? 'Sold Out' : 'Buy'}</button>
                             <button class="btn-sm btn-wish wishBtn ${wishlist.includes(p.id)?'active':''}" data-id="${p.id}">❤️</button>
                         </div>
                     </div>`;
@@ -910,6 +1071,10 @@
     function addToCart(id) {
         let p = products.find(x=>x.id===id);
         if(!p) return;
+        if(p.stockStatus === "sold_out" || p.inStock === false) {
+            showToast("This product is sold out!", true);
+            return;
+        }
         let existing = cart.find(i=>i.id===id);
         if(existing) existing.qty++;
         else cart.push({id:p.id, name:p.name, price:p.price, sellerId:p.sellerId, sellerCountry:p.sellerCountry || "SA", qty:1, image:p.mainImage});
@@ -1042,21 +1207,28 @@
         }, 0);
         let tracking = "GB" + Date.now();
         
-        cart.forEach(item => {
+        for(let item of cart) {
             let seller = sellers.find(s=>s.id===item.sellerId);
             let final = calculateFinalPrice(item.price, seller?.country || "SA", buyerCountry);
             let newOrder = {
                 id: Date.now()+Math.random(), trackingNumber: tracking,
-                sellerId: item.sellerId, sellerName: item.sellerName,
+                sellerId: item.sellerId, sellerName: item.sellerName || "GlobalBazaar",
                 buyerEmail: "guest@globalbazaar.com", buyerName: currentDelivery.fullName,
-                productName: item.name, amount: final.total, basePrice: item.price,
+                productName: item.name, amount: final.total, basePrice: item.price, productId: item.id,
                 address: currentDelivery.fullAddress, date: new Date().toLocaleString(),
                 status: "Processing", qty: item.qty, shippingCost: final.shipping,
                 commission: final.commission, trackingInfo: null
             };
             orders.push(newOrder);
             platformEarnings += final.commission * item.qty;
-        });
+            
+            // 🆕 Show sold out popup to seller if product is in stock
+            if(seller && item.inStock !== false) {
+                setTimeout(() => {
+                    checkAndShowSoldOutPopup(item.id, seller.id, item.name, item.price);
+                }, 1000);
+            }
+        }
         
         saveAll();
         await sendTelegramMessage(`🛍️ NEW ORDER!\nOrder: ${tracking}\nCustomer: ${currentDelivery.fullName}\nAmount: ${getCurrencySymbol()}${convertPrice(totalUSD)}`);
@@ -1140,63 +1312,34 @@
     setInterval(processWeeklyWithdrawals, 3600000);
     processWeeklyWithdrawals();
     
-    // ============ SELLER REGISTRATION - FIXED ============
+    // ============ SELLER REGISTRATION WITH KYC THANK YOU ============
     document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         console.log("🔵 Registration started...");
         
-        // Check phone verification
-        if(!sellerPhoneVerified) { 
-            showToast("Please verify your phone number first!", true); 
-            return; 
-        }
-        
-        // Check agreement
-        if(!document.getElementById('sellerAgreement').checked) { 
-            showToast("Accept Seller Agreement", true); 
-            return; 
-        }
-        
-        // Check age
+        if(!sellerPhoneVerified) { showToast("Please verify your phone number first!", true); return; }
+        if(!document.getElementById('sellerAgreement').checked) { showToast("Accept Seller Agreement", true); return; }
         let dob = document.getElementById('sellerDob').value;
-        if(calculateAge(dob) < 18) { 
-            showToast("You must be 18+", true); 
-            return; 
-        }
+        if(calculateAge(dob) < 18) { showToast("You must be 18+", true); return; }
         
-        // ✅ CHECK: Document image is COMPULSORY
         let docImageFile = document.getElementById('sellerDocImage').files[0];
-        if(!docImageFile) {
-            showToast("❌ KYC Document Image is required! Please upload your document.", true);
-            return;
-        }
+        if(!docImageFile) { showToast("❌ KYC Document Image is required!", true); return; }
         
-        // Check document number
         let docNumber = document.getElementById('sellerDocNumber').value;
-        if(!docNumber || docNumber.trim() === "") {
-            showToast("❌ Document Number is required!", true);
-            return;
-        }
+        if(!docNumber || docNumber.trim() === "") { showToast("❌ Document Number is required!", true); return; }
         
-        // Check document type
         let docType = document.getElementById('sellerDocType').value;
-        if(!docType || docType === "") {
-            showToast("❌ Please select Document Type!", true);
-            return;
-        }
+        if(!docType || docType === "") { showToast("❌ Please select Document Type!", true); return; }
         
         let countryCodeSelect = document.getElementById('sellerCountryCode');
         let countryCode = countryCodeSelect.value || "+91";
         
-        // Read document image first (COMPULSORY)
         let docReader = new FileReader();
         docReader.onload = async (docEv) => {
             let docImageData = docEv.target.result;
-            
-            // Read avatar (optional)
             let avatarFile = document.getElementById('sellerAvatar').files[0];
-            let avatarData = "https://randomuser.me/api/portraits/lego/1.jpg"; // default
+            let avatarData = "https://randomuser.me/api/portraits/lego/1.jpg";
             
             if(avatarFile) {
                 let avatarReader = new FileReader();
@@ -1244,7 +1387,6 @@
         saveAll();
         
         console.log("✅ Seller saved:", newSeller.shopName, "KYC Status:", newSeller.kycStatus);
-        console.log("📋 Total sellers now:", sellers.length);
         
         document.getElementById('sellerRegisterBox').style.display = 'block';
         document.getElementById('sellerDashboard').style.display = 'none';
@@ -1253,11 +1395,12 @@
         document.getElementById('sellerSubmitBtn').disabled = true;
         document.getElementById('sellerSubmitBtn').innerHTML = '✅ Register Shop (Verify Phone First)';
         
-        showToast("✅ Shop Registered! KYC Pending. Admin will verify soon.", false);
+        // 🆕 Show KYC Thank You Popup with redirect
+        showKYCThankYouPopup();
+        
         await sendTelegramMessage(`🏪 New Seller Registered: ${newSeller.shopName}\nOwner: ${newSeller.fullName}\nEmail: ${newSeller.email}\nKYC Status: Pending`);
         addNotification(`New seller ${newSeller.shopName} registered! KYC pending.`, 'info');
         
-        // Refresh admin panel if open
         if(document.getElementById('adminContent').style.display === 'block') {
             loadAdminData();
         }
@@ -1300,6 +1443,10 @@
         showMyShopLogin();
     });
     
+    // ============ SELLER DASHBOARD WITH MULTIPLE IMAGE UPLOAD ============
+    let currentProductImages = [];
+    let currentImagePreviews = [];
+    
     function renderSellerDashboard() {
         if(!currentSeller?.sellerId) return;
         let seller = sellers.find(s=>s.id === currentSeller.sellerId);
@@ -1335,7 +1482,23 @@
             <div class="chart-container"><h3>📊 Revenue Chart (Monthly)</h3><canvas id="revenueChart"></canvas></div>
             <div class="premium-card"><h3>📈 Top Selling Products</h3>${topProductsList.map(p => `📦 ${p[0]}: ${p[1]} sold`).join('<br>') || 'No sales yet'}</div>
             ${seller.kycStatus === "verified" ? `
-            <div class="premium-card"><h3>➕ Add New Product</h3><input type="text" id="prodName" placeholder="Product Name" class="input"><input type="number" id="prodPrice" placeholder="Price (USD)" class="input"><select id="prodCat" class="input"><option>Electronics</option><option>Fashion</option><option>Home</option><option>Textile</option><option>Cosmetic</option></select><input type="url" id="prodImg" placeholder="Image URL" class="input"><textarea id="prodDesc" placeholder="Product Description" class="input" rows="3"></textarea><button id="publishBtn" class="btn-primary">📢 Publish Product</button></div>
+            <div class="premium-card">
+                <h3>➕ Add New Product</h3>
+                <input type="text" id="prodName" placeholder="Product Name" class="input">
+                <input type="number" id="prodPrice" placeholder="Price (USD)" class="input">
+                <select id="prodCat" class="input"><option>Electronics</option><option>Fashion</option><option>Home</option><option>Textile</option><option>Cosmetic</option></select>
+                <textarea id="prodDesc" placeholder="Product Description" class="input" rows="3"></textarea>
+                
+                <!-- 🆕 MULTIPLE IMAGE UPLOAD -->
+                <div class="image-upload-area" id="imageUploadArea">
+                    <div>📸 Click or drag to upload product images (Multiple)</div>
+                    <input type="file" id="prodImages" accept="image/*" multiple style="display:none;">
+                    <button type="button" id="selectImagesBtn" class="btn-secondary" style="margin-top:10px;">Select Images</button>
+                </div>
+                <div id="imagePreviewContainer" class="image-previews"></div>
+                
+                <button id="publishBtn" class="btn-primary" style="margin-top:15px;">📢 Publish Product</button>
+            </div>
             <div class="premium-card"><h3>📋 My Products (${myProducts.length})</h3><div id="myProductsList"></div></div>
             <div class="premium-card"><h3>📦 Orders Received (${myOrders.length})</h3><div id="ordersList"></div></div>
             ` : `<div class="premium-card"><h3>⚠️ ${kycText}</h3><p>Your KYC documents are under review by admin.<br><br><strong>Documents submitted:</strong> ${seller.docType} - ${seller.docNumber}</p></div>`}
@@ -1352,33 +1515,98 @@
         }
         
         if(seller.kycStatus === "verified") {
-            document.getElementById('publishBtn')?.addEventListener('click', () => {
+            // Initialize multiple image upload
+            currentProductImages = [];
+            currentImagePreviews = [];
+            updateImagePreviewDisplay();
+            
+            document.getElementById('selectImagesBtn')?.addEventListener('click', () => {
+                document.getElementById('prodImages').click();
+            });
+            
+            document.getElementById('prodImages')?.addEventListener('change', (e) => {
+                const files = Array.from(e.target.files);
+                files.forEach(file => {
+                    currentProductImages.push(file);
+                    const preview = URL.createObjectURL(file);
+                    currentImagePreviews.push(preview);
+                });
+                updateImagePreviewDisplay();
+            });
+            
+            document.getElementById('publishBtn')?.addEventListener('click', async () => {
                 let name = document.getElementById('prodName').value;
                 let desc = document.getElementById('prodDesc').value;
                 let price = parseFloat(document.getElementById('prodPrice').value);
-                let imgUrl = document.getElementById('prodImg').value;
+                let category = document.getElementById('prodCat').value;
+                
                 if(!name || !price) { showToast("Fill name & price", true); return; }
-                if(!imgUrl) imgUrl = "https://placehold.co/400x400/1e3a8a/white?text=" + encodeURIComponent(name);
+                if(currentProductImages.length === 0) { showToast("Please upload at least 1 product image!", true); return; }
+                
+                showToast("Uploading images...", false);
+                
+                // For demo, we'll use local image URLs (in real app, you'd upload to cloud)
+                let imageUrls = currentImagePreviews;
+                
                 let newProduct = { 
                     id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, 
-                    name, price, category: document.getElementById('prodCat').value, 
-                    mainImage: imgUrl, 
-                    images: [imgUrl],
-                    description: desc || "High quality product", sellerCountry: seller.country, rating: 0
+                    name, price, category, 
+                    mainImage: imageUrls[0] || "https://placehold.co/400x400/1e3a8a/white?text=" + encodeURIComponent(name), 
+                    images: imageUrls.length > 0 ? imageUrls : [imageUrls[0]],
+                    description: desc || "High quality product", 
+                    sellerCountry: seller.country, rating: 0,
+                    inStock: true, stockStatus: "available"
                 };
                 products.push(newProduct);
                 saveAll();
-                renderSellerDashboard(); renderProducts(); showToast("Published!", false);
+                
+                // Reset form
+                currentProductImages = [];
+                currentImagePreviews = [];
+                updateImagePreviewDisplay();
+                document.getElementById('prodName').value = '';
+                document.getElementById('prodPrice').value = '';
+                document.getElementById('prodDesc').value = '';
+                document.getElementById('prodImages').value = '';
+                
+                renderSellerDashboard(); 
+                renderProducts(); 
+                showToast("Product published with " + imageUrls.length + " images!", false);
                 sendTelegramMessage(`📦 New Product: ${name}\nShop: ${seller.shopName}\nPrice: $${price}`);
                 addNotification(`New product "${name}" published!`, 'info');
             });
+            
             document.getElementById('myProductsList').innerHTML = myProducts.map(p => `<div class="flex-between"><span><img src="${p.mainImage}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;"> ${p.name} - ${getCurrencySymbol()}${convertPrice(p.price)}</span><button class="delProd" data-id="${p.id}" style="background:#dc2626; border:none; padding:6px 14px; border-radius:30px;">Delete</button></div>`).join('');
             document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', () => { products = products.filter(p=>p.id!==parseInt(btn.dataset.id)); saveAll(); renderSellerDashboard(); renderProducts(); showToast("Product deleted", false); }));
+            
             document.getElementById('ordersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 Order #${o.trackingNumber}</strong><br>Product: ${o.productName} x${o.qty}<br>Amount: ${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: <span style="color:${o.status==='Processing'?'#d97706':(o.status==='Shipped'?'#3b82f6':'#10b981')}">${o.status}</span><br>Buyer: ${o.buyerName}<br>Address: ${o.address}<br>Date: ${o.date}<br>${renderTrackingMap(o)}<br>${o.status === "Processing" ? `<button class="shipBtn" data-id="${o.id}" style="background:#3b82f6; margin-top:10px; padding:8px 16px; border-radius:30px;">📦 Mark as Shipped</button>` : ''}${o.status === "Shipped" ? `<br><span style="font-size:11px;">Tracking: ${o.trackingInfo}</span>` : ''}</div>`).join('');
             document.querySelectorAll('.shipBtn').forEach(btn => btn.addEventListener('click', () => { let track = prompt("Enter tracking number:"); if(track) markOrderShipped(parseFloat(btn.dataset.id), track); }));
             document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
         }
     }
+    
+    function updateImagePreviewDisplay() {
+        const container = document.getElementById('imagePreviewContainer');
+        if(!container) return;
+        
+        if(currentImagePreviews.length === 0) {
+            container.innerHTML = '<div style="color:#64748b; text-align:center; padding:20px;">No images selected. Click above to upload.</div>';
+            return;
+        }
+        
+        container.innerHTML = currentImagePreviews.map((preview, idx) => `
+            <div class="preview-item">
+                <img src="${preview}" alt="Preview ${idx}">
+                <button onclick="removeImageFromUpload(${idx})">✖</button>
+            </div>
+        `).join('');
+    }
+    
+    window.removeImageFromUpload = function(index) {
+        currentProductImages.splice(index, 1);
+        currentImagePreviews.splice(index, 1);
+        updateImagePreviewDisplay();
+    };
     
     function renderBuyerOrders() {
         let myOrders = orders.filter(o=>o.buyerEmail === "guest@globalbazaar.com");
@@ -1446,7 +1674,12 @@
                     <thead><tr><th>Shop Name</th><th>Owner</th><th>Email</th><th>Joined</th></tr></thead>
                     <tbody>
                         ${verifiedSellers.map(s => `
-                            <tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td>${new Date(s.id).toLocaleDateString()}</td></tr>
+                            <tr>
+                                <td>🏪 ${s.shopName}</span><br><small>📍 ${s.city}</small></td>
+                                <td>${s.fullName}</td>
+                                <td>${s.email}</td>
+                                <td>${new Date(s.id).toLocaleDateString()}</td>
+                            </tr>
                         `).join('')}
                     </tbody>
                 </table>
@@ -1463,7 +1696,12 @@
                     <thead><tr><th>Shop Name</th><th>Owner</th><th>Email</th><th>Reason</th></tr></thead>
                     <tbody>
                         ${rejectedSellers.map(s => `
-                            <tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td><span class="badge-rejected">${s.rejectionReason || 'No reason provided'}</span></td></tr>
+                            <tr>
+                                <td>🏪 ${s.shopName}</td>
+                                <td>${s.fullName}</span><br><small>${s.phone}</small></td>
+                                <td>${s.email}</td>
+                                <td><span class="badge-rejected">${s.rejectionReason || 'No reason provided'}</span></td>
+                            </tr>
                         `).join('')}
                     </tbody>
                 </table>
@@ -1564,7 +1802,7 @@
     updateCartUI();
     updateNotificationUI();
     
-    console.log("✅ GlobalBazaar Ready - KYC Verification ONLY in Admin Panel");
+    console.log("✅ GlobalBazaar Ready - All 4 features added!");
 </script>
 </body>
 </html>
