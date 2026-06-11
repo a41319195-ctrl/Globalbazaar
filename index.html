@@ -8,8 +8,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
-    <!-- ============ FIREBASE SDK ============ -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     
@@ -26,7 +24,6 @@
         .dark-mode-menu-item:hover { background: #f1f5f9; }
         body.dark-mode .dark-mode-menu-item:hover { background: #334155; }
         .my-shop-btn { background: linear-gradient(145deg, #10b981, #059669); color: white; border-radius: 14px; }
-        .my-shop-btn:hover { background: linear-gradient(145deg, #059669, #047857); }
         .rating-stars { display: flex; gap: 5px; margin: 10px 0; }
         .star { font-size: 24px; cursor: pointer; color: #cbd5e1; transition: 0.1s; }
         .star.active { color: #fbbf24; }
@@ -36,7 +33,6 @@
         body.dark-mode .review-item { background: #334155; }
         .product-thumbnails { display: flex; gap: 6px; margin-top: 8px; overflow-x: auto; }
         .product-thumbnails img { width: 50px; height: 50px; object-fit: cover; border-radius: 10px; cursor: pointer; border: 1px solid #e2e8f0; }
-        .product-thumbnails img:hover { border-color: #3b82f6; }
         .notification-bell { position: relative; cursor: pointer; font-size: 22px; background: none; border: none; }
         .notification-badge { position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; font-size: 10px; padding: 2px 6px; border-radius: 50%; }
         .notification-panel { position: fixed; top: 70px; right: 20px; width: 300px; max-height: 400px; background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 1000; display: none; overflow-y: auto; }
@@ -45,7 +41,6 @@
         .notification-item:hover { background: #f1f5f9; }
         body.dark-mode .notification-item:hover { background: #334155; }
         .mark-read-btn { background: #3b82f6; color: white; border: none; padding: 4px 10px; border-radius: 20px; font-size: 11px; cursor: pointer; }
-        .mark-read-btn:hover { background: #2563eb; }
         .mark-all-btn { background: #10b981; color: white; border: none; padding: 4px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; margin-left: 10px; }
         .header-3d { background: linear-gradient(145deg, #ffffff, #f0f4fa); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 10px 25px -8px rgba(0,0,0,0.15); border-bottom: 1px solid rgba(59,130,246,0.15); flex-wrap: wrap; gap: 10px; }
         .header-left { display: flex; align-items: center; gap: 15px; }
@@ -137,7 +132,7 @@
         .badge-rejected { background: #fee2e2; color: #dc2626; padding: 4px 10px; border-radius: 20px; font-size: 11px; }
         .btn-approve { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; margin-right: 8px; }
         .btn-reject { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; }
-        .btn-view-doc { background: #3b82f6; color: white; border: none; padding: 4px 10px; border-radius: 15px; cursor: pointer; font-size: 11px; }
+        .btn-view-doc { background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; margin-right: 8px; }
         .image-upload-area { border: 2px dashed #cbd5e1; border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 15px; cursor: pointer; transition: 0.2s; }
         .image-upload-area:hover { border-color: #3b82f6; background: #f8fafc; }
         body.dark-mode .image-upload-area:hover { background: #334155; }
@@ -153,15 +148,17 @@
         .soldout-no-btn { background: #dc2626; color: white; border: none; padding: 10px 20px; border-radius: 40px; cursor: pointer; }
         .kyc-thankyou-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 24px; text-align: center; z-index: 1000; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
         body.dark-mode .kyc-thankyou-popup { background: #1e293b; }
+        .doc-thumbnail { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1px solid #e2e8f0; }
+        .doc-thumbnail:hover { border-color: #3b82f6; }
         @media (max-width: 600px) {
             .brand-3d { font-size: 18px; }
             .logo-3d { font-size: 24px; }
             .fixed-cart { padding: 12px 20px; font-size: 14px; bottom: 15px; right: 15px; }
-            .currency-dropdown { font-size: 10px; padding: 4px 8px; }
             .product-thumbnails img { width: 40px; height: 40px; }
             .product-card .main-img { height: 120px; }
             .modal-thumbnails img { width: 50px; height: 50px; }
             .kyc-table th, .kyc-table td { padding: 8px; font-size: 11px; }
+            .btn-view-doc, .btn-approve, .btn-reject { padding: 4px 8px; font-size: 10px; }
         }
     </style>
 </head>
@@ -177,22 +174,22 @@
         <button class="notification-bell" id="notificationBell">🔔<span class="notification-badge" id="notificationCount">0</span></button>
         <select id="currencySelect" class="currency-dropdown">
             <option value="SAR">🇸🇦 SAR</option>
-            <option value="USD">🇺🇸 USD $</option>
-            <option value="EUR">🇪🇺 EUR €</option>
-            <option value="GBP">🇬🇧 GBP £</option>
-            <option value="INR">🇮🇳 INR ₹</option>
-            <option value="PKR">🇵🇰 PKR ₨</option>
-            <option value="NPR">🇳🇵 NPR रू</option>
-            <option value="BDT">🇧🇩 BDT ৳</option>
-            <option value="LKR">🇱🇰 LKR Rs</option>
-            <option value="AED">🇦🇪 AED د.إ</option>
-            <option value="CAD">🇨🇦 CAD $</option>
-            <option value="AUD">🇦🇺 AUD $</option>
-            <option value="SGD">🇸🇬 SGD $</option>
-            <option value="MYR">🇲🇾 MYR RM</option>
-            <option value="THB">🇹🇭 THB ฿</option>
-            <option value="JPY">🇯🇵 JPY ¥</option>
-            <option value="CNY">🇨🇳 CNY ¥</option>
+            <option value="USD">🇺🇸 USD</option>
+            <option value="EUR">🇪🇺 EUR</option>
+            <option value="GBP">🇬🇧 GBP</option>
+            <option value="INR">🇮🇳 INR</option>
+            <option value="PKR">🇵🇰 PKR</option>
+            <option value="NPR">🇳🇵 NPR</option>
+            <option value="BDT">🇧🇩 BDT</option>
+            <option value="LKR">🇱🇰 LKR</option>
+            <option value="AED">🇦🇪 AED</option>
+            <option value="CAD">🇨🇦 CAD</option>
+            <option value="AUD">🇦🇺 AUD</option>
+            <option value="SGD">🇸🇬 SGD</option>
+            <option value="MYR">🇲🇾 MYR</option>
+            <option value="THB">🇹🇭 THB</option>
+            <option value="JPY">🇯🇵 JPY</option>
+            <option value="CNY">🇨🇳 CNY</option>
         </select>
     </div>
 </div>
@@ -258,9 +255,15 @@
                 <select id="sellerCountryReg" class="input" required><option value="">Select Country</option></select>
                 <div class="doc-section">
                     <div class="doc-title">🌍 KYC Documents</div>
-                    <select id="sellerDocType" class="input" required><option value="">Select Document Type</option><option value="passport">📘 Passport</option><option value="national_id">🆔 National ID Card</option><option value="driving_license">🚗 Driving License</option><option value="residence_permit">📄 Residence Permit</option></select>
+                    <select id="sellerDocType" class="input" required>
+                        <option value="">Select Document Type</option>
+                        <option value="passport">📘 Passport</option>
+                        <option value="national_id">🆔 National ID Card</option>
+                        <option value="driving_license">🚗 Driving License</option>
+                        <option value="residence_permit">📄 Residence Permit</option>
+                    </select>
                     <input type="text" id="sellerDocNumber" placeholder="Document Number" class="input" required>
-                    <input type="file" id="sellerDocImage" accept="image/*,application/pdf" class="input" required>
+                    <input type="file" id="sellerDocImage" accept="image/*" class="input" required>
                 </div>
                 <h4>🏦 Bank Account Details</h4>
                 <input type="text" id="sellerBank" placeholder="Bank Name" class="input" required>
@@ -388,11 +391,12 @@
 <div id="sellerAgreementModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSellerAgreementModal()">&times;</span><h2>Seller Agreement</h2><p>Commission: 5% | Gateway Fee: 2.5% | Handling Fee: $2<br>Payments released after delivery confirmation.<br>Weekly withdrawal available (Monday & Friday).</p><button class="btn-primary" onclick="closeSellerAgreementModal()">Close</button></div></div>
 <div id="supportModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSupportModal()">&times;</span><h2>📞 Support</h2><p>Email: support@globalbazaar.com<br>WhatsApp: +966 123 456 789<br>24/7 Customer Support</p><button class="btn-primary" onclick="closeSupportModal()">Close</button></div></div>
 <div id="documentModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeDocumentModal()">&times;</span><h2>📄 KYC Document</h2><img id="documentModalImg" style="width:100%; border-radius:12px;"><p id="documentModalText" style="margin-top:10px;"></p><button class="btn-primary" onclick="closeDocumentModal()">Close</button></div></div>
+<div id="docViewerModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeDocViewer()">&times;</span><h3 id="docViewerTitle">KYC Document</h3><img id="docViewerImage" style="width:100%; border-radius:12px; margin-top:20px;"><button class="btn-primary" onclick="closeDocViewer()" style="margin-top:20px;">Close</button></div></div>
 
 <div class="footer-legal">© 2026 GlobalBazaar Marketplace | <span class="legal-link" onclick="showTerms()">Terms</span> | <span class="legal-link" onclick="showPrivacy()">Privacy</span> | <span class="legal-link" onclick="showSupport()">Support</span></div>
 
 <script>
-    // ============ 🔥 FIREBASE CONFIG ============
+    // Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyAvbSJkEH3NDNy_SIaf0bJk0hkhknTRhno",
         authDomain: "globalbazaar-2c6cb.firebaseapp.com",
@@ -411,13 +415,12 @@
     async function sendTelegramMessage(message) {
         try {
             const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-            const response = await fetch(url, {
+            await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: 'HTML' })
             });
-            return response.ok;
-        } catch(e) { return false; }
+        } catch(e) { console.log("Telegram error:", e); }
     }
 
     let notifications = JSON.parse(localStorage.getItem('gb_notifications')) || [];
@@ -553,6 +556,13 @@
     }
     
     function closeDocumentModal() { document.getElementById('documentModal').style.display = 'none'; }
+    function closeDocViewer() { document.getElementById('docViewerModal').style.display = 'none'; }
+    
+    function showDocumentViewer(imageUrl, title) {
+        document.getElementById('docViewerTitle').innerText = title;
+        document.getElementById('docViewerImage').src = imageUrl;
+        document.getElementById('docViewerModal').style.display = 'block';
+    }
     
     let currentSoldOutProduct = null;
     
@@ -612,7 +622,6 @@
         }
     }
     
-    // ============ FIXED KYC THANK YOU POPUP ============
     function showKYCThankYouPopup() {
         let popupHtml = `
             <div class="kyc-thankyou-popup" id="kycThankYouPopup">
@@ -639,97 +648,56 @@
             showToast("Registration complete! Waiting for admin approval.", false);
         }, 5000);
     }
-    
+
+    // Country Codes (150+ Countries - Africa Removed, India & Nepal Included)
     const countryCodes = [
-        { code: "+93", name: "Afghanistan", flag: "🇦🇫" }, { code: "+355", name: "Albania", flag: "🇦🇱" }, { code: "+213", name: "Algeria", flag: "🇩🇿" },
-        { code: "+376", name: "Andorra", flag: "🇦🇩" }, { code: "+244", name: "Angola", flag: "🇦🇴" }, { code: "+1", name: "Antigua", flag: "🇦🇬" },
-        { code: "+54", name: "Argentina", flag: "🇦🇷" }, { code: "+374", name: "Armenia", flag: "🇦🇲" }, { code: "+61", name: "Australia", flag: "🇦🇺" },
-        { code: "+43", name: "Austria", flag: "🇦🇹" }, { code: "+994", name: "Azerbaijan", flag: "🇦🇿" }, { code: "+1", name: "Bahamas", flag: "🇧🇸" },
-        { code: "+973", name: "Bahrain", flag: "🇧🇭" }, { code: "+880", name: "Bangladesh", flag: "🇧🇩" }, { code: "+1", name: "Barbados", flag: "🇧🇧" },
-        { code: "+375", name: "Belarus", flag: "🇧🇾" }, { code: "+32", name: "Belgium", flag: "🇧🇪" }, { code: "+501", name: "Belize", flag: "🇧🇿" },
-        { code: "+229", name: "Benin", flag: "🇧🇯" }, { code: "+975", name: "Bhutan", flag: "🇧🇹" }, { code: "+591", name: "Bolivia", flag: "🇧🇴" },
-        { code: "+387", name: "Bosnia", flag: "🇧🇦" }, { code: "+267", name: "Botswana", flag: "🇧🇼" }, { code: "+55", name: "Brazil", flag: "🇧🇷" },
-        { code: "+673", name: "Brunei", flag: "🇧🇳" }, { code: "+359", name: "Bulgaria", flag: "🇧🇬" }, { code: "+226", name: "Burkina Faso", flag: "🇧🇫" },
-        { code: "+257", name: "Burundi", flag: "🇧🇮" }, { code: "+855", name: "Cambodia", flag: "🇰🇭" }, { code: "+237", name: "Cameroon", flag: "🇨🇲" },
-        { code: "+1", name: "Canada", flag: "🇨🇦" }, { code: "+238", name: "Cape Verde", flag: "🇨🇻" }, { code: "+236", name: "CAR", flag: "🇨🇫" },
-        { code: "+235", name: "Chad", flag: "🇹🇩" }, { code: "+56", name: "Chile", flag: "🇨🇱" }, { code: "+86", name: "China", flag: "🇨🇳" },
-        { code: "+57", name: "Colombia", flag: "🇨🇴" }, { code: "+269", name: "Comoros", flag: "🇰🇲" }, { code: "+242", name: "Congo", flag: "🇨🇬" },
-        { code: "+243", name: "Congo DR", flag: "🇨🇩" }, { code: "+506", name: "Costa Rica", flag: "🇨🇷" }, { code: "+385", name: "Croatia", flag: "🇭🇷" },
+        { code: "+93", name: "Afghanistan", flag: "🇦🇫" }, { code: "+355", name: "Albania", flag: "🇦🇱" }, { code: "+376", name: "Andorra", flag: "🇦🇩" },
+        { code: "+374", name: "Armenia", flag: "🇦🇲" }, { code: "+61", name: "Australia", flag: "🇦🇺" }, { code: "+43", name: "Austria", flag: "🇦🇹" },
+        { code: "+994", name: "Azerbaijan", flag: "🇦🇿" }, { code: "+973", name: "Bahrain", flag: "🇧🇭" }, { code: "+880", name: "Bangladesh", flag: "🇧🇩" },
+        { code: "+375", name: "Belarus", flag: "🇧🇾" }, { code: "+32", name: "Belgium", flag: "🇧🇪" }, { code: "+975", name: "Bhutan", flag: "🇧🇹" },
+        { code: "+591", name: "Bolivia", flag: "🇧🇴" }, { code: "+387", name: "Bosnia", flag: "🇧🇦" }, { code: "+55", name: "Brazil", flag: "🇧🇷" },
+        { code: "+673", name: "Brunei", flag: "🇧🇳" }, { code: "+359", name: "Bulgaria", flag: "🇧🇬" }, { code: "+855", name: "Cambodia", flag: "🇰🇭" },
+        { code: "+1", name: "Canada", flag: "🇨🇦" }, { code: "+56", name: "Chile", flag: "🇨🇱" }, { code: "+86", name: "China", flag: "🇨🇳" },
+        { code: "+57", name: "Colombia", flag: "🇨🇴" }, { code: "+506", name: "Costa Rica", flag: "🇨🇷" }, { code: "+385", name: "Croatia", flag: "🇭🇷" },
         { code: "+53", name: "Cuba", flag: "🇨🇺" }, { code: "+357", name: "Cyprus", flag: "🇨🇾" }, { code: "+420", name: "Czech Republic", flag: "🇨🇿" },
-        { code: "+45", name: "Denmark", flag: "🇩🇰" }, { code: "+253", name: "Djibouti", flag: "🇩🇯" }, { code: "+1", name: "Dominica", flag: "🇩🇲" },
-        { code: "+1", name: "Dominican Republic", flag: "🇩🇴" }, { code: "+593", name: "Ecuador", flag: "🇪🇨" }, { code: "+20", name: "Egypt", flag: "🇪🇬" },
-        { code: "+503", name: "El Salvador", flag: "🇸🇻" }, { code: "+240", name: "Equatorial Guinea", flag: "🇬🇶" }, { code: "+291", name: "Eritrea", flag: "🇪🇷" },
-        { code: "+372", name: "Estonia", flag: "🇪🇪" }, { code: "+251", name: "Ethiopia", flag: "🇪🇹" }, { code: "+679", name: "Fiji", flag: "🇫🇯" },
-        { code: "+358", name: "Finland", flag: "🇫🇮" }, { code: "+33", name: "France", flag: "🇫🇷" }, { code: "+241", name: "Gabon", flag: "🇬🇦" },
-        { code: "+220", name: "Gambia", flag: "🇬🇲" }, { code: "+995", name: "Georgia", flag: "🇬🇪" }, { code: "+49", name: "Germany", flag: "🇩🇪" },
-        { code: "+233", name: "Ghana", flag: "🇬🇭" }, { code: "+30", name: "Greece", flag: "🇬🇷" }, { code: "+1", name: "Grenada", flag: "🇬🇩" },
-        { code: "+502", name: "Guatemala", flag: "🇬🇹" }, { code: "+224", name: "Guinea", flag: "🇬🇳" }, { code: "+245", name: "Guinea-Bissau", flag: "🇬🇼" },
-        { code: "+592", name: "Guyana", flag: "🇬🇾" }, { code: "+509", name: "Haiti", flag: "🇭🇹" }, { code: "+504", name: "Honduras", flag: "🇭🇳" },
-        { code: "+36", name: "Hungary", flag: "🇭🇺" }, { code: "+354", name: "Iceland", flag: "🇮🇸" }, { code: "+91", name: "India", flag: "🇮🇳" },
-        { code: "+62", name: "Indonesia", flag: "🇮🇩" }, { code: "+98", name: "Iran", flag: "🇮🇷" }, { code: "+964", name: "Iraq", flag: "🇮🇶" },
-        { code: "+353", name: "Ireland", flag: "🇮🇪" }, { code: "+972", name: "Israel", flag: "🇮🇱" }, { code: "+39", name: "Italy", flag: "🇮🇹" },
-        { code: "+1", name: "Jamaica", flag: "🇯🇲" }, { code: "+81", name: "Japan", flag: "🇯🇵" }, { code: "+962", name: "Jordan", flag: "🇯🇴" },
-        { code: "+7", name: "Kazakhstan", flag: "🇰🇿" }, { code: "+254", name: "Kenya", flag: "🇰🇪" }, { code: "+686", name: "Kiribati", flag: "🇰🇮" },
-        { code: "+850", name: "North Korea", flag: "🇰🇵" }, { code: "+82", name: "South Korea", flag: "🇰🇷" }, { code: "+383", name: "Kosovo", flag: "🇽🇰" },
+        { code: "+45", name: "Denmark", flag: "🇩🇰" }, { code: "+1", name: "Dominican Republic", flag: "🇩🇴" }, { code: "+593", name: "Ecuador", flag: "🇪🇨" },
+        { code: "+20", name: "Egypt", flag: "🇪🇬" }, { code: "+503", name: "El Salvador", flag: "🇸🇻" }, { code: "+372", name: "Estonia", flag: "🇪🇪" },
+        { code: "+679", name: "Fiji", flag: "🇫🇯" }, { code: "+358", name: "Finland", flag: "🇫🇮" }, { code: "+33", name: "France", flag: "🇫🇷" },
+        { code: "+995", name: "Georgia", flag: "🇬🇪" }, { code: "+49", name: "Germany", flag: "🇩🇪" }, { code: "+30", name: "Greece", flag: "🇬🇷" },
+        { code: "+502", name: "Guatemala", flag: "🇬🇹" }, { code: "+592", name: "Guyana", flag: "🇬🇾" }, { code: "+509", name: "Haiti", flag: "🇭🇹" },
+        { code: "+504", name: "Honduras", flag: "🇭🇳" }, { code: "+36", name: "Hungary", flag: "🇭🇺" }, { code: "+354", name: "Iceland", flag: "🇮🇸" },
+        { code: "+91", name: "India", flag: "🇮🇳" }, { code: "+62", name: "Indonesia", flag: "🇮🇩" }, { code: "+98", name: "Iran", flag: "🇮🇷" },
+        { code: "+964", name: "Iraq", flag: "🇮🇶" }, { code: "+353", name: "Ireland", flag: "🇮🇪" }, { code: "+972", name: "Israel", flag: "🇮🇱" },
+        { code: "+39", name: "Italy", flag: "🇮🇹" }, { code: "+1", name: "Jamaica", flag: "🇯🇲" }, { code: "+81", name: "Japan", flag: "🇯🇵" },
+        { code: "+962", name: "Jordan", flag: "🇯🇴" }, { code: "+7", name: "Kazakhstan", flag: "🇰🇿" }, { code: "+254", name: "Kenya", flag: "🇰🇪" },
         { code: "+965", name: "Kuwait", flag: "🇰🇼" }, { code: "+996", name: "Kyrgyzstan", flag: "🇰🇬" }, { code: "+856", name: "Laos", flag: "🇱🇦" },
-        { code: "+371", name: "Latvia", flag: "🇱🇻" }, { code: "+961", name: "Lebanon", flag: "🇱🇧" }, { code: "+266", name: "Lesotho", flag: "🇱🇸" },
-        { code: "+231", name: "Liberia", flag: "🇱🇷" }, { code: "+218", name: "Libya", flag: "🇱🇾" }, { code: "+423", name: "Liechtenstein", flag: "🇱🇮" },
-        { code: "+370", name: "Lithuania", flag: "🇱🇹" }, { code: "+352", name: "Luxembourg", flag: "🇱🇺" }, { code: "+261", name: "Madagascar", flag: "🇲🇬" },
-        { code: "+265", name: "Malawi", flag: "🇲🇼" }, { code: "+60", name: "Malaysia", flag: "🇲🇾" }, { code: "+960", name: "Maldives", flag: "🇲🇻" },
-        { code: "+223", name: "Mali", flag: "🇲🇱" }, { code: "+356", name: "Malta", flag: "🇲🇹" }, { code: "+692", name: "Marshall Islands", flag: "🇲🇭" },
-        { code: "+222", name: "Mauritania", flag: "🇲🇷" }, { code: "+230", name: "Mauritius", flag: "🇲🇺" }, { code: "+52", name: "Mexico", flag: "🇲🇽" },
-        { code: "+691", name: "Micronesia", flag: "🇫🇲" }, { code: "+373", name: "Moldova", flag: "🇲🇩" }, { code: "+377", name: "Monaco", flag: "🇲🇨" },
-        { code: "+976", name: "Mongolia", flag: "🇲🇳" }, { code: "+382", name: "Montenegro", flag: "🇲🇪" }, { code: "+212", name: "Morocco", flag: "🇲🇦" },
-        { code: "+258", name: "Mozambique", flag: "🇲🇿" }, { code: "+95", name: "Myanmar", flag: "🇲🇲" }, { code: "+264", name: "Namibia", flag: "🇳🇦" },
-        { code: "+674", name: "Nauru", flag: "🇳🇷" }, { code: "+977", name: "Nepal", flag: "🇳🇵" }, { code: "+31", name: "Netherlands", flag: "🇳🇱" },
-        { code: "+64", name: "New Zealand", flag: "🇳🇿" }, { code: "+505", name: "Nicaragua", flag: "🇳🇮" }, { code: "+227", name: "Niger", flag: "🇳🇪" },
-        { code: "+234", name: "Nigeria", flag: "🇳🇬" }, { code: "+389", name: "North Macedonia", flag: "🇲🇰" }, { code: "+47", name: "Norway", flag: "🇳🇴" },
-        { code: "+968", name: "Oman", flag: "🇴🇲" }, { code: "+92", name: "Pakistan", flag: "🇵🇰" }, { code: "+680", name: "Palau", flag: "🇵🇼" },
-        { code: "+970", name: "Palestine", flag: "🇵🇸" }, { code: "+507", name: "Panama", flag: "🇵🇦" }, { code: "+675", name: "PNG", flag: "🇵🇬" },
-        { code: "+595", name: "Paraguay", flag: "🇵🇾" }, { code: "+51", name: "Peru", flag: "🇵🇪" }, { code: "+63", name: "Philippines", flag: "🇵🇭" },
-        { code: "+48", name: "Poland", flag: "🇵🇱" }, { code: "+351", name: "Portugal", flag: "🇵🇹" }, { code: "+1", name: "Puerto Rico", flag: "🇵🇷" },
-        { code: "+974", name: "Qatar", flag: "🇶🇦" }, { code: "+40", name: "Romania", flag: "🇷🇴" }, { code: "+7", name: "Russia", flag: "🇷🇺" },
-        { code: "+250", name: "Rwanda", flag: "🇷🇼" }, { code: "+1", name: "St Kitts", flag: "🇰🇳" }, { code: "+1", name: "St Lucia", flag: "🇱🇨" },
-        { code: "+1", name: "St Vincent", flag: "🇻🇨" }, { code: "+685", name: "Samoa", flag: "🇼🇸" }, { code: "+378", name: "San Marino", flag: "🇸🇲" },
-        { code: "+239", name: "Sao Tome", flag: "🇸🇹" }, { code: "+966", name: "Saudi Arabia", flag: "🇸🇦" }, { code: "+221", name: "Senegal", flag: "🇸🇳" },
-        { code: "+381", name: "Serbia", flag: "🇷🇸" }, { code: "+248", name: "Seychelles", flag: "🇸🇨" }, { code: "+232", name: "Sierra Leone", flag: "🇸🇱" },
+        { code: "+371", name: "Latvia", flag: "🇱🇻" }, { code: "+961", name: "Lebanon", flag: "🇱🇧" }, { code: "+423", name: "Liechtenstein", flag: "🇱🇮" },
+        { code: "+370", name: "Lithuania", flag: "🇱🇹" }, { code: "+352", name: "Luxembourg", flag: "🇱🇺" }, { code: "+60", name: "Malaysia", flag: "🇲🇾" },
+        { code: "+960", name: "Maldives", flag: "🇲🇻" }, { code: "+356", name: "Malta", flag: "🇲🇹" }, { code: "+692", name: "Marshall Islands", flag: "🇲🇭" },
+        { code: "+52", name: "Mexico", flag: "🇲🇽" }, { code: "+691", name: "Micronesia", flag: "🇫🇲" }, { code: "+373", name: "Moldova", flag: "🇲🇩" },
+        { code: "+377", name: "Monaco", flag: "🇲🇨" }, { code: "+976", name: "Mongolia", flag: "🇲🇳" }, { code: "+382", name: "Montenegro", flag: "🇲🇪" },
+        { code: "+95", name: "Myanmar", flag: "🇲🇲" }, { code: "+977", name: "Nepal", flag: "🇳🇵" }, { code: "+31", name: "Netherlands", flag: "🇳🇱" },
+        { code: "+64", name: "New Zealand", flag: "🇳🇿" }, { code: "+505", name: "Nicaragua", flag: "🇳🇮" }, { code: "+234", name: "Nigeria", flag: "🇳🇬" },
+        { code: "+389", name: "North Macedonia", flag: "🇲🇰" }, { code: "+47", name: "Norway", flag: "🇳🇴" }, { code: "+968", name: "Oman", flag: "🇴🇲" },
+        { code: "+92", name: "Pakistan", flag: "🇵🇰" }, { code: "+680", name: "Palau", flag: "🇵🇼" }, { code: "+970", name: "Palestine", flag: "🇵🇸" },
+        { code: "+507", name: "Panama", flag: "🇵🇦" }, { code: "+675", name: "Papua New Guinea", flag: "🇵🇬" }, { code: "+595", name: "Paraguay", flag: "🇵🇾" },
+        { code: "+51", name: "Peru", flag: "🇵🇪" }, { code: "+63", name: "Philippines", flag: "🇵🇭" }, { code: "+48", name: "Poland", flag: "🇵🇱" },
+        { code: "+351", name: "Portugal", flag: "🇵🇹" }, { code: "+974", name: "Qatar", flag: "🇶🇦" }, { code: "+40", name: "Romania", flag: "🇷🇴" },
+        { code: "+7", name: "Russia", flag: "🇷🇺" }, { code: "+966", name: "Saudi Arabia", flag: "🇸🇦" }, { code: "+381", name: "Serbia", flag: "🇷🇸" },
         { code: "+65", name: "Singapore", flag: "🇸🇬" }, { code: "+421", name: "Slovakia", flag: "🇸🇰" }, { code: "+386", name: "Slovenia", flag: "🇸🇮" },
-        { code: "+677", name: "Solomon Is", flag: "🇸🇧" }, { code: "+252", name: "Somalia", flag: "🇸🇴" }, { code: "+27", name: "South Africa", flag: "🇿🇦" },
-        { code: "+211", name: "South Sudan", flag: "🇸🇸" }, { code: "+34", name: "Spain", flag: "🇪🇸" }, { code: "+94", name: "Sri Lanka", flag: "🇱🇰" },
-        { code: "+249", name: "Sudan", flag: "🇸🇩" }, { code: "+597", name: "Suriname", flag: "🇸🇷" }, { code: "+46", name: "Sweden", flag: "🇸🇪" },
+        { code: "+677", name: "Solomon Islands", flag: "🇸🇧" }, { code: "+82", name: "South Korea", flag: "🇰🇷" }, { code: "+34", name: "Spain", flag: "🇪🇸" },
+        { code: "+94", name: "Sri Lanka", flag: "🇱🇰" }, { code: "+597", name: "Suriname", flag: "🇸🇷" }, { code: "+46", name: "Sweden", flag: "🇸🇪" },
         { code: "+41", name: "Switzerland", flag: "🇨🇭" }, { code: "+963", name: "Syria", flag: "🇸🇾" }, { code: "+886", name: "Taiwan", flag: "🇹🇼" },
-        { code: "+992", name: "Tajikistan", flag: "🇹🇯" }, { code: "+255", name: "Tanzania", flag: "🇹🇿" }, { code: "+66", name: "Thailand", flag: "🇹🇭" },
-        { code: "+670", name: "Timor-Leste", flag: "🇹🇱" }, { code: "+228", name: "Togo", flag: "🇹🇬" }, { code: "+676", name: "Tonga", flag: "🇹🇴" },
-        { code: "+1", name: "Trinidad", flag: "🇹🇹" }, { code: "+216", name: "Tunisia", flag: "🇹🇳" }, { code: "+90", name: "Turkey", flag: "🇹🇷" },
-        { code: "+993", name: "Turkmenistan", flag: "🇹🇲" }, { code: "+688", name: "Tuvalu", flag: "🇹🇻" }, { code: "+256", name: "Uganda", flag: "🇺🇬" },
+        { code: "+992", name: "Tajikistan", flag: "🇹🇯" }, { code: "+66", name: "Thailand", flag: "🇹🇭" }, { code: "+670", name: "Timor-Leste", flag: "🇹🇱" },
+        { code: "+676", name: "Tonga", flag: "🇹🇴" }, { code: "+1", name: "Trinidad and Tobago", flag: "🇹🇹" }, { code: "+216", name: "Tunisia", flag: "🇹🇳" },
+        { code: "+90", name: "Turkey", flag: "🇹🇷" }, { code: "+993", name: "Turkmenistan", flag: "🇹🇲" }, { code: "+688", name: "Tuvalu", flag: "🇹🇻" },
         { code: "+380", name: "Ukraine", flag: "🇺🇦" }, { code: "+971", name: "UAE", flag: "🇦🇪" }, { code: "+44", name: "UK", flag: "🇬🇧" },
         { code: "+1", name: "USA", flag: "🇺🇸" }, { code: "+598", name: "Uruguay", flag: "🇺🇾" }, { code: "+998", name: "Uzbekistan", flag: "🇺🇿" },
-        { code: "+678", name: "Vanuatu", flag: "🇻🇺" }, { code: "+39", name: "Vatican", flag: "🇻🇦" }, { code: "+58", name: "Venezuela", flag: "🇻🇪" },
-        { code: "+84", name: "Vietnam", flag: "🇻🇳" }, { code: "+967", name: "Yemen", flag: "🇾🇪" }, { code: "+260", name: "Zambia", flag: "🇿🇲" },
-        { code: "+263", name: "Zimbabwe", flag: "🇿🇼" }
+        { code: "+678", name: "Vanuatu", flag: "🇻🇺" }, { code: "+39", name: "Vatican City", flag: "🇻🇦" }, { code: "+58", name: "Venezuela", flag: "🇻🇪" },
+        { code: "+84", name: "Vietnam", flag: "🇻🇳" }, { code: "+967", name: "Yemen", flag: "🇾🇪" }
     ];
 
-    const shippingCountries = [
-        "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua", "Argentina", "Armenia", "Australia", "Austria",
-        "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan",
-        "Bolivia", "Bosnia", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cambodia", "Cameroon",
-        "Canada", "Cape Verde", "CAR", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Congo DR", "Costa Rica",
-        "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador",
-        "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France",
-        "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana",
-        "Haiti", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica",
-        "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho",
-        "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali",
-        "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro",
-        "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria",
-        "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama", "PNG", "Paraguay", "Peru",
-        "Philippines", "Poland", "Portugal", "Puerto Rico", "Qatar", "Romania", "Russia", "Rwanda", "St Kitts", "St Lucia", "St Vincent",
-        "Samoa", "San Marino", "Sao Tome", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia",
-        "Slovenia", "Solomon Is", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname",
-        "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad",
-        "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "UAE", "UK", "USA", "Uruguay", "Uzbekistan", "Vanuatu",
-        "Vatican", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
-    ];
+    const shippingCountries = countryCodes.map(c => c.name);
 
     function initCountrySearch(inputId, dropdownId, selectId) {
         const input = document.getElementById(inputId);
@@ -796,6 +764,7 @@
         verifyDummyOTP(document.getElementById('sellerOtp').value, 'seller');
     });
 
+    // Currency
     const fxRates = {
         SAR: 3.75, USD: 1, EUR: 0.92, GBP: 0.78, INR: 83.5, PKR: 278,
         NPR: 133.5, BDT: 117, LKR: 305, AED: 3.67, CAD: 1.36, AUD: 1.52,
@@ -875,6 +844,7 @@
     let savedSellers = localStorage.getItem('gb_sellers');
     if(savedSellers && savedSellers !== 'null') { try { sellers = JSON.parse(savedSellers); } catch(e) {} }
     
+    // Firebase Sync
     async function syncSellersFromFirebase() {
         try {
             const snapshot = await database.ref('sellers').once('value');
@@ -1201,7 +1171,7 @@
     setInterval(processWeeklyWithdrawals, 3600000);
     processWeeklyWithdrawals();
     
-    // ============ FIXED SELLER REGISTRATION ============
+    // Seller Registration Form Submit
     document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         if(!sellerPhoneVerified) { showToast("Please verify your phone number first!", true); return; }
@@ -1230,71 +1200,38 @@
         docReader.readAsDataURL(docImageFile);
     });
     
-    // ============ FIXED saveSellerData FUNCTION ============
+    // Save Seller Data Function
     async function saveSellerData(avatarData, docImageData, countryCode) {
         try {
             let newSeller = {
-                id: Date.now(),
-                avatar: avatarData,
-                fullName: document.getElementById('sellerFullName').value,
-                shopName: document.getElementById('sellerShopName').value,
-                email: document.getElementById('sellerEmail').value,
-                phone: countryCode + document.getElementById('sellerPhone').value,
-                password: document.getElementById('sellerPassword').value,
-                dob: document.getElementById('sellerDob').value,
-                houseNo: document.getElementById('sellerHouseNo').value,
-                street: document.getElementById('sellerStreet').value,
-                city: document.getElementById('sellerCity').value,
-                state: document.getElementById('sellerState').value,
-                pincode: document.getElementById('sellerPincode').value,
-                country: document.getElementById('sellerCountryReg').value,
-                docType: document.getElementById('sellerDocType').value,
-                docNumber: document.getElementById('sellerDocNumber').value,
-                docImage: docImageData,
-                bankName: document.getElementById('sellerBank').value,
-                accountNo: document.getElementById('sellerAccountNo').value,
-                ifsc: document.getElementById('sellerIfsc').value,
-                accountHolder: document.getElementById('sellerAccountHolder').value,
-                earnings: 0,
-                kycStatus: "pending",
-                totalSales: 0,
-                totalWithdrawn: 0,
-                registeredAt: new Date().toISOString()
+                id: Date.now(), avatar: avatarData, fullName: document.getElementById('sellerFullName').value,
+                shopName: document.getElementById('sellerShopName').value, email: document.getElementById('sellerEmail').value,
+                phone: countryCode + document.getElementById('sellerPhone').value, password: document.getElementById('sellerPassword').value,
+                dob: document.getElementById('sellerDob').value, houseNo: document.getElementById('sellerHouseNo').value,
+                street: document.getElementById('sellerStreet').value, city: document.getElementById('sellerCity').value,
+                state: document.getElementById('sellerState').value, pincode: document.getElementById('sellerPincode').value,
+                country: document.getElementById('sellerCountryReg').value, docType: document.getElementById('sellerDocType').value,
+                docNumber: document.getElementById('sellerDocNumber').value, docImage: docImageData,
+                bankName: document.getElementById('sellerBank').value, accountNo: document.getElementById('sellerAccountNo').value,
+                ifsc: document.getElementById('sellerIfsc').value, accountHolder: document.getElementById('sellerAccountHolder').value,
+                earnings: 0, kycStatus: "pending", totalSales: 0, totalWithdrawn: 0, registeredAt: new Date().toISOString()
             };
-            
             sellers.push(newSeller);
             saveSellerToFirebase(newSeller);
             saveAll();
-            
-            // Reset form completely
             document.getElementById('sellerRegForm').reset();
             sellerPhoneVerified = false;
             document.getElementById('sellerSubmitBtn').disabled = true;
             document.getElementById('sellerSubmitBtn').innerHTML = '✅ Register Shop (Verify Phone First)';
             document.getElementById('sellerOtpSection').style.display = 'none';
-            
-            // Clear any image previews
-            if(typeof currentProductImages !== 'undefined') {
-                currentProductImages = [];
-                currentImagePreviews = [];
-            }
+            if(typeof currentProductImages !== 'undefined') { currentProductImages = []; currentImagePreviews = []; }
             const previewContainer = document.getElementById('imagePreviewContainer');
             if(previewContainer) previewContainer.innerHTML = '';
-            
-            // Show success popup
             showKYCThankYouPopup();
-            
-            // Send notifications
             await sendTelegramMessage(`🏪 NEW SELLER REGISTERED!\n\nShop: ${newSeller.shopName}\nOwner: ${newSeller.fullName}\nEmail: ${newSeller.email}\nPhone: ${newSeller.phone}\nCountry: ${newSeller.country}\n\n⏳ KYC Status: PENDING ADMIN APPROVAL`);
             addNotification(`🆕 New seller "${newSeller.shopName}" registered! KYC verification pending.`, 'info');
-            
-            // Refresh admin panel if open
-            if(document.getElementById('adminContent') && document.getElementById('adminContent').style.display === 'block') {
-                loadAdminData();
-            }
-            
+            if(document.getElementById('adminContent') && document.getElementById('adminContent').style.display === 'block') { loadAdminData(); }
             console.log("✅ Seller registration complete:", newSeller.shopName, "ID:", newSeller.id);
-            
         } catch(error) {
             console.error("❌ Seller registration error:", error);
             showToast("Registration failed! Please try again.", true);
@@ -1382,7 +1319,7 @@
             </div>
             <div class="premium-card"><h3>📋 My Products (${myProducts.length})</h3><div id="myProductsList"></div></div>
             <div class="premium-card"><h3>📦 Orders Received (${myOrders.length})</h3><div id="ordersList"></div></div>
-            ` : `<div class="premium-card"><h3>⚠️ ${kycText}</h3><p>Your KYC documents are under review by admin.<br><br><strong>Documents submitted:</strong> ${seller.docType} - ${seller.docNumber}</p></div>`}
+            ` : `<div class="premium-card"><h3>⚠️ ${kycText}</h3><p>Your KYC documents are under review by admin.<br><br><strong>Documents submitted:</strong> ${seller.docType} - ${seller.docNumber}<br><br><img src="${seller.docImage}" class="doc-thumbnail" onclick="showDocumentViewer('${seller.docImage}', '${seller.shopName} - ${seller.docType}')"></p></div>`}
         `;
         let ctx = document.getElementById('revenueChart')?.getContext('2d');
         if(ctx) { if(sellerRevenueChart) sellerRevenueChart.destroy(); sellerRevenueChart = new Chart(ctx, { type: 'bar', data: { labels: chartLabels, datasets: [{ label: 'Revenue ('+getCurrencySymbol()+')', data: chartData.map(v=>parseFloat(convertPrice(v))), backgroundColor: '#3b82f6', borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: true } }); }
@@ -1425,7 +1362,7 @@
         document.querySelectorAll('.removeWishlistBtn').forEach(btn => btn.addEventListener('click', () => { wishlist = wishlist.filter(id => id !== parseInt(btn.dataset.id)); saveAll(); renderProducts(); renderBuyerWishlist(); showToast("Removed from wishlist", false); }));
     }
     
-    // ============ ADMIN PANEL WITH FIXED APPROVE/REJECT ============
+    // Admin Panel
     document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
         if(document.getElementById('adminKey').value === 'admin123') {
             document.getElementById('adminLoginBox').style.display = 'none';
@@ -1439,22 +1376,32 @@
         let pendingSellers = sellers.filter(s => s.kycStatus === 'pending');
         let verifiedSellers = sellers.filter(s => s.kycStatus === 'verified');
         let rejectedSellers = sellers.filter(s => s.kycStatus === 'rejected');
+        
         let pendingHtml = '';
         if(pendingSellers.length === 0) { pendingHtml = '<div style="padding: 20px; text-align: center; background: #f8fafc; border-radius: 12px;">✅ No pending KYC requests</div>'; }
         else {
-            pendingHtml = `<table class="kyc-table"><thead><tr><th>Shop Name</th><th>Owner Name</th><th>Email</th><th>Document</th><th>Action</th></tr></thead><tbody>${pendingSellers.map(s => `<tr><td><strong>${s.shopName}</strong><br><small>📍 ${s.city}</small></td><td>${s.fullName}</td><td>${s.email}</td><td>${s.docType}<br><small>${s.docNumber}</small></td><td><button class="btn-approve" data-id="${s.id}">✅ Approve</button><button class="btn-reject" data-id="${s.id}">❌ Reject</button></td></tr>`).join('')}</tbody></table>`;
+            pendingHtml = `<table class="kyc-table"><thead><tr><th>Shop Name</th><th>Owner Name</th><th>Email</th><th>Document</th><th>Photo</th><th>Action</th></tr></thead><tbody>${pendingSellers.map(s => `<tr>
+                <td><strong>${s.shopName}</strong><br><small>📍 ${s.city}</small></td>
+                <td>${s.fullName}</td>
+                <td>${s.email}</td>
+                <td>${s.docType}<br><small>${s.docNumber}</small></td>
+                <td><img src="${s.docImage}" class="doc-thumbnail" onclick="showDocumentViewer('${s.docImage}', '${s.shopName} - ${s.docType}')"></td>
+                <td><button class="btn-approve" data-id="${s.id}">✅ Approve</button><button class="btn-reject" data-id="${s.id}">❌ Reject</button></td>
+            </tr>`).join('')}</tbody>得到`;
         }
         document.getElementById('pendingKycList').innerHTML = pendingHtml;
+        
         let verifiedHtml = '';
         if(verifiedSellers.length === 0) { verifiedHtml = '<div style="padding: 20px; text-align: center; background: #f8fafc; border-radius: 12px;">No verified sellers yet</div>'; }
-        else { verifiedHtml = `<table class="kyc-table"><thead><tr><th>Shop Name</th><th>Owner</th><th>Email</th><th>Joined</th></tr></thead><tbody>${verifiedSellers.map(s => `<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td>${new Date(s.id).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`; }
+        else { verifiedHtml = `<table class="kyc-table"><thead><tr><th>Shop Name</th><th>Owner</th><th>Email</th><th>Joined</th></tr></thead><tbody>${verifiedSellers.map(s => `<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td>${new Date(s.id).toLocaleDateString()}</td></tr>`).join('')}</tbody>得到`; }
         document.getElementById('verifiedSellersList').innerHTML = verifiedHtml;
+        
         let rejectedHtml = '';
         if(rejectedSellers.length === 0) { rejectedHtml = '<div style="padding: 20px; text-align: center; background: #f8fafc; border-radius: 12px;">No rejected sellers</div>'; }
-        else { rejectedHtml = `<table class="kyc-table"><thead><tr><th>Shop Name</th><th>Owner</th><th>Email</th><th>Reason</th></tr></thead><tbody>${rejectedSellers.map(s => `<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td><span class="badge-rejected">${s.rejectionReason || 'No reason provided'}</span></td></tr>`).join('')}</tbody></table>`; }
+        else { rejectedHtml = `<table class="kyc-table"><thead><tr><th>Shop Name</th><th>Owner</th><th>Email</th><th>Reason</th></tr></thead><tbody>${rejectedSellers.map(s => `<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td><span class="badge-rejected">${s.rejectionReason || 'No reason provided'}</span></td></tr>`).join('')}</tbody>得到`; }
         document.getElementById('rejectedSellersList').innerHTML = rejectedHtml;
         
-        // Fixed Approve Button
+        // Approve Button
         document.querySelectorAll('.btn-approve').forEach(btn => btn.addEventListener('click', async () => { 
             let seller = sellers.find(s => s.id === parseInt(btn.dataset.id)); 
             if(seller) { 
@@ -1469,7 +1416,7 @@
             } 
         }));
         
-        // Fixed Reject Button
+        // Reject Button
         document.querySelectorAll('.btn-reject').forEach(btn => btn.addEventListener('click', async () => { 
             let reason = prompt("Enter rejection reason:"); 
             if(reason && reason.trim() !== "") { 
@@ -1523,6 +1470,7 @@
     document.getElementById('cardNumber')?.addEventListener('input', function(e) { let v = e.target.value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim(); e.target.value = v; });
     document.getElementById('expiryDate')?.addEventListener('input', function(e) { let v = e.target.value.replace(/\//g, ''); if(v.length >= 2) v = v.slice(0,2) + '/' + v.slice(2,4); e.target.value = v; });
     
+    // Initialize
     renderCats();
     renderProducts();
     updateCartUI();
