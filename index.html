@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: linear-gradient(135deg, #f5f7fb 0%, #eef2f8 100%); padding-bottom: 90px; transition: all 0.3s ease; font-size: 16px; line-height: 1.5; }
@@ -16,9 +16,10 @@
         body.dark-mode .product-card, body.dark-mode .premium-card, body.dark-mode .drawer { background: #1e293b; border-color: #334155; color: #f1f5f9; }
         body.dark-mode .cat-pill { background: #334155; color: white; }
         body.dark-mode .input, body.dark-mode select, body.dark-mode textarea { background: #334155; color: white; border-color: #475569; }
-        .header-3d { background: linear-gradient(145deg, #ffffff, #f0f4fa); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; gap: 10px; flex-wrap: wrap; }
+        .header-3d { background: linear-gradient(145deg, #ffffff, #f0f4fa); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; gap: 10px; flex-wrap: wrap; }
         .menu-icon-3d { background: linear-gradient(145deg, #1e293b, #0f172a); border: none; font-size: 22px; cursor: pointer; padding: 8px 14px; border-radius: 18px; color: white; }
         .brand-3d { font-weight: 800; font-size: 20px; background: linear-gradient(135deg, #1e3a8a, #3b82f6); -webkit-background-clip: text; background-clip: text; color: transparent; display: inline-flex; align-items: center; gap: 5px; }
+        .brand-logo { width: 32px; height: 32px; object-fit: contain; border-radius: 50%; }
         .currency-dropdown { background: linear-gradient(145deg, #1e2a4a, #0f172f); border: none; padding: 8px 14px; border-radius: 40px; color: #FFD966; font-size: 13px; font-weight: bold; cursor: pointer; }
         .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); z-index: 200; display: none; }
         .drawer { position: fixed; top: 0; left: -85%; width: 75%; max-width: 280px; height: 100%; background: white; z-index: 201; transition: left 0.3s ease; border-radius: 0 24px 24px 0; padding: 20px 0; overflow-y: auto; }
@@ -36,8 +37,6 @@
         .search-container input { width: 100%; padding: 14px 40px 14px 16px; border: 1px solid #e2e8f0; border-radius: 40px; font-size: 14px; }
         .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
         .product-card { background: white; border-radius: 20px; padding: 12px; cursor: pointer; border: 1px solid #eef2f8; transition: 0.2s; position: relative; }
-        .product-card.sold-out { opacity: 0.6; }
-        .sold-out-badge { position: absolute; top: 10px; right: 10px; background: #dc2626; color: white; padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: bold; }
         .product-card .main-img { width: 100%; height: 140px; object-fit: cover; border-radius: 16px; }
         .product-thumbnails { display: flex; gap: 6px; margin-top: 8px; overflow-x: auto; }
         .product-thumbnails img { width: 50px; height: 50px; object-fit: cover; border-radius: 10px; cursor: pointer; border: 1px solid #e2e8f0; }
@@ -97,6 +96,7 @@
         .legal-link { color: #3b82f6; text-decoration: none; cursor: pointer; }
         .whatsapp-share { background: #25D366; color: white; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; }
         .edit-prod-btn { background: #f59e0b; color: white; border: none; padding: 4px 10px; border-radius: 20px; font-size: 11px; cursor: pointer; margin-right: 5px; }
+        .edit-stock-btn { background: #10b981; color: white; border: none; padding: 4px 10px; border-radius: 20px; font-size: 11px; cursor: pointer; margin-right: 5px; }
         .required-label { color: #ef4444; font-size: 12px; margin-top: -10px; margin-bottom: 10px; display: block; }
         @media (max-width: 600px) {
             .brand-3d { font-size: 16px; }
@@ -106,6 +106,7 @@
             .header-3d { gap: 8px; }
             .currency-dropdown { font-size: 11px; padding: 6px 10px; }
             .notification-bell { font-size: 18px; }
+            .brand-logo { width: 24px; height: 24px; }
         }
     </style>
 </head>
@@ -113,7 +114,10 @@
 
 <div class="header-3d">
     <button class="menu-icon-3d" id="menuBtn">☰</button>
-    <div class="brand-3d">🌍 GLOBALBAZAAR</div>
+    <div class="brand-3d">
+        <img src="https://via.placeholder.com/32?text=GB" class="brand-logo" alt="Logo" onerror="this.style.display='none'">
+        <span>🌍 GLOBALBAZAAR</span>
+    </div>
     <select id="currencySelect" class="currency-dropdown">
         <option value="SAR">🇸🇦 SAR</option>
         <option value="USD">🇺🇸 USD</option>
@@ -302,112 +306,58 @@
 </div>
 
 <script>
-// ==================== FIREBASE CONFIG ====================
+// ========== FIREBASE CONFIG ==========
 const firebaseConfig = {
     apiKey: "AIzaSyAvbSJkEH3NDNy_SIaf0bJk0hkhknTRhno",
     authDomain: "globalbazaar-2c6cb.firebaseapp.com",
-    databaseURL: "https://globalbazaar-2c6cb-default-rtdb.firebaseio.com/",
     projectId: "globalbazaar-2c6cb",
     storageBucket: "globalbazaar-2c6cb.firebasestorage.app",
     messagingSenderId: "734113870757",
     appId: "1:734113870757:web:653ac103c064685cbaee4c"
 };
 firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
+const db = firebase.firestore();
 
-// ==================== DATA STORAGE ====================
-let sellers = JSON.parse(localStorage.getItem('gb_sellers')) || [];
-let products = JSON.parse(localStorage.getItem('gb_products')) || [];
+// ========== GLOBAL VARIABLES ==========
+let products = [];
+let sellers = [];
+let orders = [];
+let pendingWithdrawals = [];
+let platformEarnings = 0;
+
 let cart = JSON.parse(localStorage.getItem('gb_cart')) || [];
 let wishlist = JSON.parse(localStorage.getItem('gb_wishlist')) || [];
-let orders = JSON.parse(localStorage.getItem('gb_orders')) || [];
 let notifications = JSON.parse(localStorage.getItem('gb_notifications')) || [];
-let platformEarnings = JSON.parse(localStorage.getItem('gb_platform_earnings')) || 0;
-let pendingWithdrawals = JSON.parse(localStorage.getItem('gb_pending_withdrawals')) || [];
 let savedCards = JSON.parse(localStorage.getItem('gb_saved_cards')) || [];
 let savedAddresses = JSON.parse(localStorage.getItem('gb_saved_addresses')) || [];
 let productReviews = JSON.parse(localStorage.getItem('gb_reviews')) || {};
-let currentSeller = null;
-let sellerChart = null;
+
+let currentSellerId = null;
+let currentSellerData = null;
 let adminChart = null;
+let sellerChart = null;
+let currentProduct = null;
+let currentCategory = "All";
 
-// ==================== COUNTRY CODES (150+ COUNTRIES WITH NEPAL ON TOP) ====================
-const countryCodes = [
-    { code: "+977", name: "Nepal", flag: "🇳🇵" },
-    { code: "+966", name: "Saudi Arabia", flag: "🇸🇦" },
-    { code: "+1", name: "United States", flag: "🇺🇸" },
-    { code: "+44", name: "United Kingdom", flag: "🇬🇧" },
-    { code: "+91", name: "India", flag: "🇮🇳" },
-    { code: "+92", name: "Pakistan", flag: "🇵🇰" },
-    { code: "+971", name: "United Arab Emirates", flag: "🇦🇪" },
-    { code: "+61", name: "Australia", flag: "🇦🇺" },
-    { code: "+49", name: "Germany", flag: "🇩🇪" },
-    { code: "+33", name: "France", flag: "🇫🇷" },
-    { code: "+81", name: "Japan", flag: "🇯🇵" },
-    { code: "+86", name: "China", flag: "🇨🇳" },
-    { code: "+82", name: "South Korea", flag: "🇰🇷" },
-    { code: "+65", name: "Singapore", flag: "🇸🇬" },
-    { code: "+60", name: "Malaysia", flag: "🇲🇾" },
-    { code: "+66", name: "Thailand", flag: "🇹🇭" },
-    { code: "+84", name: "Vietnam", flag: "🇻🇳" },
-    { code: "+62", name: "Indonesia", flag: "🇮🇩" },
-    { code: "+63", name: "Philippines", flag: "🇵🇭" },
-    { code: "+64", name: "New Zealand", flag: "🇳🇿" },
-    { code: "+27", name: "South Africa", flag: "🇿🇦" },
-    { code: "+20", name: "Egypt", flag: "🇪🇬" },
-    { code: "+90", name: "Turkey", flag: "🇹🇷" },
-    { code: "+7", name: "Russia", flag: "🇷🇺" },
-    { code: "+55", name: "Brazil", flag: "🇧🇷" },
-    { code: "+52", name: "Mexico", flag: "🇲🇽" },
-    { code: "+34", name: "Spain", flag: "🇪🇸" },
-    { code: "+39", name: "Italy", flag: "🇮🇹" },
-    { code: "+31", name: "Netherlands", flag: "🇳🇱" }
-];
-const shippingCountries = countryCodes.map(c => c.name);
-
-// ==================== DYNAMIC CURRENCY ====================
+// ========== CURRENCY ==========
 const fxRates = { SAR: 3.75, USD: 1, EUR: 0.92, GBP: 0.78, INR: 83.5, PKR: 278, NPR: 133.5, BDT: 117, AED: 3.67, CAD: 1.36, AUD: 1.52 };
 const currencySymbols = { SAR: "SAR ", USD: "$", EUR: "€", GBP: "£", INR: "₹", PKR: "₨", NPR: "रू ", BDT: "৳", AED: "د.إ ", CAD: "$", AUD: "$" };
 let selectedCurrency = localStorage.getItem('selectedCurrency') || 'SAR';
 function convertPrice(usd) { return (usd * fxRates[selectedCurrency]).toFixed(2); }
 function getCurrencySymbol() { return currencySymbols[selectedCurrency]; }
 
-// ==================== DEFAULT PRODUCTS ====================
-if(products.length === 0) {
-    products = [
-        { id: 101, sellerId: 0, sellerName: "GlobalBazaar", name: "Wireless Noise Cancelling Headphones", price: 89.99, category: "Electronics", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400", "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=400"], description: "Premium wireless headphones with active noise cancellation.", inStock: true, stock: 10, rating: 4.8, views: 0 },
-        { id: 102, sellerId: 0, sellerName: "GlobalBazaar", name: "Premium Cotton T-Shirt", price: 24.99, category: "Fashion", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", images: ["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=400", "https://images.unsplash.com/photo-1581655353564-df123a1eb21f?w=400"], description: "Soft, breathable 100% combed cotton t-shirt.", inStock: true, stock: 20, rating: 4.5, views: 0 },
-        { id: 103, sellerId: 0, sellerName: "GlobalBazaar", name: "Matte Lipstick Set (6 Colors)", price: 29.99, category: "Beauty", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400", images: ["https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400", "https://images.unsplash.com/photo-1596462502278-27e3e946f9b1?w=400", "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400"], description: "Long-lasting matte lipstick set with 6 stunning shades.", inStock: true, stock: 15, rating: 4.9, views: 0 }
-    ];
-    localStorage.setItem('gb_products', JSON.stringify(products));
-}
-
-function saveAll() {
-    localStorage.setItem('gb_sellers', JSON.stringify(sellers));
-    localStorage.setItem('gb_products', JSON.stringify(products));
-    localStorage.setItem('gb_cart', JSON.stringify(cart));
-    localStorage.setItem('gb_wishlist', JSON.stringify(wishlist));
-    localStorage.setItem('gb_orders', JSON.stringify(orders));
-    localStorage.setItem('gb_notifications', JSON.stringify(notifications));
-    localStorage.setItem('gb_platform_earnings', JSON.stringify(platformEarnings));
-    localStorage.setItem('gb_pending_withdrawals', JSON.stringify(pendingWithdrawals));
-    localStorage.setItem('gb_saved_cards', JSON.stringify(savedCards));
-    localStorage.setItem('gb_saved_addresses', JSON.stringify(savedAddresses));
-    localStorage.setItem('gb_reviews', JSON.stringify(productReviews));
-    if(currentSeller) localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
-    sellers.forEach(s => database.ref('sellers/' + s.id).set(s));
-    products.forEach(p => database.ref('products/' + p.id).set(p));
-}
-
+// ========== HELPER FUNCTIONS ==========
 function showToast(msg, isError) { let t = document.getElementById('toast'); t.innerText = msg; t.style.backgroundColor = isError ? '#dc2626' : '#10b981'; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
+
 function addNotification(message, type) {
     let notif = { id: Date.now(), message, type, date: new Date().toLocaleString(), read: false };
     notifications.unshift(notif);
     if(notifications.length > 50) notifications.pop();
-    saveAll();
+    localStorage.setItem('gb_notifications', JSON.stringify(notifications));
     updateNotificationUI();
     showToast(message, false);
 }
+
 function updateNotificationUI() {
     let unreadCount = notifications.filter(n => !n.read).length;
     document.getElementById('notificationCount').innerText = unreadCount;
@@ -420,189 +370,146 @@ function updateNotificationUI() {
             let id = parseInt(btn.dataset.id);
             let notif = notifications.find(n => n.id === id);
             if(notif) notif.read = true;
-            saveAll();
+            localStorage.setItem('gb_notifications', JSON.stringify(notifications));
             updateNotificationUI();
         });
     });
 }
-document.getElementById('markAllReadBtn')?.addEventListener('click', () => { notifications.forEach(n => n.read = true); saveAll(); updateNotificationUI(); showToast("All notifications marked as read", false); });
-document.getElementById('notificationBell')?.addEventListener('click', () => { let panel = document.getElementById('notificationPanel'); panel.style.display = panel.style.display === 'block' ? 'none' : 'block'; updateNotificationUI(); });
-document.addEventListener('click', (e) => { if(!e.target.closest('.notification-bell') && !e.target.closest('#notificationPanel')) document.getElementById('notificationPanel').style.display = 'none'; });
 
-let isDarkMode = localStorage.getItem('darkMode') === 'true';
-if(isDarkMode) document.body.classList.add('dark-mode');
-function toggleDarkMode() { document.body.classList.toggle('dark-mode'); localStorage.setItem('darkMode', document.body.classList.contains('dark-mode')); }
-document.getElementById('drawerDarkMode')?.addEventListener('click', () => { toggleDarkMode(); closeDrawer(); });
+// ========== FIRESTORE REAL-TIME LISTENERS ==========
+function listenToProducts() {
+    db.collection('products').onSnapshot(snapshot => {
+        products = [];
+        snapshot.forEach(doc => products.push({ id: doc.id, ...doc.data() }));
+        renderProducts();
+        renderCats();
+        if(currentSellerId && currentSellerData && currentSellerData.kycStatus === 'verified') showSellerDashboard(currentSellerData);
+    });
+}
 
-document.getElementById('currencySelect').value = selectedCurrency;
-document.getElementById('currencySelect').addEventListener('change', (e) => {
-    selectedCurrency = e.target.value;
-    localStorage.setItem('selectedCurrency', selectedCurrency);
-    renderProducts();
+function listenToSellers() {
+    db.collection('sellers').onSnapshot(snapshot => {
+        sellers = [];
+        snapshot.forEach(doc => sellers.push({ id: doc.id, ...doc.data() }));
+        if(document.getElementById('adminContent') && document.getElementById('adminContent').style.display === 'block') loadAdminData();
+        if(currentSellerId) {
+            let updated = sellers.find(s => s.id === currentSellerId);
+            if(updated) { currentSellerData = updated; showSellerDashboard(updated); }
+        }
+    });
+}
+
+function listenToOrders() {
+    db.collection('orders').onSnapshot(snapshot => {
+        orders = [];
+        snapshot.forEach(doc => orders.push({ id: doc.id, ...doc.data() }));
+        if(currentSellerId) showSellerDashboard(currentSellerData);
+        renderBuyerOrders();
+    });
+}
+
+function listenToWithdrawals() {
+    db.collection('withdrawals').onSnapshot(snapshot => {
+        pendingWithdrawals = [];
+        snapshot.forEach(doc => pendingWithdrawals.push({ id: doc.id, ...doc.data() }));
+        if(document.getElementById('adminContent') && document.getElementById('adminContent').style.display === 'block') loadAdminData();
+    });
+}
+
+function listenToPlatformEarnings() {
+    db.collection('platformStats').doc('main').onSnapshot(doc => {
+        platformEarnings = doc.exists ? doc.data().earnings : 0;
+        document.getElementById('platformEarnings') && (document.getElementById('platformEarnings').innerText = platformEarnings.toFixed(2));
+    });
+}
+
+listenToProducts();
+listenToSellers();
+listenToOrders();
+listenToWithdrawals();
+listenToPlatformEarnings();
+
+// ========== BUYER SECTION ==========
+function renderCats() {
+    let cats = ["All", ...new Set(products.map(p=>p.category))];
+    document.getElementById('catList').innerHTML = cats.map(c => `<div class="cat-pill ${currentCategory===c?'active':''}" data-cat="${c}">${c}</div>`).join('');
+    document.querySelectorAll('.cat-pill').forEach(el => el.addEventListener('click', (e) => { currentCategory = e.target.dataset.cat; renderCats(); renderProducts(); }));
+}
+
+function renderProducts() {
+    let search = document.getElementById('searchInput')?.value.toLowerCase() || "";
+    let filtered = products.filter(p => 
+        (currentCategory==="All" || p.category===currentCategory) && 
+        p.name.toLowerCase().includes(search) &&
+        p.stock > 0
+    );
+    let sellerMap = new Map(sellers.filter(s=>s.kycStatus==='verified').map(s=>[s.id, s]));
+    let html = filtered.map(p => {
+        let seller = sellerMap.get(p.sellerId) || {shopName:"GlobalBazaar", country:"SA"};
+        let reviews = productReviews[p.id] || [];
+        let avgRating = reviews.length ? (reviews.reduce((sum,r)=>sum+r.rating,0)/reviews.length).toFixed(1) : (p.rating || 0);
+        return `<div class="product-card" data-id="${p.id}">
+                    <img class="main-img" src="${p.mainImage}">
+                    <div class="product-thumbnails">${p.images && p.images.length > 1 ? p.images.slice(0,3).map(img => `<img src="${img}" onclick="event.stopPropagation(); changeProductImage('${p.id}', '${img}')">`).join('') : ''}</div>
+                    <div class="seller-name-tag">🏪 ${seller.shopName}</div>
+                    <h4>${p.name}</h4>
+                    <div class="rating-display"><span class="rating-badge" style="background:#fbbf24; color:#1e293b; padding:2px 8px; border-radius:20px; font-size:11px;">⭐ ${avgRating}</span></div>
+                    <div class="prod-price">${getCurrencySymbol()}${convertPrice(p.price)}</div>
+                    <div class="card-actions">
+                        <button class="btn-sm btn-buy addCartBtn" data-id="${p.id}">Buy</button>
+                        <button class="btn-sm btn-wish wishBtn ${wishlist.includes(p.id)?'active':''}" data-id="${p.id}">❤️</button>
+                    </div>
+                </div>`;
+    }).join('');
+    if(html === '') html = '<div style="text-align:center; padding:40px;">No products found</div>';
+    document.getElementById('productsGrid').innerHTML = html;
+    document.querySelectorAll('.addCartBtn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); addToCart(btn.dataset.id); }));
+    document.querySelectorAll('.wishBtn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); toggleWish(btn.dataset.id); }));
+    document.querySelectorAll('.product-card').forEach(card => card.addEventListener('click', () => openProduct(card.dataset.id)));
+}
+
+function changeProductImage(productId, imageUrl) { let img = document.getElementById('modalMainImg'); if(img) img.src = imageUrl; }
+
+function addToCart(id) {
+    let p = products.find(x=>x.id===id);
+    if(!p) return;
+    if(p.stock <= 0) { showToast("Sold out!", true); return; }
+    let existing = cart.find(i=>i.id===id);
+    if(existing) existing.qty++;
+    else cart.push({id:p.id, name:p.name, price:p.price, qty:1, image:p.mainImage});
+    localStorage.setItem('gb_cart', JSON.stringify(cart));
     updateCartUI();
-    if(currentSeller) showSellerDashboard(currentSeller);
-});
-
-function initCountrySearch(inputId, dropdownId) {
-    const input = document.getElementById(inputId);
-    const dropdown = document.getElementById(dropdownId);
-    if(!input || !dropdown) return;
-    function showDropdown() {
-        const search = input.value.toLowerCase();
-        const filtered = countryCodes.filter(c => c.name.toLowerCase().includes(search) || c.code.includes(search));
-        dropdown.innerHTML = filtered.map(c => `<div data-code="${c.code}" data-name="${c.name}">${c.flag} ${c.name} (${c.code})</div>`).join('');
-        dropdown.style.display = 'block';
-        dropdown.querySelectorAll('div').forEach(div => {
-            div.addEventListener('click', () => {
-                input.value = div.innerText.split('(')[0].trim();
-                dropdown.style.display = 'none';
-            });
-        });
-    }
-    input.addEventListener('focus', showDropdown);
-    input.addEventListener('input', showDropdown);
-    document.addEventListener('click', (e) => { if(!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.style.display = 'none'; });
+    renderCartPage();
+    showToast("Added to cart", false);
 }
-initCountrySearch('sellerCountrySearch', 'sellerCountryDropdown');
-initCountrySearch('deliveryCountrySearch', 'deliveryCountryDropdown');
-setTimeout(() => {
-    shippingCountries.forEach(c => { document.getElementById('sellerCountryReg').innerHTML += `<option>${c}</option>`; });
-}, 100);
 
-let sellerPhoneVerified = false;
-document.getElementById('sellerPhone')?.addEventListener('blur', function() { sendDummyOTP(this.value, 'seller'); });
-function sendDummyOTP(phone, type) { 
-    alert(`📱 OTP sent to ${phone}\n🔑 Your OTP is: 123456`); 
-    if(type === 'seller') {
-        document.getElementById('sellerOtpSection').style.display = 'block';
-        document.getElementById('sellerOtp').value = "123456";
-    }
+function toggleWish(id) {
+    if(wishlist.includes(id)) wishlist = wishlist.filter(i=>i!==id);
+    else wishlist.push(id);
+    localStorage.setItem('gb_wishlist', JSON.stringify(wishlist));
+    renderProducts();
+    renderWishlist();
 }
-document.getElementById('sellerVerifyOtpBtn')?.addEventListener('click', () => { 
-    if(document.getElementById('sellerOtp').value === "123456") { 
-        sellerPhoneVerified = true; 
-        document.getElementById('sellerSubmitBtn').disabled = false; 
-        document.getElementById('sellerOtpSection').style.display = 'none'; 
-        showToast("✅ Phone verified!", false); 
-    } else showToast("❌ Invalid OTP! Use 123456", true); 
-});
 
-document.getElementById('addMoreDocsBtn')?.addEventListener('click', () => {
-    let container = document.getElementById('kycDocumentsContainer');
-    let newDoc = document.createElement('div');
-    newDoc.className = 'kyc-doc-item';
-    newDoc.style = 'margin-bottom:15px; padding:10px; border:1px solid #e2e8f0; border-radius:12px;';
-    newDoc.innerHTML = `<select class="doc-type input" style="margin-bottom:10px;"><option value="">Select Document Type</option><option value="passport">📘 Passport</option><option value="national_id">🆔 National ID Card</option><option value="driving_license">🚗 Driving License</option><option value="residence_permit">📄 Residence Permit</option><option value="utility_bill">💡 Utility Bill</option></select><input type="text" class="doc-number input" placeholder="Document Number" style="margin-bottom:10px;"><input type="file" class="doc-image input" accept="image/*"><button type="button" class="remove-doc-btn btn-secondary" style="margin-top:5px;">❌ Remove</button>`;
-    container.appendChild(newDoc);
-    newDoc.querySelector('.remove-doc-btn').addEventListener('click', () => newDoc.remove());
-});
+function updateCartUI() { document.getElementById('cartCountBadge').innerText = cart.reduce((a,b)=>a+b.qty,0); }
 
-document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if(!sellerPhoneVerified) { showToast("Verify phone first!", true); return; }
-    if(!document.getElementById('sellerAgreement').checked) { showToast("Accept Seller Agreement", true); return; }
-    let documents = [];
-    let docItems = document.querySelectorAll('.kyc-doc-item');
-    for(let item of docItems) {
-        let docType = item.querySelector('.doc-type').value;
-        let docNumber = item.querySelector('.doc-number').value;
-        let docFile = item.querySelector('.doc-image').files[0];
-        if(!docType || !docNumber || !docFile) { showToast("Complete all document fields!", true); return; }
-        let reader = await new Promise((resolve) => { let r = new FileReader(); r.onload = () => resolve(r.result); r.readAsDataURL(docFile); });
-        documents.push({ type: docType, number: docNumber, image: reader });
-    }
-    let newSeller = {
-        id: Date.now(), fullName: document.getElementById('sellerFullName').value, shopName: document.getElementById('sellerShopName').value,
-        email: document.getElementById('sellerEmail').value, phone: document.getElementById('sellerPhone').value, password: document.getElementById('sellerPassword').value,
-        dob: document.getElementById('sellerDob').value, address: document.getElementById('sellerAddress').value, city: document.getElementById('sellerCity').value,
-        state: document.getElementById('sellerState').value, postcode: document.getElementById('sellerPostcode').value, country: document.getElementById('sellerCountryReg').value,
-        bankName: document.getElementById('sellerBank').value, accountNo: document.getElementById('sellerAccountNo').value,
-        ifsc: document.getElementById('sellerIfsc').value, accountHolder: document.getElementById('sellerAccountHolder').value,
-        documents: documents, kycStatus: "pending", rejectionReason: null, earnings: 0, totalSales: 0, totalWithdrawn: 0, registeredAt: new Date().toISOString()
-    };
-    sellers.push(newSeller);
-    saveAll();
-    document.getElementById('sellerRegForm').reset();
-    sellerPhoneVerified = false;
-    document.getElementById('sellerSubmitBtn').disabled = true;
-    document.getElementById('sellerOtpSection').style.display = 'none';
-    document.getElementById('kycDocumentsContainer').innerHTML = `<div class="kyc-doc-item" style="margin-bottom:15px; padding:10px; border:1px solid #e2e8f0; border-radius:12px;"><select class="doc-type input" style="margin-bottom:10px;"><option value="">Select Document Type</option><option value="passport">📘 Passport</option><option value="national_id">🆔 National ID Card</option><option value="driving_license">🚗 Driving License</option><option value="residence_permit">📄 Residence Permit</option><option value="utility_bill">💡 Utility Bill</option></select><input type="text" class="doc-number input" placeholder="Document Number" style="margin-bottom:10px;"><input type="file" class="doc-image input" accept="image/*"></div>`;
-    showToast("✅ KYC Submitted! Waiting for admin approval.", false);
-    addNotification(`📄 KYC submitted for ${newSeller.shopName}. Waiting for admin approval.`, 'kyc');
-    if(document.getElementById('adminContent') && document.getElementById('adminContent').style.display === 'block') loadAdminData();
-    showSection('buyer');
-});
-
-document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
-    if(document.getElementById('adminKey').value === 'admin123') {
-        document.getElementById('adminLoginBox').style.display = 'none';
-        document.getElementById('adminContent').style.display = 'block';
-        loadAdminData();
-        showToast("Admin logged in", false);
-    } else showToast("Wrong admin key (admin123)", true);
-});
-
-function loadAdminData() {
-    let pendingSellers = sellers.filter(s => s.kycStatus === 'pending');
-    let verifiedSellers = sellers.filter(s => s.kycStatus === 'verified');
-    let rejectedSellers = sellers.filter(s => s.kycStatus === 'rejected');
-    
-    document.getElementById('pendingKycList').innerHTML = pendingSellers.map(s => `
-        <div class="order-card"><div class="flex-between"><strong>🏪 ${s.shopName}</strong><span class="kyc-status kyc-pending">Pending</span></div>
-        <p>👤 ${s.fullName} | 📧 ${s.email} | 📞 ${s.phone}</p><p>📍 ${s.city}, ${s.country}</p>
-        <div><strong>📄 Documents:</strong> ${s.documents.map((d,i) => `<div>${d.type}: ${d.number} <img src="${d.image}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;cursor:pointer;" onclick="window.open('${d.image}')"></div>`).join('')}</div>
-        <div class="flex-between" style="margin-top:10px;"><button class="btn-approve" data-id="${s.id}" style="background:#10b981; color:white; border:none; padding:8px 16px; border-radius:20px;">✅ Approve</button><button class="btn-reject" data-id="${s.id}" style="background:#dc2626; color:white; border:none; padding:8px 16px; border-radius:20px;">❌ Reject</button></div></div>
-    `).join('');
-    
-    document.getElementById('verifiedSellersList').innerHTML = verifiedSellers.map(s => `<div class="order-card"><strong>✅ ${s.shopName}</strong> - ${s.fullName} (${s.country})</div>`).join('');
-    document.getElementById('rejectedSellersList').innerHTML = rejectedSellers.map(s => `<div class="order-card"><strong>❌ ${s.shopName}</strong> - Reason: ${s.rejectionReason || 'No reason'}</div>`).join('');
-    document.getElementById('platformEarnings').innerHTML = platformEarnings;
-    
-    document.getElementById('pendingWithdrawalsList').innerHTML = pendingWithdrawals.map(w => `
-        <div class="order-card"><div class="flex-between"><span>💰 ${getCurrencySymbol()}${convertPrice(w.amount)} - ${w.sellerName}</span><button class="approve-withdrawal" data-id="${w.id}" style="background:#10b981; padding:8px 16px; border-radius:20px;">Approve</button></div></div>
-    `).join('');
-    
-    let monthlyData = {};
-    orders.forEach(o => {
-        let date = new Date(o.date);
-        let month = date.toLocaleString('default', { month: 'short' });
-        monthlyData[month] = (monthlyData[month] || 0) + o.amount;
-    });
-    let ctx = document.getElementById('adminChart')?.getContext('2d');
-    if(ctx) { if(adminChart) adminChart.destroy(); adminChart = new Chart(ctx, { type: 'line', data: { labels: Object.keys(monthlyData), datasets: [{ label: 'Revenue ('+getCurrencySymbol()+')', data: Object.values(monthlyData).map(v=>parseFloat(convertPrice(v))), borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true }] }, options: { responsive: true } }); }
-    
-    document.querySelectorAll('.btn-approve').forEach(btn => {
-        btn.addEventListener('click', () => {
-            let seller = sellers.find(s => s.id === parseInt(btn.dataset.id));
-            if(seller) { seller.kycStatus = "verified"; saveAll(); addNotification(`✅ ${seller.shopName} KYC Approved! Now they can sell products.`, 'kyc'); loadAdminData(); showToast(`${seller.shopName} approved!`, false); }
-        });
-    });
-    
-    document.querySelectorAll('.btn-reject').forEach(btn => {
-        btn.addEventListener('click', () => {
-            let reason = prompt("Enter rejection reason:");
-            if(reason) {
-                let seller = sellers.find(s => s.id === parseInt(btn.dataset.id));
-                if(seller) { seller.kycStatus = "rejected"; seller.rejectionReason = reason; saveAll(); addNotification(`❌ ${seller.shopName} KYC Rejected! Reason: ${reason}. Please re-upload documents.`, 'kyc'); loadAdminData(); showToast(`${seller.shopName} rejected!`, false); }
-            }
-        });
-    });
-    
-    document.querySelectorAll('.approve-withdrawal').forEach(btn => {
-        btn.addEventListener('click', () => {
-            let withdrawal = pendingWithdrawals.find(w => w.id === parseInt(btn.dataset.id));
-            if(withdrawal) {
-                pendingWithdrawals = pendingWithdrawals.filter(w => w.id !== withdrawal.id);
-                saveAll();
-                addNotification(`💰 Withdrawal of ${getCurrencySymbol()}${convertPrice(withdrawal.amount)} approved for ${withdrawal.sellerName}`, 'withdrawal');
-                loadAdminData();
-                showToast("Withdrawal approved!", false);
-            }
-        });
-    });
+function renderCartPage() {
+    if(cart.length === 0) { document.getElementById('cartItemsList').innerHTML = '<p style="text-align:center; padding:40px;">Your cart is empty 🛒</p>'; document.getElementById('cartTotalAmount').innerHTML = `${getCurrencySymbol()}0.00`; return; }
+    let totalUSD = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    let html = cart.map((item, idx) => `<div class="order-card"><div class="flex-between"><div><strong>${item.name}</strong><br>${getCurrencySymbol()}${convertPrice(item.price)} each x${item.qty}</div><div><button class="cart-qty-btn" data-idx="${idx}" data-dir="dec">-</button><span> ${item.qty} </span><button class="cart-qty-btn" data-idx="${idx}" data-dir="inc">+</button><button class="cart-remove" data-idx="${idx}" style="background:#dc2626; color:white; border:none; padding:5px 10px; border-radius:20px;">Remove</button></div></div></div>`).join('');
+    document.getElementById('cartItemsList').innerHTML = html;
+    document.getElementById('cartTotalAmount').innerHTML = `${getCurrencySymbol()}${convertPrice(totalUSD)}`;
+    document.querySelectorAll('.cart-qty-btn').forEach(btn => btn.addEventListener('click', () => { let idx = parseInt(btn.dataset.idx); if(btn.dataset.dir === 'inc') cart[idx].qty++; else if(btn.dataset.dir === 'dec' && cart[idx].qty > 1) cart[idx].qty--; else if(btn.dataset.dir === 'dec') cart.splice(idx,1); localStorage.setItem('gb_cart', JSON.stringify(cart)); updateCartUI(); renderCartPage(); renderProducts(); }));
+    document.querySelectorAll('.cart-remove').forEach(btn => btn.addEventListener('click', () => { cart.splice(parseInt(btn.dataset.idx),1); localStorage.setItem('gb_cart', JSON.stringify(cart)); updateCartUI(); renderCartPage(); renderProducts(); }));
 }
-document.getElementById('refreshAdminBtn')?.addEventListener('click', loadAdminData);
 
+function renderWishlist() {
+    let wishlistProducts = products.filter(p => wishlist.includes(p.id) && p.stock > 0);
+    document.getElementById('wishlistList').innerHTML = wishlistProducts.map(p => `<div class="order-card"><div class="flex-between"><span><strong>${p.name}</strong> - ${getCurrencySymbol()}${convertPrice(p.price)}</span><button class="removeWishlistBtn" data-id="${p.id}" style="background:#dc2626; padding:6px 12px; border-radius:20px;">Remove</button></div></div>`).join('');
+    document.querySelectorAll('.removeWishlistBtn').forEach(btn => btn.addEventListener('click', () => { wishlist = wishlist.filter(id => id !== btn.dataset.id); localStorage.setItem('gb_wishlist', JSON.stringify(wishlist)); renderWishlist(); renderProducts(); showToast("Removed from wishlist", false); }));
+}
+
+// ========== PRODUCT MODAL & REVIEWS ==========
 function renderReviewStars(containerId, onRatingSelect) {
     let container = document.getElementById(containerId);
     if(!container) return;
@@ -614,100 +521,23 @@ function renderReviewStars(containerId, onRatingSelect) {
         star.style.cssText = 'font-size:28px; cursor:pointer; color:#cbd5e1;';
         star.onmouseenter = () => { for(let s of container.children) s.innerHTML = '☆'; for(let j=0; j<i; j++) container.children[j].innerHTML = '★'; };
         star.onmouseleave = () => { for(let j=0; j<container.children.length; j++) container.children[j].innerHTML = j < currentRating ? '★' : '☆'; };
-        star.onclick = () => { currentRating = i; onRatingSelect(i); };
+        star.onclick = () => { currentRating = i; if(onRatingSelect) onRatingSelect(i); };
         container.appendChild(star);
     }
 }
 
+let currentRatingHandler = { currentRating: 0 };
 function addReview(productId, rating, reviewText, userName) {
     if(!productReviews[productId]) productReviews[productId] = [];
     productReviews[productId].push({ rating, review: reviewText, userName, date: new Date().toLocaleString() });
-    saveAll();
+    localStorage.setItem('gb_reviews', JSON.stringify(productReviews));
     addNotification(`New review added for product!`, 'info');
     if(currentProduct) openProduct(productId);
 }
 
 function shareOnWhatsApp(product, price) {
     let text = `Check out this product on GlobalBazaar!\n\n📦 ${product.name}\n💰 Price: ${getCurrencySymbol()}${convertPrice(price)}\n🔗 Shop now on GlobalBazaar!`;
-    let url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank');
-}
-
-let currentCategory = "All";
-let currentProduct = null;
-let currentRatingHandler = { currentRating: 0 };
-
-function renderCats() {
-    let cats = ["All", ...new Set(products.map(p=>p.category))];
-    document.getElementById('catList').innerHTML = cats.map(c => `<div class="cat-pill ${currentCategory===c?'active':''}" data-cat="${c}">${c}</div>`).join('');
-    document.querySelectorAll('.cat-pill').forEach(el => el.addEventListener('click', (e) => { currentCategory = e.target.dataset.cat; renderCats(); renderProducts(); }));
-}
-
-function renderProducts() {
-    let search = document.getElementById('searchInput')?.value.toLowerCase() || "";
-    let filtered = products.filter(p => (currentCategory==="All" || p.category===currentCategory) && p.name.toLowerCase().includes(search));
-    let sellerMap = new Map(sellers.filter(s=>s.kycStatus==='verified').map(s=>[s.id, s]));
-    let html = filtered.map(p => {
-        let seller = sellerMap.get(p.sellerId) || {shopName:"GlobalBazaar", country:"SA"};
-        let isSoldOut = p.stock <= 0;
-        let reviews = productReviews[p.id] || [];
-        let avgRating = reviews.length ? (reviews.reduce((sum,r)=>sum+r.rating,0)/reviews.length).toFixed(1) : (p.rating || 0);
-        return `<div class="product-card ${isSoldOut ? 'sold-out' : ''}" data-id="${p.id}">
-                    <img class="main-img" src="${p.mainImage}">
-                    ${isSoldOut ? '<div class="sold-out-badge">🔴 SOLD OUT</div>' : ''}
-                    <div class="product-thumbnails">${p.images && p.images.length > 1 ? p.images.slice(0,3).map(img => `<img src="${img}" onclick="event.stopPropagation(); changeProductImage(${p.id}, '${img}')">`).join('') : ''}</div>
-                    <div class="seller-name-tag">🏪 ${seller.shopName}</div>
-                    <h4>${p.name}</h4>
-                    <div class="rating-display"><span class="rating-badge" style="background:#fbbf24; color:#1e293b; padding:2px 8px; border-radius:20px; font-size:11px;">⭐ ${avgRating}</span></div>
-                    <div class="prod-price">${getCurrencySymbol()}${convertPrice(p.price)}</div>
-                    <div class="card-actions">
-                        <button class="btn-sm btn-buy addCartBtn" data-id="${p.id}" ${isSoldOut ? 'disabled style="opacity:0.5;"' : ''}>${isSoldOut ? 'Sold Out' : 'Buy'}</button>
-                        <button class="btn-sm btn-wish wishBtn ${wishlist.includes(p.id)?'active':''}" data-id="${p.id}">❤️</button>
-                    </div>
-                </div>`;
-    }).join('');
-    if(html === '') html = '<div style="text-align:center; padding:40px;">No products found</div>';
-    document.getElementById('productsGrid').innerHTML = html;
-    document.querySelectorAll('.addCartBtn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); addToCart(parseInt(btn.dataset.id)); }));
-    document.querySelectorAll('.wishBtn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); toggleWish(parseInt(btn.dataset.id)); }));
-    document.querySelectorAll('.product-card').forEach(card => card.addEventListener('click', () => {
-        let pid = parseInt(card.dataset.id);
-        let prod = products.find(p => p.id === pid);
-        if(prod) { prod.views = (prod.views || 0) + 1; saveAll(); }
-        openProduct(pid);
-    }));
-}
-
-function changeProductImage(productId, imageUrl) { const modalMainImg = document.getElementById('modalMainImg'); if(modalMainImg) modalMainImg.src = imageUrl; }
-
-function addToCart(id) {
-    let p = products.find(x=>x.id===id);
-    if(!p) return;
-    if(p.stock <= 0) { showToast("This product is sold out!", true); return; }
-    let existing = cart.find(i=>i.id===id);
-    if(existing) existing.qty++;
-    else cart.push({id:p.id, name:p.name, price:p.price, qty:1, image:p.mainImage});
-    saveAll(); updateCartUI(); renderCartPage(); showToast("Added to cart", false);
-}
-
-function toggleWish(id) { if(wishlist.includes(id)) wishlist = wishlist.filter(i=>i!==id); else wishlist.push(id); saveAll(); renderProducts(); renderWishlist(); }
-
-function updateCartUI() { document.getElementById('cartCountBadge').innerText = cart.reduce((a,b)=>a+b.qty,0); }
-
-function renderCartPage() {
-    if(cart.length === 0) { document.getElementById('cartItemsList').innerHTML = '<p style="text-align:center; padding:40px;">Your cart is empty 🛒</p>'; document.getElementById('cartTotalAmount').innerHTML = `${getCurrencySymbol()}0.00`; return; }
-    let totalUSD = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-    let html = cart.map((item, idx) => `<div class="cart-item"><div><strong>${item.name}</strong><br>${getCurrencySymbol()}${convertPrice(item.price)} each</div><div><button class="cart-qty-btn" data-idx="${idx}" data-dir="dec">-</button><span>${item.qty}</span><button class="cart-qty-btn" data-idx="${idx}" data-dir="inc">+</button><button class="cart-remove" data-idx="${idx}">Remove</button></div></div>`).join('');
-    document.getElementById('cartItemsList').innerHTML = html;
-    document.getElementById('cartTotalAmount').innerHTML = `${getCurrencySymbol()}${convertPrice(totalUSD)}`;
-    document.querySelectorAll('.cart-qty-btn').forEach(btn => btn.addEventListener('click', () => { let idx = parseInt(btn.dataset.idx); if(btn.dataset.dir === 'inc') cart[idx].qty++; else if(btn.dataset.dir === 'dec' && cart[idx].qty > 1) cart[idx].qty--; else if(btn.dataset.dir === 'dec') cart.splice(idx,1); saveAll(); updateCartUI(); renderCartPage(); renderProducts(); }));
-    document.querySelectorAll('.cart-remove').forEach(btn => btn.addEventListener('click', () => { cart.splice(parseInt(btn.dataset.idx),1); saveAll(); updateCartUI(); renderCartPage(); renderProducts(); }));
-}
-
-function renderWishlist() {
-    let wishlistProducts = products.filter(p => wishlist.includes(p.id));
-    document.getElementById('wishlistList').innerHTML = wishlistProducts.map(p => `<div class="order-card"><div class="flex-between"><span><strong>${p.name}</strong> - ${getCurrencySymbol()}${convertPrice(p.price)}</span><button class="removeWishlistBtn" data-id="${p.id}" style="background:#dc2626; padding:6px 12px; border-radius:20px;">Remove</button></div></div>`).join('');
-    document.querySelectorAll('.removeWishlistBtn').forEach(btn => btn.addEventListener('click', () => { wishlist = wishlist.filter(id => id !== parseInt(btn.dataset.id)); saveAll(); renderWishlist(); renderProducts(); showToast("Removed from wishlist", false); }));
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
 }
 
 function openProduct(id) {
@@ -724,9 +554,9 @@ function openProduct(id) {
     document.getElementById('modalRatingStars').innerHTML = `<div class="rating-display"><span class="rating-badge" style="background:#fbbf24; color:#1e293b; padding:2px 8px; border-radius:20px;">⭐ ${avgRating}</span><span style="margin-left:8px;">(${reviews.length} reviews)</span></div>`;
     document.getElementById('productReviews').innerHTML = reviews.map(r => `<div class="review-item"><strong>${r.userName || 'User'}</strong> ⭐${r.rating}<br>${r.review}<br><small>${r.date}</small></div>`).join('');
     currentRatingHandler.currentRating = 0;
-    renderReviewStars('reviewStars', currentRatingHandler);
-    if(document.getElementById('modalThumbnails') && p.images && p.images.length > 0) {
-        document.getElementById('modalThumbnails').innerHTML = p.images.map(img => `<img src="${img}" onclick="changeProductImage(${p.id}, '${img}')">`).join('');
+    renderReviewStars('reviewStars', (rating) => { currentRatingHandler.currentRating = rating; });
+    if(document.getElementById('modalThumbnails') && p.images && p.images.length) {
+        document.getElementById('modalThumbnails').innerHTML = p.images.map(img => `<img src="${img}" onclick="changeProductImage('${p.id}', '${img}')">`).join('');
     }
     document.getElementById('whatsappShareBtn').onclick = () => shareOnWhatsApp(p, p.price*1.05+5);
     document.getElementById('submitReviewBtn').onclick = () => {
@@ -736,7 +566,7 @@ function openProduct(id) {
         addReview(p.id, currentRatingHandler.currentRating, reviewText, "Guest User");
         document.getElementById('reviewText').value = '';
         currentRatingHandler.currentRating = 0;
-        renderReviewStars('reviewStars', currentRatingHandler);
+        renderReviewStars('reviewStars', (r) => { currentRatingHandler.currentRating = r; });
         openProduct(p.id);
     };
     document.getElementById('productModal').style.display = 'block';
@@ -746,11 +576,11 @@ document.getElementById('modalAddCartBtn')?.addEventListener('click', () => { if
 document.getElementById('modalAddWishBtn')?.addEventListener('click', () => { if(currentProduct) toggleWish(currentProduct.id); document.getElementById('productModal').style.display = 'none'; });
 document.getElementById('closeModalBtn')?.addEventListener('click', () => document.getElementById('productModal').style.display = 'none');
 
+// ========== CHECKOUT & PAYMENT ==========
 let currentDelivery = null;
-
 function loadSavedAddresses() {
     let userAddresses = savedAddresses.filter(a => a.email === "guest@globalbazaar.com");
-    if(userAddresses.length > 0) {
+    if(userAddresses.length) {
         let addr = userAddresses[0];
         document.getElementById('deliveryFullName').value = addr.fullName || '';
         document.getElementById('deliveryPhone').value = addr.phone || '';
@@ -761,21 +591,20 @@ function loadSavedAddresses() {
     }
 }
 
-document.getElementById('proceedToCheckoutBtn')?.addEventListener('click', () => { if(cart.length === 0) showToast("Cart empty!", true); else { loadSavedAddresses(); showSection('checkout'); } });
-
+document.getElementById('proceedToCheckoutBtn')?.addEventListener('click', () => { if(cart.length===0) showToast("Cart empty!", true); else { loadSavedAddresses(); showSection('checkout'); } });
 document.getElementById('confirmDeliveryBtn')?.addEventListener('click', () => {
     let fullName = document.getElementById('deliveryFullName').value;
     let phone = document.getElementById('deliveryPhone').value;
-    let countrySearch = document.getElementById('deliveryCountrySearch').value;
+    let country = document.getElementById('deliveryCountrySearch').value;
     let address = document.getElementById('deliveryAddress').value;
     let city = document.getElementById('deliveryCity').value;
     let postcode = document.getElementById('deliveryPostcode').value;
-    if(!fullName || !phone || !countrySearch || !address || !city || !postcode) { showToast("Fill all delivery fields!", true); return; }
-    currentDelivery = { fullName, phone, country: countrySearch, address, city, postcode, fullAddress: `${address}, ${city}, ${postcode}, ${countrySearch}` };
+    if(!fullName || !phone || !country || !address || !city || !postcode) { showToast("Fill all fields!", true); return; }
+    currentDelivery = { fullName, phone, country, address, city, postcode, fullAddress: `${address}, ${city}, ${postcode}, ${country}` };
     if(document.getElementById('saveAddressCheckbox').checked) {
-        let addrIndex = savedAddresses.findIndex(a => a.email === "guest@globalbazaar.com");
-        let addr = { email: "guest@globalbazaar.com", fullName, phone, country: countrySearch, address, city, postcode };
-        if(addrIndex >= 0) savedAddresses[addrIndex] = addr;
+        let idx = savedAddresses.findIndex(a => a.email === "guest@globalbazaar.com");
+        let addr = { email: "guest@globalbazaar.com", fullName, phone, country, address, city, postcode };
+        if(idx>=0) savedAddresses[idx] = addr;
         else savedAddresses.push(addr);
         localStorage.setItem('gb_saved_addresses', JSON.stringify(savedAddresses));
     }
@@ -785,7 +614,7 @@ document.getElementById('confirmDeliveryBtn')?.addEventListener('click', () => {
 
 function loadSavedCards() {
     let userCards = savedCards.filter(c => c.userEmail === "guest@globalbazaar.com");
-    if(userCards.length > 0) {
+    if(userCards.length) {
         document.getElementById('savedCardsSection').style.display = 'block';
         document.getElementById('savedCardsList').innerHTML = userCards.map((card, idx) => `<div class="flex-between" style="margin-bottom:10px"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}" style="background:#10b981; border:none; padding:6px 12px; border-radius:20px;">Use</button></div>`).join('');
         document.querySelectorAll('.useSavedCardBtn').forEach(btn => btn.addEventListener('click', () => {
@@ -799,7 +628,7 @@ function loadSavedCards() {
     }
 }
 
-document.getElementById('payNowBtn')?.addEventListener('click', () => {
+document.getElementById('payNowBtn')?.addEventListener('click', async () => {
     let cardNum = document.getElementById('cardNumber').value.replace(/\s/g, '');
     let cardName = document.getElementById('cardHolderName').value;
     let expiry = document.getElementById('expiryDate').value;
@@ -808,9 +637,9 @@ document.getElementById('payNowBtn')?.addEventListener('click', () => {
     if(cardNum.length < 15) { showToast("Invalid card number!", true); return; }
     
     if(document.getElementById('saveCardCheckbox').checked) {
-        let existing = savedCards.findIndex(c => c.userEmail === "guest@globalbazaar.com" && c.cardNumber === cardNum);
+        let idx = savedCards.findIndex(c => c.userEmail === "guest@globalbazaar.com" && c.cardNumber === cardNum);
         let cardData = { userEmail: "guest@globalbazaar.com", cardNumber: cardNum, cardHolderName: cardName, expiryDate: expiry };
-        if(existing >= 0) savedCards[existing] = cardData;
+        if(idx>=0) savedCards[idx] = cardData;
         else savedCards.push(cardData);
         localStorage.setItem('gb_saved_cards', JSON.stringify(savedCards));
     }
@@ -821,49 +650,42 @@ document.getElementById('payNowBtn')?.addEventListener('click', () => {
     for(let item of cart) {
         let product = products.find(p => p.id === item.id);
         if(product) {
-            product.stock -= item.qty;
-            if(product.stock <= 0) {
-                product.inStock = false;
-                addNotification(`📦 Product "${product.name}" is now SOLD OUT!`, 'order');
-                renderProducts();
-            }
-            if(product.stock <= 5 && product.stock > 0) {
-                addNotification(`⚠️ Low stock alert! Only ${product.stock} left for "${product.name}"`, 'info');
-            }
-            saveAll();
+            let newStock = product.stock - item.qty;
+            await db.collection('products').doc(product.id).update({ stock: newStock, inStock: newStock > 0 });
+            if(newStock <= 0) addNotification(`📦 Product "${product.name}" is now SOLD OUT!`, 'order');
+            else if(newStock <= 5) addNotification(`⚠️ Low stock alert! Only ${newStock} left for "${product.name}"`, 'info');
         }
-        
-        let newOrder = { 
-            id: Date.now()+Math.random(), trackingNumber, buyerName: currentDelivery.fullName, buyerPhone: currentDelivery.phone, 
-            productName: item.name, amount: item.price * item.qty, productId: item.id, address: currentDelivery.fullAddress, 
-            date: new Date().toLocaleString(), status: "Processing", qty: item.qty 
+        let newOrder = {
+            trackingNumber, buyerName: currentDelivery.fullName, buyerPhone: currentDelivery.phone,
+            productName: item.name, amount: item.price * item.qty, productId: item.id,
+            address: currentDelivery.fullAddress, date: new Date().toISOString(), status: "Processing", qty: item.qty
         };
-        orders.push(newOrder);
-        platformEarnings += (item.price * item.qty) * 0.05;
-        addNotification(`🛍️ New order placed! Tracking: ${trackingNumber}`, 'order');
+        await db.collection('orders').add(newOrder);
+        let earnings = (item.price * item.qty) * 0.05;
+        let statsRef = db.collection('platformStats').doc('main');
+        let statsDoc = await statsRef.get();
+        let currentEarnings = statsDoc.exists ? statsDoc.data().earnings : 0;
+        await statsRef.set({ earnings: currentEarnings + earnings }, { merge: true });
         
-        let seller = sellers.find(s => s.id === product?.sellerId);
-        if(seller && product) {
-            let sellerEarning = (item.price * item.qty) - (item.price * item.qty * 0.05);
-            seller.earnings = (seller.earnings || 0) + sellerEarning;
-            seller.totalSales = (seller.totalSales || 0) + (item.price * item.qty);
-            saveAll();
+        if(product && product.sellerId) {
+            let sellerDoc = await db.collection('sellers').doc(product.sellerId).get();
+            if(sellerDoc.exists) {
+                let seller = sellerDoc.data();
+                let sellerEarning = (item.price * item.qty) - earnings;
+                await db.collection('sellers').doc(product.sellerId).update({
+                    earnings: (seller.earnings || 0) + sellerEarning,
+                    totalSales: (seller.totalSales || 0) + (item.price * item.qty)
+                });
+            }
         }
+        addNotification(`🛍️ New order placed! Tracking: ${trackingNumber}`, 'order');
     }
-    
     cart = [];
-    saveAll();
+    localStorage.setItem('gb_cart', JSON.stringify(cart));
     updateCartUI();
-    
-    alert(`✅ PAYMENT SUCCESSFUL!\n\nOrder Tracking Number: ${trackingNumber}\n\nThank you for shopping at GlobalBazaar!\nYour order will be delivered soon.`);
+    alert(`✅ PAYMENT SUCCESSFUL!\n\nOrder Tracking Number: ${trackingNumber}\n\nThank you for shopping at GlobalBazaar!`);
     showToast(`✅ Payment successful! Tracking: ${trackingNumber}`, false);
-    
-    setTimeout(() => {
-        showSection('buyer');
-        renderProducts();
-        renderBuyerOrders();
-    }, 2000);
-    
+    setTimeout(() => { showSection('buyer'); renderProducts(); renderBuyerOrders(); }, 2000);
     document.getElementById('cardNumber').value = '';
     document.getElementById('cardHolderName').value = '';
     document.getElementById('expiryDate').value = '';
@@ -879,31 +701,19 @@ function renderBuyerOrders() {
             💰 ${getCurrencySymbol()}${convertPrice(o.amount)}<br>
             Status: <span style="color:${o.status==='Processing'?'#d97706':(o.status==='Shipped'?'#3b82f6':'#10b981')}">${o.status}</span><br>
             📦 Delivered to: ${o.address}<br>
-            📅 ${o.date}<br>
-            ${renderTrackingMap(o)}
+            📅 ${new Date(o.date).toLocaleString()}<br>
+            <div class="tracking-steps">${['Processing','Shipped','Out for Delivery','Delivered'].map((s,i) => `<div class="tracking-step ${o.status===s?'active':''}">${s}</div>`).join('')}</div>
             ${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981; margin-top:10px; padding:8px 16px; border-radius:30px;">✅ Confirm Received</button>` : ''}
             <button class="btn-secondary" style="margin-top:10px;" onclick="downloadInvoice('${o.trackingNumber}')">📄 Download Invoice</button>
         </div>
     `).join('');
-    
-    document.querySelectorAll('.confirmReceivedBtn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            let order = orders.find(o => o.id === parseFloat(btn.dataset.id));
-            if(order && order.status === "Shipped") {
-                order.status = "Delivered";
-                saveAll();
-                renderBuyerOrders();
-                showToast("Thank you! Order marked as delivered.", false);
-                addNotification(`✅ Order ${order.trackingNumber} has been delivered! Thank you for shopping.`, 'order');
-            }
-        });
-    });
-}
-
-function renderTrackingMap(order) {
-    let steps = ['Processing', 'Shipped', 'Out for Delivery', 'Delivered'];
-    let currentStep = steps.indexOf(order.status);
-    return `<div class="tracking-steps">${steps.map((s,i) => `<div class="tracking-step ${i <= currentStep ? 'active' : ''}">${s}</div>`).join('')}</div><div class="tracking-number">📮 Tracking Number: ${order.trackingNumber}</div>`;
+    document.querySelectorAll('.confirmReceivedBtn').forEach(btn => btn.addEventListener('click', async () => {
+        let orderId = btn.dataset.id;
+        await db.collection('orders').doc(orderId).update({ status: "Delivered" });
+        showToast("Thank you! Order marked as delivered.", false);
+        addNotification(`✅ Order delivered! Thank you for shopping.`, 'order');
+        renderBuyerOrders();
+    }));
 }
 
 function downloadInvoice(trackingNumber) {
@@ -915,20 +725,21 @@ function downloadInvoice(trackingNumber) {
     doc.text("GlobalBazaar Invoice", 20, 20);
     doc.setFontSize(12);
     doc.text(`Order ID: ${order.trackingNumber}`, 20, 40);
-    doc.text(`Date: ${order.date}`, 20, 50);
+    doc.text(`Date: ${new Date(order.date).toLocaleString()}`, 20, 50);
     doc.text(`Product: ${order.productName} x${order.qty}`, 20, 60);
     doc.text(`Amount: ${getCurrencySymbol()}${convertPrice(order.amount)}`, 20, 70);
     doc.text(`Delivery Address: ${order.address}`, 20, 80);
     doc.save(`Invoice_${order.trackingNumber}.pdf`);
 }
 
-function showSellerDashboard(seller) {
+// ========== SELLER DASHBOARD ==========
+async function showSellerDashboard(seller) {
+    if(!seller) return;
     let myProducts = products.filter(p => p.sellerId === seller.id);
     let myOrders = orders.filter(o => {
         let prod = products.find(p => p.id === o.productId);
         return prod && prod.sellerId === seller.id;
     });
-    
     let totalEarnings = seller.earnings || 0;
     let totalSales = seller.totalSales || 0;
     let monthlyRevenue = {};
@@ -940,27 +751,25 @@ function showSellerDashboard(seller) {
             monthlyRevenue[monthYear] = (monthlyRevenue[monthYear] || 0) + (sellerEarning * o.qty);
         }
     });
-    
     let chartLabels = Object.keys(monthlyRevenue);
     let chartData = Object.values(monthlyRevenue);
     if(chartLabels.length === 0) { chartLabels = ["No Data"]; chartData = [0]; }
-    
     let topProducts = {};
     myOrders.forEach(o => { topProducts[o.productName] = (topProducts[o.productName] || 0) + o.qty; });
-    let topProductsList = Object.entries(topProducts).sort((a,b) => b[1] - a[1]).slice(0,5);
+    let topProductsList = Object.entries(topProducts).sort((a,b)=>b[1]-a[1]).slice(0,5);
     
     document.getElementById('sellerDashboard').innerHTML = `
         <div class="premium-card"><div class="flex-between"><div><h3>🏪 ${seller.shopName}</h3><p>👤 ${seller.fullName}<br>📧 ${seller.email}<br>📞 ${seller.phone}<br>🎂 DOB: ${seller.dob}<br>📍 ${seller.city}, ${seller.country}</p></div><div><span class="kyc-status ${seller.kycStatus === 'verified' ? 'kyc-verified' : (seller.kycStatus === 'rejected' ? 'kyc-rejected' : 'kyc-pending')}">${seller.kycStatus.toUpperCase()}</span></div></div><div class="flex-between"><span>🏦 ${seller.bankName} - ${seller.accountNo}</span><span>💰 Balance: ${getCurrencySymbol()}${convertPrice(totalEarnings)}</span></div><div class="flex-between"><span>📊 Total Sales: ${getCurrencySymbol()}${convertPrice(totalSales)}</span><span>💸 Total Withdrawn: ${getCurrencySymbol()}${convertPrice(seller.totalWithdrawn || 0)}</span></div></div>
         <div class="chart-container"><h3>📊 Revenue Chart (Monthly)</h3><canvas id="revenueChart"></canvas></div>
         <div class="premium-card"><h3>📈 Top Selling Products</h3>${topProductsList.map(p => `📦 ${p[0]}: ${p[1]} sold`).join('<br>') || 'No sales yet'}</div>
-        ${seller.kycStatus === 'rejected' ? `<div class="premium-card"><h3>❌ KYC Rejected</h3><p>Reason: ${seller.rejectionReason}</p><button id="reuploadKycBtn" class="btn-primary">📤 Re-upload KYC Documents</button></div>` : ''}
+        ${seller.kycStatus === 'rejected' ? `<div class="premium-card"><h3>❌ KYC Rejected</h3><p>Reason: ${seller.rejectionReason || 'None'}</p><button id="reuploadKycBtn" class="btn-primary">📤 Re-upload KYC Documents</button></div>` : ''}
         ${seller.kycStatus === 'verified' ? `
             <div class="premium-card"><h3>➕ Add New Product (Multiple Images)</h3>
                 <input type="text" id="prodName" placeholder="Product Name" class="input">
                 <input type="number" id="prodPrice" placeholder="Price (USD)" class="input">
                 <select id="prodCat" class="input"><option>Electronics</option><option>Fashion</option><option>Beauty</option><option>Home</option><option>Sports</option></select>
                 <textarea id="prodDesc" placeholder="Product Description" class="input" rows="3"></textarea>
-                <div class="image-upload-area" id="imageUploadArea" style="border:2px dashed #cbd5e1; border-radius:16px; padding:20px; text-align:center; cursor:pointer;">
+                <div class="image-upload-area" style="border:2px dashed #cbd5e1; border-radius:16px; padding:20px; text-align:center; cursor:pointer;">
                     <div>📸 Click to upload product images (Multiple)</div>
                     <input type="file" id="prodImages" accept="image/*" multiple style="display:none;">
                     <button type="button" id="selectImagesBtn" class="btn-secondary" style="margin-top:10px;">Select Images</button>
@@ -973,84 +782,116 @@ function showSellerDashboard(seller) {
             <div class="premium-card"><h3>💰 Withdraw Earnings</h3><button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Request Withdrawal (Weekly: Mon & Fri)</button></div>
         ` : ''}
     `;
-    
     let ctx = document.getElementById('revenueChart')?.getContext('2d');
-    if(ctx) { if(sellerChart) sellerChart.destroy(); sellerChart = new Chart(ctx, { type: 'bar', data: { labels: chartLabels, datasets: [{ label: 'Revenue ('+getCurrencySymbol()+')', data: chartData.map(v=>parseFloat(convertPrice(v))), backgroundColor: '#3b82f6', borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: true } }); }
+    if(ctx) { if(sellerChart) sellerChart.destroy(); sellerChart = new Chart(ctx, { type: 'bar', data: { labels: chartLabels, datasets: [{ label: 'Revenue ('+getCurrencySymbol()+')', data: chartData.map(v=>parseFloat(convertPrice(v))), backgroundColor: '#3b82f6', borderRadius: 8 }] }, options: { responsive: true } }); }
     
     if(seller.kycStatus === 'verified') {
         let currentProductImages = [];
         let currentImagePreviews = [];
-        
         function updateImagePreview() {
-            const container = document.getElementById('imagePreviewContainer');
+            let container = document.getElementById('imagePreviewContainer');
             if(!container) return;
-            if(currentImagePreviews.length === 0) { container.innerHTML = '<div style="color:#64748b; text-align:center; padding:20px;">No images selected. Click above to upload.</div>'; return; }
-            container.innerHTML = currentImagePreviews.map((preview, idx) => `<div class="preview-item"><img src="${preview}" alt="Preview"><button onclick="window.removeSellerImage(${idx})">✖</button></div>`).join('');
+            if(currentImagePreviews.length === 0) { container.innerHTML = '<div style="color:#64748b; text-align:center; padding:20px;">No images selected.</div>'; return; }
+            container.innerHTML = currentImagePreviews.map((preview, idx) => `<div class="preview-item"><img src="${preview}"><button onclick="window.removeSellerImage(${idx})">✖</button></div>`).join('');
         }
-        window.removeSellerImage = function(index) { currentProductImages.splice(index, 1); currentImagePreviews.splice(index, 1); updateImagePreview(); };
-        
-        document.getElementById('selectImagesBtn')?.addEventListener('click', () => { document.getElementById('prodImages').click(); });
+        window.removeSellerImage = function(idx) { currentProductImages.splice(idx,1); currentImagePreviews.splice(idx,1); updateImagePreview(); };
+        document.getElementById('selectImagesBtn')?.addEventListener('click', () => document.getElementById('prodImages').click());
         document.getElementById('prodImages')?.addEventListener('change', (e) => {
-            const files = Array.from(e.target.files);
-            files.forEach(file => { currentProductImages.push(file); const preview = URL.createObjectURL(file); currentImagePreviews.push(preview); });
+            let files = Array.from(e.target.files);
+            files.forEach(file => { currentProductImages.push(file); currentImagePreviews.push(URL.createObjectURL(file)); });
             updateImagePreview();
         });
-        
         document.getElementById('publishBtn')?.addEventListener('click', async () => {
-            let name = document.getElementById('prodName').value, price = parseFloat(document.getElementById('prodPrice').value), category = document.getElementById('prodCat').value, desc = document.getElementById('prodDesc').value;
-            if(!name || !price) { showToast("Fill product name and price!", true); return; }
-            if(currentProductImages.length === 0) { showToast("Please upload at least 1 product image!", true); return; }
+            let name = document.getElementById('prodName').value;
+            let price = parseFloat(document.getElementById('prodPrice').value);
+            let category = document.getElementById('prodCat').value;
+            let desc = document.getElementById('prodDesc').value;
+            if(!name || !price) { showToast("Fill name and price!", true); return; }
+            if(currentProductImages.length === 0) { showToast("Upload at least 1 image!", true); return; }
             let imageUrls = currentImagePreviews;
-            let newProduct = { id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, name, price, category, mainImage: imageUrls[0], images: imageUrls, description: desc || "High quality product", sellerCountry: seller.country, inStock: true, stock: 10, rating: 0, views: 0 };
-            products.push(newProduct); saveAll(); showSellerDashboard(seller); renderProducts(); showToast(`✅ Product "${name}" published with ${imageUrls.length} images!`, false);
+            let newProduct = {
+                sellerId: seller.id, sellerName: seller.shopName, name, price, category, mainImage: imageUrls[0], images: imageUrls,
+                description: desc || "High quality product", sellerCountry: seller.country, inStock: true, stock: 10, rating: 0, views: 0, createdAt: new Date().toISOString()
+            };
+            await db.collection('products').add(newProduct);
+            showToast(`✅ Product "${name}" published!`, false);
             addNotification(`📦 New product "${name}" published by ${seller.shopName}!`, 'info');
+            document.getElementById('prodName').value = '';
+            document.getElementById('prodPrice').value = '';
+            document.getElementById('prodDesc').value = '';
+            currentProductImages = [];
+            currentImagePreviews = [];
+            updateImagePreview();
         });
-        
-        document.getElementById('myProductsList').innerHTML = myProducts.map(p => `<div class="flex-between" style="margin-bottom:10px;"><span><img src="${p.mainImage}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;"> ${p.name} - ${getCurrencySymbol()}${convertPrice(p.price)} (Stock: ${p.stock}, Views: ${p.views||0})</span><div><button class="edit-prod-btn" data-id="${p.id}">✏️ Edit</button><button class="delProd" data-id="${p.id}" style="background:#dc2626; border:none; padding:6px 14px; border-radius:30px;">Delete</button></div></div>`).join('');
-        
-        document.querySelectorAll('.edit-prod-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                let prodId = parseInt(btn.dataset.id);
+        document.getElementById('myProductsList').innerHTML = myProducts.map(p => `
+            <div class="flex-between" style="margin-bottom:10px;">
+                <span><img src="${p.mainImage}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;"> ${p.name} - ${getCurrencySymbol()}${convertPrice(p.price)} (Stock: ${p.stock}, Views: ${p.views||0})</span>
+                <div>
+                    <button class="edit-prod-btn" data-id="${p.id}">✏️ Edit</button>
+                    <button class="edit-stock-btn" data-id="${p.id}" style="background:#10b981; color:white; border:none; padding:4px 10px; border-radius:20px; margin-right:5px;">📦 Stock</button>
+                    <button class="delProd" data-id="${p.id}" style="background:#dc2626; border:none; padding:6px 12px; border-radius:30px;">Delete</button>
+                </div>
+            </div>
+        `).join('');
+        document.querySelectorAll('.edit-prod-btn').forEach(btn => btn.addEventListener('click', async () => {
+            let prodId = btn.dataset.id;
+            let product = products.find(p => p.id === prodId);
+            if(product) {
+                let newName = prompt("Edit Product Name:", product.name);
+                let newPrice = prompt("Edit Product Price (USD):", product.price);
+                if(newName && newPrice) {
+                    await db.collection('products').doc(prodId).update({ name: newName, price: parseFloat(newPrice) });
+                    showToast("Product updated!", false);
+                }
+            }
+        }));
+        document.querySelectorAll('.edit-stock-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                let prodId = btn.dataset.id;
                 let product = products.find(p => p.id === prodId);
                 if(product) {
-                    let newName = prompt("Edit Product Name:", product.name);
-                    let newPrice = prompt("Edit Product Price (USD):", product.price);
-                    if(newName && newPrice) {
-                        product.name = newName;
-                        product.price = parseFloat(newPrice);
-                        saveAll();
-                        showSellerDashboard(seller);
-                        renderProducts();
-                        showToast("Product updated!", false);
+                    let newStock = prompt(`Current stock: ${product.stock}\nEnter new stock quantity (number):`, product.stock);
+                    if(newStock !== null && !isNaN(parseInt(newStock))) {
+                        let stockNum = parseInt(newStock);
+                        await db.collection('products').doc(prodId).update({ 
+                            stock: stockNum, 
+                            inStock: stockNum > 0 
+                        });
+                        showToast(`Stock updated to ${stockNum}`, false);
+                        showSellerDashboard(currentSellerData);
                     }
                 }
             });
         });
-        
-        document.querySelectorAll('.delProd').forEach(btn => { btn.addEventListener('click', () => { let prodId = parseInt(btn.dataset.id); if(confirm("Delete this product?")) { products = products.filter(p => p.id !== prodId); saveAll(); showSellerDashboard(seller); renderProducts(); showToast("Product deleted!", false); } }); });
-        
+        document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', async () => {
+            if(confirm("Delete this product?")) {
+                await db.collection('products').doc(btn.dataset.id).delete();
+                showToast("Product deleted!", false);
+            }
+        }));
         document.getElementById('sellerOrdersList').innerHTML = myOrders.map(o => `
-            <div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>Product: ${o.productName} x${o.qty}<br>Amount: ${getCurrencySymbol()}${convertPrice(o.amount)}<br>Buyer: ${o.buyerName}<br>Address: ${o.address}<br>Status: <span style="color:${o.status==='Processing'?'#d97706':(o.status==='Shipped'?'#3b82f6':'#10b981')}">${o.status}</span><br>${renderTrackingMap(o)}<br>${o.status === "Processing" ? `<button class="shipBtn" data-id="${o.id}" data-tracking="${o.trackingNumber}" style="background:#3b82f6; margin-top:10px; padding:8px 16px; border-radius:30px;">📦 Mark as Shipped</button>` : ''}${o.status === "Shipped" ? `<br><span style="font-size:11px;">📮 Tracking: ${o.trackingNumber}</span>` : ''}</div>
+            <div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>Product: ${o.productName} x${o.qty}<br>Amount: ${getCurrencySymbol()}${convertPrice(o.amount)}<br>Buyer: ${o.buyerName}<br>Address: ${o.address}<br>Status: <span style="color:${o.status==='Processing'?'#d97706':(o.status==='Shipped'?'#3b82f6':'#10b981')}">${o.status}</span><br>${o.status === "Processing" ? `<button class="shipBtn" data-id="${o.id}" style="background:#3b82f6; margin-top:10px; padding:8px 16px; border-radius:30px;">📦 Mark as Shipped</button>` : ''}</div>
         `).join('');
-        document.querySelectorAll('.shipBtn').forEach(btn => { btn.addEventListener('click', () => { let orderId = parseFloat(btn.dataset.id); let order = orders.find(o => o.id === orderId); if(order && order.status === "Processing") { order.status = "Shipped"; saveAll(); showSellerDashboard(seller); addNotification(`📦 Order ${order.trackingNumber} has been shipped!`, 'order'); showToast("Order marked as shipped!", false); } }); });
-        
-        document.getElementById('withdrawBtn')?.addEventListener('click', () => {
+        document.querySelectorAll('.shipBtn').forEach(btn => btn.addEventListener('click', async () => {
+            let orderId = btn.dataset.id;
+            await db.collection('orders').doc(orderId).update({ status: "Shipped" });
+            showToast("Order marked as shipped!", false);
+            addNotification(`📦 Order has been shipped!`, 'order');
+        }));
+        document.getElementById('withdrawBtn')?.addEventListener('click', async () => {
             if(seller.earnings <= 0) { showToast("No balance to withdraw!", true); return; }
             let amount = seller.earnings;
             let day = new Date().getDay();
             if(day !== 1 && day !== 5) { showToast("Withdrawals only on Monday & Friday!", true); return; }
-            let newWithdrawal = { id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, amount, bank: seller.bankName, account: seller.accountNo, ifsc: seller.ifsc, date: new Date().toLocaleString(), status: "Pending" };
-            pendingWithdrawals.push(newWithdrawal);
-            seller.earnings = 0;
-            seller.totalWithdrawn = (seller.totalWithdrawn || 0) + amount;
-            saveAll();
-            showSellerDashboard(seller);
-            addNotification(`💰 Withdrawal request of ${getCurrencySymbol()}${convertPrice(amount)} submitted for approval`, 'withdrawal');
-            showToast(`Withdrawal request submitted!`, false);
-            if(document.getElementById('adminContent') && document.getElementById('adminContent').style.display === 'block') loadAdminData();
+            await db.collection('withdrawals').add({
+                sellerId: seller.id, sellerName: seller.shopName, amount, bank: seller.bankName, account: seller.accountNo, ifsc: seller.ifsc,
+                date: new Date().toISOString(), status: "Pending"
+            });
+            await db.collection('sellers').doc(seller.id).update({ earnings: 0, totalWithdrawn: (seller.totalWithdrawn || 0) + amount });
+            addNotification(`💰 Withdrawal request of ${getCurrencySymbol()}${convertPrice(amount)} submitted`, 'withdrawal');
+            showToast("Withdrawal request submitted!", false);
         });
     }
-    
     if(seller.kycStatus === 'rejected') {
         document.getElementById('reuploadKycBtn')?.addEventListener('click', () => {
             document.getElementById('sellerRegisterBox').style.display = 'block';
@@ -1059,70 +900,184 @@ function showSellerDashboard(seller) {
     }
 }
 
-function showSection(section) { 
-    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); 
-    document.getElementById(section + "Section").classList.add('active'); 
-    closeDrawer(); 
+// ========== 150+ COUNTRIES LIST ==========
+const countryCodes = [
+    { code: "+93", name: "Afghanistan", flag: "🇦🇫" }, { code: "+355", name: "Albania", flag: "🇦🇱" }, { code: "+213", name: "Algeria", flag: "🇩🇿" }, { code: "+376", name: "Andorra", flag: "🇦🇩" }, { code: "+244", name: "Angola", flag: "🇦🇴" }, { code: "+1268", name: "Antigua and Barbuda", flag: "🇦🇬" }, { code: "+54", name: "Argentina", flag: "🇦🇷" }, { code: "+374", name: "Armenia", flag: "🇦🇲" }, { code: "+61", name: "Australia", flag: "🇦🇺" }, { code: "+43", name: "Austria", flag: "🇦🇹" }, { code: "+994", name: "Azerbaijan", flag: "🇦🇿" }, { code: "+1242", name: "Bahamas", flag: "🇧🇸" }, { code: "+973", name: "Bahrain", flag: "🇧🇭" }, { code: "+880", name: "Bangladesh", flag: "🇧🇩" }, { code: "+1246", name: "Barbados", flag: "🇧🇧" }, { code: "+375", name: "Belarus", flag: "🇧🇾" }, { code: "+32", name: "Belgium", flag: "🇧🇪" }, { code: "+501", name: "Belize", flag: "🇧🇿" }, { code: "+229", name: "Benin", flag: "🇧🇯" }, { code: "+975", name: "Bhutan", flag: "🇧🇹" }, { code: "+591", name: "Bolivia", flag: "🇧🇴" }, { code: "+387", name: "Bosnia and Herzegovina", flag: "🇧🇦" }, { code: "+267", name: "Botswana", flag: "🇧🇼" }, { code: "+55", name: "Brazil", flag: "🇧🇷" }, { code: "+673", name: "Brunei", flag: "🇧🇳" }, { code: "+359", name: "Bulgaria", flag: "🇧🇬" }, { code: "+226", name: "Burkina Faso", flag: "🇧🇫" }, { code: "+257", name: "Burundi", flag: "🇧🇮" }, { code: "+855", name: "Cambodia", flag: "🇰🇭" }, { code: "+237", name: "Cameroon", flag: "🇨🇲" }, { code: "+1", name: "Canada", flag: "🇨🇦" }, { code: "+238", name: "Cape Verde", flag: "🇨🇻" }, { code: "+236", name: "Central African Republic", flag: "🇨🇫" }, { code: "+235", name: "Chad", flag: "🇹🇩" }, { code: "+56", name: "Chile", flag: "🇨🇱" }, { code: "+86", name: "China", flag: "🇨🇳" }, { code: "+57", name: "Colombia", flag: "🇨🇴" }, { code: "+269", name: "Comoros", flag: "🇰🇲" }, { code: "+242", name: "Congo", flag: "🇨🇬" }, { code: "+243", name: "Congo (DRC)", flag: "🇨🇩" }, { code: "+506", name: "Costa Rica", flag: "🇨🇷" }, { code: "+225", name: "Côte d'Ivoire", flag: "🇨🇮" }, { code: "+385", name: "Croatia", flag: "🇭🇷" }, { code: "+53", name: "Cuba", flag: "🇨🇺" }, { code: "+357", name: "Cyprus", flag: "🇨🇾" }, { code: "+420", name: "Czech Republic", flag: "🇨🇿" }, { code: "+45", name: "Denmark", flag: "🇩🇰" }, { code: "+253", name: "Djibouti", flag: "🇩🇯" }, { code: "+1767", name: "Dominica", flag: "🇩🇲" }, { code: "+1849", name: "Dominican Republic", flag: "🇩🇴" }, { code: "+593", name: "Ecuador", flag: "🇪🇨" }, { code: "+20", name: "Egypt", flag: "🇪🇬" }, { code: "+503", name: "El Salvador", flag: "🇸🇻" }, { code: "+240", name: "Equatorial Guinea", flag: "🇬🇶" }, { code: "+291", name: "Eritrea", flag: "🇪🇷" }, { code: "+372", name: "Estonia", flag: "🇪🇪" }, { code: "+251", name: "Ethiopia", flag: "🇪🇹" }, { code: "+679", name: "Fiji", flag: "🇫🇯" }, { code: "+358", name: "Finland", flag: "🇫🇮" }, { code: "+33", name: "France", flag: "🇫🇷" }, { code: "+241", name: "Gabon", flag: "🇬🇦" }, { code: "+220", name: "Gambia", flag: "🇬🇲" }, { code: "+995", name: "Georgia", flag: "🇬🇪" }, { code: "+49", name: "Germany", flag: "🇩🇪" }, { code: "+233", name: "Ghana", flag: "🇬🇭" }, { code: "+30", name: "Greece", flag: "🇬🇷" }, { code: "+1473", name: "Grenada", flag: "🇬🇩" }, { code: "+502", name: "Guatemala", flag: "🇬🇹" }, { code: "+224", name: "Guinea", flag: "🇬🇳" }, { code: "+245", name: "Guinea-Bissau", flag: "🇬🇼" }, { code: "+592", name: "Guyana", flag: "🇬🇾" }, { code: "+509", name: "Haiti", flag: "🇭🇹" }, { code: "+504", name: "Honduras", flag: "🇭🇳" }, { code: "+36", name: "Hungary", flag: "🇭🇺" }, { code: "+354", name: "Iceland", flag: "🇮🇸" }, { code: "+91", name: "India", flag: "🇮🇳" }, { code: "+62", name: "Indonesia", flag: "🇮🇩" }, { code: "+98", name: "Iran", flag: "🇮🇷" }, { code: "+964", name: "Iraq", flag: "🇮🇶" }, { code: "+353", name: "Ireland", flag: "🇮🇪" }, { code: "+972", name: "Israel", flag: "🇮🇱" }, { code: "+39", name: "Italy", flag: "🇮🇹" }, { code: "+1876", name: "Jamaica", flag: "🇯🇲" }, { code: "+81", name: "Japan", flag: "🇯🇵" }, { code: "+962", name: "Jordan", flag: "🇯🇴" }, { code: "+7", name: "Kazakhstan", flag: "🇰🇿" }, { code: "+254", name: "Kenya", flag: "🇰🇪" }, { code: "+686", name: "Kiribati", flag: "🇰🇮" }, { code: "+850", name: "North Korea", flag: "🇰🇵" }, { code: "+82", name: "South Korea", flag: "🇰🇷" }, { code: "+383", name: "Kosovo", flag: "🇽🇰" }, { code: "+965", name: "Kuwait", flag: "🇰🇼" }, { code: "+996", name: "Kyrgyzstan", flag: "🇰🇬" }, { code: "+856", name: "Laos", flag: "🇱🇦" }, { code: "+371", name: "Latvia", flag: "🇱🇻" }, { code: "+961", name: "Lebanon", flag: "🇱🇧" }, { code: "+266", name: "Lesotho", flag: "🇱🇸" }, { code: "+231", name: "Liberia", flag: "🇱🇷" }, { code: "+218", name: "Libya", flag: "🇱🇾" }, { code: "+423", name: "Liechtenstein", flag: "🇱🇮" }, { code: "+370", name: "Lithuania", flag: "🇱🇹" }, { code: "+352", name: "Luxembourg", flag: "🇱🇺" }, { code: "+261", name: "Madagascar", flag: "🇲🇬" }, { code: "+265", name: "Malawi", flag: "🇲🇼" }, { code: "+60", name: "Malaysia", flag: "🇲🇾" }, { code: "+960", name: "Maldives", flag: "🇲🇻" }, { code: "+223", name: "Mali", flag: "🇲🇱" }, { code: "+356", name: "Malta", flag: "🇲🇹" }, { code: "+692", name: "Marshall Islands", flag: "🇲🇭" }, { code: "+222", name: "Mauritania", flag: "🇲🇷" }, { code: "+230", name: "Mauritius", flag: "🇲🇺" }, { code: "+52", name: "Mexico", flag: "🇲🇽" }, { code: "+691", name: "Micronesia", flag: "🇫🇲" }, { code: "+373", name: "Moldova", flag: "🇲🇩" }, { code: "+377", name: "Monaco", flag: "🇲🇨" }, { code: "+976", name: "Mongolia", flag: "🇲🇳" }, { code: "+382", name: "Montenegro", flag: "🇲🇪" }, { code: "+212", name: "Morocco", flag: "🇲🇦" }, { code: "+258", name: "Mozambique", flag: "🇲🇿" }, { code: "+95", name: "Myanmar", flag: "🇲🇲" }, { code: "+264", name: "Namibia", flag: "🇳🇦" }, { code: "+674", name: "Nauru", flag: "🇳🇷" }, { code: "+977", name: "Nepal", flag: "🇳🇵" }, { code: "+31", name: "Netherlands", flag: "🇳🇱" }, { code: "+64", name: "New Zealand", flag: "🇳🇿" }, { code: "+505", name: "Nicaragua", flag: "🇳🇮" }, { code: "+227", name: "Niger", flag: "🇳🇪" }, { code: "+234", name: "Nigeria", flag: "🇳🇬" }, { code: "+389", name: "North Macedonia", flag: "🇲🇰" }, { code: "+47", name: "Norway", flag: "🇳🇴" }, { code: "+968", name: "Oman", flag: "🇴🇲" }, { code: "+92", name: "Pakistan", flag: "🇵🇰" }, { code: "+680", name: "Palau", flag: "🇵🇼" }, { code: "+970", name: "Palestine", flag: "🇵🇸" }, { code: "+507", name: "Panama", flag: "🇵🇦" }, { code: "+675", name: "Papua New Guinea", flag: "🇵🇬" }, { code: "+595", name: "Paraguay", flag: "🇵🇾" }, { code: "+51", name: "Peru", flag: "🇵🇪" }, { code: "+63", name: "Philippines", flag: "🇵🇭" }, { code: "+48", name: "Poland", flag: "🇵🇱" }, { code: "+351", name: "Portugal", flag: "🇵🇹" }, { code: "+974", name: "Qatar", flag: "🇶🇦" }, { code: "+40", name: "Romania", flag: "🇷🇴" }, { code: "+7", name: "Russia", flag: "🇷🇺" }, { code: "+250", name: "Rwanda", flag: "🇷🇼" }, { code: "+1869", name: "Saint Kitts and Nevis", flag: "🇰🇳" }, { code: "+1758", name: "Saint Lucia", flag: "🇱🇨" }, { code: "+1784", name: "Saint Vincent and the Grenadines", flag: "🇻🇨" }, { code: "+685", name: "Samoa", flag: "🇼🇸" }, { code: "+378", name: "San Marino", flag: "🇸🇲" }, { code: "+239", name: "Sao Tome and Principe", flag: "🇸🇹" }, { code: "+966", name: "Saudi Arabia", flag: "🇸🇦" }, { code: "+221", name: "Senegal", flag: "🇸🇳" }, { code: "+381", name: "Serbia", flag: "🇷🇸" }, { code: "+248", name: "Seychelles", flag: "🇸🇨" }, { code: "+232", name: "Sierra Leone", flag: "🇸🇱" }, { code: "+65", name: "Singapore", flag: "🇸🇬" }, { code: "+421", name: "Slovakia", flag: "🇸🇰" }, { code: "+386", name: "Slovenia", flag: "🇸🇮" }, { code: "+677", name: "Solomon Islands", flag: "🇸🇧" }, { code: "+252", name: "Somalia", flag: "🇸🇴" }, { code: "+27", name: "South Africa", flag: "🇿🇦" }, { code: "+211", name: "South Sudan", flag: "🇸🇸" }, { code: "+34", name: "Spain", flag: "🇪🇸" }, { code: "+94", name: "Sri Lanka", flag: "🇱🇰" }, { code: "+249", name: "Sudan", flag: "🇸🇩" }, { code: "+597", name: "Suriname", flag: "🇸🇷" }, { code: "+268", name: "Eswatini", flag: "🇸🇿" }, { code: "+46", name: "Sweden", flag: "🇸🇪" }, { code: "+41", name: "Switzerland", flag: "🇨🇭" }, { code: "+963", name: "Syria", flag: "🇸🇾" }, { code: "+886", name: "Taiwan", flag: "🇹🇼" }, { code: "+992", name: "Tajikistan", flag: "🇹🇯" }, { code: "+255", name: "Tanzania", flag: "🇹🇿" }, { code: "+66", name: "Thailand", flag: "🇹🇭" }, { code: "+670", name: "Timor-Leste", flag: "🇹🇱" }, { code: "+228", name: "Togo", flag: "🇹🇬" }, { code: "+676", name: "Tonga", flag: "🇹🇴" }, { code: "+1868", name: "Trinidad and Tobago", flag: "🇹🇹" }, { code: "+216", name: "Tunisia", flag: "🇹🇳" }, { code: "+90", name: "Turkey", flag: "🇹🇷" }, { code: "+993", name: "Turkmenistan", flag: "🇹🇲" }, { code: "+688", name: "Tuvalu", flag: "🇹🇻" }, { code: "+256", name: "Uganda", flag: "🇺🇬" }, { code: "+380", name: "Ukraine", flag: "🇺🇦" }, { code: "+971", name: "United Arab Emirates", flag: "🇦🇪" }, { code: "+44", name: "United Kingdom", flag: "🇬🇧" }, { code: "+1", name: "United States", flag: "🇺🇸" }, { code: "+598", name: "Uruguay", flag: "🇺🇾" }, { code: "+998", name: "Uzbekistan", flag: "🇺🇿" }, { code: "+678", name: "Vanuatu", flag: "🇻🇺" }, { code: "+379", name: "Vatican City", flag: "🇻🇦" }, { code: "+58", name: "Venezuela", flag: "🇻🇪" }, { code: "+84", name: "Vietnam", flag: "🇻🇳" }, { code: "+967", name: "Yemen", flag: "🇾🇪" }, { code: "+260", name: "Zambia", flag: "🇿🇲" }, { code: "+263", name: "Zimbabwe", flag: "🇿🇼" }
+];
+function initCountrySearch(inputId, dropdownId) {
+    let input = document.getElementById(inputId);
+    let dropdown = document.getElementById(dropdownId);
+    if(!input || !dropdown) return;
+    function showDropdown() {
+        let search = input.value.toLowerCase();
+        let filtered = countryCodes.filter(c => c.name.toLowerCase().includes(search) || c.code.includes(search));
+        dropdown.innerHTML = filtered.map(c => `<div data-code="${c.code}" data-name="${c.name}">${c.flag} ${c.name} (${c.code})</div>`).join('');
+        dropdown.style.display = 'block';
+        dropdown.querySelectorAll('div').forEach(div => div.addEventListener('click', () => { input.value = div.innerText.split('(')[0].trim(); dropdown.style.display = 'none'; }));
+    }
+    input.addEventListener('focus', showDropdown);
+    input.addEventListener('input', showDropdown);
+    document.addEventListener('click', (e) => { if(!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.style.display = 'none'; });
+}
+initCountrySearch('sellerCountrySearch', 'sellerCountryDropdown');
+initCountrySearch('deliveryCountrySearch', 'deliveryCountryDropdown');
+setTimeout(() => {
+    let countryNames = countryCodes.map(c => c.name);
+    countryNames.forEach(c => { document.getElementById('sellerCountryReg').innerHTML += `<option>${c}</option>`; });
+}, 100);
+
+// ========== SELLER REGISTRATION ==========
+let sellerPhoneVerified = false;
+document.getElementById('sellerPhone')?.addEventListener('blur', function() { sendDummyOTP(this.value, 'seller'); });
+function sendDummyOTP(phone, type) { alert(`📱 OTP sent to ${phone}\n🔑 Your OTP is: 123456`); if(type === 'seller') { document.getElementById('sellerOtpSection').style.display = 'block'; document.getElementById('sellerOtp').value = "123456"; } }
+document.getElementById('sellerVerifyOtpBtn')?.addEventListener('click', () => { if(document.getElementById('sellerOtp').value === "123456") { sellerPhoneVerified = true; document.getElementById('sellerSubmitBtn').disabled = false; document.getElementById('sellerOtpSection').style.display = 'none'; showToast("✅ Phone verified!", false); } else showToast("❌ Invalid OTP!", true); });
+document.getElementById('addMoreDocsBtn')?.addEventListener('click', () => {
+    let container = document.getElementById('kycDocumentsContainer');
+    let newDoc = document.createElement('div');
+    newDoc.className = 'kyc-doc-item';
+    newDoc.style = 'margin-bottom:15px; padding:10px; border:1px solid #e2e8f0; border-radius:12px;';
+    newDoc.innerHTML = `<select class="doc-type input" style="margin-bottom:10px;"><option value="">Select Document Type</option><option value="passport">📘 Passport</option><option value="national_id">🆔 National ID Card</option><option value="driving_license">🚗 Driving License</option><option value="residence_permit">📄 Residence Permit</option><option value="utility_bill">💡 Utility Bill</option></select><input type="text" class="doc-number input" placeholder="Document Number" style="margin-bottom:10px;"><input type="file" class="doc-image input" accept="image/*"><button type="button" class="remove-doc-btn btn-secondary" style="margin-top:5px;">❌ Remove</button>`;
+    container.appendChild(newDoc);
+    newDoc.querySelector('.remove-doc-btn').addEventListener('click', () => newDoc.remove());
+});
+document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if(!sellerPhoneVerified) { showToast("Verify phone first!", true); return; }
+    if(!document.getElementById('sellerAgreement').checked) { showToast("Accept Seller Agreement", true); return; }
+    let documents = [];
+    let docItems = document.querySelectorAll('.kyc-doc-item');
+    for(let item of docItems) {
+        let docType = item.querySelector('.doc-type').value;
+        let docNumber = item.querySelector('.doc-number').value;
+        let docFile = item.querySelector('.doc-image').files[0];
+        if(!docType || !docNumber || !docFile) { showToast("Complete all document fields!", true); return; }
+        let reader = await new Promise((resolve) => { let r = new FileReader(); r.onload = () => resolve(r.result); r.readAsDataURL(docFile); });
+        documents.push({ type: docType, number: docNumber, image: reader });
+    }
+    let newSeller = {
+        fullName: document.getElementById('sellerFullName').value, shopName: document.getElementById('sellerShopName').value,
+        email: document.getElementById('sellerEmail').value, phone: document.getElementById('sellerPhone').value, password: document.getElementById('sellerPassword').value,
+        dob: document.getElementById('sellerDob').value, address: document.getElementById('sellerAddress').value, city: document.getElementById('sellerCity').value,
+        state: document.getElementById('sellerState').value, postcode: document.getElementById('sellerPostcode').value, country: document.getElementById('sellerCountryReg').value,
+        bankName: document.getElementById('sellerBank').value, accountNo: document.getElementById('sellerAccountNo').value,
+        ifsc: document.getElementById('sellerIfsc').value, accountHolder: document.getElementById('sellerAccountHolder').value,
+        documents: documents, kycStatus: "pending", rejectionReason: null, earnings: 0, totalSales: 0, totalWithdrawn: 0, registeredAt: new Date().toISOString()
+    };
+    await db.collection('sellers').add(newSeller);
+    document.getElementById('sellerRegForm').reset();
+    sellerPhoneVerified = false;
+    document.getElementById('sellerSubmitBtn').disabled = true;
+    document.getElementById('sellerOtpSection').style.display = 'none';
+    document.getElementById('kycDocumentsContainer').innerHTML = `<div class="kyc-doc-item" style="margin-bottom:15px; padding:10px; border:1px solid #e2e8f0; border-radius:12px;"><select class="doc-type input" style="margin-bottom:10px;"><option value="">Select Document Type</option><option value="passport">📘 Passport</option><option value="national_id">🆔 National ID Card</option><option value="driving_license">🚗 Driving License</option><option value="residence_permit">📄 Residence Permit</option><option value="utility_bill">💡 Utility Bill</option></select><input type="text" class="doc-number input" placeholder="Document Number" style="margin-bottom:10px;"><input type="file" class="doc-image input" accept="image/*"></div>`;
+    showToast("✅ KYC Submitted! Waiting for admin approval.", false);
+    addNotification(`📄 KYC submitted for ${newSeller.shopName}. Waiting for admin approval.`, 'kyc');
+    showSection('buyer');
+});
+
+// ========== ADMIN PANEL ==========
+document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
+    if(document.getElementById('adminKey').value === 'admin123') {
+        document.getElementById('adminLoginBox').style.display = 'none';
+        document.getElementById('adminContent').style.display = 'block';
+        loadAdminData();
+        showToast("Admin logged in", false);
+    } else showToast("Wrong admin key (admin123)", true);
+});
+
+function loadAdminData() {
+    let pendingSellers = sellers.filter(s => s.kycStatus === 'pending');
+    let verifiedSellers = sellers.filter(s => s.kycStatus === 'verified');
+    let rejectedSellers = sellers.filter(s => s.kycStatus === 'rejected');
+    document.getElementById('pendingKycList').innerHTML = pendingSellers.map(s => `
+        <div class="order-card"><div class="flex-between"><strong>🏪 ${s.shopName}</strong><span class="kyc-status kyc-pending">Pending</span></div>
+        <p>👤 ${s.fullName} | 📧 ${s.email} | 📞 ${s.phone}</p><p>📍 ${s.city}, ${s.country}</p>
+        <div><strong>📄 Documents:</strong> ${s.documents.map((d,i) => `<div>${d.type}: ${d.number} <img src="${d.image}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;cursor:pointer;" onclick="window.open('${d.image}')"></div>`).join('')}</div>
+        <div class="flex-between" style="margin-top:10px;"><button class="btn-approve" data-id="${s.id}" style="background:#10b981; color:white; border:none; padding:8px 16px; border-radius:20px;">✅ Approve</button><button class="btn-reject" data-id="${s.id}" style="background:#dc2626; color:white; border:none; padding:8px 16px; border-radius:20px;">❌ Reject</button></div></div>
+    `).join('');
+    document.getElementById('verifiedSellersList').innerHTML = verifiedSellers.map(s => `<div class="order-card"><strong>✅ ${s.shopName}</strong> - ${s.fullName} (${s.country})</div>`).join('');
+    document.getElementById('rejectedSellersList').innerHTML = rejectedSellers.map(s => `<div class="order-card"><strong>❌ ${s.shopName}</strong> - Reason: ${s.rejectionReason || 'No reason'}</div>`).join('');
+    document.getElementById('pendingWithdrawalsList').innerHTML = pendingWithdrawals.map(w => `<div class="order-card"><div class="flex-between"><span>💰 ${getCurrencySymbol()}${convertPrice(w.amount)} - ${w.sellerName}</span><button class="approve-withdrawal" data-id="${w.id}" style="background:#10b981; padding:8px 16px; border-radius:20px;">Approve</button></div></div>`).join('');
+    let monthlyData = {};
+    orders.forEach(o => { let date = new Date(o.date); let month = date.toLocaleString('default', { month: 'short' }); monthlyData[month] = (monthlyData[month] || 0) + o.amount; });
+    let ctx = document.getElementById('adminChart')?.getContext('2d');
+    if(ctx) { if(adminChart) adminChart.destroy(); adminChart = new Chart(ctx, { type: 'line', data: { labels: Object.keys(monthlyData), datasets: [{ label: 'Revenue ('+getCurrencySymbol()+')', data: Object.values(monthlyData).map(v=>parseFloat(convertPrice(v))), borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true }] }, options: { responsive: true } }); }
+    document.querySelectorAll('.btn-approve').forEach(btn => btn.addEventListener('click', async () => {
+        let sellerId = btn.dataset.id;
+        await db.collection('sellers').doc(sellerId).update({ kycStatus: "verified" });
+        addNotification(`✅ Seller approved!`, 'kyc');
+        loadAdminData();
+    }));
+    document.querySelectorAll('.btn-reject').forEach(btn => btn.addEventListener('click', async () => {
+        let reason = prompt("Enter rejection reason:");
+        if(reason) {
+            let sellerId = btn.dataset.id;
+            await db.collection('sellers').doc(sellerId).update({ kycStatus: "rejected", rejectionReason: reason });
+            addNotification(`❌ Seller rejected: ${reason}`, 'kyc');
+            loadAdminData();
+        }
+    }));
+    document.querySelectorAll('.approve-withdrawal').forEach(btn => btn.addEventListener('click', async () => {
+        let withdrawalId = btn.dataset.id;
+        let withdrawal = pendingWithdrawals.find(w => w.id === withdrawalId);
+        if(withdrawal) {
+            await db.collection('withdrawals').doc(withdrawalId).delete();
+            addNotification(`💰 Withdrawal of ${getCurrencySymbol()}${convertPrice(withdrawal.amount)} approved for ${withdrawal.sellerName}`, 'withdrawal');
+            loadAdminData();
+        }
+    }));
+}
+document.getElementById('refreshAdminBtn')?.addEventListener('click', loadAdminData);
+
+// ========== DRAWER & NAVIGATION ==========
+function showSection(section) {
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.getElementById(section + "Section").classList.add('active');
+    closeDrawer();
     if(section === 'wishlist') renderWishlist();
     if(section === 'orders') renderBuyerOrders();
-    if(section === 'buyer') {
-        renderProducts();
-        renderCats();
-    }
-    if(section === 'seller' && currentSeller) {
-        showSellerDashboard(currentSeller);
-    }
+    if(section === 'buyer') { renderProducts(); renderCats(); }
+    if(section === 'seller' && currentSellerData) showSellerDashboard(currentSellerData);
 }
-
 document.getElementById('drawerBuyer')?.addEventListener('click', () => showSection('buyer'));
 document.getElementById('drawerSeller')?.addEventListener('click', () => { showSection('seller'); document.getElementById('sellerRegisterBox').style.display = 'block'; document.getElementById('sellerDashboard').style.display = 'none'; });
 document.getElementById('drawerAdmin')?.addEventListener('click', () => showSection('admin'));
 document.getElementById('drawerCartPage')?.addEventListener('click', () => { renderCartPage(); showSection('cartPage'); });
 document.getElementById('drawerWishlist')?.addEventListener('click', () => showSection('wishlist'));
 document.getElementById('drawerOrders')?.addEventListener('click', () => { renderBuyerOrders(); showSection('orders'); });
-document.getElementById('drawerSupport')?.addEventListener('click', () => { alert("📞 Support\nEmail: support@globalbazaar.com\nWhatsApp: +966 123 456 789\n24/7 Customer Support"); });
-
-document.getElementById('drawerMyShop')?.addEventListener('click', () => {
+document.getElementById('drawerSupport')?.addEventListener('click', () => alert("📞 Support\nEmail: support@globalbazaar.com\nWhatsApp: +966 123 456 789\n24/7 Customer Support"));
+document.getElementById('drawerMyShop')?.addEventListener('click', async () => {
     let email = prompt("Enter your registered email:");
     let pwd = prompt("Enter your password:");
     let seller = sellers.find(s => s.email === email && s.password === pwd);
     if(seller) {
         if(seller.kycStatus !== 'verified') { showToast("❌ Your KYC is not verified yet. Please wait for admin approval.", true); return; }
-        currentSeller = seller;
+        currentSellerId = seller.id;
+        currentSellerData = seller;
         document.getElementById('sellerRegisterBox').style.display = 'none';
         document.getElementById('sellerDashboard').style.display = 'block';
         showSellerDashboard(seller);
         showSection('seller');
         showToast(`Welcome back, ${seller.shopName}!`, false);
         addNotification(`Welcome back ${seller.shopName}!`, 'info');
-    } else { showToast("Invalid email or password!", true); }
+    } else showToast("Invalid email or password!", true);
 });
-
 document.getElementById('cartFloatBtn')?.addEventListener('click', () => { renderCartPage(); showSection('cartPage'); });
-
 function openDrawer() { document.getElementById('drawer').classList.add('open'); document.getElementById('drawerOverlay').style.display = 'block'; }
 function closeDrawer() { document.getElementById('drawer').classList.remove('open'); document.getElementById('drawerOverlay').style.display = 'none'; }
 document.getElementById('menuBtn').onclick = openDrawer;
 document.getElementById('drawerOverlay').onclick = closeDrawer;
 
-async function syncFromFirebase() {
-    try {
-        const snapshot = await database.ref('sellers').once('value');
-        const data = snapshot.val();
-        if(data) { sellers = Object.values(data); saveAll(); if(document.getElementById('adminContent')?.style.display === 'block') loadAdminData(); }
-        const productSnapshot = await database.ref('products').once('value');
-        const productData = productSnapshot.val();
-        if(productData) { products = Object.values(productData); saveAll(); renderProducts(); }
-    } catch(e) { console.log("Firebase sync error:", e); }
-}
-syncFromFirebase();
+let isDarkMode = localStorage.getItem('darkMode') === 'true';
+if(isDarkMode) document.body.classList.add('dark-mode');
+document.getElementById('drawerDarkMode')?.addEventListener('click', () => { document.body.classList.toggle('dark-mode'); localStorage.setItem('darkMode', document.body.classList.contains('dark-mode')); closeDrawer(); });
+document.getElementById('currencySelect').value = selectedCurrency;
+document.getElementById('currencySelect').addEventListener('change', (e) => { selectedCurrency = e.target.value; localStorage.setItem('selectedCurrency', selectedCurrency); renderProducts(); updateCartUI(); if(currentSellerData) showSellerDashboard(currentSellerData); });
 
+updateNotificationUI();
+updateCartUI();
 renderCats();
 renderProducts();
-updateCartUI();
-updateNotificationUI();
-
-console.log("✅ GlobalBazaar Ready - Complete Marketplace");
+console.log("✅ GlobalBazaar FINAL with 150+ countries, multi-image, sold-out hide, notifications, all features working");
 </script>
 </body>
 </html>
