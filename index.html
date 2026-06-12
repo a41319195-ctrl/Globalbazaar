@@ -11,14 +11,14 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background: linear-gradient(135deg, #f5f7fb 0%, #eef2f8 100%); padding-bottom: 90px; transition: all 0.3s ease; }
+        body { background: linear-gradient(135deg, #f5f7fb 0%, #eef2f8 100%); padding-bottom: 90px; transition: all 0.3s ease; font-size: 16px; line-height: 1.5; }
         body.dark-mode { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f1f5f9; }
         body.dark-mode .product-card, body.dark-mode .premium-card, body.dark-mode .drawer { background: #1e293b; border-color: #334155; color: #f1f5f9; }
         body.dark-mode .cat-pill { background: #334155; color: white; }
         body.dark-mode .input, body.dark-mode select, body.dark-mode textarea { background: #334155; color: white; border-color: #475569; }
-        .header-3d { background: linear-gradient(145deg, #ffffff, #f0f4fa); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; gap: 10px; }
+        .header-3d { background: linear-gradient(145deg, #ffffff, #f0f4fa); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; gap: 10px; flex-wrap: wrap; }
         .menu-icon-3d { background: linear-gradient(145deg, #1e293b, #0f172a); border: none; font-size: 22px; cursor: pointer; padding: 8px 14px; border-radius: 18px; color: white; }
-        .brand-3d { font-weight: 800; font-size: 20px; background: linear-gradient(135deg, #1e3a8a, #3b82f6); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .brand-3d { font-weight: 800; font-size: 20px; background: linear-gradient(135deg, #1e3a8a, #3b82f6); -webkit-background-clip: text; background-clip: text; color: transparent; display: inline-flex; align-items: center; gap: 5px; }
         .currency-dropdown { background: linear-gradient(145deg, #1e2a4a, #0f172f); border: none; padding: 8px 14px; border-radius: 40px; color: #FFD966; font-size: 13px; font-weight: bold; cursor: pointer; }
         .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); z-index: 200; display: none; }
         .drawer { position: fixed; top: 0; left: -85%; width: 75%; max-width: 280px; height: 100%; background: white; z-index: 201; transition: left 0.3s ease; border-radius: 0 24px 24px 0; padding: 20px 0; overflow-y: auto; }
@@ -97,31 +97,37 @@
         .legal-link { color: #3b82f6; text-decoration: none; cursor: pointer; }
         .whatsapp-share { background: #25D366; color: white; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; }
         .edit-prod-btn { background: #f59e0b; color: white; border: none; padding: 4px 10px; border-radius: 20px; font-size: 11px; cursor: pointer; margin-right: 5px; }
+        .required-label { color: #ef4444; font-size: 12px; margin-top: -10px; margin-bottom: 10px; display: block; }
         @media (max-width: 600px) {
             .brand-3d { font-size: 16px; }
             .fixed-cart { padding: 12px 20px; font-size: 14px; bottom: 15px; right: 15px; }
             .product-card .main-img { height: 120px; }
             .modal-thumbnails img { width: 50px; height: 50px; }
+            .header-3d { gap: 8px; }
+            .currency-dropdown { font-size: 11px; padding: 6px 10px; }
+            .notification-bell { font-size: 18px; }
         }
     </style>
 </head>
 <body>
 
 <div class="header-3d">
-    <div class="header-left">
-        <button class="menu-icon-3d" id="menuBtn">☰</button>
-        <div class="brand-3d">🌍 GLOBALBAZAAR</div>
-    </div>
-    <div class="header-right">
-        <button class="notification-bell" id="notificationBell">🔔<span class="notification-badge" id="notificationCount">0</span></button>
-        <select id="currencySelect" class="currency-dropdown">
-            <option value="SAR">🇸🇦 SAR</option><option value="USD">🇺🇸 USD</option><option value="EUR">🇪🇺 EUR</option>
-            <option value="GBP">🇬🇧 GBP</option><option value="INR">🇮🇳 INR</option><option value="PKR">🇵🇰 PKR</option>
-            <option value="NPR">🇳🇵 NPR</option><option value="BDT">🇧🇩 BDT</option><option value="AED">🇦🇪 AED</option>
-            <option value="CAD">🇨🇦 CAD</option><option value="AUD">🇦🇺 AUD</option><option value="SGD">🇸🇬 SGD</option>
-            <option value="MYR">🇲🇾 MYR</option><option value="THB">🇹🇭 THB</option><option value="JPY">🇯🇵 JPY</option>
-        </select>
-    </div>
+    <button class="menu-icon-3d" id="menuBtn">☰</button>
+    <div class="brand-3d">🌍 GLOBALBAZAAR</div>
+    <select id="currencySelect" class="currency-dropdown">
+        <option value="SAR">🇸🇦 SAR</option>
+        <option value="USD">🇺🇸 USD</option>
+        <option value="EUR">🇪🇺 EUR</option>
+        <option value="GBP">🇬🇧 GBP</option>
+        <option value="INR">🇮🇳 INR</option>
+        <option value="PKR">🇵🇰 PKR</option>
+        <option value="NPR">🇳🇵 NPR</option>
+        <option value="BDT">🇧🇩 BDT</option>
+        <option value="AED">🇦🇪 AED</option>
+        <option value="CAD">🇨🇦 CAD</option>
+        <option value="AUD">🇦🇺 AUD</option>
+    </select>
+    <button class="notification-bell" id="notificationBell">🔔<span class="notification-badge" id="notificationCount">0</span></button>
 </div>
 
 <div class="notification-panel" id="notificationPanel">
@@ -173,6 +179,7 @@
                 </div>
                 <input type="password" id="sellerPassword" placeholder="Password" class="input" required>
                 <input type="date" id="sellerDob" placeholder="Date of Birth" class="input" required>
+                <label class="required-label">* Date of Birth required</label>
                 <h4>📍 Shop Address</h4>
                 <input type="text" id="sellerAddress" placeholder="Street Address" class="input" required>
                 <input type="text" id="sellerCity" placeholder="City" class="input" required>
@@ -203,7 +210,7 @@
                 <input type="text" id="sellerIfsc" placeholder="IFSC / SWIFT Code" class="input" required>
                 <input type="text" id="sellerAccountHolder" placeholder="Account Holder Name" class="input" required>
                 <div class="checkbox-group"><input type="checkbox" id="sellerAgreement" required><label>I agree to <span class="legal-link" onclick="alert('Seller Agreement: 5% commission, weekly withdrawals (Mon & Fri)')">Seller Agreement</span></label></div>
-                <button type="submit" class="btn-primary" id="sellerSubmitBtn" disabled>✅ Register Shop (Verify Phone First)</button>
+                <button type="submit" class="btn-primary" id="sellerSubmitBtn">✅ Register Shop</button>
             </form>
         </div>
         <div id="sellerDashboard" style="display:none;"></div>
@@ -224,7 +231,7 @@
                 <div id="pendingWithdrawalsList"></div>
                 <div class="kyc-section-title">📊 Platform Analytics</div>
                 <canvas id="adminChart" style="max-height:200px;"></canvas>
-                <h3>💰 Platform Earnings: <span id="platformEarnings">$0</span></h3>
+                <h3>💰 Platform Earnings: $<span id="platformEarnings">0</span></h3>
                 <button id="refreshAdminBtn" class="btn-secondary">🔄 Refresh</button>
             </div>
         </div>
@@ -359,8 +366,8 @@ const countryCodes = [
 const shippingCountries = countryCodes.map(c => c.name);
 
 // ==================== DYNAMIC CURRENCY ====================
-const fxRates = { SAR: 3.75, USD: 1, EUR: 0.92, GBP: 0.78, INR: 83.5, PKR: 278, NPR: 133.5, BDT: 117, AED: 3.67, CAD: 1.36, AUD: 1.52, SGD: 1.35, MYR: 4.70, THB: 36.5, JPY: 150.2 };
-const currencySymbols = { SAR: "SAR ", USD: "$", EUR: "€", GBP: "£", INR: "₹", PKR: "₨", NPR: "रू ", BDT: "৳", AED: "د.إ ", CAD: "$", AUD: "$", SGD: "$", MYR: "RM ", THB: "฿", JPY: "¥" };
+const fxRates = { SAR: 3.75, USD: 1, EUR: 0.92, GBP: 0.78, INR: 83.5, PKR: 278, NPR: 133.5, BDT: 117, AED: 3.67, CAD: 1.36, AUD: 1.52 };
+const currencySymbols = { SAR: "SAR ", USD: "$", EUR: "€", GBP: "£", INR: "₹", PKR: "₨", NPR: "रू ", BDT: "৳", AED: "د.إ ", CAD: "$", AUD: "$" };
 let selectedCurrency = localStorage.getItem('selectedCurrency') || 'SAR';
 function convertPrice(usd) { return (usd * fxRates[selectedCurrency]).toFixed(2); }
 function getCurrencySymbol() { return currencySymbols[selectedCurrency]; }
@@ -464,8 +471,21 @@ setTimeout(() => {
 
 let sellerPhoneVerified = false;
 document.getElementById('sellerPhone')?.addEventListener('blur', function() { sendDummyOTP(this.value, 'seller'); });
-function sendDummyOTP(phone, type) { alert(`📱 OTP sent to ${phone}\n🔑 Your OTP is: 123456`); if(type === 'seller') document.getElementById('sellerOtpSection').style.display = 'block'; }
-document.getElementById('sellerVerifyOtpBtn')?.addEventListener('click', () => { if(document.getElementById('sellerOtp').value === "123456") { sellerPhoneVerified = true; document.getElementById('sellerSubmitBtn').disabled = false; document.getElementById('sellerOtpSection').style.display = 'none'; showToast("✅ Phone verified!", false); } else showToast("❌ Invalid OTP! Use 123456", true); });
+function sendDummyOTP(phone, type) { 
+    alert(`📱 OTP sent to ${phone}\n🔑 Your OTP is: 123456`); 
+    if(type === 'seller') {
+        document.getElementById('sellerOtpSection').style.display = 'block';
+        document.getElementById('sellerOtp').value = "123456";
+    }
+}
+document.getElementById('sellerVerifyOtpBtn')?.addEventListener('click', () => { 
+    if(document.getElementById('sellerOtp').value === "123456") { 
+        sellerPhoneVerified = true; 
+        document.getElementById('sellerSubmitBtn').disabled = false; 
+        document.getElementById('sellerOtpSection').style.display = 'none'; 
+        showToast("✅ Phone verified!", false); 
+    } else showToast("❌ Invalid OTP! Use 123456", true); 
+});
 
 document.getElementById('addMoreDocsBtn')?.addEventListener('click', () => {
     let container = document.getElementById('kycDocumentsContainer');
@@ -834,10 +854,16 @@ document.getElementById('payNowBtn')?.addEventListener('click', () => {
     cart = [];
     saveAll();
     updateCartUI();
+    
+    alert(`✅ PAYMENT SUCCESSFUL!\n\nOrder Tracking Number: ${trackingNumber}\n\nThank you for shopping at GlobalBazaar!\nYour order will be delivered soon.`);
     showToast(`✅ Payment successful! Tracking: ${trackingNumber}`, false);
-    showSection('buyer');
-    renderProducts();
-    renderBuyerOrders();
+    
+    setTimeout(() => {
+        showSection('buyer');
+        renderProducts();
+        renderBuyerOrders();
+    }, 2000);
+    
     document.getElementById('cardNumber').value = '';
     document.getElementById('cardHolderName').value = '';
     document.getElementById('expiryDate').value = '';
@@ -1039,6 +1065,13 @@ function showSection(section) {
     closeDrawer(); 
     if(section === 'wishlist') renderWishlist();
     if(section === 'orders') renderBuyerOrders();
+    if(section === 'buyer') {
+        renderProducts();
+        renderCats();
+    }
+    if(section === 'seller' && currentSeller) {
+        showSellerDashboard(currentSeller);
+    }
 }
 
 document.getElementById('drawerBuyer')?.addEventListener('click', () => showSection('buyer'));
@@ -1089,7 +1122,7 @@ renderProducts();
 updateCartUI();
 updateNotificationUI();
 
-console.log("✅ GlobalBazaar Ready - Complete Marketplace with Stock Management, Edit Product, Low Stock Alert, Views Counter!");
+console.log("✅ GlobalBazaar Ready - Complete Marketplace");
 </script>
 </body>
 </html>
