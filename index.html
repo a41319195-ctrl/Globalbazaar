@@ -323,7 +323,6 @@ let productReviews = JSON.parse(localStorage.getItem('gb_reviews')) || {};
 let currentSeller = null;
 let sellerChart = null;
 let adminChart = null;
-let productToEdit = null;
 
 // ==================== COUNTRY CODES (150+ COUNTRIES WITH NEPAL ON TOP) ====================
 const countryCodes = [
@@ -360,16 +359,8 @@ const countryCodes = [
 const shippingCountries = countryCodes.map(c => c.name);
 
 // ==================== DYNAMIC CURRENCY ====================
-const fxRates = {
-    SAR: 3.75, USD: 1, EUR: 0.92, GBP: 0.78, INR: 83.5, PKR: 278,
-    NPR: 133.5, BDT: 117, AED: 3.67, CAD: 1.36, AUD: 1.52,
-    SGD: 1.35, MYR: 4.70, THB: 36.5, JPY: 150.2
-};
-const currencySymbols = {
-    SAR: "SAR ", USD: "$", EUR: "€", GBP: "£", INR: "₹", PKR: "₨",
-    NPR: "रू ", BDT: "৳", AED: "د.إ ", CAD: "$", AUD: "$",
-    SGD: "$", MYR: "RM ", THB: "฿", JPY: "¥"
-};
+const fxRates = { SAR: 3.75, USD: 1, EUR: 0.92, GBP: 0.78, INR: 83.5, PKR: 278, NPR: 133.5, BDT: 117, AED: 3.67, CAD: 1.36, AUD: 1.52, SGD: 1.35, MYR: 4.70, THB: 36.5, JPY: 150.2 };
+const currencySymbols = { SAR: "SAR ", USD: "$", EUR: "€", GBP: "£", INR: "₹", PKR: "₨", NPR: "रू ", BDT: "৳", AED: "د.إ ", CAD: "$", AUD: "$", SGD: "$", MYR: "RM ", THB: "฿", JPY: "¥" };
 let selectedCurrency = localStorage.getItem('selectedCurrency') || 'SAR';
 function convertPrice(usd) { return (usd * fxRates[selectedCurrency]).toFixed(2); }
 function getCurrencySymbol() { return currencySymbols[selectedCurrency]; }
@@ -384,7 +375,6 @@ if(products.length === 0) {
     localStorage.setItem('gb_products', JSON.stringify(products));
 }
 
-// ==================== SAVE FUNCTION ====================
 function saveAll() {
     localStorage.setItem('gb_sellers', JSON.stringify(sellers));
     localStorage.setItem('gb_products', JSON.stringify(products));
@@ -402,7 +392,6 @@ function saveAll() {
     products.forEach(p => database.ref('products/' + p.id).set(p));
 }
 
-// ==================== TOAST & NOTIFICATIONS ====================
 function showToast(msg, isError) { let t = document.getElementById('toast'); t.innerText = msg; t.style.backgroundColor = isError ? '#dc2626' : '#10b981'; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
 function addNotification(message, type) {
     let notif = { id: Date.now(), message, type, date: new Date().toLocaleString(), read: false };
@@ -433,13 +422,11 @@ document.getElementById('markAllReadBtn')?.addEventListener('click', () => { not
 document.getElementById('notificationBell')?.addEventListener('click', () => { let panel = document.getElementById('notificationPanel'); panel.style.display = panel.style.display === 'block' ? 'none' : 'block'; updateNotificationUI(); });
 document.addEventListener('click', (e) => { if(!e.target.closest('.notification-bell') && !e.target.closest('#notificationPanel')) document.getElementById('notificationPanel').style.display = 'none'; });
 
-// ==================== DARK MODE ====================
 let isDarkMode = localStorage.getItem('darkMode') === 'true';
 if(isDarkMode) document.body.classList.add('dark-mode');
 function toggleDarkMode() { document.body.classList.toggle('dark-mode'); localStorage.setItem('darkMode', document.body.classList.contains('dark-mode')); }
 document.getElementById('drawerDarkMode')?.addEventListener('click', () => { toggleDarkMode(); closeDrawer(); });
 
-// ==================== CURRENCY SELECTOR ====================
 document.getElementById('currencySelect').value = selectedCurrency;
 document.getElementById('currencySelect').addEventListener('change', (e) => {
     selectedCurrency = e.target.value;
@@ -449,7 +436,6 @@ document.getElementById('currencySelect').addEventListener('change', (e) => {
     if(currentSeller) showSellerDashboard(currentSeller);
 });
 
-// ==================== COUNTRY SEARCH ====================
 function initCountrySearch(inputId, dropdownId) {
     const input = document.getElementById(inputId);
     const dropdown = document.getElementById(dropdownId);
@@ -476,13 +462,11 @@ setTimeout(() => {
     shippingCountries.forEach(c => { document.getElementById('sellerCountryReg').innerHTML += `<option>${c}</option>`; });
 }, 100);
 
-// ==================== SELLER PHONE VERIFICATION ====================
 let sellerPhoneVerified = false;
 document.getElementById('sellerPhone')?.addEventListener('blur', function() { sendDummyOTP(this.value, 'seller'); });
 function sendDummyOTP(phone, type) { alert(`📱 OTP sent to ${phone}\n🔑 Your OTP is: 123456`); if(type === 'seller') document.getElementById('sellerOtpSection').style.display = 'block'; }
 document.getElementById('sellerVerifyOtpBtn')?.addEventListener('click', () => { if(document.getElementById('sellerOtp').value === "123456") { sellerPhoneVerified = true; document.getElementById('sellerSubmitBtn').disabled = false; document.getElementById('sellerOtpSection').style.display = 'none'; showToast("✅ Phone verified!", false); } else showToast("❌ Invalid OTP! Use 123456", true); });
 
-// ==================== MULTIPLE KYC DOCUMENTS ====================
 document.getElementById('addMoreDocsBtn')?.addEventListener('click', () => {
     let container = document.getElementById('kycDocumentsContainer');
     let newDoc = document.createElement('div');
@@ -493,7 +477,6 @@ document.getElementById('addMoreDocsBtn')?.addEventListener('click', () => {
     newDoc.querySelector('.remove-doc-btn').addEventListener('click', () => newDoc.remove());
 });
 
-// ==================== SELLER REGISTRATION ====================
 document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if(!sellerPhoneVerified) { showToast("Verify phone first!", true); return; }
@@ -530,7 +513,6 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) =
     showSection('buyer');
 });
 
-// ==================== ADMIN PANEL ====================
 document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
     if(document.getElementById('adminKey').value === 'admin123') {
         document.getElementById('adminLoginBox').style.display = 'none';
@@ -601,7 +583,6 @@ function loadAdminData() {
 }
 document.getElementById('refreshAdminBtn')?.addEventListener('click', loadAdminData);
 
-// ==================== PRODUCT REVIEWS ====================
 function renderReviewStars(containerId, onRatingSelect) {
     let container = document.getElementById(containerId);
     if(!container) return;
@@ -632,7 +613,6 @@ function shareOnWhatsApp(product, price) {
     window.open(url, '_blank');
 }
 
-// ==================== RENDER PRODUCTS ====================
 let currentCategory = "All";
 let currentProduct = null;
 let currentRatingHandler = { currentRating: 0 };
@@ -746,7 +726,6 @@ document.getElementById('modalAddCartBtn')?.addEventListener('click', () => { if
 document.getElementById('modalAddWishBtn')?.addEventListener('click', () => { if(currentProduct) toggleWish(currentProduct.id); document.getElementById('productModal').style.display = 'none'; });
 document.getElementById('closeModalBtn')?.addEventListener('click', () => document.getElementById('productModal').style.display = 'none');
 
-// ==================== CHECKOUT & PAYMENT ====================
 let currentDelivery = null;
 
 function loadSavedAddresses() {
@@ -917,7 +896,6 @@ function downloadInvoice(trackingNumber) {
     doc.save(`Invoice_${order.trackingNumber}.pdf`);
 }
 
-// ==================== SELLER DASHBOARD ====================
 function showSellerDashboard(seller) {
     let myProducts = products.filter(p => p.sellerId === seller.id);
     let myOrders = orders.filter(o => {
@@ -1055,7 +1033,6 @@ function showSellerDashboard(seller) {
     }
 }
 
-// ==================== DRAWER & NAVIGATION ====================
 function showSection(section) { 
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); 
     document.getElementById(section + "Section").classList.add('active'); 
@@ -1095,7 +1072,6 @@ function closeDrawer() { document.getElementById('drawer').classList.remove('ope
 document.getElementById('menuBtn').onclick = openDrawer;
 document.getElementById('drawerOverlay').onclick = closeDrawer;
 
-// ==================== FIREBASE SYNC ====================
 async function syncFromFirebase() {
     try {
         const snapshot = await database.ref('sellers').once('value');
@@ -1108,7 +1084,6 @@ async function syncFromFirebase() {
 }
 syncFromFirebase();
 
-// ==================== INITIALIZATION ====================
 renderCats();
 renderProducts();
 updateCartUI();
