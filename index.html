@@ -11,7 +11,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
-    <!-- No storage SDK needed – using ImgBB free API -->
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: linear-gradient(135deg, #f5f7fb 0%, #eef2f8 100%); padding-bottom: 90px; transition: all 0.3s ease; }
@@ -163,10 +162,8 @@
     <div id="sellerSection" class="section"><div id="sellerRegisterBox" class="premium-card"><h2>🏪 Open Your Shop</h2><form id="sellerRegForm"><input type="file" id="sellerAvatar" accept="image/*" class="input"><input type="text" id="sellerFullName" placeholder="Full Legal Name" class="input" required><input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required><input type="email" id="sellerEmail" placeholder="Email" class="input" required><div class="phone-group"><div class="country-search-select" id="sellerCountrySearchContainer"><input type="text" id="sellerCountrySearch" placeholder="🔍 Search country..." autocomplete="off"><div class="country-dropdown-list" id="sellerCountryDropdown"></div><select id="sellerCountryCode" style="display:none;"></select></div><input type="tel" id="sellerPhone" placeholder="Phone Number" class="input" required></div><div class="otp-section" id="sellerOtpSection"><input type="text" id="sellerOtp" placeholder="Enter OTP" class="input"><button type="button" id="sellerVerifyOtpBtn" class="btn-secondary">Verify OTP</button></div><input type="password" id="sellerPassword" placeholder="Password" class="input" required><label style="font-weight:600; margin-top:10px;">🎂 Date of Birth</label><input type="date" id="sellerDob" class="input" required><h4>📍 Shop Address</h4><input type="text" id="sellerHouseNo" placeholder="House No." class="input" required><input type="text" id="sellerStreet" placeholder="Street" class="input" required><input type="text" id="sellerCity" placeholder="City" class="input" required><input type="text" id="sellerState" placeholder="State" class="input" required><input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required><select id="sellerCountryReg" class="input" required><option value="">Select Country</option></select><div class="doc-section"><div class="doc-title">🌍 KYC Documents</div><select id="sellerDocType" class="input" required><option value="">Select Document Type</option><option value="passport">📘 Passport</option><option value="national_id">🆔 National ID Card</option><option value="driving_license">🚗 Driving License</option><option value="residence_permit">📄 Residence Permit</option></select><input type="text" id="sellerDocNumber" placeholder="Document Number" class="input" required><input type="file" id="sellerDocImage" accept="image/*,application/pdf" class="input" required></div><h4>🏦 Bank Account Details</h4><input type="text" id="sellerBank" placeholder="Bank Name" class="input" required><input type="text" id="sellerAccountNo" placeholder="Account Number" class="input" required><input type="text" id="sellerIfsc" placeholder="IFSC / SWIFT Code" class="input" required><input type="text" id="sellerAccountHolder" placeholder="Account Holder Full Name" class="input" required><div class="checkbox-group"><input type="checkbox" id="sellerAgreement" required><label>I agree to <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label></div><button type="submit" class="btn-primary" id="sellerSubmitBtn" disabled>✅ Register Shop (Verify Phone First)</button></form></div><div id="sellerDashboard" style="display:none;"></div></div>
     <div id="profileSection" class="section"><div id="buyerProfilePanel" style="display:block;"><div class="premium-card"><div class="flex-between"><h2>👋 Guest User</h2><span class="role-badge">Buyer</span></div></div><div class="premium-card"><h3>📜 My Orders</h3><div id="buyerOrdersList"></div></div><div class="premium-card"><h3>❤️ My Wishlist</h3><div id="buyerWishlistList"></div></div></div></div>
     <div id="adminSection" class="section"><div id="adminPanel" class="premium-card"><h2>⚙️ Admin Dashboard</h2><div id="adminLoginBox"><input type="password" id="adminKey" class="input" placeholder="Enter Admin Key"><button class="btn-primary" id="adminLoginBtn">Login</button></div><div id="adminContent" style="display:none;"><div style="margin-bottom:25px;"><div class="kyc-section-title">⏳ Pending KYC Verification Requests</div><div id="pendingKycList"></div></div><div style="margin-bottom:25px;"><div class="kyc-section-title">✅ Verified Sellers</div><div id="verifiedSellersList"></div></div><div style="margin-bottom:25px;"><div class="kyc-section-title">❌ Rejected Sellers</div><div id="rejectedSellersList"></div></div>
-        <!-- ========== PLATFORM EARNINGS SECTION (VISIBLE ALWAYS) ========== -->
         <div class="flex-between" style="margin: 20px 0 10px;"><h3>💰 Platform Earnings</h3><button id="refreshAdminBtn" style="background:#64748b; padding:8px 16px; border-radius:30px;">Refresh</button></div>
         <div id="platformEarnings" style="margin-bottom:20px;"><h2>SAR 0.00</h2></div>
-        <!-- ========== END PLATFORM EARNINGS ========== -->
         <h3>💸 Pending Withdrawals</h3><div id="pendingWithdrawals"></div>
         <h3>📊 All Orders</h3><div id="adminOrdersList"></div>
     </div></div></div>
@@ -188,8 +185,8 @@
 
 <script>
 // ===== CONFIG =====
-// 🔥 REPLACE WITH YOUR IMGBB API KEY (free from imgbb.com)
-const IMGBB_API_KEY = "YOUR_IMGBB_API_KEY";   // <----- PASTE YOUR API KEY HERE
+// ImgBB API Key (your provided key)
+const IMGBB_API_KEY = "99fb186efa7e996b0ce95f1ea83f90ab";
 
 // Firebase config (yours)
 const firebaseConfig = {
@@ -217,12 +214,8 @@ try {
     }
 } catch(e) { console.warn(e); }
 
-// Upload image using ImgBB (free, no storage needed)
+// Upload image using ImgBB (free)
 async function uploadImage(file) {
-    if (!IMGBB_API_KEY || IMGBB_API_KEY === "YOUR_IMGBB_API_KEY") {
-        alert("Please set your ImgBB API key in the code (get free from imgbb.com)");
-        return null;
-    }
     const formData = new FormData();
     formData.append("image", file);
     formData.append("key", IMGBB_API_KEY);
@@ -259,7 +252,7 @@ function renderTrackingMap(o){let steps=[{name:'Order Placed',status:o.status!==
 function showDocumentModal(docData,docType,sellerName){let modalImg=document.getElementById('documentModalImg'),modalText=document.getElementById('documentModalText');if(docData&&docData.startsWith('data:image')){modalImg.style.display='block';modalImg.src=docData;modalText.innerHTML=`<strong>${sellerName}</strong><br>Document Type: ${docType}`;}else{modalImg.style.display='none';modalText.innerHTML=`<strong>${sellerName}</strong><br>Document Type: ${docType}<br>No image.`;}document.getElementById('documentModal').style.display='block';}
 function closeDocumentModal(){document.getElementById('documentModal').style.display='none';}
 
-// Country codes (shortened for readability)
+// Country codes (shortened)
 const countryCodes = [
     {code:"+91",name:"India",flag:"🇮🇳"},{code:"+92",name:"Pakistan",flag:"🇵🇰"},{code:"+880",name:"Bangladesh",flag:"🇧🇩"},{code:"+977",name:"Nepal",flag:"🇳🇵"},{code:"+94",name:"Sri Lanka",flag:"🇱🇰"},{code:"+60",name:"Malaysia",flag:"🇲🇾"},{code:"+62",name:"Indonesia",flag:"🇮🇩"},{code:"+63",name:"Philippines",flag:"🇵🇭"},{code:"+66",name:"Thailand",flag:"🇹🇭"},{code:"+84",name:"Vietnam",flag:"🇻🇳"},{code:"+86",name:"China",flag:"🇨🇳"},{code:"+81",name:"Japan",flag:"🇯🇵"},{code:"+82",name:"South Korea",flag:"🇰🇷"},
     {code:"+49",name:"Germany",flag:"🇩🇪"},{code:"+33",name:"France",flag:"🇫🇷"},{code:"+44",name:"UK",flag:"🇬🇧"},{code:"+39",name:"Italy",flag:"🇮🇹"},{code:"+34",name:"Spain",flag:"🇪🇸"},{code:"+41",name:"Switzerland",flag:"🇨🇭"},{code:"+31",name:"Netherlands",flag:"🇳🇱"},{code:"+46",name:"Sweden",flag:"🇸🇪"},{code:"+47",name:"Norway",flag:"🇳🇴"},{code:"+45",name:"Denmark",flag:"🇩🇰"},{code:"+358",name:"Finland",flag:"🇫🇮"},{code:"+32",name:"Belgium",flag:"🇧🇪"},{code:"+43",name:"Austria",flag:"🇦🇹"},{code:"+48",name:"Poland",flag:"🇵🇱"},{code:"+420",name:"Czech Republic",flag:"🇨🇿"},{code:"+36",name:"Hungary",flag:"🇭🇺"},{code:"+40",name:"Romania",flag:"🇷🇴"},{code:"+359",name:"Bulgaria",flag:"🇧🇬"},{code:"+30",name:"Greece",flag:"🇬🇷"},{code:"+90",name:"Turkey",flag:"🇹🇷"},
@@ -522,13 +515,12 @@ function loadAdminData(){
     let verified=sellers.filter(s=>s.kycStatus==='verified');
     let rejected=sellers.filter(s=>s.kycStatus==='rejected');
     updateAdminPendingBadge();
-    let ph=pending.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Phone</th><th>Doc</th><th>Action</th></tr></thead><tbody>${pending.map(s=>`<tr><td><strong>${s.shopName}</strong><br><small>${s.city}, ${s.country}</small></td><td>${s.fullName}<br><small>DOB: ${s.dob}</small></td><td>${s.email}<br><small>${s.phone}</small></td><td>${s.docType}<br><small>${s.docNumber}</small></td><td><button class="btn-view-doc" onclick='viewSellerDocument("${s.docImage}","${s.docType}","${s.shopName}")'>📄 View Document</button></td><td><button class="btn-approve" data-id="${s.id}">✅ Approve</button><button class="btn-reject" data-id="${s.id}">❌ Reject</button></td></tr>`).join('')}</tbody></table>`:'<div>No pending KYC</div>';
+    let ph=pending.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Phone</th><th>Doc</th><th>Action</th></tr></thead><tbody>${pending.map(s=>`<td><strong>${s.shopName}</strong><br><small>${s.city}, ${s.country}</small></td><td>${s.fullName}<br><small>DOB: ${s.dob}</small></td><td>${s.email}<br><small>${s.phone}</small></td><td>${s.docType}<br><small>${s.docNumber}</small></td><td><button class="btn-view-doc" onclick='viewSellerDocument("${s.docImage}","${s.docType}","${s.shopName}")'>📄 View Document</button></td><td><button class="btn-approve" data-id="${s.id}">✅ Approve</button><button class="btn-reject" data-id="${s.id}">❌ Reject</button></td></tr>`).join('')}</tbody></table>`:'<div>No pending KYC</div>';
     document.getElementById('pendingKycList').innerHTML=ph;
     document.getElementById('verifiedSellersList').innerHTML=verified.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Joined</th></tr></thead><tbody>${verified.map(s=>`<tr><td colspan="4">🏪 ${s.shopName} - ${s.fullName} - ${s.email} - ${new Date(s.id).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`:'No verified';
     document.getElementById('rejectedSellersList').innerHTML=rejected.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Reason</th></tr></thead><tbody>${rejected.map(s=>`<tr><td colspan="4">🏪 ${s.shopName} - ${s.fullName} - ${s.email} - ${s.rejectionReason||'No reason'}</td></tr>`).join('')}</tbody></table>`:'No rejected';
     document.querySelectorAll('.btn-approve').forEach(btn=>btn.addEventListener('click',async()=>{let seller=sellers.find(s=>s.id===parseInt(btn.dataset.id));if(seller){seller.kycStatus='verified';saveAll();loadAdminData();showToast(`${seller.shopName} verified`,false);await sendTelegramMessage(`✅ KYC Verified: ${seller.shopName}`);addNotification(`${seller.shopName} KYC verified`,'info');}}));
     document.querySelectorAll('.btn-reject').forEach(btn=>btn.addEventListener('click',async()=>{let reason=prompt("Rejection reason:");if(reason){let seller=sellers.find(s=>s.id===parseInt(btn.dataset.id));if(seller){seller.kycStatus='rejected';seller.rejectionReason=reason;saveAll();loadAdminData();showToast(`${seller.shopName} rejected`,false);await sendTelegramMessage(`❌ KYC Rejected: ${seller.shopName}\nReason: ${reason}`);addNotification(`${seller.shopName} KYC rejected`,'info');}}}));
-    // Show platform earnings
     document.getElementById('platformEarnings').innerHTML=`<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
     document.getElementById('pendingWithdrawals').innerHTML=pendingWithdrawals.map(w=>`<div class="order-card"><span>💰 ${getCurrencySymbol()}${convertPrice(w.amount)} - ${w.sellerName}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981;">Approve</button></div>`).join('');
     document.querySelectorAll('.approveBtn').forEach(btn=>btn.addEventListener('click',async()=>{let w=pendingWithdrawals.find(w=>w.id===parseInt(btn.dataset.id));if(w){w.status='Approved';saveAll();loadAdminData();showToast(`Approved ${getCurrencySymbol()}${convertPrice(w.amount)}`,false);await sendTelegramMessage(`💰 Withdrawal Approved: ${w.sellerName} - ${getCurrencySymbol()}${convertPrice(w.amount)}`);addNotification(`Withdrawal approved for ${w.sellerName}`,'payment');}}));
@@ -557,7 +549,7 @@ document.getElementById('cardNumber')?.addEventListener('input',function(e){let 
 document.getElementById('expiryDate')?.addEventListener('input',function(e){let v=e.target.value.replace(/\//g,'');if(v.length>=2)v=v.slice(0,2)+'/'+v.slice(2,4);e.target.value=v;});
 function closeEditModal(){document.getElementById('editProductModal').style.display='none';}
 renderCats();renderProducts();updateCartUI();updateNotificationUI();updateAdminPendingBadge();
-console.log("✅ GlobalBazaar ready with ImgBB image upload. Add your API key at the top.");
+console.log("✅ GlobalBazaar ready with ImgBB image upload. API key set.");
 </script>
 </body>
 </html>
