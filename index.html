@@ -210,7 +210,7 @@ try {
     }
 } catch(e) { console.warn(e); }
 
-// Helper: upload image to ImgBB
+// Upload image using ImgBB
 async function uploadImage(file) {
     const formData = new FormData();
     formData.append("image", file);
@@ -223,7 +223,7 @@ async function uploadImage(file) {
     } catch(e) { console.error(e); return null; }
 }
 
-// Telegram (optional, keep)
+// Telegram
 const TELEGRAM_BOT_TOKEN = "8328824652:AAE-b4o6DaFDa9WPtZfrOfM7SYGU9gUa9HQ", TELEGRAM_CHAT_ID = "7111653640";
 async function sendTelegramMessage(msg) { try { let r=await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:TELEGRAM_CHAT_ID,text:msg,parse_mode:'HTML'})}); return r.ok; } catch(e){return false;} }
 
@@ -284,7 +284,7 @@ function getShippingCost(sellerCountry,buyerCountry){if(sellerCountry===buyerCou
 const PLATFORM_COMMISSION=0.05,GATEWAY_FEE=0.025,HANDLING_FEE=2;
 function calculateFinalPrice(basePrice,sellerCountry,buyerCountry){let shipping=getShippingCost(sellerCountry,buyerCountry);let commission=basePrice*PLATFORM_COMMISSION;let gateway=basePrice*GATEWAY_FEE;return{total:basePrice+commission+gateway+shipping+HANDLING_FEE,basePrice,shipping,commission,gateway};}
 
-// ----- Data -----
+// Data
 let products = [
     {id:101,sellerId:0,sellerName:"GlobalBazaar",name:"Wireless Headphones",price:89.99,category:"Electronics",sellerCountry:"SA",rating:4.8,mainImage:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400",images:["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400"],description:"Premium wireless headphones",stock:10},
     {id:102,sellerId:0,sellerName:"GlobalBazaar",name:"Cotton T-Shirt",price:24.99,category:"Textile",sellerCountry:"SA",rating:4.5,mainImage:"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400",images:["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400"],description:"100% combed cotton",stock:25},
@@ -293,28 +293,36 @@ let products = [
 let sellers=[], currentSeller=null, cart=JSON.parse(localStorage.getItem('gb_cart'))||[], wishlist=JSON.parse(localStorage.getItem('gb_wishlist'))||[], orders=JSON.parse(localStorage.getItem('gb_orders'))||[], platformEarnings=JSON.parse(localStorage.getItem('gb_platform_earnings'))||0, pendingWithdrawals=JSON.parse(localStorage.getItem('gb_pending_withdrawals'))||[], savedCards=JSON.parse(localStorage.getItem('gb_saved_cards'))||[], savedAddresses=JSON.parse(localStorage.getItem('gb_saved_addresses'))||[], sellerRevenueChart=null;
 let savedSeller=localStorage.getItem('gb_current_seller');if(savedSeller&&savedSeller!=='null'){try{currentSeller=JSON.parse(savedSeller);}catch(e){}}
 let savedSellers=localStorage.getItem('gb_sellers');if(savedSellers&&savedSellers!=='null'){try{sellers=JSON.parse(savedSellers);}catch(e){}}
-// Load products from localStorage on page load (fix persistence)
 let storedProducts = localStorage.getItem('gb_products');
 if(storedProducts){ try{ let parsed=JSON.parse(storedProducts); if(parsed.length) products=parsed; }catch(e){} }
 
+function updateAdminPendingBadge(){
+    let pendingCount = sellers.filter(s => s.kycStatus === 'pending').length;
+    let badge = document.getElementById('adminPendingBadge');
+    if(badge){
+        if(pendingCount > 0){
+            badge.style.display = 'inline-block';
+            badge.innerText = pendingCount;
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+}
+
 function saveAll(){
-    localStorage.setItem('gb_sellers',JSON.stringify(sellers));
-    localStorage.setItem('gb_products',JSON.stringify(products));
-    localStorage.setItem('gb_cart',JSON.stringify(cart));
-    localStorage.setItem('gb_wishlist',JSON.stringify(wishlist));
-    localStorage.setItem('gb_orders',JSON.stringify(orders));
-    localStorage.setItem('gb_platform_earnings',JSON.stringify(platformEarnings));
-    localStorage.setItem('gb_pending_withdrawals',JSON.stringify(pendingWithdrawals));
-    localStorage.setItem('gb_saved_cards',JSON.stringify(savedCards));
-    localStorage.setItem('gb_saved_addresses',JSON.stringify(savedAddresses));
-    if(currentSeller) localStorage.setItem('gb_current_seller',JSON.stringify(currentSeller));
+    localStorage.setItem('gb_sellers', JSON.stringify(sellers));
+    localStorage.setItem('gb_products', JSON.stringify(products));
+    localStorage.setItem('gb_cart', JSON.stringify(cart));
+    localStorage.setItem('gb_wishlist', JSON.stringify(wishlist));
+    localStorage.setItem('gb_orders', JSON.stringify(orders));
+    localStorage.setItem('gb_platform_earnings', JSON.stringify(platformEarnings));
+    localStorage.setItem('gb_pending_withdrawals', JSON.stringify(pendingWithdrawals));
+    localStorage.setItem('gb_saved_cards', JSON.stringify(savedCards));
+    localStorage.setItem('gb_saved_addresses', JSON.stringify(savedAddresses));
+    if(currentSeller) localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
     updateAdminPendingBadge();
 }
-function updateAdminPendingBadge(){
-    let pendingCount=sellers.filter(s=>s.kycStatus==='pending').length;
-    let badge=document.getElementById('adminPendingBadge');
-    if(badge){ if(pendingCount>0){ badge.style.display='inline-block'; badge.innerText=pendingCount; } else badge.style.display='none'; }
-}
+
 function showToast(msg,isError){ let t=document.getElementById('toast'); t.innerText=msg; t.style.backgroundColor=isError?'#dc2626':'#10b981'; t.style.display='block'; setTimeout(()=>t.style.display='none',3000); }
 function showTerms(){document.getElementById('termsModal').style.display='block';}
 function closeTermsModal(){document.getElementById('termsModal').style.display='none';}
@@ -328,7 +336,6 @@ function closeSellerSummary(){document.getElementById('sellerSummaryModal').styl
 function closeOrderSummary(){document.getElementById('orderSummaryModal').style.display='none'; showSection('buyer');}
 document.getElementById('goToMyShopBtn')?.addEventListener('click',()=>{closeSellerSummary(); showMyShopLogin();});
 
-// Render categories & products
 let currentCategory="All";
 function renderCats(){let cats=["All",...new Set(products.map(p=>p.category))];document.getElementById('catList').innerHTML=cats.map(c=>`<div class="cat-pill ${currentCategory===c?'active':''}" data-cat="${c}">${c}</div>`).join('');document.querySelectorAll('.cat-pill').forEach(el=>el.addEventListener('click',(e)=>{currentCategory=e.target.dataset.cat;renderCats();renderProducts();}));}
 function renderProducts(){
@@ -415,11 +422,68 @@ function requestWithdrawal(sellerId){ let seller=sellers.find(s=>s.id===sellerId
 function processWeeklyWithdrawals(){ let last=localStorage.getItem('gb_last_withdrawal'); let now=new Date(); let day=now.getDay(); if((day===1||day===5)&&(!last||new Date(last).getDate()!==now.getDate())){ pendingWithdrawals.forEach(w=>{ if(w.status==="Pending") w.status="Approved"; }); saveAll(); localStorage.setItem('gb_last_withdrawal',now.toString()); } }
 setInterval(processWeeklyWithdrawals,3600000); processWeeklyWithdrawals();
 
-// Seller Registration
+// Seller Registration (fixed)
 document.getElementById('sellerRegForm')?.addEventListener('submit',async(e)=>{ e.preventDefault(); if(!sellerPhoneVerified){showToast("Verify phone first",true);return;} if(!document.getElementById('sellerAgreement').checked){showToast("Accept agreement",true);return;} let dob=document.getElementById('sellerDob').value; if(calculateAge(dob)<18){showToast("18+ required",true);return;} let docImg=document.getElementById('sellerDocImage').files[0]; if(!docImg){showToast("KYC document image required",true);return;} let docNum=document.getElementById('sellerDocNumber').value; if(!docNum.trim()){showToast("Document number required",true);return;} let docType=document.getElementById('sellerDocType').value; if(!docType){showToast("Select document type",true);return;} let countryCodeSel=document.getElementById('sellerCountryCode'); let countryCode=countryCodeSel.value||"+91"; let docReader=new FileReader(); docReader.onload=async(docEv)=>{ let docData=docEv.target.result; let avatarFile=document.getElementById('sellerAvatar').files[0]; let avatarData="https://randomuser.me/api/portraits/lego/1.jpg"; if(avatarFile){ let avReader=new FileReader(); avReader.onload=async(avEv)=>{ await saveSellerData(avEv.target.result,docData,countryCode); }; avReader.readAsDataURL(avatarFile); } else { await saveSellerData(avatarData,docData,countryCode); } }; docReader.readAsDataURL(docImg); });
-async function saveSellerData(avatarData,docImageData,countryCode){ let newSeller={id:Date.now(),avatar:avatarData,fullName:document.getElementById('sellerFullName').value,shopName:document.getElementById('sellerShopName').value,email:document.getElementById('sellerEmail').value,phone:countryCode+document.getElementById('sellerPhone').value,password:document.getElementById('sellerPassword').value,dob:document.getElementById('sellerDob').value,houseNo:document.getElementById('sellerHouseNo').value,street:document.getElementById('sellerStreet').value,city:document.getElementById('sellerCity').value,state:document.getElementById('sellerState').value,pincode:document.getElementById('sellerPincode').value,country:document.getElementById('sellerCountryReg').value,docType:document.getElementById('sellerDocType').value,docNumber:document.getElementById('sellerDocNumber').value,docImage:docImageData,bankName:document.getElementById('sellerBank').value,accountNo:document.getElementById('sellerAccountNo').value,ifsc:document.getElementById('sellerIfsc').value,accountHolder:document.getElementById('sellerAccountHolder').value,earnings:0,kycStatus:"pending",totalSales:0,totalWithdrawn:0}; sellers.push(newSeller); saveAll(); document.getElementById('sellerRegForm').reset(); sellerPhoneVerified=false; document.getElementById('sellerSubmitBtn').disabled=true; document.getElementById('sellerSubmitBtn').innerHTML='✅ Register Shop (Verify Phone First)'; sendTelegramMessage(`🏪 New Seller: ${newSeller.shopName}\nEmail: ${newSeller.email}\nKYC Pending`); addNotification(`New seller ${newSeller.shopName} registered! Pending KYC.`,'info'); document.getElementById('sellerSummaryModal').style.display='block'; if(document.getElementById('adminContent').style.display==='block') loadAdminData(); }
-function showMyShopLogin(){ let verified=sellers.filter(s=>s.kycStatus==='verified'); if(verified.length===0){ showToast("No verified seller",true); return; } let email=prompt("Enter registered email:"); if(!email) return; let pwd=prompt("Password:"); let seller=sellers.find(s=>s.email===email&&s.password===pwd); if(seller){ if(seller.kycStatus!=='verified'){ showToast("KYC not verified",true); return; } currentSeller={name:seller.fullName,email:seller.email,role:'seller',sellerId:seller.id,phone:seller.phone}; saveAll(); document.getElementById('sellerRegisterBox').style.display='none'; document.getElementById('sellerDashboard').style.display='block'; renderSellerDashboard(); showToast(`Welcome ${seller.shopName}!`,false); addNotification(`Welcome back ${seller.shopName}`,'info'); closeDrawer(); showSection('seller'); } else { showToast("Invalid credentials",true); } }
+
+async function saveSellerData(avatarData,docImageData,countryCode){
+    let newSeller={
+        id:Date.now(), avatar:avatarData,
+        fullName:document.getElementById('sellerFullName').value,
+        shopName:document.getElementById('sellerShopName').value,
+        email:document.getElementById('sellerEmail').value,
+        phone:countryCode+document.getElementById('sellerPhone').value,
+        password:document.getElementById('sellerPassword').value,
+        dob:document.getElementById('sellerDob').value,
+        houseNo:document.getElementById('sellerHouseNo').value,
+        street:document.getElementById('sellerStreet').value,
+        city:document.getElementById('sellerCity').value,
+        state:document.getElementById('sellerState').value,
+        pincode:document.getElementById('sellerPincode').value,
+        country:document.getElementById('sellerCountryReg').value,
+        docType:document.getElementById('sellerDocType').value,
+        docNumber:document.getElementById('sellerDocNumber').value,
+        docImage:docImageData,
+        bankName:document.getElementById('sellerBank').value,
+        accountNo:document.getElementById('sellerAccountNo').value,
+        ifsc:document.getElementById('sellerIfsc').value,
+        accountHolder:document.getElementById('sellerAccountHolder').value,
+        earnings:0, kycStatus:"pending", totalSales:0, totalWithdrawn:0
+    };
+    sellers.push(newSeller);
+    saveAll();
+    document.getElementById('sellerRegForm').reset();
+    sellerPhoneVerified=false;
+    document.getElementById('sellerSubmitBtn').disabled=true;
+    document.getElementById('sellerSubmitBtn').innerHTML='✅ Register Shop (Verify Phone First)';
+    await sendTelegramMessage(`🏪 New Seller: ${newSeller.shopName}\nEmail: ${newSeller.email}\nKYC Pending`);
+    addNotification(`New seller ${newSeller.shopName} registered! Pending KYC.`,'info');
+    // Show summary modal
+    document.getElementById('sellerSummaryModal').style.display='block';
+    if(document.getElementById('adminContent').style.display==='block') loadAdminData();
+}
+
+function showMyShopLogin(){
+    let verified=sellers.filter(s=>s.kycStatus==='verified');
+    if(verified.length===0){ showToast("No verified seller",true); return; }
+    let email=prompt("Enter registered email:");
+    if(!email) return;
+    let pwd=prompt("Password:");
+    let seller=sellers.find(s=>s.email===email&&s.password===pwd);
+    if(seller){
+        if(seller.kycStatus!=='verified'){ showToast("KYC not verified",true); return; }
+        currentSeller={name:seller.fullName,email:seller.email,role:'seller',sellerId:seller.id,phone:seller.phone};
+        saveAll();
+        document.getElementById('sellerRegisterBox').style.display='none';
+        document.getElementById('sellerDashboard').style.display='block';
+        renderSellerDashboard();
+        showToast(`Welcome ${seller.shopName}!`,false);
+        addNotification(`Welcome back ${seller.shopName}`,'info');
+        closeDrawer();
+        showSection('seller');
+    } else { showToast("Invalid credentials",true); }
+}
 document.getElementById('drawerMyShop')?.addEventListener('click',()=>{ showMyShopLogin(); });
+
 function renderSellerDashboard(){
     if(!currentSeller?.sellerId) return;
     let seller=sellers.find(s=>s.id===currentSeller.sellerId);
@@ -474,7 +538,6 @@ ${seller.kycStatus==="verified"?`
             showToast("Product published",false);
             sendTelegramMessage(`📦 New product: ${name} by ${seller.shopName}`);
             addNotification(`Product "${name}" published`,'info');
-            // Clear form fields
             document.getElementById('prodName').value='';
             document.getElementById('prodPrice').value='';
             document.getElementById('prodStock').value='';
@@ -553,12 +616,39 @@ function loadAdminData(){
     let verified=sellers.filter(s=>s.kycStatus==='verified');
     let rejected=sellers.filter(s=>s.kycStatus==='rejected');
     updateAdminPendingBadge();
-    let ph=pending.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Phone</th><th>Doc</th><th>Action</th></tr></thead><tbody>${pending.map(s=>`<tr><td><strong>${s.shopName}</strong><br><small>${s.city}, ${s.country}</small></td><td>${s.fullName}<br><small>DOB: ${s.dob}</small></td><td>${s.email}<br><small>${s.phone}</small></td><td>${s.docType}<br><small>${s.docNumber}</small></td><td><button class="btn-view-doc" onclick='viewSellerDocument("${s.docImage}","${s.docType}","${s.shopName}")'>📄 View Document</button></td><td><button class="btn-approve" data-id="${s.id}">✅ Approve</button><button class="btn-reject" data-id="${s.id}">❌ Reject</button></td></tr>`).join('')}</tbody></table>`:'<div>No pending KYC</div>';
+    let ph=pending.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Phone</th><th>Doc</th><th>Action</th></tr></thead><tbody>${pending.map(s=>`<tr><td><strong>${s.shopName}</strong><br><small>${s.city}, ${s.country}</small></td><td>${s.fullName}<br><small>DOB: ${s.dob}</small></td><td>${s.email}<br><small>${s.phone}</small></td><td>${s.docType}<br><small>${s.docNumber}</small></td><td><button class="btn-view-doc" onclick='viewSellerDocument("${s.docImage}","${s.docType}","${s.shopName}")'>📄 View Document</button></td><td><button class="btn-approve" data-id="${s.id}">✅ Approve</button><button class="btn-reject" data-id="${s.id}">❌ Reject</button></td>`).join('')}</tbody></table>`:'<div>No pending KYC</div>';
     document.getElementById('pendingKycList').innerHTML=ph;
-    document.getElementById('verifiedSellersList').innerHTML=verified.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Joined</th></tr></thead><tbody>${verified.map(s=>`<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td>${new Date(s.id).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`:'No verified';
-    document.getElementById('rejectedSellersList').innerHTML=rejected.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Reason</th></tr></thead><tbody>${rejected.map(s=>`<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td>${s.rejectionReason||'No reason'}</td></tr>`).join('')}</tbody></table>`:'No rejected';
-    document.querySelectorAll('.btn-approve').forEach(btn=>btn.addEventListener('click',async()=>{ let seller=sellers.find(s=>s.id===parseInt(btn.dataset.id)); if(seller){ seller.kycStatus='verified'; saveAll(); loadAdminData(); showToast(`${seller.shopName} verified`,false); await sendTelegramMessage(`✅ KYC Verified: ${seller.shopName}`); addNotification(`${seller.shopName} KYC verified`,'info'); } }));
-    document.querySelectorAll('.btn-reject').forEach(btn=>btn.addEventListener('click',async()=>{ let reason=prompt("Rejection reason:"); if(reason){ let seller=sellers.find(s=>s.id===parseInt(btn.dataset.id)); if(seller){ seller.kycStatus='rejected'; seller.rejectionReason=reason; saveAll(); loadAdminData(); showToast(`${seller.shopName} rejected`,false); await sendTelegramMessage(`❌ KYC Rejected: ${seller.shopName}\nReason: ${reason}`); addNotification(`${seller.shopName} KYC rejected`,'info'); } } }));
+    document.getElementById('verifiedSellersList').innerHTML=verified.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Joined</th></tr></thead><tbody>${verified.map(s=>`<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td>${new Date(s.id).toLocaleDateString()}</td>`).join('')}</tbody></tr>`:'No verified';
+    document.getElementById('rejectedSellersList').innerHTML=rejected.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Reason</th></table></thead><tbody>${rejected.map(s=>`<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td>${s.rejectionReason||'No reason'}</td>`).join('')}</tbody></table>`:'No rejected';
+    // Attach events (re-attach each time because HTML is regenerated)
+    document.querySelectorAll('.btn-approve').forEach(btn=>btn.addEventListener('click',async()=>{
+        let seller=sellers.find(s=>s.id===parseInt(btn.dataset.id));
+        if(seller){
+            seller.kycStatus='verified';
+            saveAll();
+            loadAdminData();  // Refresh the admin panel immediately
+            showToast(`${seller.shopName} verified`,false);
+            await sendTelegramMessage(`✅ KYC Verified: ${seller.shopName}`);
+            addNotification(`${seller.shopName} KYC verified`,'info');
+        }
+    }));
+    document.querySelectorAll('.btn-reject').forEach(btn=>btn.addEventListener('click',async()=>{
+        let reason=prompt("Rejection reason:");
+        if(reason){
+            let seller=sellers.find(s=>s.id===parseInt(btn.dataset.id));
+            if(seller){
+                seller.kycStatus='rejected';
+                seller.rejectionReason=reason;
+                saveAll();
+                loadAdminData();  // Refresh immediately
+                showToast(`${seller.shopName} rejected`,false);
+                await sendTelegramMessage(`❌ KYC Rejected: ${seller.shopName}\nReason: ${reason}`);
+                addNotification(`${seller.shopName} KYC rejected`,'info');
+            }
+        } else if(reason===""){
+            showToast("Please enter a reason",true);
+        }
+    }));
     document.getElementById('platformEarnings').innerHTML=`<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
     document.getElementById('pendingWithdrawals').innerHTML=pendingWithdrawals.map(w=>`<div class="order-card"><span>💰 ${getCurrencySymbol()}${convertPrice(w.amount)} - ${w.sellerName}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981;">Approve</button></div>`).join('');
     document.querySelectorAll('.approveBtn').forEach(btn=>btn.addEventListener('click',async()=>{ let w=pendingWithdrawals.find(w=>w.id===parseInt(btn.dataset.id)); if(w){ w.status='Approved'; saveAll(); loadAdminData(); showToast(`Approved ${getCurrencySymbol()}${convertPrice(w.amount)}`,false); await sendTelegramMessage(`💰 Withdrawal Approved: ${w.sellerName} - ${getCurrencySymbol()}${convertPrice(w.amount)}`); addNotification(`Withdrawal approved for ${w.sellerName}`,'payment'); } }));
@@ -587,7 +677,7 @@ document.getElementById('cardNumber')?.addEventListener('input',function(e){ let
 document.getElementById('expiryDate')?.addEventListener('input',function(e){ let v=e.target.value.replace(/\//g,''); if(v.length>=2) v=v.slice(0,2)+'/'+v.slice(2,4); e.target.value=v; });
 function closeEditModal(){ document.getElementById('editProductModal').style.display='none'; }
 renderCats(); renderProducts(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge();
-console.log("✅ GlobalBazaar fully functional with product persistence and all features.");
+console.log("✅ All fixes applied: summary modal, admin approve/reject instant update, pending badge, seller notification.");
 </script>
 </body>
 </html>
