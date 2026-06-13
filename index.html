@@ -213,7 +213,7 @@ try {
     }
 } catch(e) { console.warn(e); }
 
-// Image upload helper
+// Upload image using ImgBB (free, no storage needed)
 async function uploadImage(file) {
     const formData = new FormData();
     formData.append("image", file);
@@ -222,7 +222,7 @@ async function uploadImage(file) {
         const res = await fetch("https://api.imgbb.com/1/upload", { method: "POST", body: formData });
         const data = await res.json();
         if (data.success) return data.data.url;
-        else { console.error("ImgBB error", data); return null; }
+        else { console.error(data); return null; }
     } catch(e) { console.error(e); return null; }
 }
 
@@ -251,7 +251,7 @@ function renderTrackingMap(o){let steps=[{name:'Order Placed',status:o.status!==
 function showDocumentModal(docData,docType,sellerName){let modalImg=document.getElementById('documentModalImg'),modalText=document.getElementById('documentModalText');if(docData&&docData.startsWith('data:image')){modalImg.style.display='block';modalImg.src=docData;modalText.innerHTML=`<strong>${sellerName}</strong><br>Document Type: ${docType}`;}else{modalImg.style.display='none';modalText.innerHTML=`<strong>${sellerName}</strong><br>Document Type: ${docType}<br>No image.`;}document.getElementById('documentModal').style.display='block';}
 function closeDocumentModal(){document.getElementById('documentModal').style.display='none';}
 
-// Country codes (compact, supporting major regions)
+// Country codes (shortened for readability)
 const countryCodes = [
     {code:"+91",name:"India",flag:"🇮🇳"},{code:"+92",name:"Pakistan",flag:"🇵🇰"},{code:"+880",name:"Bangladesh",flag:"🇧🇩"},{code:"+977",name:"Nepal",flag:"🇳🇵"},{code:"+94",name:"Sri Lanka",flag:"🇱🇰"},{code:"+60",name:"Malaysia",flag:"🇲🇾"},{code:"+62",name:"Indonesia",flag:"🇮🇩"},{code:"+63",name:"Philippines",flag:"🇵🇭"},{code:"+66",name:"Thailand",flag:"🇹🇭"},{code:"+84",name:"Vietnam",flag:"🇻🇳"},{code:"+86",name:"China",flag:"🇨🇳"},{code:"+81",name:"Japan",flag:"🇯🇵"},{code:"+82",name:"South Korea",flag:"🇰🇷"},
     {code:"+49",name:"Germany",flag:"🇩🇪"},{code:"+33",name:"France",flag:"🇫🇷"},{code:"+44",name:"UK",flag:"🇬🇧"},{code:"+39",name:"Italy",flag:"🇮🇹"},{code:"+34",name:"Spain",flag:"🇪🇸"},{code:"+41",name:"Switzerland",flag:"🇨🇭"},{code:"+31",name:"Netherlands",flag:"🇳🇱"},{code:"+46",name:"Sweden",flag:"🇸🇪"},{code:"+47",name:"Norway",flag:"🇳🇴"},{code:"+45",name:"Denmark",flag:"🇩🇰"},{code:"+358",name:"Finland",flag:"🇫🇮"},{code:"+32",name:"Belgium",flag:"🇧🇪"},{code:"+43",name:"Austria",flag:"🇦🇹"},{code:"+48",name:"Poland",flag:"🇵🇱"},{code:"+420",name:"Czech Republic",flag:"🇨🇿"},{code:"+36",name:"Hungary",flag:"🇭🇺"},{code:"+40",name:"Romania",flag:"🇷🇴"},{code:"+359",name:"Bulgaria",flag:"🇧🇬"},{code:"+30",name:"Greece",flag:"🇬🇷"},{code:"+90",name:"Turkey",flag:"🇹🇷"},
@@ -287,7 +287,7 @@ function getShippingCost(sellerCountry,buyerCountry){if(sellerCountry===buyerCou
 const PLATFORM_COMMISSION=0.05,GATEWAY_FEE=0.025,HANDLING_FEE=2;
 function calculateFinalPrice(basePrice,sellerCountry,buyerCountry){let shipping=getShippingCost(sellerCountry,buyerCountry);let commission=basePrice*PLATFORM_COMMISSION;let gateway=basePrice*GATEWAY_FEE;return{total:basePrice+commission+gateway+shipping+HANDLING_FEE,basePrice,shipping,commission,gateway};}
 
-// Initial products
+// Products
 let products = [
     {id:101,sellerId:0,sellerName:"GlobalBazaar",name:"Wireless Headphones",price:89.99,category:"Electronics",sellerCountry:"SA",rating:4.8,mainImage:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400",images:["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400"],description:"Premium wireless headphones",stock:10},
     {id:102,sellerId:0,sellerName:"GlobalBazaar",name:"Cotton T-Shirt",price:24.99,category:"Textile",sellerCountry:"SA",rating:4.5,mainImage:"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400",images:["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400"],description:"100% combed cotton",stock:25},
@@ -451,20 +451,42 @@ ${seller.kycStatus==="verified"?`
             let newProduct={id:Date.now(),sellerId:seller.id,sellerName:seller.shopName,name,price,category:cat,mainImage:mainUrl,images:images,description:desc||"",sellerCountry:seller.country,rating:0,stock:stock};
             products.push(newProduct);
             saveAll();
+            // Force re-render both dashboards
             renderSellerDashboard();
             renderProducts();
-            showToast("Product published",false);
-            sendTelegramMessage(`📦 New product: ${name} by ${seller.shopName}`);
-            addNotification(`Product "${name}" published`,'info');
+            // Clear form
             document.getElementById('prodName').value='';
             document.getElementById('prodPrice').value='';
             document.getElementById('prodStock').value='';
             document.getElementById('prodMainImg').value='';
             document.getElementById('prodImagesFiles').value='';
             document.getElementById('prodDesc').value='';
+            showToast("Product published successfully!",false);
+            sendTelegramMessage(`📦 New product: ${name} by ${seller.shopName}`);
+            addNotification(`Product "${name}" published`,'info');
         });
-        document.querySelectorAll('.delProd').forEach(btn=>btn.addEventListener('click',()=>{products=products.filter(p=>p.id!==parseInt(btn.dataset.id));saveAll();renderSellerDashboard();renderProducts();showToast("Deleted",false);}));
-        document.querySelectorAll('.editProdBtn').forEach(btn=>btn.addEventListener('click',()=>{let prod=products.find(p=>p.id===parseInt(btn.dataset.id));if(prod){document.getElementById('editProdId').value=prod.id;document.getElementById('editProdName').value=prod.name;document.getElementById('editProdPrice').value=prod.price;document.getElementById('editProdCat').value=prod.category;document.getElementById('editProdStock').value=prod.stock;document.getElementById('editProdDesc').value=prod.description||'';let currImgHtml=prod.images.map(img=>`<div><img src="${img}" width="50" style="border-radius:8px; margin:4px;"> <a href="${img}" target="_blank">View</a></div>`).join('');document.getElementById('editCurrentImages').innerHTML=`<strong>Current Images:</strong>${currImgHtml}`;document.getElementById('editProductModal').style.display='block';}}));
+        document.querySelectorAll('.delProd').forEach(btn=>btn.addEventListener('click',()=>{
+            let id=parseInt(btn.dataset.id);
+            products=products.filter(p=>p.id!==id);
+            saveAll();
+            renderSellerDashboard();
+            renderProducts();
+            showToast("Product deleted",false);
+        }));
+        document.querySelectorAll('.editProdBtn').forEach(btn=>btn.addEventListener('click',()=>{
+            let prod=products.find(p=>p.id===parseInt(btn.dataset.id));
+            if(prod){
+                document.getElementById('editProdId').value=prod.id;
+                document.getElementById('editProdName').value=prod.name;
+                document.getElementById('editProdPrice').value=prod.price;
+                document.getElementById('editProdCat').value=prod.category;
+                document.getElementById('editProdStock').value=prod.stock;
+                document.getElementById('editProdDesc').value=prod.description||'';
+                let currImgHtml=prod.images.map(img=>`<div><img src="${img}" width="50" style="border-radius:8px; margin:4px;"> <a href="${img}" target="_blank">View</a></div>`).join('');
+                document.getElementById('editCurrentImages').innerHTML=`<strong>Current Images:</strong>${currImgHtml}`;
+                document.getElementById('editProductModal').style.display='block';
+            }
+        }));
         document.getElementById('updateProductBtn')?.addEventListener('click',async()=>{
             let pid=parseInt(document.getElementById('editProdId').value);
             let prod=products.find(p=>p.id===pid);
@@ -514,10 +536,10 @@ function loadAdminData(){
     let verified=sellers.filter(s=>s.kycStatus==='verified');
     let rejected=sellers.filter(s=>s.kycStatus==='rejected');
     updateAdminPendingBadge();
-    let ph=pending.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Phone</th><th>Doc</th><th>Action</th></tr></thead><tbody>${pending.map(s=>`<tr><td><strong>${s.shopName}</strong><br><small>${s.city}, ${s.country}</small></td><td>${s.fullName}<br><small>DOB: ${s.dob}</small></td><td>${s.email}<br><small>${s.phone}</small></td><td>${s.docType}<br><small>${s.docNumber}</small></td><td><button class="btn-view-doc" onclick='viewSellerDocument("${s.docImage}","${s.docType}","${s.shopName}")'>📄 View Document</button></td><td><button class="btn-approve" data-id="${s.id}">✅ Approve</button><button class="btn-reject" data-id="${s.id}">❌ Reject</button></td></tr>`).join('')}</tbody></table>`:'<div>No pending KYC</div>';
+    let ph=pending.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Phone</th><th>Doc</th><th>Action</th></tr></thead><tbody>${pending.map(s=>`<td><strong>${s.shopName}</strong><br><small>${s.city}, ${s.country}</small></td><td>${s.fullName}<br><small>DOB: ${s.dob}</small></td><td>${s.email}<br><small>${s.phone}</small></td><td>${s.docType}<br><small>${s.docNumber}</small></td><td><button class="btn-view-doc" onclick='viewSellerDocument("${s.docImage}","${s.docType}","${s.shopName}")'>📄 View Document</button></td><td><button class="btn-approve" data-id="${s.id}">✅ Approve</button><button class="btn-reject" data-id="${s.id}">❌ Reject</button></td></tr>`).join('')}</tbody></table>`:'<div>No pending KYC</div>';
     document.getElementById('pendingKycList').innerHTML=ph;
-    document.getElementById('verifiedSellersList').innerHTML=verified.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Joined</th></table></thead><tbody>${verified.map(s=>`<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td>${new Date(s.id).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`:'No verified';
-    document.getElementById('rejectedSellersList').innerHTML=rejected.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Reason</th></tr></thead><tbody>${rejected.map(s=>`<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td>${s.rejectionReason||'No reason'}</td></tr>`).join('')}</tbody></table>`:'No rejected';
+    document.getElementById('verifiedSellersList').innerHTML=verified.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Joined</th></tr></thead><tbody>${verified.map(s=>`<tr><td colspan="4">🏪 ${s.shopName} - ${s.fullName} - ${s.email} - ${new Date(s.id).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`:'No verified';
+    document.getElementById('rejectedSellersList').innerHTML=rejected.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Reason</th></tr></thead><tbody>${rejected.map(s=>`<tr><td colspan="4">🏪 ${s.shopName} - ${s.fullName} - ${s.email} - ${s.rejectionReason||'No reason'}</td></tr>`).join('')}</tbody></table>`:'No rejected';
     document.querySelectorAll('.btn-approve').forEach(btn=>btn.addEventListener('click',async()=>{let seller=sellers.find(s=>s.id===parseInt(btn.dataset.id));if(seller){seller.kycStatus='verified';saveAll();loadAdminData();showToast(`${seller.shopName} verified`,false);await sendTelegramMessage(`✅ KYC Verified: ${seller.shopName}`);addNotification(`${seller.shopName} KYC verified`,'info');}}));
     document.querySelectorAll('.btn-reject').forEach(btn=>btn.addEventListener('click',async()=>{let reason=prompt("Rejection reason:");if(reason){let seller=sellers.find(s=>s.id===parseInt(btn.dataset.id));if(seller){seller.kycStatus='rejected';seller.rejectionReason=reason;saveAll();loadAdminData();showToast(`${seller.shopName} rejected`,false);await sendTelegramMessage(`❌ KYC Rejected: ${seller.shopName}\nReason: ${reason}`);addNotification(`${seller.shopName} KYC rejected`,'info');}}}));
     document.getElementById('platformEarnings').innerHTML=`<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
