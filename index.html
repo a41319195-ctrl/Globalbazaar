@@ -10,8 +10,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
+    <!-- No storage SDK needed – using ImgBB free API -->
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: linear-gradient(135deg, #f5f7fb 0%, #eef2f8 100%); padding-bottom: 90px; transition: all 0.3s ease; }
@@ -162,7 +162,14 @@
     <div id="buyerSection" class="section active"><div class="cat-scroll" id="catList"></div><div class="search-container"><input type="text" id="searchInput" placeholder="🔍 Search products..."></div><div class="product-grid" id="productsGrid"></div></div>
     <div id="sellerSection" class="section"><div id="sellerRegisterBox" class="premium-card"><h2>🏪 Open Your Shop</h2><form id="sellerRegForm"><input type="file" id="sellerAvatar" accept="image/*" class="input"><input type="text" id="sellerFullName" placeholder="Full Legal Name" class="input" required><input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required><input type="email" id="sellerEmail" placeholder="Email" class="input" required><div class="phone-group"><div class="country-search-select" id="sellerCountrySearchContainer"><input type="text" id="sellerCountrySearch" placeholder="🔍 Search country..." autocomplete="off"><div class="country-dropdown-list" id="sellerCountryDropdown"></div><select id="sellerCountryCode" style="display:none;"></select></div><input type="tel" id="sellerPhone" placeholder="Phone Number" class="input" required></div><div class="otp-section" id="sellerOtpSection"><input type="text" id="sellerOtp" placeholder="Enter OTP" class="input"><button type="button" id="sellerVerifyOtpBtn" class="btn-secondary">Verify OTP</button></div><input type="password" id="sellerPassword" placeholder="Password" class="input" required><label style="font-weight:600; margin-top:10px;">🎂 Date of Birth</label><input type="date" id="sellerDob" class="input" required><h4>📍 Shop Address</h4><input type="text" id="sellerHouseNo" placeholder="House No." class="input" required><input type="text" id="sellerStreet" placeholder="Street" class="input" required><input type="text" id="sellerCity" placeholder="City" class="input" required><input type="text" id="sellerState" placeholder="State" class="input" required><input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required><select id="sellerCountryReg" class="input" required><option value="">Select Country</option></select><div class="doc-section"><div class="doc-title">🌍 KYC Documents</div><select id="sellerDocType" class="input" required><option value="">Select Document Type</option><option value="passport">📘 Passport</option><option value="national_id">🆔 National ID Card</option><option value="driving_license">🚗 Driving License</option><option value="residence_permit">📄 Residence Permit</option></select><input type="text" id="sellerDocNumber" placeholder="Document Number" class="input" required><input type="file" id="sellerDocImage" accept="image/*,application/pdf" class="input" required></div><h4>🏦 Bank Account Details</h4><input type="text" id="sellerBank" placeholder="Bank Name" class="input" required><input type="text" id="sellerAccountNo" placeholder="Account Number" class="input" required><input type="text" id="sellerIfsc" placeholder="IFSC / SWIFT Code" class="input" required><input type="text" id="sellerAccountHolder" placeholder="Account Holder Full Name" class="input" required><div class="checkbox-group"><input type="checkbox" id="sellerAgreement" required><label>I agree to <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label></div><button type="submit" class="btn-primary" id="sellerSubmitBtn" disabled>✅ Register Shop (Verify Phone First)</button></form></div><div id="sellerDashboard" style="display:none;"></div></div>
     <div id="profileSection" class="section"><div id="buyerProfilePanel" style="display:block;"><div class="premium-card"><div class="flex-between"><h2>👋 Guest User</h2><span class="role-badge">Buyer</span></div></div><div class="premium-card"><h3>📜 My Orders</h3><div id="buyerOrdersList"></div></div><div class="premium-card"><h3>❤️ My Wishlist</h3><div id="buyerWishlistList"></div></div></div></div>
-    <div id="adminSection" class="section"><div id="adminPanel" class="premium-card"><h2>⚙️ Admin Dashboard</h2><div id="adminLoginBox"><input type="password" id="adminKey" class="input" placeholder="Enter Admin Key"><button class="btn-primary" id="adminLoginBtn">Login</button></div><div id="adminContent" style="display:none;"><div style="margin-bottom:25px;"><div class="kyc-section-title">⏳ Pending KYC Verification Requests</div><div id="pendingKycList"></div></div><div style="margin-bottom:25px;"><div class="kyc-section-title">✅ Verified Sellers</div><div id="verifiedSellersList"></div></div><div style="margin-bottom:25px;"><div class="kyc-section-title">❌ Rejected Sellers</div><div id="rejectedSellersList"></div></div><div class="flex-between"><h3>💰 Platform Earnings</h3><button id="refreshAdminBtn" style="background:#64748b; padding:8px 16px; border-radius:30px;">Refresh</button></div><div id="platformEarnings"></div><h3>💸 Pending Withdrawals</h3><div id="pendingWithdrawals"></div><h3>📊 All Orders</h3><div id="adminOrdersList"></div></div></div></div>
+    <div id="adminSection" class="section"><div id="adminPanel" class="premium-card"><h2>⚙️ Admin Dashboard</h2><div id="adminLoginBox"><input type="password" id="adminKey" class="input" placeholder="Enter Admin Key"><button class="btn-primary" id="adminLoginBtn">Login</button></div><div id="adminContent" style="display:none;"><div style="margin-bottom:25px;"><div class="kyc-section-title">⏳ Pending KYC Verification Requests</div><div id="pendingKycList"></div></div><div style="margin-bottom:25px;"><div class="kyc-section-title">✅ Verified Sellers</div><div id="verifiedSellersList"></div></div><div style="margin-bottom:25px;"><div class="kyc-section-title">❌ Rejected Sellers</div><div id="rejectedSellersList"></div></div>
+        <!-- ========== PLATFORM EARNINGS SECTION (VISIBLE ALWAYS) ========== -->
+        <div class="flex-between" style="margin: 20px 0 10px;"><h3>💰 Platform Earnings</h3><button id="refreshAdminBtn" style="background:#64748b; padding:8px 16px; border-radius:30px;">Refresh</button></div>
+        <div id="platformEarnings" style="margin-bottom:20px;"><h2>SAR 0.00</h2></div>
+        <!-- ========== END PLATFORM EARNINGS ========== -->
+        <h3>💸 Pending Withdrawals</h3><div id="pendingWithdrawals"></div>
+        <h3>📊 All Orders</h3><div id="adminOrdersList"></div>
+    </div></div></div>
     <div id="cartPageSection" class="section"><div class="premium-card"><h2>🛍️ My Cart</h2><div id="cartItemsList"></div><div id="cartTotal" class="flex-between" style="margin-top:20px; padding-top:20px; border-top:2px solid #e2e8f0;"><h3>Total:</h3><h3 id="cartTotalAmount">SAR 0.00</h3></div><button id="proceedToCheckoutBtn" class="btn-primary" style="margin-top:20px;">Proceed to Checkout</button></div></div>
     <div id="checkoutSection" class="section"><div class="premium-card"><h2>📦 Delivery Details</h2><div id="deliveryForm"><input type="text" id="deliveryFullName" placeholder="Receiver Full Name *" class="input"><div class="phone-group"><div class="country-search-select" id="deliveryCountrySearchContainer"><input type="text" id="deliveryCountrySearch" placeholder="🔍 Search country..." autocomplete="off"><div class="country-dropdown-list" id="deliveryCountryDropdown"></div><select id="deliveryCountryCode" style="display:none;"></select></div><input type="tel" id="deliveryPhone" placeholder="Phone Number *" class="input"></div><select id="deliveryCountry" class="input" required><option value="">Select Country *</option></select><input type="text" id="deliveryCity" placeholder="City *" class="input"><input type="text" id="deliveryPostcode" placeholder="Post Code / ZIP *" class="input"><input type="text" id="deliveryStreet" placeholder="Street Address *" class="input"><input type="text" id="deliveryHouseNo" placeholder="House No. (Optional)" class="input"><div class="checkbox-group"><input type="checkbox" id="saveAddressCheckbox"> <label>Save this address for future</label></div><button id="confirmDeliveryBtn" class="btn-primary">Continue to Payment</button></div></div></div>
     <div id="paymentSection" class="section"><div class="premium-card"><h2>💳 Payment Details</h2><div id="paymentForm"><input type="text" id="cardNumber" placeholder="Card Number *" class="input" maxlength="19"><input type="text" id="cardHolderName" placeholder="Card Holder Name *" class="input"><div class="delivery-form-row"><input type="text" id="expiryDate" placeholder="MM/YY *" maxlength="5"><input type="password" id="cvv" placeholder="CVV *" maxlength="4"></div><div class="checkbox-group"><input type="checkbox" id="saveCardCheckbox"> <label>Save card for next time</label></div><button id="payNowBtn" class="btn-primary">Pay Now</button></div><div id="savedCardsSection" style="margin-top:20px; display:none;"><h4>💳 Saved Cards</h4><div id="savedCardsList"></div></div></div></div>
@@ -180,7 +187,11 @@
 <div class="footer-legal">© 2026 GlobalBazaar Marketplace | <span class="legal-link" onclick="showTerms()">Terms</span> | <span class="legal-link" onclick="showPrivacy()">Privacy</span> | <span class="legal-link" onclick="showSupport()">Support</span></div>
 
 <script>
-// Firebase config
+// ===== CONFIG =====
+// 🔥 REPLACE WITH YOUR IMGBB API KEY (free from imgbb.com)
+const IMGBB_API_KEY = "YOUR_IMGBB_API_KEY";   // <----- PASTE YOUR API KEY HERE
+
+// Firebase config (yours)
 const firebaseConfig = {
     apiKey: "AIzaSyAvbSJkEH3NDNy_SIaf0bJk0hkhknTRhno",
     authDomain: "globalbazaar-2c6cb.firebaseapp.com",
@@ -191,35 +202,36 @@ const firebaseConfig = {
     appId: "1:734113870757:web:653ac103c064685cbaee4c",
     measurementId: "G-NSM7YP4GZG"
 };
-let firebaseInitialized = false, db = null, storage = null, analytics = null;
+let firebaseInitialized = false, db = null, analytics = null;
 try {
     if (typeof firebase !== 'undefined' && firebase.apps && !firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
-        storage = firebase.storage();
         analytics = firebase.analytics();
         firebaseInitialized = true;
         console.log("Firebase ready");
     } else if (typeof firebase !== 'undefined' && firebase.apps.length) {
         db = firebase.firestore();
-        storage = firebase.storage();
         analytics = firebase.analytics();
         firebaseInitialized = true;
     }
 } catch(e) { console.warn(e); }
 
-// Helper: upload file to Firebase Storage and return download URL
-async function uploadFile(file, path) {
-    if (!firebaseInitialized || !storage) {
-        console.warn("Firebase not initialized");
+// Upload image using ImgBB (free, no storage needed)
+async function uploadImage(file) {
+    if (!IMGBB_API_KEY || IMGBB_API_KEY === "YOUR_IMGBB_API_KEY") {
+        alert("Please set your ImgBB API key in the code (get free from imgbb.com)");
         return null;
     }
+    const formData = new FormData();
+    formData.append("image", file);
+    formData.append("key", IMGBB_API_KEY);
     try {
-        const ref = storage.ref().child(path);
-        await ref.put(file);
-        const url = await ref.getDownloadURL();
-        return url;
-    } catch(e) { console.error("Upload error:", e); return null; }
+        const res = await fetch("https://api.imgbb.com/1/upload", { method: "POST", body: formData });
+        const data = await res.json();
+        if (data.success) return data.data.url;
+        else { console.error(data); return null; }
+    } catch(e) { console.error(e); return null; }
 }
 
 // Telegram
@@ -247,24 +259,16 @@ function renderTrackingMap(o){let steps=[{name:'Order Placed',status:o.status!==
 function showDocumentModal(docData,docType,sellerName){let modalImg=document.getElementById('documentModalImg'),modalText=document.getElementById('documentModalText');if(docData&&docData.startsWith('data:image')){modalImg.style.display='block';modalImg.src=docData;modalText.innerHTML=`<strong>${sellerName}</strong><br>Document Type: ${docType}`;}else{modalImg.style.display='none';modalText.innerHTML=`<strong>${sellerName}</strong><br>Document Type: ${docType}<br>No image.`;}document.getElementById('documentModal').style.display='block';}
 function closeDocumentModal(){document.getElementById('documentModal').style.display='none';}
 
-// Country codes (same as before, but shortened for readability – full list present in original)
+// Country codes (shortened for readability)
 const countryCodes = [
     {code:"+91",name:"India",flag:"🇮🇳"},{code:"+92",name:"Pakistan",flag:"🇵🇰"},{code:"+880",name:"Bangladesh",flag:"🇧🇩"},{code:"+977",name:"Nepal",flag:"🇳🇵"},{code:"+94",name:"Sri Lanka",flag:"🇱🇰"},{code:"+60",name:"Malaysia",flag:"🇲🇾"},{code:"+62",name:"Indonesia",flag:"🇮🇩"},{code:"+63",name:"Philippines",flag:"🇵🇭"},{code:"+66",name:"Thailand",flag:"🇹🇭"},{code:"+84",name:"Vietnam",flag:"🇻🇳"},{code:"+86",name:"China",flag:"🇨🇳"},{code:"+81",name:"Japan",flag:"🇯🇵"},{code:"+82",name:"South Korea",flag:"🇰🇷"},
     {code:"+49",name:"Germany",flag:"🇩🇪"},{code:"+33",name:"France",flag:"🇫🇷"},{code:"+44",name:"UK",flag:"🇬🇧"},{code:"+39",name:"Italy",flag:"🇮🇹"},{code:"+34",name:"Spain",flag:"🇪🇸"},{code:"+41",name:"Switzerland",flag:"🇨🇭"},{code:"+31",name:"Netherlands",flag:"🇳🇱"},{code:"+46",name:"Sweden",flag:"🇸🇪"},{code:"+47",name:"Norway",flag:"🇳🇴"},{code:"+45",name:"Denmark",flag:"🇩🇰"},{code:"+358",name:"Finland",flag:"🇫🇮"},{code:"+32",name:"Belgium",flag:"🇧🇪"},{code:"+43",name:"Austria",flag:"🇦🇹"},{code:"+48",name:"Poland",flag:"🇵🇱"},{code:"+420",name:"Czech Republic",flag:"🇨🇿"},{code:"+36",name:"Hungary",flag:"🇭🇺"},{code:"+40",name:"Romania",flag:"🇷🇴"},{code:"+359",name:"Bulgaria",flag:"🇧🇬"},{code:"+30",name:"Greece",flag:"🇬🇷"},{code:"+90",name:"Turkey",flag:"🇹🇷"},
     {code:"+966",name:"Saudi Arabia",flag:"🇸🇦"},{code:"+971",name:"UAE",flag:"🇦🇪"},{code:"+974",name:"Qatar",flag:"🇶🇦"},{code:"+968",name:"Oman",flag:"🇴🇲"},{code:"+965",name:"Kuwait",flag:"🇰🇼"},{code:"+973",name:"Bahrain",flag:"🇧🇭"},
     {code:"+1",name:"USA",flag:"🇺🇸"},{code:"+1",name:"Canada",flag:"🇨🇦"},{code:"+52",name:"Mexico",flag:"🇲🇽"},
-    {code:"+502",name:"Guatemala",flag:"🇬🇹"},{code:"+501",name:"Belize",flag:"🇧🇿"},{code:"+504",name:"Honduras",flag:"🇭🇳"},{code:"+503",name:"El Salvador",flag:"🇸🇻"},{code:"+505",name:"Nicaragua",flag:"🇳🇮"},{code:"+506",name:"Costa Rica",flag:"🇨🇷"},{code:"+507",name:"Panama",flag:"🇵🇦"},{code:"+53",name:"Cuba",flag:"🇨🇺"},{code:"+1",name:"Dominican Republic",flag:"🇩🇴"},{code:"+1",name:"Puerto Rico",flag:"🇵🇷"},{code:"+1",name:"Jamaica",flag:"🇯🇲"},{code:"+1",name:"Trinidad & Tobago",flag:"🇹🇹"},{code:"+1",name:"Bahamas",flag:"🇧🇸"},{code:"+1",name:"Barbados",flag:"🇧🇧"},{code:"+1",name:"St Lucia",flag:"🇱🇨"},{code:"+1",name:"Grenada",flag:"🇬🇩"},{code:"+1",name:"Antigua",flag:"🇦🇬"},
-    {code:"+55",name:"Brazil",flag:"🇧🇷"},{code:"+54",name:"Argentina",flag:"🇦🇷"},{code:"+57",name:"Colombia",flag:"🇨🇴"},{code:"+56",name:"Chile",flag:"🇨🇱"},{code:"+51",name:"Peru",flag:"🇵🇪"},{code:"+58",name:"Venezuela",flag:"🇻🇪"},{code:"+593",name:"Ecuador",flag:"🇪🇨"},{code:"+591",name:"Bolivia",flag:"🇧🇴"},{code:"+595",name:"Paraguay",flag:"🇵🇾"},{code:"+598",name:"Uruguay",flag:"🇺🇾"},{code:"+592",name:"Guyana",flag:"🇬🇾"},{code:"+597",name:"Suriname",flag:"🇸🇷"},
-    {code:"+61",name:"Australia",flag:"🇦🇺"},{code:"+64",name:"New Zealand",flag:"🇳🇿"},{code:"+679",name:"Fiji",flag:"🇫🇯"},{code:"+675",name:"Papua New Guinea",flag:"🇵🇬"},{code:"+677",name:"Solomon Islands",flag:"🇸🇧"},{code:"+678",name:"Vanuatu",flag:"🇻🇺"},{code:"+685",name:"Samoa",flag:"🇼🇸"},{code:"+676",name:"Tonga",flag:"🇹🇴"},{code:"+691",name:"Micronesia",flag:"🇫🇲"},{code:"+692",name:"Marshall Islands",flag:"🇲🇭"},{code:"+680",name:"Palau",flag:"🇵🇼"},{code:"+674",name:"Nauru",flag:"🇳🇷"},{code:"+686",name:"Kiribati",flag:"🇰🇮"},{code:"+688",name:"Tuvalu",flag:"🇹🇻"}
+    {code:"+55",name:"Brazil",flag:"🇧🇷"},{code:"+54",name:"Argentina",flag:"🇦🇷"},{code:"+57",name:"Colombia",flag:"🇨🇴"},{code:"+56",name:"Chile",flag:"🇨🇱"},{code:"+51",name:"Peru",flag:"🇵🇪"},{code:"+58",name:"Venezuela",flag:"🇻🇪"},{code:"+593",name:"Ecuador",flag:"🇪🇨"},{code:"+591",name:"Bolivia",flag:"🇧🇴"},{code:"+595",name:"Paraguay",flag:"🇵🇾"},{code:"+598",name:"Uruguay",flag:"🇺🇾"},
+    {code:"+61",name:"Australia",flag:"🇦🇺"},{code:"+64",name:"New Zealand",flag:"🇳🇿"}
 ];
-const shippingCountries = [
-    "India","Pakistan","Bangladesh","Nepal","Sri Lanka","Malaysia","Indonesia","Philippines","Thailand","Vietnam","China","Japan","South Korea",
-    "Germany","France","UK","Italy","Spain","Switzerland","Netherlands","Sweden","Norway","Denmark","Finland","Belgium","Austria","Poland","Czech Republic","Hungary","Romania","Bulgaria","Greece","Turkey",
-    "Saudi Arabia","UAE","Qatar","Oman","Kuwait","Bahrain",
-    "USA","Canada","Mexico","Guatemala","Belize","Honduras","El Salvador","Nicaragua","Costa Rica","Panama","Cuba","Dominican Republic","Puerto Rico","Jamaica","Trinidad & Tobago","Bahamas","Barbados","St Lucia","Grenada","Antigua",
-    "Brazil","Argentina","Colombia","Chile","Peru","Venezuela","Ecuador","Bolivia","Paraguay","Uruguay","Guyana","Suriname",
-    "Australia","New Zealand","Fiji","Papua New Guinea","Solomon Islands","Vanuatu","Samoa","Tonga","Micronesia","Marshall Islands","Palau","Nauru","Kiribati","Tuvalu"
-];
+const shippingCountries = ["India","Pakistan","Bangladesh","Nepal","Sri Lanka","Malaysia","Indonesia","Philippines","Thailand","Vietnam","China","Japan","South Korea","Germany","France","UK","Italy","Spain","Switzerland","Netherlands","Sweden","Norway","Denmark","Finland","Belgium","Austria","Poland","Czech Republic","Hungary","Romania","Bulgaria","Greece","Turkey","Saudi Arabia","UAE","Qatar","Oman","Kuwait","Bahrain","USA","Canada","Mexico","Brazil","Argentina","Colombia","Chile","Peru","Venezuela","Ecuador","Bolivia","Paraguay","Uruguay","Australia","New Zealand"];
 function initCountrySearch(inputId,dropdownId,selectId){let inp=document.getElementById(inputId),dd=document.getElementById(dropdownId),sel=document.getElementById(selectId);if(!inp||!dd)return;countryCodes.forEach(c=>{let opt=document.createElement('option');opt.value=c.code;opt.text=`${c.flag} ${c.name} (${c.code})`;sel.appendChild(opt);});function show(){let search=inp.value.toLowerCase();let filt=countryCodes.filter(c=>c.name.toLowerCase().includes(search)||c.code.includes(search));dd.innerHTML=filt.map(c=>`<div data-code="${c.code}">${c.flag} ${c.name} (${c.code})</div>`).join('');dd.style.display='block';dd.querySelectorAll('div').forEach(div=>div.addEventListener('click',()=>{inp.value=div.innerText;sel.value=div.dataset.code;dd.style.display='none';}));}inp.addEventListener('focus',show);inp.addEventListener('input',show);document.addEventListener('click',(e)=>{if(!inp.contains(e.target)&&!dd.contains(e.target))dd.style.display='none';});}
 initCountrySearch('deliveryCountrySearch','deliveryCountryDropdown','deliveryCountryCode');
 initCountrySearch('sellerCountrySearch','sellerCountryDropdown','sellerCountryCode');
@@ -293,7 +297,7 @@ function calculateFinalPrice(basePrice,sellerCountry,buyerCountry){let shipping=
 
 // Products
 let products = [
-    {id:101,sellerId:0,sellerName:"GlobalBazaar",name:"Wireless Headphones",price:89.99,category:"Electronics",sellerCountry:"SA",rating:4.8,mainImage:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400",images:["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400","https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400"],description:"Premium wireless headphones",stock:10},
+    {id:101,sellerId:0,sellerName:"GlobalBazaar",name:"Wireless Headphones",price:89.99,category:"Electronics",sellerCountry:"SA",rating:4.8,mainImage:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400",images:["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400"],description:"Premium wireless headphones",stock:10},
     {id:102,sellerId:0,sellerName:"GlobalBazaar",name:"Cotton T-Shirt",price:24.99,category:"Textile",sellerCountry:"SA",rating:4.5,mainImage:"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400",images:["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400"],description:"100% combed cotton",stock:25},
     {id:103,sellerId:0,sellerName:"GlobalBazaar",name:"Matte Lipstick Set",price:29.99,category:"Cosmetic",sellerCountry:"SA",rating:4.9,mainImage:"https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400",images:["https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400"],description:"Long-lasting set",stock:15}
 ];
@@ -319,7 +323,6 @@ let currentCategory="All";
 function renderCats(){let cats=["All",...new Set(products.map(p=>p.category))];document.getElementById('catList').innerHTML=cats.map(c=>`<div class="cat-pill ${currentCategory===c?'active':''}" data-cat="${c}">${c}</div>`).join('');document.querySelectorAll('.cat-pill').forEach(el=>el.addEventListener('click',(e)=>{currentCategory=e.target.dataset.cat;renderCats();renderProducts();}));}
 function renderProducts(){
     let search=document.getElementById('searchInput')?.value.toLowerCase()||"";
-    // Only show products with stock > 0 (sold out hidden)
     let filtered=products.filter(p=>(currentCategory==="All"||p.category===currentCategory)&&p.name.toLowerCase().includes(search) && p.stock>0);
     let sellerMap=new Map(sellers.map(s=>[s.id,s]));
     let html=filtered.map(p=>{
@@ -441,18 +444,19 @@ ${seller.kycStatus==="verified"?`
             let stock=parseInt(document.getElementById('prodStock').value);
             let desc=document.getElementById('prodDesc').value;
             if(!name||!price||!stock){showToast("Name, price, stock required",true);return;}
-            let mainImgFile=document.getElementById('prodMainImg').files[0];
-            if(!mainImgFile){showToast("Main image required",true);return;}
-            let mainImgUrl=await uploadFile(mainImgFile, `products/${Date.now()}_main_${mainImgFile.name}`);
-            if(!mainImgUrl){showToast("Image upload failed",true);return;}
+            let mainFile=document.getElementById('prodMainImg').files[0];
+            if(!mainFile){showToast("Main image required",true);return;}
+            let mainUrl=await uploadImage(mainFile);
+            if(!mainUrl){showToast("Image upload failed. Check API key",true);return;}
             let additionalFiles=document.getElementById('prodImagesFiles').files;
             let additionalUrls=[];
-            for(let i=0;i<Math.min(additionalFiles.length,4);i++){
-                let url=await uploadFile(additionalFiles[i], `products/${Date.now()}_add_${i}_${additionalFiles[i].name}`);
+            for(let f of additionalFiles){
+                if(additionalUrls.length>=4) break;
+                let url=await uploadImage(f);
                 if(url) additionalUrls.push(url);
             }
-            let images=[mainImgUrl, ...additionalUrls];
-            let newProduct={id:Date.now(),sellerId:seller.id,sellerName:seller.shopName,name,price,category:cat,mainImage:mainImgUrl,images:images,description:desc||"",sellerCountry:seller.country,rating:0,stock:stock};
+            let images=[mainUrl, ...additionalUrls];
+            let newProduct={id:Date.now(),sellerId:seller.id,sellerName:seller.shopName,name,price,category:cat,mainImage:mainUrl,images:images,description:desc||"",sellerCountry:seller.country,rating:0,stock:stock};
             products.push(newProduct);
             saveAll();
             renderSellerDashboard();
@@ -480,7 +484,7 @@ ${seller.kycStatus==="verified"?`
                 prod.description=document.getElementById('editProdDesc').value;
                 let newMain=document.getElementById('editMainImg').files[0];
                 if(newMain){
-                    let mainUrl=await uploadFile(newMain, `products/${Date.now()}_main_${newMain.name}`);
+                    let mainUrl=await uploadImage(newMain);
                     if(mainUrl){
                         prod.mainImage=mainUrl;
                         prod.images[0]=mainUrl;
@@ -490,10 +494,10 @@ ${seller.kycStatus==="verified"?`
                 if(newExtra.length>0){
                     let extraUrls=[];
                     for(let i=0;i<Math.min(newExtra.length,4);i++){
-                        let url=await uploadFile(newExtra[i], `products/${Date.now()}_add_${i}_${newExtra[i].name}`);
+                        let url=await uploadImage(newExtra[i]);
                         if(url) extraUrls.push(url);
                     }
-                    prod.images=[prod.mainImage, ...extraUrls];
+                    if(extraUrls.length) prod.images=[prod.mainImage, ...extraUrls];
                 }
                 saveAll();
                 renderSellerDashboard();
@@ -520,10 +524,11 @@ function loadAdminData(){
     updateAdminPendingBadge();
     let ph=pending.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Phone</th><th>Doc</th><th>Action</th></tr></thead><tbody>${pending.map(s=>`<tr><td><strong>${s.shopName}</strong><br><small>${s.city}, ${s.country}</small></td><td>${s.fullName}<br><small>DOB: ${s.dob}</small></td><td>${s.email}<br><small>${s.phone}</small></td><td>${s.docType}<br><small>${s.docNumber}</small></td><td><button class="btn-view-doc" onclick='viewSellerDocument("${s.docImage}","${s.docType}","${s.shopName}")'>📄 View Document</button></td><td><button class="btn-approve" data-id="${s.id}">✅ Approve</button><button class="btn-reject" data-id="${s.id}">❌ Reject</button></td></tr>`).join('')}</tbody></table>`:'<div>No pending KYC</div>';
     document.getElementById('pendingKycList').innerHTML=ph;
-    document.getElementById('verifiedSellersList').innerHTML=verified.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Joined</th></tr></thead><tbody>${verified.map(s=>`<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td>${new Date(s.id).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`:'No verified';
-    document.getElementById('rejectedSellersList').innerHTML=rejected.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Reason</th></tr></thead><tbody>${rejected.map(s=>`<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td>${s.rejectionReason||'No reason'}</td></tr>`).join('')}</tbody></table>`:'No rejected';
+    document.getElementById('verifiedSellersList').innerHTML=verified.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Joined</th></tr></thead><tbody>${verified.map(s=>`<tr><td colspan="4">🏪 ${s.shopName} - ${s.fullName} - ${s.email} - ${new Date(s.id).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`:'No verified';
+    document.getElementById('rejectedSellersList').innerHTML=rejected.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Reason</th></tr></thead><tbody>${rejected.map(s=>`<tr><td colspan="4">🏪 ${s.shopName} - ${s.fullName} - ${s.email} - ${s.rejectionReason||'No reason'}</td></tr>`).join('')}</tbody></table>`:'No rejected';
     document.querySelectorAll('.btn-approve').forEach(btn=>btn.addEventListener('click',async()=>{let seller=sellers.find(s=>s.id===parseInt(btn.dataset.id));if(seller){seller.kycStatus='verified';saveAll();loadAdminData();showToast(`${seller.shopName} verified`,false);await sendTelegramMessage(`✅ KYC Verified: ${seller.shopName}`);addNotification(`${seller.shopName} KYC verified`,'info');}}));
     document.querySelectorAll('.btn-reject').forEach(btn=>btn.addEventListener('click',async()=>{let reason=prompt("Rejection reason:");if(reason){let seller=sellers.find(s=>s.id===parseInt(btn.dataset.id));if(seller){seller.kycStatus='rejected';seller.rejectionReason=reason;saveAll();loadAdminData();showToast(`${seller.shopName} rejected`,false);await sendTelegramMessage(`❌ KYC Rejected: ${seller.shopName}\nReason: ${reason}`);addNotification(`${seller.shopName} KYC rejected`,'info');}}}));
+    // Show platform earnings
     document.getElementById('platformEarnings').innerHTML=`<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
     document.getElementById('pendingWithdrawals').innerHTML=pendingWithdrawals.map(w=>`<div class="order-card"><span>💰 ${getCurrencySymbol()}${convertPrice(w.amount)} - ${w.sellerName}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981;">Approve</button></div>`).join('');
     document.querySelectorAll('.approveBtn').forEach(btn=>btn.addEventListener('click',async()=>{let w=pendingWithdrawals.find(w=>w.id===parseInt(btn.dataset.id));if(w){w.status='Approved';saveAll();loadAdminData();showToast(`Approved ${getCurrencySymbol()}${convertPrice(w.amount)}`,false);await sendTelegramMessage(`💰 Withdrawal Approved: ${w.sellerName} - ${getCurrencySymbol()}${convertPrice(w.amount)}`);addNotification(`Withdrawal approved for ${w.sellerName}`,'payment');}}));
@@ -552,7 +557,7 @@ document.getElementById('cardNumber')?.addEventListener('input',function(e){let 
 document.getElementById('expiryDate')?.addEventListener('input',function(e){let v=e.target.value.replace(/\//g,'');if(v.length>=2)v=v.slice(0,2)+'/'+v.slice(2,4);e.target.value=v;});
 function closeEditModal(){document.getElementById('editProductModal').style.display='none';}
 renderCats();renderProducts();updateCartUI();updateNotificationUI();updateAdminPendingBadge();
-console.log("✅ GlobalBazaar fully loaded with file upload for product images, stock management, sold out.");
+console.log("✅ GlobalBazaar ready with ImgBB image upload. Add your API key at the top.");
 </script>
 </body>
 </html>
