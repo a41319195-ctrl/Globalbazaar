@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>GlobalBazaar - Complete Marketplace (FIXED)</title>
+    <title>GlobalBazaar - Auto Compress Images</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://js.stripe.com/v3/"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-functions-compat.js"></script>
     <style>
-        /* ===== FULL CSS (same as before, kept intact) ===== */
+        /* ===== FULL CSS (same as working version) ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: linear-gradient(135deg, #f5f7fb 0%, #eef2f8 100%); padding-bottom: 90px; transition: all 0.3s ease; }
         body.dark-mode { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f1f5f9; }
@@ -196,18 +195,79 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-const functions = firebase.functions();
 
-// ========== STRIPE (placeholder) ==========
-let stripe = null;
+// ========== IMAGE COMPRESSION UTILITY ==========
+// Compresses an image file to a max width/height and quality, returns a Blob (JPEG)
+function compressImage(file, maxSizeMB = 0.5, maxWidth = 1024, maxHeight = 1024) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (e) => {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                let width = img.width;
+                let height = img.height;
+                let quality = 0.7; // start with good quality
 
-// ========== DEFAULT PRODUCTS (seed if empty) ==========
+                // Resize if too large
+                if (width > maxWidth || height > maxHeight) {
+                    const ratio = Math.min(maxWidth / width, maxHeight / height);
+                    width = width * ratio;
+                    height = height * ratio;
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Try to achieve target size by reducing quality iteratively
+                let attempt = 0;
+                const maxAttempts = 5;
+                const tryQuality = (q) => {
+                    canvas.toBlob((blob) => {
+                        const sizeMB = blob.size / (1024 * 1024);
+                        if (sizeMB <= maxSizeMB || attempt >= maxAttempts) {
+                            resolve(blob);
+                        } else {
+                            attempt++;
+                            tryQuality(q * 0.85);
+                        }
+                    }, 'image/jpeg', q);
+                };
+                tryQuality(quality);
+            };
+            img.onerror = reject;
+        };
+        reader.onerror = reject;
+    });
+}
+
+// Upload compressed image to ImgBB and return URL
+async function uploadCompressedImage(file, type = 'image') {
+    try {
+        const compressedBlob = await compressImage(file);
+        const formData = new FormData();
+        formData.append('image', compressedBlob, `${type}_compressed.jpg`);
+        formData.append('key', '99fb186efa7e996b0ce95f1ea83f90ab');
+        const res = await fetch('https://api.imgbb.com/1/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success) return data.data.url;
+        else throw new Error('ImgBB upload failed');
+    } catch (err) {
+        console.error(err);
+        return null;
+    }
+}
+
+// ========== DEFAULT PRODUCTS SEED ==========
 const defaultProducts = [
     { sellerId: 0, sellerName: "GlobalBazaar", name: "Wireless Headphones", price: 89.99, category: "Electronics", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400"], description: "Premium wireless headphones", stock: 10 },
     { sellerId: 0, sellerName: "GlobalBazaar", name: "Cotton T-Shirt", price: 24.99, category: "Textile", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", images: ["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400"], description: "100% combed cotton", stock: 25 },
     { sellerId: 0, sellerName: "GlobalBazaar", name: "Matte Lipstick Set", price: 29.99, category: "Cosmetic", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400", images: ["https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400"], description: "Long-lasting set", stock: 15 }
 ];
-
 async function seedProductsIfEmpty() {
     const snapshot = await db.collection("products").get();
     if (snapshot.empty) {
@@ -217,7 +277,7 @@ async function seedProductsIfEmpty() {
 }
 seedProductsIfEmpty();
 
-// ========== GLOBAL VARIABLES ==========
+// ========== GLOBAL VARIABLES & HELPERS (similar to previous working version) ==========
 let products = [];
 let sellers = [];
 let currentSeller = null;
@@ -233,32 +293,18 @@ let selectedCurrency = localStorage.getItem('selectedCurrency') || 'SAR';
 let buyerCountry = localStorage.getItem('buyerCountry') || 'SA';
 let sellerRevenueChart = null;
 
-// Helper: ImgBB & Telegram
-const IMGBB_API_KEY = "99fb186efa7e996b0ce95f1ea83f90ab";
 const TELEGRAM_BOT_TOKEN = "8328824652:AAE-b4o6DaFDa9WPtZfrOfM7SYGU9gUa9HQ";
 const TELEGRAM_CHAT_ID = "7111653640";
-
-async function uploadImage(file) {
-    const formData = new FormData();
-    formData.append("image", file);
-    formData.append("key", IMGBB_API_KEY);
-    try {
-        const res = await fetch("https://api.imgbb.com/1/upload", { method: "POST", body: formData });
-        const data = await res.json();
-        return data.success ? data.data.url : null;
-    } catch(e) { console.error(e); return null; }
-}
-
 async function sendTelegramMessage(msg) {
     try {
         await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg, parse_mode: 'HTML' })
         });
-    } catch(e) { console.warn(e); }
+    } catch(e) {}
 }
 
-// ========== NOTIFICATIONS ==========
+// Notification functions
 function addNotification(msg, type = 'info') {
     let n = { id: Date.now(), message: msg, type, date: new Date().toLocaleString(), read: false };
     notifications.unshift(n);
@@ -267,26 +313,20 @@ function addNotification(msg, type = 'info') {
     updateNotificationUI();
     showToast(msg, false);
 }
-
 function updateNotificationUI() {
     let unread = notifications.filter(n => !n.read).length;
-    let countSpan = document.getElementById('notificationCount');
-    if (countSpan) countSpan.innerText = unread;
+    document.getElementById('notificationCount').innerText = unread;
     let html = notifications.map(n => `<div class="notification-item" data-id="${n.id}" style="${n.read ? 'opacity:0.6' : ''}"><strong>${n.type === 'order' ? '🛍️' : (n.type === 'payment' ? '💰' : 'ℹ️')}</strong> ${n.message}<br><small>${n.date}</small></div>`).join('');
     if (notifications.length === 0) html = '<div style="padding:20px;text-align:center;">No notifications</div>';
-    let listDiv = document.getElementById('notificationsList');
-    if (listDiv) listDiv.innerHTML = html;
-    document.querySelectorAll('.notification-item').forEach(el => {
-        el.addEventListener('click', () => {
-            let id = parseInt(el.dataset.id);
-            let nf = notifications.find(n => n.id === id);
-            if (nf) nf.read = true;
-            localStorage.setItem('gb_notifications', JSON.stringify(notifications));
-            updateNotificationUI();
-        });
-    });
+    document.getElementById('notificationsList').innerHTML = html;
+    document.querySelectorAll('.notification-item').forEach(el => el.addEventListener('click', () => {
+        let id = parseInt(el.dataset.id);
+        let nf = notifications.find(n => n.id === id);
+        if (nf) nf.read = true;
+        localStorage.setItem('gb_notifications', JSON.stringify(notifications));
+        updateNotificationUI();
+    }));
 }
-
 document.getElementById('notificationBell')?.addEventListener('click', () => {
     let p = document.getElementById('notificationPanel');
     if (p) p.style.display = p.style.display === 'block' ? 'none' : 'block';
@@ -307,7 +347,7 @@ function toggleDarkMode() {
 }
 document.getElementById('drawerDarkModeToggle')?.addEventListener('click', () => { toggleDarkMode(); closeDrawer(); });
 
-// Reviews (localStorage)
+// Reviews
 let productReviews = JSON.parse(localStorage.getItem('gb_reviews')) || {};
 function renderReviewStars(containerId, onRatingSelect) {
     let cont = document.getElementById(containerId);
@@ -366,7 +406,7 @@ function showDocumentModal(docData, docType, sellerName) {
 }
 function closeDocumentModal() { document.getElementById('documentModal').style.display = 'none'; }
 
-// Country codes (full list - abbreviated here for space, but functional)
+// Country codes (abbreviated for brevity - same as before)
 const countryCodes = [
     {code:"+91",name:"India",flag:"🇮🇳"},{code:"+92",name:"Pakistan",flag:"🇵🇰"},{code:"+880",name:"Bangladesh",flag:"🇧🇩"},{code:"+977",name:"Nepal",flag:"🇳🇵"},{code:"+94",name:"Sri Lanka",flag:"🇱🇰"},{code:"+60",name:"Malaysia",flag:"🇲🇾"},{code:"+62",name:"Indonesia",flag:"🇮🇩"},{code:"+63",name:"Philippines",flag:"🇵🇭"},{code:"+66",name:"Thailand",flag:"🇹🇭"},{code:"+84",name:"Vietnam",flag:"🇻🇳"},{code:"+86",name:"China",flag:"🇨🇳"},{code:"+81",name:"Japan",flag:"🇯🇵"},{code:"+82",name:"South Korea",flag:"🇰🇷"},
     {code:"+49",name:"Germany",flag:"🇩🇪"},{code:"+33",name:"France",flag:"🇫🇷"},{code:"+44",name:"UK",flag:"🇬🇧"},{code:"+39",name:"Italy",flag:"🇮🇹"},{code:"+34",name:"Spain",flag:"🇪🇸"},{code:"+41",name:"Switzerland",flag:"🇨🇭"},{code:"+31",name:"Netherlands",flag:"🇳🇱"},{code:"+46",name:"Sweden",flag:"🇸🇪"},{code:"+47",name:"Norway",flag:"🇳🇴"},{code:"+45",name:"Denmark",flag:"🇩🇰"},{code:"+358",name:"Finland",flag:"🇫🇮"},{code:"+32",name:"Belgium",flag:"🇧🇪"},{code:"+43",name:"Austria",flag:"🇦🇹"},{code:"+48",name:"Poland",flag:"🇵🇱"},{code:"+420",name:"Czech Republic",flag:"🇨🇿"},{code:"+36",name:"Hungary",flag:"🇭🇺"},{code:"+40",name:"Romania",flag:"🇷🇴"},{code:"+359",name:"Bulgaria",flag:"🇧🇬"},{code:"+30",name:"Greece",flag:"🇬🇷"},{code:"+90",name:"Turkey",flag:"🇹🇷"},
@@ -413,7 +453,7 @@ function getShippingCost(sellerCountry,buyerCountry){ if(sellerCountry===buyerCo
 const PLATFORM_COMMISSION=0.05, GATEWAY_FEE=0.025, HANDLING_FEE=2;
 function calculateFinalPrice(basePrice,sellerCountry,buyerCountry){ let shipping=getShippingCost(sellerCountry,buyerCountry); let commission=basePrice*PLATFORM_COMMISSION; let gateway=basePrice*GATEWAY_FEE; return { total: basePrice+commission+gateway+shipping+HANDLING_FEE, basePrice, shipping, commission, gateway }; }
 
-// ========== FIRESTORE REAL-TIME LISTENERS ==========
+// ========== FIRESTORE LISTENERS ==========
 db.collection("products").onSnapshot(snapshot => {
     products = [];
     snapshot.forEach(doc => { products.push({ id: doc.id, ...doc.data() }); });
@@ -429,7 +469,6 @@ db.collection("sellers").onSnapshot(snapshot => {
         let stillExists = sellers.find(s => s.id === currentSeller.sellerId);
         if (stillExists && stillExists.kycStatus === 'verified') renderSellerDashboard();
         else if (stillExists && stillExists.kycStatus !== 'verified') {
-            // seller not verified yet, clear dashboard
             document.getElementById('sellerDashboard').style.display = 'none';
             document.getElementById('sellerRegisterBox').style.display = 'block';
             currentSeller = null;
@@ -589,82 +628,76 @@ function requestWithdrawal(sellerId){ let seller = sellers.find(s => s.id == sel
 function processWeeklyWithdrawals(){ let last = localStorage.getItem('gb_last_withdrawal'); let now = new Date(); let day = now.getDay(); if((day===1||day===5) && (!last || new Date(last).getDate() !== now.getDate())){ pendingWithdrawals.forEach(w => { if(w.status === "Pending") w.status = "Approved"; }); saveAllLocal(); localStorage.setItem('gb_last_withdrawal', now.toString()); } }
 setInterval(processWeeklyWithdrawals, 3600000); processWeeklyWithdrawals();
 
-// ========== SELLER REGISTRATION (FIXED: MODAL + NOTIFICATION) ==========
+// ========== SELLER REGISTRATION WITH COMPRESSION ==========
 document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if(!sellerPhoneVerified){ showToast("Verify phone first",true); return; }
     if(!document.getElementById('sellerAgreement').checked){ showToast("Accept agreement",true); return; }
     let dob = document.getElementById('sellerDob').value;
     if(calculateAge(dob) < 18){ showToast("18+ required",true); return; }
-    let docImg = document.getElementById('sellerDocImage').files[0];
-    if(!docImg){ showToast("KYC document image required",true); return; }
+    let docImgFile = document.getElementById('sellerDocImage').files[0];
+    if(!docImgFile){ showToast("KYC document image required",true); return; }
     let docNum = document.getElementById('sellerDocNumber').value;
     if(!docNum.trim()){ showToast("Document number required",true); return; }
     let docType = document.getElementById('sellerDocType').value;
     if(!docType){ showToast("Select document type",true); return; }
+    let avatarFile = document.getElementById('sellerAvatar').files[0];
     let countryCodeSel = document.getElementById('sellerCountryCode');
     let countryCode = countryCodeSel.value || "+91";
-    let docReader = new FileReader();
-    docReader.onload = async (docEv) => {
-        let docData = docEv.target.result;
-        let avatarFile = document.getElementById('sellerAvatar').files[0];
-        let avatarData = "https://randomuser.me/api/portraits/lego/1.jpg";
-        if(avatarFile){
-            let avReader = new FileReader();
-            avReader.onload = async (avEv) => { await saveSellerDataFirestore(avEv.target.result, docData, countryCode); };
-            avReader.readAsDataURL(avatarFile);
-        } else { await saveSellerDataFirestore(avatarData, docData, countryCode); }
-    };
-    docReader.readAsDataURL(docImg);
-});
 
-async function saveSellerDataFirestore(avatarData, docImageData, countryCode){
-    document.getElementById('debugMsg').innerText = "Saving seller...";
-    let newSeller = {
-        fullName: document.getElementById('sellerFullName').value,
-        shopName: document.getElementById('sellerShopName').value,
-        email: document.getElementById('sellerEmail').value,
-        phone: countryCode + document.getElementById('sellerPhone').value,
-        password: document.getElementById('sellerPassword').value,
-        dob: document.getElementById('sellerDob').value,
-        houseNo: document.getElementById('sellerHouseNo').value,
-        street: document.getElementById('sellerStreet').value,
-        city: document.getElementById('sellerCity').value,
-        state: document.getElementById('sellerState').value,
-        pincode: document.getElementById('sellerPincode').value,
-        country: document.getElementById('sellerCountryReg').value,
-        docType: document.getElementById('sellerDocType').value,
-        docNumber: document.getElementById('sellerDocNumber').value,
-        docImage: docImageData,
-        bankName: document.getElementById('sellerBank').value,
-        accountNo: document.getElementById('sellerAccountNo').value,
-        ifsc: document.getElementById('sellerIfsc').value,
-        accountHolder: document.getElementById('sellerAccountHolder').value,
-        earnings: 0, kycStatus: "pending", totalSales: 0, totalWithdrawn: 0,
-        createdAt: new Date().toISOString(),
-        avatar: avatarData
-    };
+    showToast("Compressing and uploading images...", false);
+    document.getElementById('debugMsg').innerText = "Compressing images...";
+
     try {
+        let avatarUrl = "https://randomuser.me/api/portraits/lego/1.jpg";
+        if (avatarFile) {
+            avatarUrl = await uploadCompressedImage(avatarFile, 'avatar');
+            if (!avatarUrl) throw new Error("Avatar upload failed");
+        }
+        let docImageUrl = await uploadCompressedImage(docImgFile, 'kyc');
+        if (!docImageUrl) throw new Error("KYC document upload failed");
+
+        let newSeller = {
+            fullName: document.getElementById('sellerFullName').value,
+            shopName: document.getElementById('sellerShopName').value,
+            email: document.getElementById('sellerEmail').value,
+            phone: countryCode + document.getElementById('sellerPhone').value,
+            password: document.getElementById('sellerPassword').value,
+            dob: document.getElementById('sellerDob').value,
+            houseNo: document.getElementById('sellerHouseNo').value,
+            street: document.getElementById('sellerStreet').value,
+            city: document.getElementById('sellerCity').value,
+            state: document.getElementById('sellerState').value,
+            pincode: document.getElementById('sellerPincode').value,
+            country: document.getElementById('sellerCountryReg').value,
+            docType: docType,
+            docNumber: docNum,
+            docImage: docImageUrl,   // store only URL, not base64
+            bankName: document.getElementById('sellerBank').value,
+            accountNo: document.getElementById('sellerAccountNo').value,
+            ifsc: document.getElementById('sellerIfsc').value,
+            accountHolder: document.getElementById('sellerAccountHolder').value,
+            earnings: 0, kycStatus: "pending", totalSales: 0, totalWithdrawn: 0,
+            createdAt: new Date().toISOString(),
+            avatar: avatarUrl
+        };
         await db.collection("sellers").add(newSeller);
+        // reset form
         document.getElementById('sellerRegForm').reset();
         sellerPhoneVerified = false;
         document.getElementById('sellerSubmitBtn').disabled = true;
         document.getElementById('sellerSubmitBtn').innerHTML = '✅ Register Shop (Verify Phone First)';
         sendTelegramMessage(`🏪 New Seller: ${newSeller.shopName}\nEmail: ${newSeller.email}\nKYC Pending`).catch(e=>console.warn);
         addNotification(`New seller ${newSeller.shopName} registered! Pending KYC.`, 'info');
-        // Show modal immediately
         let modal = document.getElementById('sellerSummaryModal');
-        if(modal) {
-            modal.style.display = 'block';
-            document.getElementById('debugMsg').innerText = "Modal opened";
-        } else {
-            alert("Registration successful! Your shop is under review.");
-        }
-    } catch(e){
-        console.error(e);
-        showToast("Registration failed: " + e.message, true);
+        if(modal) modal.style.display = 'block';
+        document.getElementById('debugMsg').innerText = "Registration successful!";
+    } catch(err) {
+        console.error(err);
+        showToast("Registration failed: " + err.message, true);
+        document.getElementById('debugMsg').innerText = "Error: " + err.message;
     }
-}
+});
 
 function showMyShopLogin(){
     let verified = sellers.filter(s => s.kycStatus === 'verified');
@@ -720,11 +753,11 @@ ${seller.kycStatus === "verified" ? `
             if(!name || !price || !stock){ showToast("Name, price, stock required", true); return; }
             let mainFile = document.getElementById('prodMainImg').files[0];
             if(!mainFile){ showToast("Main image required", true); return; }
-            let mainUrl = await uploadImage(mainFile);
+            let mainUrl = await uploadCompressedImage(mainFile);
             if(!mainUrl){ showToast("Image upload failed", true); return; }
             let additionalFiles = document.getElementById('prodImagesFiles').files;
             let additionalUrls = [];
-            for(let f of additionalFiles){ if(additionalUrls.length >= 4) break; let url = await uploadImage(f); if(url) additionalUrls.push(url); }
+            for(let f of additionalFiles){ if(additionalUrls.length >= 4) break; let url = await uploadCompressedImage(f); if(url) additionalUrls.push(url); }
             let images = [mainUrl, ...additionalUrls];
             let newProduct = { sellerId: seller.id, sellerName: seller.shopName, name, price, category: cat, mainImage: mainUrl, images, description: desc || "", sellerCountry: seller.country, rating: 0, stock: stock };
             await db.collection("products").add(newProduct);
@@ -741,9 +774,9 @@ ${seller.kycStatus === "verified" ? `
             let prodRef = db.collection("products").doc(pid);
             let updates = { name: document.getElementById('editProdName').value, price: parseFloat(document.getElementById('editProdPrice').value), category: document.getElementById('editProdCat').value, stock: parseInt(document.getElementById('editProdStock').value), description: document.getElementById('editProdDesc').value };
             let newMain = document.getElementById('editMainImg').files[0];
-            if(newMain){ let mainUrl = await uploadImage(newMain); if(mainUrl){ updates.mainImage = mainUrl; updates.images = [mainUrl, ...(updates.images || [])]; } }
+            if(newMain){ let mainUrl = await uploadCompressedImage(newMain); if(mainUrl){ updates.mainImage = mainUrl; updates.images = [mainUrl, ...(updates.images || [])]; } }
             let newExtra = document.getElementById('editExtraImgs').files;
-            if(newExtra.length > 0){ let extraUrls = []; for(let i=0;i<Math.min(newExtra.length,4);i++){ let url = await uploadImage(newExtra[i]); if(url) extraUrls.push(url); } if(extraUrls.length) updates.images = [updates.mainImage || (await prodRef.get()).data().mainImage, ...extraUrls]; }
+            if(newExtra.length > 0){ let extraUrls = []; for(let i=0;i<Math.min(newExtra.length,4);i++){ let url = await uploadCompressedImage(newExtra[i]); if(url) extraUrls.push(url); } if(extraUrls.length) updates.images = [updates.mainImage || (await prodRef.get()).data().mainImage, ...extraUrls]; }
             await prodRef.update(updates);
             renderSellerDashboard(); renderProducts(); showToast("Product updated", false); document.getElementById('editProductModal').style.display = 'none';
         });
@@ -825,7 +858,7 @@ function loadAdminData(){
 }
 document.getElementById('adminLoginBtn')?.addEventListener('click', () => { if(document.getElementById('adminKey').value === 'admin123'){ document.getElementById('adminLoginBox').style.display='none'; document.getElementById('adminContent').style.display='block'; loadAdminData(); showToast("Admin logged in", false); } else showToast("Wrong key", true); });
 document.getElementById('refreshAdminBtn')?.addEventListener('click', loadAdminData);
-window.viewSellerDocument = function(docImage, docType, sellerName){ if(docImage && docImage.startsWith('data:image')){ let modalImg = document.getElementById('documentModalImg'), modalText = document.getElementById('documentModalText'); modalImg.style.display = 'block'; modalImg.src = docImage; modalText.innerHTML = `<strong>${sellerName}</strong><br>Document Type: ${docType}`; document.getElementById('documentModal').style.display = 'block'; } else { alert(`No image for ${sellerName}`); } };
+window.viewSellerDocument = function(docImage, docType, sellerName){ if(docImage && docImage.startsWith('http')){ window.open(docImage, '_blank'); } else { alert(`No image available for ${sellerName}`); } };
 function showSection(section){ document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.getElementById(section+"Section").classList.add('active'); }
 document.getElementById('drawerBuyer')?.addEventListener('click', () => { showSection('buyer'); closeDrawer(); });
 document.getElementById('drawerSeller')?.addEventListener('click', () => { showSection('seller'); document.getElementById('sellerRegisterBox').style.display='block'; document.getElementById('sellerDashboard').style.display='none'; closeDrawer(); });
@@ -871,7 +904,7 @@ document.getElementById('goToMyShopBtn')?.addEventListener('click', () => { clos
 
 // Initial render
 renderCats(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge();
-document.getElementById('debugMsg').innerText = "All systems ready. Stripe backend pending.";
+document.getElementById('debugMsg').innerHTML = "Auto image compress active | Stripe pending";
 </script>
 </body>
 </html>
