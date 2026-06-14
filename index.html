@@ -12,7 +12,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
     <style>
-        /* (same CSS as before - to save space I'm not repeating but you can keep your existing CSS) */
+        /* ===== CSS (same as before, keeping all styles) ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: linear-gradient(135deg, #f5f7fb 0%, #eef2f8 100%); padding-bottom: 90px; transition: all 0.3s ease; }
         body.dark-mode { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f1f5f9; }
@@ -138,6 +138,7 @@
         .image-preview { position: relative; width: 70px; height: 70px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
         .image-preview img { width: 100%; height: 100%; object-fit: cover; }
         .image-preview .remove-img { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.6); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .debug-status { position: fixed; bottom: 10px; left: 10px; background: #000000aa; color: #0f0; padding: 4px 8px; border-radius: 8px; font-size: 10px; z-index: 9999; pointer-events: none; }
         @media (max-width: 600px) {
             .brand-3d { font-size: 18px; }
             .logo-3d { font-size: 24px; }
@@ -151,6 +152,7 @@
     </style>
 </head>
 <body>
+<div class="debug-status" id="debugMsg">Initializing Firestore...</div>
 <div class="header-3d">
     <div class="header-left"><button class="menu-icon-3d" id="menuBtn">☰</button><div class="brand-3d">GLOBALBAZAAR</div><div class="logo-3d">🌍</div></div>
     <div class="header-right"><button class="notification-bell" id="notificationBell">🔔<span class="notification-badge" id="notificationCount">0</span></button><select id="currencySelect" class="currency-dropdown"><option value="SAR">🇸🇦 SAR</option><option value="USD">🇺🇸 USD $</option><option value="EUR">🇪🇺 EUR €</option><option value="GBP">🇬🇧 GBP £</option><option value="INR">🇮🇳 INR ₹</option><option value="PKR">🇵🇰 PKR ₨</option><option value="NPR">🇳🇵 NPR रू</option><option value="BDT">🇧🇩 BDT ৳</option><option value="LKR">🇱🇰 LKR Rs</option><option value="AED">🇦🇪 AED د.إ</option><option value="CAD">🇨🇦 CAD $</option><option value="AUD">🇦🇺 AUD $</option><option value="SGD">🇸🇬 SGD $</option><option value="MYR">🇲🇾 MYR RM</option><option value="THB">🇹🇭 THB ฿</option><option value="JPY">🇯🇵 JPY ¥</option><option value="CNY">🇨🇳 CNY ¥</option></select></div>
@@ -185,8 +187,7 @@
 <div class="footer-legal">© 2026 GlobalBazaar Marketplace | <span class="legal-link" onclick="showTerms()">Terms</span> | <span class="legal-link" onclick="showPrivacy()">Privacy</span> | <span class="legal-link" onclick="showSupport()">Support</span></div>
 
 <script>
-// ===== CONFIG =====
-const IMGBB_API_KEY = "99fb186efa7e996b0ce95f1ea83f90ab";
+// ===== FIREBASE & FIRESTORE SETUP (for cross-device KYC) =====
 const firebaseConfig = {
     apiKey: "AIzaSyAvbSJkEH3NDNy_SIaf0bJk0hkhknTRhno",
     authDomain: "globalbazaar-2c6cb.firebaseapp.com",
@@ -197,20 +198,80 @@ const firebaseConfig = {
     appId: "1:734113870757:web:653ac103c064685cbaee4c",
     measurementId: "G-NSM7YP4GZG"
 };
-let firebaseInitialized = false, db = null, analytics = null;
-try {
-    if (typeof firebase !== 'undefined' && firebase.apps && !firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-        db = firebase.firestore();
-        analytics = firebase.analytics();
-        firebaseInitialized = true;
-    } else if (typeof firebase !== 'undefined' && firebase.apps.length) {
-        db = firebase.firestore();
-        analytics = firebase.analytics();
-        firebaseInitialized = true;
-    }
-} catch(e) { console.warn(e); }
+let db = null;
+let sellersListener = null;
 
+// Initialize Firebase
+try {
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    db = firebase.firestore();
+    console.log("Firestore initialized");
+    document.getElementById('debugMsg').innerText = "Firestore ready";
+} catch(e) {
+    console.error("Firebase init error", e);
+    document.getElementById('debugMsg').innerText = "Firebase error";
+}
+
+// Global sellers array (sync from Firestore)
+let sellers = [];
+
+// Start real-time listener for sellers collection
+function startSellersListener() {
+    if (!db) return;
+    if (sellersListener) sellersListener();
+    sellersListener = db.collection("sellers").onSnapshot((snapshot) => {
+        sellers = [];
+        snapshot.forEach(doc => {
+            sellers.push({ id: doc.id, ...doc.data() });
+        });
+        console.log("Sellers updated from Firestore:", sellers.length);
+        updateAdminPendingBadge();      // update badge in drawer
+        if (document.getElementById('adminContent') && document.getElementById('adminContent').style.display === 'block') {
+            loadAdminData();            // if admin logged in, refresh UI
+        }
+        // Also refresh notification UI if needed
+        updateNotificationUI();
+    }, (error) => {
+        console.error("Firestore listen error:", error);
+        document.getElementById('debugMsg').innerText = "Firestore error: check rules";
+    });
+}
+
+// Save seller to Firestore
+async function saveSellerToFirestore(sellerData) {
+    if (!db) return false;
+    try {
+        const docRef = await db.collection("sellers").add(sellerData);
+        console.log("Seller saved to Firestore with ID:", docRef.id);
+        return true;
+    } catch(e) {
+        console.error("Firestore save error:", e);
+        document.getElementById('debugMsg').innerText = "Save failed: check permissions";
+        return false;
+    }
+}
+
+// Update seller KYC status in Firestore
+async function updateSellerKYC(sellerId, newStatus, reason = "") {
+    if (!db) return false;
+    try {
+        await db.collection("sellers").doc(sellerId).update({
+            kycStatus: newStatus,
+            rejectionReason: reason || null,
+            updatedAt: new Date().toISOString()
+        });
+        console.log(`Seller ${sellerId} updated to ${newStatus}`);
+        return true;
+    } catch(e) {
+        console.error("Update error:", e);
+        return false;
+    }
+}
+
+// ===== CONFIG & HELPERS (rest of the code) =====
+const IMGBB_API_KEY = "99fb186efa7e996b0ce95f1ea83f90ab";
 async function uploadImage(file) {
     const formData = new FormData();
     formData.append("image", file);
@@ -247,7 +308,7 @@ function renderTrackingMap(o){let steps=[{name:'Order Placed',status:o.status!==
 function showDocumentModal(docData,docType,sellerName){let modalImg=document.getElementById('documentModalImg'),modalText=document.getElementById('documentModalText');if(docData&&docData.startsWith('data:image')){modalImg.style.display='block';modalImg.src=docData;modalText.innerHTML=`<strong>${sellerName}</strong><br>Document Type: ${docType}`;}else{modalImg.style.display='none';modalText.innerHTML=`<strong>${sellerName}</strong><br>Document Type: ${docType}<br>No image.`;}document.getElementById('documentModal').style.display='block';}
 function closeDocumentModal(){document.getElementById('documentModal').style.display='none';}
 
-// Country codes
+// Country codes (full list as before)
 const countryCodes = [
     {code:"+91",name:"India",flag:"🇮🇳"},{code:"+92",name:"Pakistan",flag:"🇵🇰"},{code:"+880",name:"Bangladesh",flag:"🇧🇩"},{code:"+977",name:"Nepal",flag:"🇳🇵"},{code:"+94",name:"Sri Lanka",flag:"🇱🇰"},{code:"+60",name:"Malaysia",flag:"🇲🇾"},{code:"+62",name:"Indonesia",flag:"🇮🇩"},{code:"+63",name:"Philippines",flag:"🇵🇭"},{code:"+66",name:"Thailand",flag:"🇹🇭"},{code:"+84",name:"Vietnam",flag:"🇻🇳"},{code:"+86",name:"China",flag:"🇨🇳"},{code:"+81",name:"Japan",flag:"🇯🇵"},{code:"+82",name:"South Korea",flag:"🇰🇷"},
     {code:"+49",name:"Germany",flag:"🇩🇪"},{code:"+33",name:"France",flag:"🇫🇷"},{code:"+44",name:"UK",flag:"🇬🇧"},{code:"+39",name:"Italy",flag:"🇮🇹"},{code:"+34",name:"Spain",flag:"🇪🇸"},{code:"+41",name:"Switzerland",flag:"🇨🇭"},{code:"+31",name:"Netherlands",flag:"🇳🇱"},{code:"+46",name:"Sweden",flag:"🇸🇪"},{code:"+47",name:"Norway",flag:"🇳🇴"},{code:"+45",name:"Denmark",flag:"🇩🇰"},{code:"+358",name:"Finland",flag:"🇫🇮"},{code:"+32",name:"Belgium",flag:"🇧🇪"},{code:"+43",name:"Austria",flag:"🇦🇹"},{code:"+48",name:"Poland",flag:"🇵🇱"},{code:"+420",name:"Czech Republic",flag:"🇨🇿"},{code:"+36",name:"Hungary",flag:"🇭🇺"},{code:"+40",name:"Romania",flag:"🇷🇴"},{code:"+359",name:"Bulgaria",flag:"🇧🇬"},{code:"+30",name:"Greece",flag:"🇬🇷"},{code:"+90",name:"Turkey",flag:"🇹🇷"},
@@ -283,15 +344,14 @@ function getShippingCost(sellerCountry,buyerCountry){if(sellerCountry===buyerCou
 const PLATFORM_COMMISSION=0.05,GATEWAY_FEE=0.025,HANDLING_FEE=2;
 function calculateFinalPrice(basePrice,sellerCountry,buyerCountry){let shipping=getShippingCost(sellerCountry,buyerCountry);let commission=basePrice*PLATFORM_COMMISSION;let gateway=basePrice*GATEWAY_FEE;return{total:basePrice+commission+gateway+shipping+HANDLING_FEE,basePrice,shipping,commission,gateway};}
 
-// Data
+// Data (products, cart, orders remain in localStorage)
 let products = [
     {id:101,sellerId:0,sellerName:"GlobalBazaar",name:"Wireless Headphones",price:89.99,category:"Electronics",sellerCountry:"SA",rating:4.8,mainImage:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400",images:["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400"],description:"Premium wireless headphones",stock:10},
     {id:102,sellerId:0,sellerName:"GlobalBazaar",name:"Cotton T-Shirt",price:24.99,category:"Textile",sellerCountry:"SA",rating:4.5,mainImage:"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400",images:["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400"],description:"100% combed cotton",stock:25},
     {id:103,sellerId:0,sellerName:"GlobalBazaar",name:"Matte Lipstick Set",price:29.99,category:"Cosmetic",sellerCountry:"SA",rating:4.9,mainImage:"https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400",images:["https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400"],description:"Long-lasting set",stock:15}
 ];
-let sellers=[], currentSeller=null, cart=JSON.parse(localStorage.getItem('gb_cart'))||[], wishlist=JSON.parse(localStorage.getItem('gb_wishlist'))||[], orders=JSON.parse(localStorage.getItem('gb_orders'))||[], platformEarnings=JSON.parse(localStorage.getItem('gb_platform_earnings'))||0, pendingWithdrawals=JSON.parse(localStorage.getItem('gb_pending_withdrawals'))||[], savedCards=JSON.parse(localStorage.getItem('gb_saved_cards'))||[], savedAddresses=JSON.parse(localStorage.getItem('gb_saved_addresses'))||[], sellerRevenueChart=null;
+let currentSeller=null, cart=JSON.parse(localStorage.getItem('gb_cart'))||[], wishlist=JSON.parse(localStorage.getItem('gb_wishlist'))||[], orders=JSON.parse(localStorage.getItem('gb_orders'))||[], platformEarnings=JSON.parse(localStorage.getItem('gb_platform_earnings'))||0, pendingWithdrawals=JSON.parse(localStorage.getItem('gb_pending_withdrawals'))||[], savedCards=JSON.parse(localStorage.getItem('gb_saved_cards'))||[], savedAddresses=JSON.parse(localStorage.getItem('gb_saved_addresses'))||[], sellerRevenueChart=null;
 let savedSeller=localStorage.getItem('gb_current_seller');if(savedSeller&&savedSeller!=='null'){try{currentSeller=JSON.parse(savedSeller);}catch(e){}}
-let savedSellers=localStorage.getItem('gb_sellers');if(savedSellers&&savedSellers!=='null'){try{sellers=JSON.parse(savedSellers);}catch(e){}}
 let storedProducts = localStorage.getItem('gb_products');
 if(storedProducts){ try{ let parsed=JSON.parse(storedProducts); if(parsed.length) products=parsed; }catch(e){} }
 
@@ -302,18 +362,14 @@ function updateAdminPendingBadge(){
         if(pendingCount > 0){
             badge.style.display = 'inline-block';
             badge.innerText = pendingCount;
-            console.log("🛡️ Admin badge shown with count:", pendingCount);
         } else {
             badge.style.display = 'none';
-            console.log("🛡️ Admin badge hidden, no pending sellers.");
         }
-    } else {
-        console.warn("Admin badge element not found!");
     }
 }
 
-function saveAll(){
-    localStorage.setItem('gb_sellers', JSON.stringify(sellers));
+function saveAllLocal(){
+    // Save only local data (cart, orders, etc.) not sellers
     localStorage.setItem('gb_products', JSON.stringify(products));
     localStorage.setItem('gb_cart', JSON.stringify(cart));
     localStorage.setItem('gb_wishlist', JSON.stringify(wishlist));
@@ -323,7 +379,6 @@ function saveAll(){
     localStorage.setItem('gb_saved_cards', JSON.stringify(savedCards));
     localStorage.setItem('gb_saved_addresses', JSON.stringify(savedAddresses));
     if(currentSeller) localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
-    updateAdminPendingBadge();
 }
 
 function showToast(msg,isError){ let t=document.getElementById('toast'); t.innerText=msg; t.style.backgroundColor=isError?'#dc2626':'#10b981'; t.style.display='block'; setTimeout(()=>t.style.display='none',3000); }
@@ -391,41 +446,41 @@ function openProduct(id){
 function addToCart(id){
     let p=products.find(x=>x.id===id); if(!p) return; if(p.stock<=0){showToast("Out of stock!",true); return;}
     let existing=cart.find(i=>i.id===id); if(existing){ if(existing.qty<p.stock) existing.qty++; else{showToast(`Only ${p.stock} in stock`,true); return;} } else { cart.push({id:p.id,name:p.name,price:p.price,sellerId:p.sellerId,sellerCountry:p.sellerCountry||"SA",qty:1,image:p.mainImage}); }
-    saveAll(); updateCartUI(); renderCartPage(); showToast("Added to cart",false); addNotification(`${p.name} added to cart`,'info');
+    saveAllLocal(); updateCartUI(); renderCartPage(); showToast("Added to cart",false); addNotification(`${p.name} added to cart`,'info');
 }
 function updateCartUI(){ document.getElementById('cartCountBadge').innerText=cart.reduce((a,b)=>a+b.qty,0); }
-function toggleWish(id){ if(wishlist.includes(id)) wishlist=wishlist.filter(i=>i!==id); else wishlist.push(id); saveAll(); renderProducts(); renderBuyerWishlist(); }
+function toggleWish(id){ if(wishlist.includes(id)) wishlist=wishlist.filter(i=>i!==id); else wishlist.push(id); saveAllLocal(); renderProducts(); renderBuyerWishlist(); }
 function renderCartPage(){
     if(cart.length===0){ document.getElementById('cartItemsList').innerHTML='<p style="text-align:center;padding:40px;">Cart empty</p>'; document.getElementById('cartTotalAmount').innerHTML=`${getCurrencySymbol()}0.00`; return; }
     let totalUSD=0;
     let html=cart.map((item,idx)=>{ let seller=sellers.find(s=>s.id===item.sellerId)||{country:"SA"}; let final=calculateFinalPrice(item.price,seller.country,buyerCountry); let itemTotal=final.total*item.qty; totalUSD+=itemTotal; return `<div class="cart-item"><div><strong>${item.name}</strong><br>${getCurrencySymbol()}${convertPrice(final.total)} each</div><div class="cart-item-controls"><button class="cart-qty-btn" data-idx="${idx}" data-dir="dec">-</button><span>${item.qty}</span><button class="cart-qty-btn" data-idx="${idx}" data-dir="inc">+</button><button class="cart-remove" data-idx="${idx}">Remove</button></div></div>`; }).join('');
     document.getElementById('cartItemsList').innerHTML=html;
     document.getElementById('cartTotalAmount').innerHTML=`${getCurrencySymbol()}${convertPrice(totalUSD)}`;
-    document.querySelectorAll('.cart-qty-btn').forEach(btn=>btn.addEventListener('click',()=>{ let idx=parseInt(btn.dataset.idx); if(btn.dataset.dir==='inc'){ let prod=products.find(p=>p.id===cart[idx].id); if(cart[idx].qty<prod.stock) cart[idx].qty++; else showToast(`Only ${prod.stock} in stock`,true); } else if(btn.dataset.dir==='dec'&&cart[idx].qty>1) cart[idx].qty--; else if(btn.dataset.dir==='dec'&&cart[idx].qty===1) cart.splice(idx,1); saveAll(); updateCartUI(); renderCartPage(); renderProducts(); }));
-    document.querySelectorAll('.cart-remove').forEach(btn=>btn.addEventListener('click',()=>{ cart.splice(parseInt(btn.dataset.idx),1); saveAll(); updateCartUI(); renderCartPage(); renderProducts(); }));
+    document.querySelectorAll('.cart-qty-btn').forEach(btn=>btn.addEventListener('click',()=>{ let idx=parseInt(btn.dataset.idx); if(btn.dataset.dir==='inc'){ let prod=products.find(p=>p.id===cart[idx].id); if(cart[idx].qty<prod.stock) cart[idx].qty++; else showToast(`Only ${prod.stock} in stock`,true); } else if(btn.dataset.dir==='dec'&&cart[idx].qty>1) cart[idx].qty--; else if(btn.dataset.dir==='dec'&&cart[idx].qty===1) cart.splice(idx,1); saveAllLocal(); updateCartUI(); renderCartPage(); renderProducts(); }));
+    document.querySelectorAll('.cart-remove').forEach(btn=>btn.addEventListener('click',()=>{ cart.splice(parseInt(btn.dataset.idx),1); saveAllLocal(); updateCartUI(); renderCartPage(); renderProducts(); }));
 }
 let currentDelivery=null;
 document.getElementById('proceedToCheckoutBtn')?.addEventListener('click',()=>{ if(cart.length===0){showToast("Cart empty",true);return;} showSection('checkout'); let savedAddr=savedAddresses.find(a=>a.email==="guest@globalbazaar.com"); if(savedAddr){ document.getElementById('deliveryFullName').value=savedAddr.fullName||''; document.getElementById('deliveryPhone').value=savedAddr.phone||''; document.getElementById('deliveryCountry').value=savedAddr.country||''; document.getElementById('deliveryCity').value=savedAddr.city||''; document.getElementById('deliveryPostcode').value=savedAddr.postcode||''; document.getElementById('deliveryStreet').value=savedAddr.street||''; document.getElementById('deliveryHouseNo').value=savedAddr.houseNo||''; document.getElementById('saveAddressCheckbox').checked=true; } });
-document.getElementById('confirmDeliveryBtn')?.addEventListener('click',()=>{ let fn=document.getElementById('deliveryFullName').value,ph=document.getElementById('deliveryPhone').value,c=document.getElementById('deliveryCountry').value,ci=document.getElementById('deliveryCity').value,pc=document.getElementById('deliveryPostcode').value,st=document.getElementById('deliveryStreet').value; if(!fn||!ph||!c||!ci||!pc||!st){ showToast("Fill all fields!",true); return; } buyerCountry=c; localStorage.setItem('buyerCountry',buyerCountry); currentDelivery={fullName:fn,phone:ph,country:c,city:ci,postcode:pc,street:st,houseNo:document.getElementById('deliveryHouseNo').value,fullAddress:`${document.getElementById('deliveryHouseNo').value||''}, ${st}, ${ci}, ${pc}, ${c}`}; if(document.getElementById('saveAddressCheckbox').checked){ let idx=savedAddresses.findIndex(a=>a.email==="guest@globalbazaar.com"); let addr={email:"guest@globalbazaar.com",fullName:fn,phone:ph,country:c,city:ci,postcode:pc,street:st,houseNo:document.getElementById('deliveryHouseNo').value}; if(idx>=0) savedAddresses[idx]=addr; else savedAddresses.push(addr); saveAll(); } showSection('payment'); loadSavedCards(); });
+document.getElementById('confirmDeliveryBtn')?.addEventListener('click',()=>{ let fn=document.getElementById('deliveryFullName').value,ph=document.getElementById('deliveryPhone').value,c=document.getElementById('deliveryCountry').value,ci=document.getElementById('deliveryCity').value,pc=document.getElementById('deliveryPostcode').value,st=document.getElementById('deliveryStreet').value; if(!fn||!ph||!c||!ci||!pc||!st){ showToast("Fill all fields!",true); return; } buyerCountry=c; localStorage.setItem('buyerCountry',buyerCountry); currentDelivery={fullName:fn,phone:ph,country:c,city:ci,postcode:pc,street:st,houseNo:document.getElementById('deliveryHouseNo').value,fullAddress:`${document.getElementById('deliveryHouseNo').value||''}, ${st}, ${ci}, ${pc}, ${c}`}; if(document.getElementById('saveAddressCheckbox').checked){ let idx=savedAddresses.findIndex(a=>a.email==="guest@globalbazaar.com"); let addr={email:"guest@globalbazaar.com",fullName:fn,phone:ph,country:c,city:ci,postcode:pc,street:st,houseNo:document.getElementById('deliveryHouseNo').value}; if(idx>=0) savedAddresses[idx]=addr; else savedAddresses.push(addr); saveAllLocal(); } showSection('payment'); loadSavedCards(); });
 function loadSavedCards(){ let userCards=savedCards.filter(c=>c.userEmail==="guest@globalbazaar.com"); if(userCards.length>0){ document.getElementById('savedCardsSection').style.display='block'; document.getElementById('savedCardsList').innerHTML=userCards.map((card,idx)=>`<div class="flex-between"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}">Use</button></div>`).join(''); document.querySelectorAll('.useSavedCardBtn').forEach(btn=>btn.addEventListener('click',()=>{ let card=userCards[parseInt(btn.dataset.idx)]; document.getElementById('cardNumber').value=card.cardNumber; document.getElementById('cardHolderName').value=card.cardHolderName; document.getElementById('expiryDate').value=card.expiryDate; document.getElementById('cvv').value=''; showToast("Card loaded",false); })); } }
-document.getElementById('payNowBtn')?.addEventListener('click',async()=>{ let cardNum=document.getElementById('cardNumber').value.replace(/\s/g,''),cardName=document.getElementById('cardHolderName').value,expiry=document.getElementById('expiryDate').value,cvv=document.getElementById('cvv').value; if(!cardNum||!cardName||!expiry||!cvv){ showToast("Fill card details",true); return; } if(cardNum.length<15){ showToast("Invalid card",true); return; } if(cvv.length<3){ showToast("Invalid CVV",true); return; } if(document.getElementById('saveCardCheckbox').checked){ let existing=savedCards.findIndex(c=>c.userEmail==="guest@globalbazaar.com"&&c.cardNumber===cardNum); let cardData={userEmail:"guest@globalbazaar.com",cardNumber:cardNum,cardHolderName:cardName,expiryDate:expiry}; if(existing>=0) savedCards[existing]=cardData; else savedCards.push(cardData); saveAll(); }
+document.getElementById('payNowBtn')?.addEventListener('click',async()=>{ let cardNum=document.getElementById('cardNumber').value.replace(/\s/g,''),cardName=document.getElementById('cardHolderName').value,expiry=document.getElementById('expiryDate').value,cvv=document.getElementById('cvv').value; if(!cardNum||!cardName||!expiry||!cvv){ showToast("Fill card details",true); return; } if(cardNum.length<15){ showToast("Invalid card",true); return; } if(cvv.length<3){ showToast("Invalid CVV",true); return; } if(document.getElementById('saveCardCheckbox').checked){ let existing=savedCards.findIndex(c=>c.userEmail==="guest@globalbazaar.com"&&c.cardNumber===cardNum); let cardData={userEmail:"guest@globalbazaar.com",cardNumber:cardNum,cardHolderName:cardName,expiryDate:expiry}; if(existing>=0) savedCards[existing]=cardData; else savedCards.push(cardData); saveAllLocal(); }
 let totalUSD=cart.reduce((sum,item)=>{ let seller=sellers.find(s=>s.id===item.sellerId); let final=calculateFinalPrice(item.price,seller?.country||"SA",buyerCountry); return sum+(final.total*item.qty); },0);
 let tracking="GB"+Date.now();
 let cartCopy = [...cart];
 for(let item of cart){ let seller=sellers.find(s=>s.id===item.sellerId); let final=calculateFinalPrice(item.price,seller?.country||"SA",buyerCountry); let newOrder={id:Date.now()+Math.random(),trackingNumber:tracking,sellerId:item.sellerId,sellerName:item.sellerName,buyerEmail:"guest@globalbazaar.com",buyerName:currentDelivery.fullName,productName:item.name,amount:final.total,basePrice:item.price,address:currentDelivery.fullAddress,date:new Date().toLocaleString(),status:"Processing",qty:item.qty,shippingCost:final.shipping,commission:final.commission,trackingInfo:null}; orders.push(newOrder); platformEarnings+=final.commission*item.qty;
 let prod=products.find(p=>p.id===item.id); if(prod){ prod.stock-=item.qty; if(prod.stock===0){ addNotification(`Product ${prod.name} is now SOLD OUT! Please restock.`,'info'); sendTelegramMessage(`⚠️ Product ${prod.name} (${prod.sellerName}) is out of stock.`); } } }
-saveAll(); await sendTelegramMessage(`🛍️ NEW ORDER!\nOrder: ${tracking}\nCustomer: ${currentDelivery.fullName}\nAmount: ${getCurrencySymbol()}${convertPrice(totalUSD)}`); addNotification(`Order placed! #${tracking}`,'order'); cart=[]; saveAll(); updateCartUI(); let last4 = cardNum.slice(-4); let itemsHtml = cartCopy.map(i => `<li>${i.name} x${i.qty} = ${getCurrencySymbol()}${convertPrice(i.price * i.qty)}</li>`).join('');
+saveAllLocal(); await sendTelegramMessage(`🛍️ NEW ORDER!\nOrder: ${tracking}\nCustomer: ${currentDelivery.fullName}\nAmount: ${getCurrencySymbol()}${convertPrice(totalUSD)}`); addNotification(`Order placed! #${tracking}`,'order'); cart=[]; saveAllLocal(); updateCartUI(); let last4 = cardNum.slice(-4); let itemsHtml = cartCopy.map(i => `<li>${i.name} x${i.qty} = ${getCurrencySymbol()}${convertPrice(i.price * i.qty)}</li>`).join('');
 document.getElementById('orderSummaryContent').innerHTML = `<p><strong>Order ID:</strong> ${tracking}</p><h3>📦 Items</h3><ul>${itemsHtml}</ul><h3>💰 Total Paid: ${getCurrencySymbol()}${convertPrice(totalUSD)}</h3><h3>👤 Delivery Details</h3><p>${currentDelivery.fullName}<br>${currentDelivery.phone}<br>${currentDelivery.fullAddress}</p><h3>💳 Payment</h3><p>Card ending: ${last4}</p><p>🔮 We'll notify you when your order ships.</p>`;
 document.getElementById('orderSummaryModal').style.display='block';
 document.getElementById('cardNumber').value=''; document.getElementById('cardHolderName').value=''; document.getElementById('expiryDate').value=''; document.getElementById('cvv').value=''; renderProducts(); });
-function confirmOrderReceived(orderId){ let order=orders.find(o=>o.id===orderId); if(order&&order.status==="Shipped"){ order.status="Delivered"; saveAll(); showToast("Order marked Delivered",false); renderBuyerOrders(); addNotification(`Order ${order.trackingNumber} delivered`,'order'); setTimeout(()=>{ let ord=orders.find(o=>o.id===orderId); if(ord&&ord.status==="Delivered"){ ord.status="Completed"; let seller=sellers.find(s=>s.id===ord.sellerId); if(seller){ let sellerEarning=ord.basePrice-ord.shippingCost-HANDLING_FEE; seller.earnings=(seller.earnings||0)+(sellerEarning*ord.qty); saveAll(); showToast(`Payment released to seller`,false); if(currentSeller) renderSellerDashboard(); } } },5000); } else showToast("Order not shipped yet",true); }
-function cancelOrder(orderId){ let order=orders.find(o=>o.id===orderId); if(order&&order.status==="Processing"){ let prod=products.find(p=>p.name===order.productName&&p.sellerId===order.sellerId); if(prod){ prod.stock+=order.qty; saveAll(); } order.status="Cancelled"; saveAll(); showToast("Order cancelled successfully",false); renderBuyerOrders(); renderProducts(); addNotification(`Order ${order.trackingNumber} cancelled`,'order'); if(currentSeller) renderSellerDashboard(); } else { showToast("Only orders in 'Processing' status can be cancelled",true); } }
-function markOrderShipped(orderId,trackingNum){ let order=orders.find(o=>o.id===orderId); if(order&&order.status==="Processing"){ order.status="Shipped"; order.trackingInfo=trackingNum; saveAll(); showToast(`Order Shipped! Tracking: ${trackingNum}`,false); renderSellerDashboard(); renderBuyerOrders(); addNotification(`Your order ${order.trackingNumber} shipped`,'order'); } }
-function requestWithdrawal(sellerId){ let seller=sellers.find(s=>s.id===sellerId); if(seller&&seller.earnings>0){ let newWithdrawal={id:Date.now(),sellerId:seller.id,sellerName:seller.shopName,amount:seller.earnings,bank:seller.bankName,account:seller.accountNo,ifsc:seller.ifsc,date:new Date().toLocaleString(),status:"Pending"}; pendingWithdrawals.push(newWithdrawal); seller.earnings=0; saveAll(); showToast("Withdrawal request submitted",false); renderSellerDashboard(); sendTelegramMessage(`💰 Withdrawal Request: ${seller.shopName} - ${getCurrencySymbol()}${convertPrice(newWithdrawal.amount)}`); addNotification(`Withdrawal request for ${getCurrencySymbol()}${convertPrice(newWithdrawal.amount)}`,'payment'); } else showToast("No balance",true); }
-function processWeeklyWithdrawals(){ let last=localStorage.getItem('gb_last_withdrawal'); let now=new Date(); let day=now.getDay(); if((day===1||day===5)&&(!last||new Date(last).getDate()!==now.getDate())){ pendingWithdrawals.forEach(w=>{ if(w.status==="Pending") w.status="Approved"; }); saveAll(); localStorage.setItem('gb_last_withdrawal',now.toString()); } }
+function confirmOrderReceived(orderId){ let order=orders.find(o=>o.id===orderId); if(order&&order.status==="Shipped"){ order.status="Delivered"; saveAllLocal(); showToast("Order marked Delivered",false); renderBuyerOrders(); addNotification(`Order ${order.trackingNumber} delivered`,'order'); setTimeout(()=>{ let ord=orders.find(o=>o.id===orderId); if(ord&&ord.status==="Delivered"){ ord.status="Completed"; let seller=sellers.find(s=>s.id===ord.sellerId); if(seller){ let sellerEarning=ord.basePrice-ord.shippingCost-HANDLING_FEE; seller.earnings=(seller.earnings||0)+(sellerEarning*ord.qty); // Firestore update not needed for earnings (local only) saveAllLocal(); showToast(`Payment released to seller`,false); if(currentSeller) renderSellerDashboard(); } } },5000); } else showToast("Order not shipped yet",true); }
+function cancelOrder(orderId){ let order=orders.find(o=>o.id===orderId); if(order&&order.status==="Processing"){ let prod=products.find(p=>p.name===order.productName&&p.sellerId===order.sellerId); if(prod){ prod.stock+=order.qty; saveAllLocal(); } order.status="Cancelled"; saveAllLocal(); showToast("Order cancelled successfully",false); renderBuyerOrders(); renderProducts(); addNotification(`Order ${order.trackingNumber} cancelled`,'order'); if(currentSeller) renderSellerDashboard(); } else { showToast("Only orders in 'Processing' status can be cancelled",true); } }
+function markOrderShipped(orderId,trackingNum){ let order=orders.find(o=>o.id===orderId); if(order&&order.status==="Processing"){ order.status="Shipped"; order.trackingInfo=trackingNum; saveAllLocal(); showToast(`Order Shipped! Tracking: ${trackingNum}`,false); renderSellerDashboard(); renderBuyerOrders(); addNotification(`Your order ${order.trackingNumber} shipped`,'order'); } }
+function requestWithdrawal(sellerId){ let seller=sellers.find(s=>s.id===sellerId); if(seller&&seller.earnings>0){ let newWithdrawal={id:Date.now(),sellerId:seller.id,sellerName:seller.shopName,amount:seller.earnings,bank:seller.bankName,account:seller.accountNo,ifsc:seller.ifsc,date:new Date().toLocaleString(),status:"Pending"}; pendingWithdrawals.push(newWithdrawal); seller.earnings=0; saveAllLocal(); showToast("Withdrawal request submitted",false); renderSellerDashboard(); sendTelegramMessage(`💰 Withdrawal Request: ${seller.shopName} - ${getCurrencySymbol()}${convertPrice(newWithdrawal.amount)}`); addNotification(`Withdrawal request for ${getCurrencySymbol()}${convertPrice(newWithdrawal.amount)}`,'payment'); } else showToast("No balance",true); }
+function processWeeklyWithdrawals(){ let last=localStorage.getItem('gb_last_withdrawal'); let now=new Date(); let day=now.getDay(); if((day===1||day===5)&&(!last||new Date(last).getDate()!==now.getDate())){ pendingWithdrawals.forEach(w=>{ if(w.status==="Pending") w.status="Approved"; }); saveAllLocal(); localStorage.setItem('gb_last_withdrawal',now.toString()); } }
 setInterval(processWeeklyWithdrawals,3600000); processWeeklyWithdrawals();
 
-// Seller Registration - FIXED VERSION
+// Seller Registration - with Firestore save
 document.getElementById('sellerRegForm')?.addEventListener('submit',async(e)=>{ 
     e.preventDefault(); 
     if(!sellerPhoneVerified){showToast("Verify phone first",true);return;} 
@@ -448,20 +503,19 @@ document.getElementById('sellerRegForm')?.addEventListener('submit',async(e)=>{
         if(avatarFile){ 
             let avReader=new FileReader(); 
             avReader.onload=async(avEv)=>{ 
-                await saveSellerData(avEv.target.result,docData,countryCode); 
+                await saveSellerDataFirestore(avEv.target.result,docData,countryCode); 
             }; 
             avReader.readAsDataURL(avatarFile); 
         } else { 
-            await saveSellerData(avatarData,docData,countryCode); 
+            await saveSellerDataFirestore(avatarData,docData,countryCode); 
         } 
     }; 
     docReader.readAsDataURL(docImg); 
 });
 
-async function saveSellerData(avatarData, docImageData, countryCode){
-    console.log("Saving seller data...");
+async function saveSellerDataFirestore(avatarData, docImageData, countryCode){
+    document.getElementById('debugMsg').innerText = "Saving seller to cloud...";
     let newSeller = {
-        id: Date.now(), avatar: avatarData,
         fullName: document.getElementById('sellerFullName').value,
         shopName: document.getElementById('sellerShopName').value,
         email: document.getElementById('sellerEmail').value,
@@ -481,40 +535,31 @@ async function saveSellerData(avatarData, docImageData, countryCode){
         accountNo: document.getElementById('sellerAccountNo').value,
         ifsc: document.getElementById('sellerIfsc').value,
         accountHolder: document.getElementById('sellerAccountHolder').value,
-        earnings: 0, kycStatus: "pending", totalSales: 0, totalWithdrawn: 0
+        earnings: 0, kycStatus: "pending", totalSales: 0, totalWithdrawn: 0,
+        createdAt: new Date().toISOString(),
+        avatar: avatarData
     };
-    sellers.push(newSeller);
-    saveAll(); // updates admin badge
-
-    // Reset form
-    document.getElementById('sellerRegForm').reset();
-    sellerPhoneVerified = false;
-    document.getElementById('sellerSubmitBtn').disabled = true;
-    document.getElementById('sellerSubmitBtn').innerHTML = '✅ Register Shop (Verify Phone First)';
-    
-    // Background tasks
-    sendTelegramMessage(`🏪 New Seller: ${newSeller.shopName}\nEmail: ${newSeller.email}\nKYC Pending`).catch(e=>console.warn);
-    addNotification(`New seller ${newSeller.shopName} registered! Pending KYC.`, 'info');
-    
-    // FORCE SHOW MODAL
-    let modal = document.getElementById('sellerSummaryModal');
-    if(modal) {
-        modal.style.display = 'block';
-        console.log("✅ Seller summary modal opened successfully.");
+    let success = await saveSellerToFirestore(newSeller);
+    if (success) {
+        document.getElementById('debugMsg').innerText = "Saved! Modal opening...";
+        // Reset form
+        document.getElementById('sellerRegForm').reset();
+        sellerPhoneVerified = false;
+        document.getElementById('sellerSubmitBtn').disabled = true;
+        document.getElementById('sellerSubmitBtn').innerHTML = '✅ Register Shop (Verify Phone First)';
+        
+        sendTelegramMessage(`🏪 New Seller: ${newSeller.shopName}\nEmail: ${newSeller.email}\nKYC Pending`).catch(e=>console.warn);
+        addNotification(`New seller ${newSeller.shopName} registered! Pending KYC.`, 'info');
+        
+        setTimeout(() => {
+            let modal = document.getElementById('sellerSummaryModal');
+            if(modal) modal.style.display = 'block';
+            else alert("Registration successful! Check admin panel.");
+        }, 500);
     } else {
-        console.error("❌ sellerSummaryModal element not found!");
-        alert("Registration successful! Your shop is under review. (Modal missing, but registration done)");
+        showToast("Failed to save seller. Check Firestore rules.", true);
+        document.getElementById('debugMsg').innerText = "Save failed!";
     }
-    
-    // Force refresh UI
-    updateAdminPendingBadge();
-    updateNotificationUI();
-    
-    // Reload admin data if panel is open
-    if(document.getElementById('adminContent') && document.getElementById('adminContent').style.display === 'block') {
-        loadAdminData();
-    }
-    console.log("Seller registration complete. Pending sellers count:", sellers.filter(s=>s.kycStatus==='pending').length);
 }
 
 function showMyShopLogin(){
@@ -527,7 +572,7 @@ function showMyShopLogin(){
     if(seller){
         if(seller.kycStatus!=='verified'){ showToast("KYC not verified",true); return; }
         currentSeller={name:seller.fullName,email:seller.email,role:'seller',sellerId:seller.id,phone:seller.phone};
-        saveAll();
+        saveAllLocal();
         document.getElementById('sellerRegisterBox').style.display='none';
         document.getElementById('sellerDashboard').style.display='block';
         renderSellerDashboard();
@@ -587,7 +632,7 @@ ${seller.kycStatus==="verified"?`
             let images=[mainUrl, ...additionalUrls];
             let newProduct={id:Date.now(),sellerId:seller.id,sellerName:seller.shopName,name,price,category:cat,mainImage:mainUrl,images:images,description:desc||"",sellerCountry:seller.country,rating:0,stock:stock};
             products.push(newProduct);
-            saveAll();
+            saveAllLocal();
             renderSellerDashboard();
             renderProducts();
             showToast("Product published",false);
@@ -603,7 +648,7 @@ ${seller.kycStatus==="verified"?`
         document.querySelectorAll('.delProd').forEach(btn=>btn.addEventListener('click',()=>{
             let id=parseInt(btn.dataset.id);
             products=products.filter(p=>p.id!==id);
-            saveAll();
+            saveAllLocal();
             renderSellerDashboard();
             renderProducts();
             showToast("Product deleted",false);
@@ -648,7 +693,7 @@ ${seller.kycStatus==="verified"?`
                     }
                     if(extraUrls.length) prod.images=[prod.mainImage, ...extraUrls];
                 }
-                saveAll();
+                saveAllLocal();
                 renderSellerDashboard();
                 renderProducts();
                 showToast("Product updated",false);
@@ -665,7 +710,7 @@ function renderBuyerOrders(){
     document.querySelectorAll('.confirmReceivedBtn').forEach(btn=>btn.addEventListener('click',()=>confirmOrderReceived(parseFloat(btn.dataset.id))));
     document.querySelectorAll('.cancelOrderBtn').forEach(btn=>btn.addEventListener('click',()=>cancelOrder(parseFloat(btn.dataset.id))));
 }
-function renderBuyerWishlist(){ let w=products.filter(p=>wishlist.includes(p.id)); document.getElementById('buyerWishlistList').innerHTML=w.map(p=>`<div class="order-card"><strong>${p.name}</strong><br>Price: ${getCurrencySymbol()}${convertPrice(p.price)}<br><button class="removeWishlistBtn" data-id="${p.id}" style="background:#dc2626;">Remove</button></div>`).join(''); document.querySelectorAll('.removeWishlistBtn').forEach(btn=>btn.addEventListener('click',()=>{ wishlist=wishlist.filter(id=>id!==parseInt(btn.dataset.id)); saveAll(); renderProducts(); renderBuyerWishlist(); showToast("Removed",false); })); }
+function renderBuyerWishlist(){ let w=products.filter(p=>wishlist.includes(p.id)); document.getElementById('buyerWishlistList').innerHTML=w.map(p=>`<div class="order-card"><strong>${p.name}</strong><br>Price: ${getCurrencySymbol()}${convertPrice(p.price)}<br><button class="removeWishlistBtn" data-id="${p.id}" style="background:#dc2626;">Remove</button></div>`).join(''); document.querySelectorAll('.removeWishlistBtn').forEach(btn=>btn.addEventListener('click',()=>{ wishlist=wishlist.filter(id=>id!==parseInt(btn.dataset.id)); saveAllLocal(); renderProducts(); renderBuyerWishlist(); showToast("Removed",false); })); }
 function loadAdminData(){
     let pending = sellers.filter(s => s.kycStatus === 'pending');
     let verified = sellers.filter(s => s.kycStatus === 'verified');
@@ -697,36 +742,34 @@ function loadAdminData(){
     }
     document.getElementById('pendingKycList').innerHTML = pendingHtml;
     
-    let verifiedHtml = verified.length ? `<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Joined</th></tr></thead><tbody>${verified.map(s=>`<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td>${new Date(s.id).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>` : '<div>No verified sellers yet</div>';
+    let verifiedHtml = verified.length ? `<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Joined</th></tr></thead><tbody>${verified.map(s=>`<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td>${new Date(s.createdAt).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>` : '<div>No verified sellers yet</div>';
     document.getElementById('verifiedSellersList').innerHTML = verifiedHtml;
     let rejectedHtml = rejected.length ? `<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Reason</th></tr></thead><tbody>${rejected.map(s=>`<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td>${s.rejectionReason||'No reason'}</td></tr>`).join('')}</tbody></table>` : '<div>No rejected sellers</div>';
     document.getElementById('rejectedSellersList').innerHTML = rejectedHtml;
     
+    // Attach approve/reject with Firestore update
     document.querySelectorAll('.btn-approve').forEach(btn => btn.addEventListener('click', async ()=>{
-        let seller = sellers.find(s => s.id === parseInt(btn.dataset.id));
+        let sellerId = btn.dataset.id;
+        let seller = sellers.find(s => s.id === sellerId);
         if(seller){
-            seller.kycStatus = 'verified';
-            saveAll();
-            loadAdminData();
-            showToast(`${seller.shopName} verified`, false);
-            await sendTelegramMessage(`✅ KYC Verified: ${seller.shopName}`);
+            await updateSellerKYC(sellerId, 'verified');
             addNotification(`${seller.shopName} KYC verified`, 'info');
             addNotification(`Your shop ${seller.shopName} has been approved! You can now login and sell.`, 'info');
+            await sendTelegramMessage(`✅ KYC Verified: ${seller.shopName}`);
+            showToast(`${seller.shopName} verified`, false);
         }
     }));
     document.querySelectorAll('.btn-reject').forEach(btn => btn.addEventListener('click', async ()=>{
         let reason = prompt("Enter rejection reason:");
         if(reason){
-            let seller = sellers.find(s => s.id === parseInt(btn.dataset.id));
+            let sellerId = btn.dataset.id;
+            let seller = sellers.find(s => s.id === sellerId);
             if(seller){
-                seller.kycStatus = 'rejected';
-                seller.rejectionReason = reason;
-                saveAll();
-                loadAdminData();
-                showToast(`${seller.shopName} rejected`, false);
-                await sendTelegramMessage(`❌ KYC Rejected: ${seller.shopName}\nReason: ${reason}`);
+                await updateSellerKYC(sellerId, 'rejected', reason);
                 addNotification(`${seller.shopName} KYC rejected`, 'info');
                 addNotification(`Your shop ${seller.shopName} KYC was rejected. Reason: ${reason}`, 'info');
+                await sendTelegramMessage(`❌ KYC Rejected: ${seller.shopName}\nReason: ${reason}`);
+                showToast(`${seller.shopName} rejected`, false);
             }
         } else if(reason === "") showToast("Please enter a reason", true);
     }));
@@ -735,7 +778,7 @@ function loadAdminData(){
     document.getElementById('pendingWithdrawals').innerHTML = pendingWithdrawals.map(w => `<div class="order-card"><span>💰 ${getCurrencySymbol()}${convertPrice(w.amount)} - ${w.sellerName}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981;">Approve</button></div>`).join('');
     document.querySelectorAll('.approveBtn').forEach(btn => btn.addEventListener('click', async ()=>{
         let w = pendingWithdrawals.find(w => w.id === parseInt(btn.dataset.id));
-        if(w){ w.status = 'Approved'; saveAll(); loadAdminData(); showToast(`Approved ${getCurrencySymbol()}${convertPrice(w.amount)}`, false); await sendTelegramMessage(`💰 Withdrawal Approved: ${w.sellerName} - ${getCurrencySymbol()}${convertPrice(w.amount)}`); addNotification(`Withdrawal approved for ${w.sellerName}`, 'payment'); }
+        if(w){ w.status = 'Approved'; saveAllLocal(); loadAdminData(); showToast(`Approved ${getCurrencySymbol()}${convertPrice(w.amount)}`, false); await sendTelegramMessage(`💰 Withdrawal Approved: ${w.sellerName} - ${getCurrencySymbol()}${convertPrice(w.amount)}`); addNotification(`Withdrawal approved for ${w.sellerName}`, 'payment'); }
     }));
     document.getElementById('adminOrdersList').innerHTML = orders.map(o => `<div class="order-card">🔖 ${o.trackingNumber}<br>${o.productName} x${o.qty}<br>${o.buyerName}<br>Status: ${o.status}</div>`).join('');
 }
@@ -761,8 +804,11 @@ document.getElementById('drawerOverlay').onclick=closeDrawer;
 document.getElementById('cardNumber')?.addEventListener('input',function(e){ let v=e.target.value.replace(/\s/g,'').replace(/(\d{4})/g,'$1 ').trim(); e.target.value=v; });
 document.getElementById('expiryDate')?.addEventListener('input',function(e){ let v=e.target.value.replace(/\//g,''); if(v.length>=2) v=v.slice(0,2)+'/'+v.slice(2,4); e.target.value=v; });
 function closeEditModal(){ document.getElementById('editProductModal').style.display='none'; }
+
+// Start Firestore listener and initialize app
+startSellersListener();
 renderCats(); renderProducts(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge();
-console.log("✅ FINAL FIX: All systems working. Modal, notifications, and admin badge should now work.");
+document.getElementById('debugMsg').innerText = "Firestore active. Register seller to test cross-device KYC.";
 </script>
 </body>
 </html>
