@@ -616,10 +616,10 @@ function loadAdminData(){
     let verified=sellers.filter(s=>s.kycStatus==='verified');
     let rejected=sellers.filter(s=>s.kycStatus==='rejected');
     updateAdminPendingBadge();
-    let ph=pending.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Phone</th><th>Doc</th><th>Action</th></tr></thead><tbody>${pending.map(s=>`<tr><td><strong>${s.shopName}</strong><br><small>${s.city}, ${s.country}</small></td><td>${s.fullName}<br><small>DOB: ${s.dob}</small></td><td>${s.email}<br><small>${s.phone}</small></td><td>${s.docType}<br><small>${s.docNumber}</small></td><td><button class="btn-view-doc" onclick='viewSellerDocument("${s.docImage}","${s.docType}","${s.shopName}")'>📄 View Document</button></td><td><button class="btn-approve" data-id="${s.id}">✅ Approve</button><button class="btn-reject" data-id="${s.id}">❌ Reject</button></td>`).join('')}</tbody></table>`:'<div>No pending KYC</div>';
+    let ph=pending.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Phone</th><th>Doc</th><th>Action</th></tr></thead><tbody>${pending.map(s=>`<td><strong>${s.shopName}</strong><br><small>${s.city}, ${s.country}</small></td><td>${s.fullName}<br><small>DOB: ${s.dob}</small></td><td>${s.email}<br><small>${s.phone}</small></td><td>${s.docType}<br><small>${s.docNumber}</small></td><td><button class="btn-view-doc" onclick='viewSellerDocument("${s.docImage}","${s.docType}","${s.shopName}")'>📄 View Document</button></td><td><button class="btn-approve" data-id="${s.id}">✅ Approve</button><button class="btn-reject" data-id="${s.id}">❌ Reject</button></td>`).join('')}</tbody></table>`:'<div>No pending KYC</div>';
     document.getElementById('pendingKycList').innerHTML=ph;
-    document.getElementById('verifiedSellersList').innerHTML=verified.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Joined</th></tr></thead><tbody>${verified.map(s=>`<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td>${new Date(s.id).toLocaleDateString()}</td>`).join('')}</tbody></tr>`:'No verified';
-    document.getElementById('rejectedSellersList').innerHTML=rejected.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Reason</th></table></thead><tbody>${rejected.map(s=>`<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td>${s.rejectionReason||'No reason'}</td>`).join('')}</tbody></table>`:'No rejected';
+    document.getElementById('verifiedSellersList').innerHTML=verified.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Joined</th><tr></thead><tbody>${verified.map(s=>`<tr><td colspan="4">🏪 ${s.shopName} - ${s.fullName} - ${s.email} - ${new Date(s.id).toLocaleDateString()}</td>`).join('')}</tbody></table>`:'No verified';
+    document.getElementById('rejectedSellersList').innerHTML=rejected.length?`<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Reason</th></tr></thead><tbody>${rejected.map(s=>`<tr><td colspan="4">🏪 ${s.shopName} - ${s.fullName} - ${s.email} - ${s.rejectionReason||'No reason'}</td>`).join('')}</tbody></table>`:'No rejected';
     // Attach events (re-attach each time because HTML is regenerated)
     document.querySelectorAll('.btn-approve').forEach(btn=>btn.addEventListener('click',async()=>{
         let seller=sellers.find(s=>s.id===parseInt(btn.dataset.id));
@@ -630,6 +630,8 @@ function loadAdminData(){
             showToast(`${seller.shopName} verified`,false);
             await sendTelegramMessage(`✅ KYC Verified: ${seller.shopName}`);
             addNotification(`${seller.shopName} KYC verified`,'info');
+            // Also send notification to the seller (in-app)
+            addNotification(`Your shop ${seller.shopName} has been approved! You can now login and sell.`,'info');
         }
     }));
     document.querySelectorAll('.btn-reject').forEach(btn=>btn.addEventListener('click',async()=>{
@@ -644,6 +646,8 @@ function loadAdminData(){
                 showToast(`${seller.shopName} rejected`,false);
                 await sendTelegramMessage(`❌ KYC Rejected: ${seller.shopName}\nReason: ${reason}`);
                 addNotification(`${seller.shopName} KYC rejected`,'info');
+                // Notify seller
+                addNotification(`Your shop ${seller.shopName} KYC was rejected. Reason: ${reason}`,'info');
             }
         } else if(reason===""){
             showToast("Please enter a reason",true);
@@ -677,7 +681,7 @@ document.getElementById('cardNumber')?.addEventListener('input',function(e){ let
 document.getElementById('expiryDate')?.addEventListener('input',function(e){ let v=e.target.value.replace(/\//g,''); if(v.length>=2) v=v.slice(0,2)+'/'+v.slice(2,4); e.target.value=v; });
 function closeEditModal(){ document.getElementById('editProductModal').style.display='none'; }
 renderCats(); renderProducts(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge();
-console.log("✅ All fixes applied: summary modal, admin approve/reject instant update, pending badge, seller notification.");
+console.log("✅ All fixes applied: summary modal, admin approve/reject instant update, pending badge, seller notifications.");
 </script>
 </body>
 </html>
