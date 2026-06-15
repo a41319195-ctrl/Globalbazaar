@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <style>
         /* ===== FULL CSS (same as working version) ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -42,6 +43,7 @@
         .header-3d { background: linear-gradient(145deg, #ffffff, #f0f4fa); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 10px 25px -8px rgba(0,0,0,0.15); border-bottom: 1px solid rgba(59,130,246,0.15); flex-wrap: wrap; gap: 10px; }
         .header-left { display: flex; align-items: center; gap: 15px; }
         .header-right { display: flex; align-items: center; gap: 10px; }
+        .login-btn, .logout-btn { background: linear-gradient(145deg, #3b82f6, #2563eb); border: none; padding: 8px 16px; border-radius: 40px; color: white; font-weight: 600; cursor: pointer; font-size: 14px; }
         .menu-icon-3d { background: linear-gradient(145deg, #1e293b, #0f172a); border: none; font-size: 22px; cursor: pointer; padding: 8px 14px; border-radius: 18px; color: white; box-shadow: 0 8px 12px rgba(0,0,0,0.2); }
         .brand-3d { font-weight: 800; font-size: 28px; background: linear-gradient(135deg, #1e3a8a, #3b82f6, #06b6d4); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .logo-3d { font-size: 32px; background: radial-gradient(circle at 35% 35%, #ffdd77, #ffaa33); border-radius: 50%; padding: 5px; }
@@ -143,6 +145,7 @@
             .product-card .main-img { height: 120px; }
             .modal-thumbnails img { width: 50px; height: 50px; }
             .kyc-table th, .kyc-table td { padding: 8px; font-size: 11px; }
+            .login-btn, .logout-btn { padding: 4px 10px; font-size: 11px; }
         }
     </style>
 </head>
@@ -150,16 +153,24 @@
 <div class="debug-status" id="debugMsg">Initializing...</div>
 <div class="header-3d">
     <div class="header-left"><button class="menu-icon-3d" id="menuBtn">☰</button><div class="brand-3d">GLOBALBAZAAR</div><div class="logo-3d">🌍</div></div>
-    <div class="header-right"><button class="notification-bell" id="notificationBell">🔔<span class="notification-badge" id="notificationCount">0</span></button><select id="currencySelect" class="currency-dropdown"><option value="SAR">🇸🇦 SAR</option><option value="USD">🇺🇸 USD $</option><option value="EUR">🇪🇺 EUR €</option><option value="GBP">🇬🇧 GBP £</option><option value="INR">🇮🇳 INR ₹</option><option value="PKR">🇵🇰 PKR ₨</option><option value="NPR">🇳🇵 NPR रू</option><option value="BDT">🇧🇩 BDT ৳</option><option value="LKR">🇱🇰 LKR Rs</option><option value="AED">🇦🇪 AED د.إ</option><option value="CAD">🇨🇦 CAD $</option><option value="AUD">🇦🇺 AUD $</option><option value="SGD">🇸🇬 SGD $</option><option value="MYR">🇲🇾 MYR RM</option><option value="THB">🇹🇭 THB ฿</option><option value="JPY">🇯🇵 JPY ¥</option><option value="CNY">🇨🇳 CNY ¥</option></select></div>
+    <div class="header-right">
+        <button class="notification-bell" id="notificationBell">🔔<span class="notification-badge" id="notificationCount">0</span></button>
+        <select id="currencySelect" class="currency-dropdown"><option value="SAR">🇸🇦 SAR</option><option value="USD">🇺🇸 USD $</option><option value="EUR">🇪🇺 EUR €</option><option value="GBP">🇬🇧 GBP £</option><option value="INR">🇮🇳 INR ₹</option><option value="PKR">🇵🇰 PKR ₨</option><option value="NPR">🇳🇵 NPR रू</option><option value="BDT">🇧🇩 BDT ৳</option><option value="LKR">🇱🇰 LKR Rs</option><option value="AED">🇦🇪 AED د.إ</option><option value="CAD">🇨🇦 CAD $</option><option value="AUD">🇦🇺 AUD $</option><option value="SGD">🇸🇬 SGD $</option><option value="MYR">🇲🇾 MYR RM</option><option value="THB">🇹🇭 THB ฿</option><option value="JPY">🇯🇵 JPY ¥</option><option value="CNY">🇨🇳 CNY ¥</option></select>
+        <div id="authSection">
+            <button id="loginBtn" class="login-btn">👤 Login</button>
+            <span id="userNameDisplay" style="display:none;"></span>
+            <button id="logoutBtn" style="display:none;" class="logout-btn">🚪 Logout</button>
+        </div>
+    </div>
 </div>
 <div class="notification-panel" id="notificationPanel"><div style="padding:12px;font-weight:bold;border-bottom:1px solid #e2e8f0;">🔔 Notifications</div><div id="notificationsList"></div></div>
 <div class="drawer-overlay" id="drawerOverlay"></div>
-<div class="drawer" id="drawer"><div class="drawer-header"><h2>GlobalBazaar 🌍</h2><p style="font-size:12px;">Multi‑Seller Hub</p></div><div class="dark-mode-menu-item" id="drawerDarkModeToggle">🌙 Dark Mode</div><div class="drawer-item" id="drawerBuyer">🛒 Buyer Shopping</div><div class="drawer-item" id="drawerSeller">🏪 Seller Dashboard</div><div class="drawer-item" id="drawerMyShop" class="my-shop-btn">🏪 My Shop</div><div class="drawer-item" id="drawerAdmin">⚙️ Admin Panel <span id="adminPendingBadge" style="background:#ef4444; color:white; border-radius:20px; padding:2px 8px; font-size:12px; margin-left:8px; display:none;">0</span></div><div class="drawer-item" id="drawerCartPage">🛍️ My Cart</div><div class="drawer-item" id="drawerWishlist">❤️ Wishlist</div><div class="drawer-item" id="drawerSupport">📞 Support</div><div class="drawer-item" id="drawerLogout">🚪 Logout</div></div>
+<div class="drawer" id="drawer"><div class="drawer-header"><h2>GlobalBazaar 🌍</h2><p style="font-size:12px;">Multi‑Seller Hub</p></div><div class="dark-mode-menu-item" id="drawerDarkModeToggle">🌙 Dark Mode</div><div class="drawer-item" id="drawerBuyer">📦 My Orders</div><div class="drawer-item" id="drawerSeller">🏪 Seller Dashboard</div><div class="drawer-item" id="drawerMyShop" class="my-shop-btn">🏪 My Shop</div><div class="drawer-item" id="drawerAdmin">⚙️ Admin Panel <span id="adminPendingBadge" style="background:#ef4444; color:white; border-radius:20px; padding:2px 8px; font-size:12px; margin-left:8px; display:none;">0</span></div><div class="drawer-item" id="drawerCartPage">🛍️ My Cart</div><div class="drawer-item" id="drawerWishlist">❤️ Wishlist</div><div class="drawer-item" id="drawerSupport">📞 Support</div><div class="drawer-item" id="drawerLogout">🚪 Logout</div></div>
 <div class="container">
     <div id="buyerSection" class="section active"><div class="cat-scroll" id="catList"></div><div class="search-container"><input type="text" id="searchInput" placeholder="🔍 Search products..."></div><div class="product-grid" id="productsGrid"></div></div>
     <div id="sellerSection" class="section"><div id="sellerRegisterBox" class="premium-card"><h2>🏪 Open Your Shop</h2><form id="sellerRegForm"><input type="file" id="sellerAvatar" accept="image/*" class="input"><input type="text" id="sellerFullName" placeholder="Full Legal Name" class="input" required><input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required><input type="email" id="sellerEmail" placeholder="Email" class="input" required><div class="phone-group"><div class="country-search-select" id="sellerCountrySearchContainer"><input type="text" id="sellerCountrySearch" placeholder="🔍 Search country..." autocomplete="off"><div class="country-dropdown-list" id="sellerCountryDropdown"></div><select id="sellerCountryCode" style="display:none;"></select></div><input type="tel" id="sellerPhone" placeholder="Phone Number" class="input" required></div><div class="otp-section" id="sellerOtpSection"><input type="text" id="sellerOtp" placeholder="Enter OTP" class="input"><button type="button" id="sellerVerifyOtpBtn" class="btn-secondary">Verify OTP</button></div><input type="password" id="sellerPassword" placeholder="Password" class="input" required><label style="font-weight:600; margin-top:10px;">🎂 Date of Birth</label><input type="date" id="sellerDob" class="input" required><h4>📍 Shop Address</h4><input type="text" id="sellerHouseNo" placeholder="House No." class="input" required><input type="text" id="sellerStreet" placeholder="Street" class="input" required><input type="text" id="sellerCity" placeholder="City" class="input" required><input type="text" id="sellerState" placeholder="State" class="input" required><input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required><select id="sellerCountryReg" class="input" required><option value="">Select Country</option></select><div class="doc-section"><div class="doc-title">🌍 KYC Documents</div><select id="sellerDocType" class="input" required><option value="">Select Document Type</option><option value="passport">📘 Passport</option><option value="national_id">🆔 National ID Card</option><option value="driving_license">🚗 Driving License</option><option value="residence_permit">📄 Residence Permit</option></select><input type="text" id="sellerDocNumber" placeholder="Document Number" class="input" required><input type="file" id="sellerDocImage" accept="image/*,application/pdf" class="input" required></div>
         <div class="checkbox-group"><input type="checkbox" id="sellerAgreement" required><label>I agree to <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label></div><button type="submit" class="btn-primary" id="sellerSubmitBtn" disabled>✅ Register Shop (Verify Phone First)</button></form></div><div id="sellerDashboard" style="display:none;"></div></div>
-    <div id="profileSection" class="section"><div id="buyerProfilePanel" style="display:block;"><div class="premium-card"><div class="flex-between"><h2>👋 Guest User</h2><span class="role-badge">Buyer</span></div></div><div class="premium-card"><h3>📜 My Orders</h3><div id="buyerOrdersList"></div></div><div class="premium-card"><h3>❤️ My Wishlist</h3><div id="buyerWishlistList"></div></div></div></div>
+    <div id="profileSection" class="section"><div id="buyerProfilePanel" style="display:block;"><div class="premium-card"><div class="flex-between"><h2>👋 My Account</h2><span class="role-badge" id="userRoleBadge">Buyer</span></div></div><div class="premium-card"><h3>📜 My Orders</h3><div id="buyerOrdersList"></div></div><div class="premium-card"><h3>❤️ My Wishlist</h3><div id="buyerWishlistList"></div></div></div></div>
     <div id="adminSection" class="section"><div id="adminPanel" class="premium-card"><h2>⚙️ Admin Dashboard</h2><div id="adminLoginBox"><input type="password" id="adminKey" class="input" placeholder="Enter Admin Key"><button class="btn-primary" id="adminLoginBtn">Login</button></div><div id="adminContent" style="display:none;"><div style="margin-bottom:25px;"><div class="kyc-section-title">⏳ Pending KYC Verification Requests</div><div id="pendingKycList"></div></div><div style="margin-bottom:25px;"><div class="kyc-section-title">✅ Verified Sellers</div><div id="verifiedSellersList"></div></div><div style="margin-bottom:25px;"><div class="kyc-section-title">❌ Rejected Sellers</div><div id="rejectedSellersList"></div></div>
         <div class="flex-between" style="margin: 20px 0 10px;"><h3>💰 Platform Earnings</h3><button id="refreshAdminBtn" style="background:#64748b; padding:8px 16px; border-radius:30px;">Refresh</button></div>
         <div id="platformEarnings" style="margin-bottom:20px;"><h2>SAR 0.00</h2></div>
@@ -172,6 +183,36 @@
 </div>
 <button class="fixed-cart" id="cartFloatBtn">🛒 Cart <span class="cart-badge" id="cartCountBadge">0</span></button>
 <div class="toast" id="toast"></div>
+
+<!-- LOGIN/SIGNUP MODAL -->
+<div id="loginModal" class="modal" style="display:none;">
+    <div class="modal-card" style="max-width: 400px;">
+        <span class="close-modal" id="closeLoginModal">&times;</span>
+        <h2 id="modalAuthTitle">🔐 Login to GlobalBazaar</h2>
+        
+        <div id="loginForm">
+            <input type="email" id="loginEmail" placeholder="Email" class="input" required>
+            <input type="password" id="loginPassword" placeholder="Password" class="input" required>
+            <button id="doLoginBtn" class="btn-primary">Login</button>
+            <button id="googleSignInBtn" class="btn-primary" style="background:#4285F4; margin-top:10px;">🔵 Sign in with Google</button>
+            <p style="text-align:center; margin-top:15px;">
+                New user? <span id="showRegisterLink" style="color:#3b82f6; cursor:pointer;">Create Account</span>
+            </p>
+        </div>
+        
+        <div id="registerForm" style="display:none;">
+            <input type="text" id="regName" placeholder="Full Name" class="input" required>
+            <input type="email" id="regEmail" placeholder="Email" class="input" required>
+            <input type="password" id="regPassword" placeholder="Password (min 6 chars)" class="input" required>
+            <button id="doRegisterBtn" class="btn-primary">Create Account</button>
+            <button id="googleSignUpBtn" class="btn-primary" style="background:#4285F4; margin-top:10px;">🔵 Sign up with Google</button>
+            <p style="text-align:center; margin-top:15px;">
+                Already have account? <span id="showLoginLink" style="color:#3b82f6; cursor:pointer;">Login</span>
+            </p>
+        </div>
+    </div>
+</div>
+
 <div id="productModal" class="modal"><div class="modal-card"><span class="close-modal" id="closeModalBtn">&times;</span><img id="modalMainImg" class="modal-main-img"><div class="modal-thumbnails" id="modalThumbnails"></div><h2 id="modalTitle"></h2><p id="modalDesc"></p><div id="modalPriceBreakdown" style="font-size:12px; color:#64748b; margin:10px 0;"></div><h3 id="modalPrice"></h3><div class="rating-stars" id="modalRatingStars"></div><div id="productReviews" style="margin:15px 0; max-height:200px; overflow-y:auto;"></div><div id="addReviewSection" style="margin:15px 0;"><textarea id="reviewText" placeholder="Write a review..." rows="2" style="width:100%; padding:10px; border-radius:12px; border:1px solid #e2e8f0;"></textarea><div class="rating-stars" id="reviewStars"></div><button id="submitReviewBtn" class="btn-secondary" style="margin-top:10px;">Submit Review</button></div><button class="btn-primary" id="modalAddCartBtn">Add to Cart</button><button class="btn-primary" id="modalAddWishBtn" style="background:#64748b; margin-top:10px;">❤️ Wishlist</button><button class="whatsapp-share" id="whatsappShareBtn">📱 Share on WhatsApp</button></div></div>
 <div id="editProductModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeEditModal()">&times;</span><h2>✏️ Edit Product</h2><input type="hidden" id="editProdId"><input type="text" id="editProdName" placeholder="Product Name" class="input" required><input type="number" id="editProdPrice" placeholder="Price (USD)" class="input" required><select id="editProdCat" class="input" required><option>Electronics</option><option>Fashion</option><option>Home</option><option>Textile</option><option>Cosmetic</option></select><input type="number" id="editProdStock" placeholder="Stock Quantity" class="input" required min="0"><textarea id="editProdDesc" placeholder="Product Description" class="input" rows="3"></textarea><label>Main Image (upload new)</label><input type="file" id="editMainImg" accept="image/*" class="input"><label>Additional Images (upload multiple, max 4)</label><input type="file" id="editExtraImgs" accept="image/*" multiple class="input"><div id="editCurrentImages"></div><button id="updateProductBtn" class="btn-primary">💾 Update Product</button></div></div>
 <div id="sellerSummaryModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSellerSummary()">&times;</span><h2>🎉 Thank you for registering!</h2><p style="margin:20px 0;">Your shop is under review. You will receive a notification once admin approves your KYC.</p><p><strong>⏳ Waiting for admin approval...</strong></p><button class="btn-primary" id="goToMyShopBtn">Go to My Shop</button></div></div>
@@ -194,6 +235,7 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const auth = firebase.auth();
 
 // ========== IMAGE COMPRESSION UTILITY ==========
 function compressImage(file, maxSizeMB = 0.5, maxWidth = 1024, maxHeight = 1024) {
@@ -272,21 +314,22 @@ async function seedProductsIfEmpty() {
 }
 seedProductsIfEmpty();
 
-// ========== GLOBAL VARIABLES & HELPERS ==========
+// ========== GLOBAL VARIABLES ==========
 let products = [];
 let sellers = [];
 let currentSeller = null;
 let cart = JSON.parse(localStorage.getItem('gb_cart')) || [];
 let wishlist = JSON.parse(localStorage.getItem('gb_wishlist')) || [];
-let orders = [];
-let platformEarnings = 0;
-let pendingWithdrawals = [];
+let orders = JSON.parse(localStorage.getItem('gb_orders')) || [];
+let platformEarnings = parseFloat(localStorage.getItem('gb_platform_earnings')) || 0;
+let pendingWithdrawals = JSON.parse(localStorage.getItem('gb_pending_withdrawals')) || [];
 let savedCards = JSON.parse(localStorage.getItem('gb_saved_cards')) || [];
 let savedAddresses = JSON.parse(localStorage.getItem('gb_saved_addresses')) || [];
 let notifications = JSON.parse(localStorage.getItem('gb_notifications')) || [];
 let selectedCurrency = localStorage.getItem('selectedCurrency') || 'SAR';
 let buyerCountry = localStorage.getItem('buyerCountry') || 'SA';
 let sellerRevenueChart = null;
+let currentUserData = null;
 
 const TELEGRAM_BOT_TOKEN = "8328824652:AAE-b4o6DaFDa9WPtZfrOfM7SYGU9gUa9HQ";
 const TELEGRAM_CHAT_ID = "7111653640";
@@ -321,16 +364,6 @@ function updateNotificationUI() {
         updateNotificationUI();
     }));
 }
-document.getElementById('notificationBell')?.addEventListener('click', () => {
-    let p = document.getElementById('notificationPanel');
-    if (p) p.style.display = p.style.display === 'block' ? 'none' : 'block';
-});
-document.addEventListener('click', (e) => {
-    if (!e.target.closest('.notification-bell') && !e.target.closest('#notificationPanel')) {
-        let p = document.getElementById('notificationPanel');
-        if (p) p.style.display = 'none';
-    }
-});
 
 let isDarkMode = localStorage.getItem('darkMode') === 'true';
 if (isDarkMode) document.body.classList.add('dark-mode');
@@ -442,6 +475,266 @@ function getShippingCost(sellerCountry,buyerCountry){ if(sellerCountry===buyerCo
 const PLATFORM_COMMISSION=0.05, GATEWAY_FEE=0.025, HANDLING_FEE=2;
 function calculateFinalPrice(basePrice,sellerCountry,buyerCountry){ let shipping=getShippingCost(sellerCountry,buyerCountry); let commission=basePrice*PLATFORM_COMMISSION; let gateway=basePrice*GATEWAY_FEE; return { total: basePrice+commission+gateway+shipping+HANDLING_FEE, basePrice, shipping, commission, gateway }; }
 
+// ========== AUTHENTICATION ==========
+let currentBuyer = null;
+
+// Check if user is already logged in
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        currentBuyer = user;
+        document.getElementById('loginBtn').style.display = 'none';
+        document.getElementById('logoutBtn').style.display = 'inline-block';
+        document.getElementById('userNameDisplay').style.display = 'inline-block';
+        document.getElementById('userNameDisplay').innerHTML = `👋 ${user.email.split('@')[0]}`;
+        document.getElementById('userRoleBadge').innerText = 'Buyer';
+        
+        // Load user's cart from database
+        await loadUserCart(user.uid);
+    } else {
+        currentBuyer = null;
+        document.getElementById('loginBtn').style.display = 'inline-block';
+        document.getElementById('logoutBtn').style.display = 'none';
+        document.getElementById('userNameDisplay').style.display = 'none';
+        cart = [];
+        updateCartUI();
+    }
+    renderProducts();
+});
+
+// LOGIN FUNCTION
+document.getElementById('doLoginBtn')?.addEventListener('click', async () => {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    
+    if (!email || !password) {
+        showToast("Please enter email and password", true);
+        return;
+    }
+    
+    try {
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        showToast(`Welcome back ${userCredential.user.email}!`, false);
+        document.getElementById('loginModal').style.display = 'none';
+        document.getElementById('loginEmail').value = '';
+        document.getElementById('loginPassword').value = '';
+        
+        // Check if there was pending checkout
+        const pendingCheckout = sessionStorage.getItem('pendingCheckout');
+        if (pendingCheckout === 'true') {
+            sessionStorage.removeItem('pendingCheckout');
+            const pendingCart = sessionStorage.getItem('pendingCart');
+            if (pendingCart) {
+                cart = JSON.parse(pendingCart);
+                sessionStorage.removeItem('pendingCart');
+                await saveUserCart(userCredential.user.uid);
+                updateCartUI();
+            }
+            showSection('checkout');
+            loadSavedAddresses();
+        }
+        
+        await loadUserCart(userCredential.user.uid);
+        renderCartPage();
+    } catch (error) {
+        if (error.code === 'auth/user-not-found') {
+            showToast("No account found with this email", true);
+        } else if (error.code === 'auth/wrong-password') {
+            showToast("Wrong password", true);
+        } else {
+            showToast("Login failed: " + error.message, true);
+        }
+    }
+});
+
+// REGISTER FUNCTION
+document.getElementById('doRegisterBtn')?.addEventListener('click', async () => {
+    const name = document.getElementById('regName').value;
+    const email = document.getElementById('regEmail').value;
+    const password = document.getElementById('regPassword').value;
+    
+    if (!name || !email || !password) {
+        showToast("Please fill all fields", true);
+        return;
+    }
+    
+    if (password.length < 6) {
+        showToast("Password must be at least 6 characters", true);
+        return;
+    }
+    
+    try {
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        
+        await db.collection('users').doc(userCredential.user.uid).set({
+            name: name,
+            email: email,
+            createdAt: new Date().toISOString(),
+            role: 'buyer'
+        });
+        
+        showToast("Account created successfully!", false);
+        document.getElementById('loginModal').style.display = 'none';
+        document.getElementById('regName').value = '';
+        document.getElementById('regEmail').value = '';
+        document.getElementById('regPassword').value = '';
+        
+        // Check for pending checkout
+        const pendingCheckout = sessionStorage.getItem('pendingCheckout');
+        if (pendingCheckout === 'true') {
+            sessionStorage.removeItem('pendingCheckout');
+            const pendingCart = sessionStorage.getItem('pendingCart');
+            if (pendingCart) {
+                cart = JSON.parse(pendingCart);
+                sessionStorage.removeItem('pendingCart');
+                await saveUserCart(userCredential.user.uid);
+                updateCartUI();
+            }
+            showSection('checkout');
+            loadSavedAddresses();
+        }
+    } catch (error) {
+        if (error.code === 'auth/email-already-in-use') {
+            showToast("Email already registered", true);
+        } else {
+            showToast("Registration failed: " + error.message, true);
+        }
+    }
+});
+
+// GOOGLE SIGN IN
+document.getElementById('googleSignInBtn')?.addEventListener('click', async () => {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    try {
+        const result = await auth.signInWithPopup(provider);
+        const userRef = db.collection('users').doc(result.user.uid);
+        const doc = await userRef.get();
+        if (!doc.exists) {
+            await userRef.set({
+                name: result.user.displayName,
+                email: result.user.email,
+                createdAt: new Date().toISOString(),
+                role: 'buyer'
+            });
+        }
+        showToast(`Welcome ${result.user.displayName}!`, false);
+        document.getElementById('loginModal').style.display = 'none';
+        
+        const pendingCheckout = sessionStorage.getItem('pendingCheckout');
+        if (pendingCheckout === 'true') {
+            sessionStorage.removeItem('pendingCheckout');
+            const pendingCart = sessionStorage.getItem('pendingCart');
+            if (pendingCart) {
+                cart = JSON.parse(pendingCart);
+                sessionStorage.removeItem('pendingCart');
+                await saveUserCart(result.user.uid);
+                updateCartUI();
+            }
+            showSection('checkout');
+            loadSavedAddresses();
+        }
+    } catch (error) {
+        showToast("Google sign-in failed", true);
+    }
+});
+
+document.getElementById('googleSignUpBtn')?.addEventListener('click', async () => {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    try {
+        const result = await auth.signInWithPopup(provider);
+        const userRef = db.collection('users').doc(result.user.uid);
+        const doc = await userRef.get();
+        if (!doc.exists) {
+            await userRef.set({
+                name: result.user.displayName,
+                email: result.user.email,
+                createdAt: new Date().toISOString(),
+                role: 'buyer'
+            });
+        }
+        showToast(`Welcome ${result.user.displayName}!`, false);
+        document.getElementById('loginModal').style.display = 'none';
+        
+        const pendingCheckout = sessionStorage.getItem('pendingCheckout');
+        if (pendingCheckout === 'true') {
+            sessionStorage.removeItem('pendingCheckout');
+            const pendingCart = sessionStorage.getItem('pendingCart');
+            if (pendingCart) {
+                cart = JSON.parse(pendingCart);
+                sessionStorage.removeItem('pendingCart');
+                await saveUserCart(result.user.uid);
+                updateCartUI();
+            }
+            showSection('checkout');
+            loadSavedAddresses();
+        }
+    } catch (error) {
+        showToast("Google sign-up failed", true);
+    }
+});
+
+// LOGOUT FUNCTION
+document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+    await auth.signOut();
+    showToast("Logged out successfully", false);
+    cart = [];
+    updateCartUI();
+    renderCartPage();
+    showSection('buyer');
+});
+
+// Cart database functions
+async function saveUserCart(userId) {
+    if (!userId) return;
+    await db.collection('carts').doc(userId).set({
+        items: cart,
+        updatedAt: new Date().toISOString()
+    });
+}
+
+async function loadUserCart(userId) {
+    if (!userId) return;
+    const doc = await db.collection('carts').doc(userId).get();
+    if (doc.exists && doc.data().items) {
+        cart = doc.data().items;
+        updateCartUI();
+        renderCartPage();
+    }
+}
+
+// My Orders Function
+function showMyOrdersPage() {
+    const user = auth.currentUser;
+    if (!user) {
+        showToast("Please login to view your orders", true);
+        document.getElementById('loginModal').style.display = 'block';
+        return;
+    }
+    
+    const myOrders = orders.filter(o => o.buyerEmail === user.email);
+    
+    if (myOrders.length === 0) {
+        document.getElementById('buyerOrdersList').innerHTML = '<div class="premium-card"><p>No orders yet. Start shopping!</p></div>';
+    } else {
+        let ordersHtml = myOrders.map(o => `
+            <div class="order-card">
+                <strong>🔖 ${o.trackingNumber}</strong><br>
+                ${o.productName} x${o.qty}<br>
+                ${getCurrencySymbol()}${convertPrice(o.amount)}<br>
+                Status: ${o.status}<br>
+                ${renderTrackingMap(o)}
+                ${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981;">✅ Received</button>` : ''}
+                ${o.status === "Processing" ? `<button class="cancelOrderBtn" data-id="${o.id}" style="background:#dc2626;">❌ Cancel Order</button>` : ''}
+            </div>
+        `).join('');
+        document.getElementById('buyerOrdersList').innerHTML = ordersHtml;
+        
+        document.querySelectorAll('.confirmReceivedBtn').forEach(btn => btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id))));
+        document.querySelectorAll('.cancelOrderBtn').forEach(btn => btn.addEventListener('click', () => cancelOrder(parseFloat(btn.dataset.id))));
+    }
+    
+    showSection('profile');
+}
+
 db.collection("products").onSnapshot(snapshot => {
     products = [];
     snapshot.forEach(doc => { products.push({ id: doc.id, ...doc.data() }); });
@@ -525,7 +818,7 @@ function openProduct(id){
     document.getElementById('productReviews').innerHTML = reviews.map(r => `<div class="review-item"><strong>${r.userName||'User'}</strong> ⭐${r.rating}<br>${r.review}<br><small>${r.date}</small></div>`).join('');
     currentRatingHandler.currentRating = 0; renderReviewStars('reviewStars', currentRatingHandler);
     document.getElementById('whatsappShareBtn').onclick = () => shareOnWhatsApp(p, final.total);
-    document.getElementById('submitReviewBtn').onclick = () => { let txt = document.getElementById('reviewText').value; if(!txt){ showToast("Write review",true); return; } if(currentRatingHandler.currentRating===0){ showToast("Select rating",true); return; } addReview(p.id, currentRatingHandler.currentRating, txt, "Guest User"); document.getElementById('reviewText').value=''; currentRatingHandler.currentRating=0; renderReviewStars('reviewStars',currentRatingHandler); };
+    document.getElementById('submitReviewBtn').onclick = () => { let txt = document.getElementById('reviewText').value; if(!txt){ showToast("Write review",true); return; } if(currentRatingHandler.currentRating===0){ showToast("Select rating",true); return; } addReview(p.id, currentRatingHandler.currentRating, txt, currentBuyer ? currentBuyer.email : "Guest User"); document.getElementById('reviewText').value=''; currentRatingHandler.currentRating=0; renderReviewStars('reviewStars',currentRatingHandler); };
     document.getElementById('productModal').style.display = 'block';
 }
 function addToCart(id){
@@ -535,6 +828,7 @@ function addToCart(id){
     if(existing){ if(existing.qty < p.stock) existing.qty++; else { showToast(`Only ${p.stock} in stock`,true); return; } }
     else { cart.push({ id: p.id, name: p.name, price: p.price, sellerId: p.sellerId, sellerCountry: p.sellerCountry || "SA", qty: 1, image: p.mainImage }); }
     saveAllLocal(); updateCartUI(); renderCartPage(); showToast("Added to cart", false); addNotification(`${p.name} added to cart`,'info');
+    if (currentBuyer) saveUserCart(currentBuyer.uid);
 }
 function updateCartUI(){ document.getElementById('cartCountBadge').innerText = cart.reduce((a,b)=>a+b.qty,0); }
 function toggleWish(id){
@@ -563,15 +857,61 @@ function renderCartPage(){
         } else if(btn.dataset.dir === 'dec' && cart[idx].qty > 1) cart[idx].qty--;
         else if(btn.dataset.dir === 'dec' && cart[idx].qty === 1) cart.splice(idx,1);
         saveAllLocal(); updateCartUI(); renderCartPage(); renderProducts();
+        if (currentBuyer) saveUserCart(currentBuyer.uid);
     }));
     document.querySelectorAll('.cart-remove').forEach(btn => btn.addEventListener('click', () => {
         cart.splice(parseInt(btn.dataset.idx),1);
         saveAllLocal(); updateCartUI(); renderCartPage(); renderProducts();
+        if (currentBuyer) saveUserCart(currentBuyer.uid);
     }));
 }
 let currentDelivery = null;
-document.getElementById('proceedToCheckoutBtn')?.addEventListener('click', () => { if(cart.length === 0){ showToast("Cart empty",true); return; } showSection('checkout'); let savedAddr = savedAddresses.find(a => a.email === "guest@globalbazaar.com"); if(savedAddr){ document.getElementById('deliveryFullName').value = savedAddr.fullName || ''; document.getElementById('deliveryPhone').value = savedAddr.phone || ''; document.getElementById('deliveryCountry').value = savedAddr.country || ''; document.getElementById('deliveryCity').value = savedAddr.city || ''; document.getElementById('deliveryPostcode').value = savedAddr.postcode || ''; document.getElementById('deliveryStreet').value = savedAddr.street || ''; document.getElementById('deliveryHouseNo').value = savedAddr.houseNo || ''; document.getElementById('saveAddressCheckbox').checked = true; } });
-document.getElementById('confirmDeliveryBtn')?.addEventListener('click', () => { let fn = document.getElementById('deliveryFullName').value, ph = document.getElementById('deliveryPhone').value, c = document.getElementById('deliveryCountry').value, ci = document.getElementById('deliveryCity').value, pc = document.getElementById('deliveryPostcode').value, st = document.getElementById('deliveryStreet').value; if(!fn||!ph||!c||!ci||!pc||!st){ showToast("Fill all fields!",true); return; } buyerCountry = c; localStorage.setItem('buyerCountry', buyerCountry); currentDelivery = { fullName: fn, phone: ph, country: c, city: ci, postcode: pc, street: st, houseNo: document.getElementById('deliveryHouseNo').value, fullAddress: `${document.getElementById('deliveryHouseNo').value||''}, ${st}, ${ci}, ${pc}, ${c}` }; if(document.getElementById('saveAddressCheckbox').checked){ let idx = savedAddresses.findIndex(a => a.email === "guest@globalbazaar.com"); let addr = { email: "guest@globalbazaar.com", fullName: fn, phone: ph, country: c, city: ci, postcode: pc, street: st, houseNo: document.getElementById('deliveryHouseNo').value }; if(idx >= 0) savedAddresses[idx] = addr; else savedAddresses.push(addr); saveAllLocal(); } showSection('payment'); loadSavedCards(); });
+document.getElementById('proceedToCheckoutBtn')?.addEventListener('click', () => {
+    if(cart.length === 0){ showToast("Cart empty",true); return; }
+    const user = auth.currentUser;
+    if (!user) {
+        sessionStorage.setItem('pendingCheckout', 'true');
+        sessionStorage.setItem('pendingCart', JSON.stringify(cart));
+        showToast("Please login to continue checkout", true);
+        document.getElementById('loginModal').style.display = 'block';
+        return;
+    }
+    showSection('checkout');
+    let savedAddr = savedAddresses.find(a => a.email === user.email);
+    if(savedAddr){ 
+        document.getElementById('deliveryFullName').value = savedAddr.fullName || '';
+        document.getElementById('deliveryPhone').value = savedAddr.phone || '';
+        document.getElementById('deliveryCountry').value = savedAddr.country || '';
+        document.getElementById('deliveryCity').value = savedAddr.city || '';
+        document.getElementById('deliveryPostcode').value = savedAddr.postcode || '';
+        document.getElementById('deliveryStreet').value = savedAddr.street || '';
+        document.getElementById('deliveryHouseNo').value = savedAddr.houseNo || '';
+        document.getElementById('saveAddressCheckbox').checked = true;
+    }
+});
+document.getElementById('confirmDeliveryBtn')?.addEventListener('click', () => {
+    const user = auth.currentUser;
+    if (!user) {
+        sessionStorage.setItem('pendingCheckout', 'true');
+        sessionStorage.setItem('pendingCart', JSON.stringify(cart));
+        showToast("Please login to continue", true);
+        document.getElementById('loginModal').style.display = 'block';
+        return;
+    }
+    let fn = document.getElementById('deliveryFullName').value, ph = document.getElementById('deliveryPhone').value, c = document.getElementById('deliveryCountry').value, ci = document.getElementById('deliveryCity').value, pc = document.getElementById('deliveryPostcode').value, st = document.getElementById('deliveryStreet').value;
+    if(!fn||!ph||!c||!ci||!pc||!st){ showToast("Fill all fields!",true); return; }
+    buyerCountry = c; localStorage.setItem('buyerCountry', buyerCountry);
+    currentDelivery = { fullName: fn, phone: ph, country: c, city: ci, postcode: pc, street: st, houseNo: document.getElementById('deliveryHouseNo').value, fullAddress: `${document.getElementById('deliveryHouseNo').value||''}, ${st}, ${ci}, ${pc}, ${c}`, email: user.email };
+    if(document.getElementById('saveAddressCheckbox').checked){
+        let idx = savedAddresses.findIndex(a => a.email === user.email);
+        let addr = { email: user.email, fullName: fn, phone: ph, country: c, city: ci, postcode: pc, street: st, houseNo: document.getElementById('deliveryHouseNo').value };
+        if(idx >= 0) savedAddresses[idx] = addr;
+        else savedAddresses.push(addr);
+        saveAllLocal();
+    }
+    showSection('payment');
+    loadSavedCards();
+});
 function loadSavedCards(){ let userCards = savedCards.filter(c => c.userEmail === "guest@globalbazaar.com"); if(userCards.length > 0){ document.getElementById('savedCardsSection').style.display = 'block'; document.getElementById('savedCardsList').innerHTML = userCards.map((card,idx) => `<div class="flex-between"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}">Use</button></div>`).join(''); document.querySelectorAll('.useSavedCardBtn').forEach(btn => btn.addEventListener('click', () => { let card = userCards[parseInt(btn.dataset.idx)]; document.getElementById('cardNumber').value = card.cardNumber; document.getElementById('cardHolderName').value = card.cardHolderName; document.getElementById('expiryDate').value = card.expiryDate; document.getElementById('cvv').value = ''; showToast("Card loaded", false); })); } }
 document.getElementById('payNowBtn')?.addEventListener('click', async () => {
     let cardNum = document.getElementById('cardNumber').value.replace(/\s/g,''), cardName = document.getElementById('cardHolderName').value, expiry = document.getElementById('expiryDate').value, cvv = document.getElementById('cvv').value;
@@ -590,7 +930,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async () => {
     for(let item of cart){
         let seller = sellers.find(s => s.id == item.sellerId);
         let final = calculateFinalPrice(item.price, seller?.country || "SA", buyerCountry);
-        let newOrder = { id: Date.now()+Math.random(), trackingNumber: tracking, sellerId: item.sellerId, sellerName: seller?.shopName || "GlobalBazaar", buyerEmail: "guest@globalbazaar.com", buyerName: currentDelivery.fullName, productName: item.name, amount: final.total, basePrice: item.price, address: currentDelivery.fullAddress, date: new Date().toLocaleString(), status: "Processing", qty: item.qty, shippingCost: final.shipping, commission: final.commission, trackingInfo: null };
+        let newOrder = { id: Date.now()+Math.random(), trackingNumber: tracking, sellerId: item.sellerId, sellerName: seller?.shopName || "GlobalBazaar", buyerEmail: currentDelivery.email, buyerName: currentDelivery.fullName, productName: item.name, amount: final.total, basePrice: item.price, address: currentDelivery.fullAddress, date: new Date().toLocaleString(), status: "Processing", qty: item.qty, shippingCost: final.shipping, commission: final.commission, trackingInfo: null };
         orders.push(newOrder);
         platformEarnings += final.commission * item.qty;
         let prod = products.find(p => p.id == item.id);
@@ -600,6 +940,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async () => {
     await sendTelegramMessage(`🛍️ NEW ORDER!\nOrder: ${tracking}\nCustomer: ${currentDelivery.fullName}\nAmount: ${getCurrencySymbol()}${convertPrice(totalUSD)}`);
     addNotification(`Order placed! #${tracking}`, 'order');
     cart = []; saveAllLocal(); updateCartUI();
+    if (currentBuyer) await saveUserCart(currentBuyer.uid);
     let last4 = cardNum.slice(-4);
     let itemsHtml = cartCopy.map(i => `<li>${i.name} x${i.qty} = ${getCurrencySymbol()}${convertPrice(i.price * i.qty)}</li>`).join('');
     document.getElementById('orderSummaryContent').innerHTML = `<p><strong>Order ID:</strong> ${tracking}</p><h3>📦 Items</h3><ul>${itemsHtml}</ul><h3>💰 Total Paid: ${getCurrencySymbol()}${convertPrice(totalUSD)}</h3><h3>👤 Delivery Details</h3><p>${currentDelivery.fullName}<br>${currentDelivery.phone}<br>${currentDelivery.fullAddress}</p><h3>💳 Payment</h3><p>Card ending: ${last4}</p><p>🔮 We'll notify you when your order ships.</p>`;
@@ -610,7 +951,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async () => {
 function confirmOrderReceived(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Shipped"){ order.status = "Delivered"; saveAllLocal(); showToast("Order marked Delivered", false); renderBuyerOrders(); addNotification(`Order ${order.trackingNumber} delivered`,'order'); setTimeout(()=>{ let ord = orders.find(o => o.id === orderId); if(ord && ord.status === "Delivered"){ ord.status = "Completed"; let seller = sellers.find(s => s.id == ord.sellerId); if(seller){ let sellerEarning = ord.basePrice - ord.shippingCost - HANDLING_FEE; seller.earnings = (seller.earnings||0) + (sellerEarning * ord.qty); saveAllLocal(); showToast(`Payment released to seller`,false); if(currentSeller) renderSellerDashboard(); } } },5000); } else showToast("Order not shipped yet",true); }
 function cancelOrder(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Processing"){ let prod = products.find(p => p.name === order.productName && p.sellerId === order.sellerId); if(prod){ prod.stock += order.qty; saveAllLocal(); } order.status = "Cancelled"; saveAllLocal(); showToast("Order cancelled successfully",false); renderBuyerOrders(); renderProducts(); addNotification(`Order ${order.trackingNumber} cancelled`,'order'); if(currentSeller) renderSellerDashboard(); } else { showToast("Only orders in 'Processing' status can be cancelled",true); } }
 function markOrderShipped(orderId, trackingNum){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Processing"){ order.status = "Shipped"; order.trackingInfo = trackingNum; saveAllLocal(); showToast(`Order Shipped! Tracking: ${trackingNum}`,false); renderSellerDashboard(); renderBuyerOrders(); addNotification(`Your order ${order.trackingNumber} shipped`,'order'); } }
-function requestWithdrawal(sellerId){ let seller = sellers.find(s => s.id == sellerId); if(seller && seller.earnings > 0){ let newWithdrawal = { id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, amount: seller.earnings, bank: seller.bankName, account: seller.accountNo, ifsc: seller.ifsc, date: new Date().toLocaleString(), status: "Pending" }; pendingWithdrawals.push(newWithdrawal); seller.earnings = 0; saveAllLocal(); showToast("Withdrawal request submitted",false); renderSellerDashboard(); sendTelegramMessage(`💰 Withdrawal Request: ${seller.shopName} - ${getCurrencySymbol()}${convertPrice(newWithdrawal.amount)}`); addNotification(`Withdrawal request for ${getCurrencySymbol()}${convertPrice(newWithdrawal.amount)}`,'payment'); } else showToast("No balance",true); }
+function requestWithdrawal(sellerId){ let seller = sellers.find(s => s.id == sellerId); if(seller && seller.earnings > 0){ let newWithdrawal = { id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, amount: seller.earnings, date: new Date().toLocaleString(), status: "Pending" }; pendingWithdrawals.push(newWithdrawal); seller.earnings = 0; saveAllLocal(); showToast("Withdrawal request submitted",false); renderSellerDashboard(); sendTelegramMessage(`💰 Withdrawal Request: ${seller.shopName} - ${getCurrencySymbol()}${convertPrice(newWithdrawal.amount)}`); addNotification(`Withdrawal request for ${getCurrencySymbol()}${convertPrice(newWithdrawal.amount)}`,'payment'); } else showToast("No balance",true); }
 function processWeeklyWithdrawals(){ let last = localStorage.getItem('gb_last_withdrawal'); let now = new Date(); let day = now.getDay(); if((day===1||day===5) && (!last || new Date(last).getDate() !== now.getDate())){ pendingWithdrawals.forEach(w => { if(w.status === "Pending") w.status = "Approved"; }); saveAllLocal(); localStorage.setItem('gb_last_withdrawal', now.toString()); } }
 setInterval(processWeeklyWithdrawals, 3600000); processWeeklyWithdrawals();
 
@@ -765,7 +1106,9 @@ ${seller.kycStatus === "verified" ? `
     }
 }
 function renderBuyerOrders(){
-    let myOrders = orders.filter(o => o.buyerEmail === "guest@globalbazaar.com");
+    const user = auth.currentUser;
+    if (!user) return;
+    let myOrders = orders.filter(o => o.buyerEmail === user.email);
     document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty}<br>${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: ${o.status}<br>${renderTrackingMap(o)}<br>${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981;">✅ Received</button>` : ''}${o.status === "Processing" ? `<button class="cancelOrderBtn" data-id="${o.id}" style="background:#dc2626;">❌ Cancel Order</button>` : ''}</div>`).join('');
     document.querySelectorAll('.confirmReceivedBtn').forEach(btn => btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id))));
     document.querySelectorAll('.cancelOrderBtn').forEach(btn => btn.addEventListener('click', () => cancelOrder(parseFloat(btn.dataset.id))));
@@ -836,17 +1179,17 @@ function loadAdminData(){
     }));
     document.getElementById('adminOrdersList').innerHTML = orders.map(o => `<div class="order-card">🔖 ${o.trackingNumber}<br>${o.productName} x${o.qty}<br>${o.buyerName}<br>Status: ${o.status}</div>`).join('');
 }
-document.getElementById('adminLoginBtn')?.addEventListener('click', () => { if(document.getElementById('adminKey').value === 'admin123'){ document.getElementById('adminLoginBox').style.display='none'; document.getElementById('adminContent').style.display='block'; loadAdminData(); showToast("Admin logged in", false); } else showToast("Wrong key", true); });
+document.getElementById('adminLoginBtn')?.addEventListener('click', () => { if(document.getElementById('adminKey').value === 'Haque0786@'){ document.getElementById('adminLoginBox').style.display='none'; document.getElementById('adminContent').style.display='block'; loadAdminData(); showToast("Admin logged in", false); } else showToast("Wrong key", true); });
 document.getElementById('refreshAdminBtn')?.addEventListener('click', loadAdminData);
 window.viewSellerDocument = function(docImage, docType, sellerName){ if(docImage && docImage.startsWith('http')){ window.open(docImage, '_blank'); } else { alert(`No image available for ${sellerName}`); } };
 function showSection(section){ document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.getElementById(section+"Section").classList.add('active'); }
-document.getElementById('drawerBuyer')?.addEventListener('click', () => { showSection('buyer'); closeDrawer(); });
+document.getElementById('drawerBuyer')?.addEventListener('click', () => { showMyOrdersPage(); closeDrawer(); });
 document.getElementById('drawerSeller')?.addEventListener('click', () => { showSection('seller'); document.getElementById('sellerRegisterBox').style.display='block'; document.getElementById('sellerDashboard').style.display='none'; closeDrawer(); });
 document.getElementById('drawerAdmin')?.addEventListener('click', () => { showSection('admin'); closeDrawer(); });
 document.getElementById('drawerCartPage')?.addEventListener('click', () => { renderCartPage(); showSection('cartPage'); closeDrawer(); });
 document.getElementById('drawerWishlist')?.addEventListener('click', () => { showSection('profile'); renderBuyerWishlist(); closeDrawer(); });
 document.getElementById('drawerSupport')?.addEventListener('click', () => { showSupport(); closeDrawer(); });
-document.getElementById('drawerLogout')?.addEventListener('click', () => { currentSeller = null; localStorage.removeItem('gb_current_seller'); location.reload(); });
+document.getElementById('drawerLogout')?.addEventListener('click', () => { auth.signOut(); currentSeller = null; localStorage.removeItem('gb_current_seller'); location.reload(); });
 document.getElementById('cartFloatBtn')?.addEventListener('click', () => { renderCartPage(); showSection('cartPage'); });
 document.getElementById('closeModalBtn')?.addEventListener('click', () => document.getElementById('productModal').style.display='none');
 document.getElementById('modalAddCartBtn')?.addEventListener('click', () => { if(currentProduct) addToCart(currentProduct.id); document.getElementById('productModal').style.display='none'; });
@@ -882,8 +1225,34 @@ function closeSellerSummary(){ document.getElementById('sellerSummaryModal').sty
 function closeOrderSummary(){ document.getElementById('orderSummaryModal').style.display='none'; showSection('buyer'); }
 document.getElementById('goToMyShopBtn')?.addEventListener('click', () => { closeSellerSummary(); showMyShopLogin(); });
 
+// Modal toggle functions
+document.getElementById('loginBtn')?.addEventListener('click', () => {
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('modalAuthTitle').innerText = '🔐 Login to GlobalBazaar';
+    document.getElementById('loginModal').style.display = 'block';
+});
+document.getElementById('showRegisterLink')?.addEventListener('click', () => {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('registerForm').style.display = 'block';
+    document.getElementById('modalAuthTitle').innerText = '📝 Create Account';
+});
+document.getElementById('showLoginLink')?.addEventListener('click', () => {
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('modalAuthTitle').innerText = '🔐 Login to GlobalBazaar';
+});
+document.getElementById('closeLoginModal')?.addEventListener('click', () => {
+    document.getElementById('loginModal').style.display = 'none';
+});
+document.getElementById('loginModal')?.addEventListener('click', (e) => {
+    if (e.target === document.getElementById('loginModal')) {
+        document.getElementById('loginModal').style.display = 'none';
+    }
+});
+
 renderCats(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge();
-document.getElementById('debugMsg').innerHTML = "Auto image compress active | Stripe removed, DEED integration ready";
+document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | Login Required for Checkout";
 </script>
 </body>
 </html>
