@@ -10,7 +10,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <style>
-        /* FULL CSS from original working version - same as before */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: linear-gradient(135deg, #f5f7fb 0%, #eef2f8 100%); padding-bottom: 90px; transition: all 0.3s ease; }
         body.dark-mode { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f1f5f9; }
@@ -656,35 +655,50 @@ db.collection("products").onSnapshot(snapshot => {
     renderProducts(); renderCats();
     document.getElementById('debugMsg').innerText = `Products: ${products.length}`;
 });
+
 db.collection("sellers").onSnapshot(snapshot => {
     sellers = [];
     snapshot.forEach(doc => { 
         sellers.push({ id: doc.id, ...doc.data() }); 
     });
     updateAdminPendingBadge();
-    // Restore seller session if exists and matches
+    if (document.getElementById('adminContent').style.display === 'block') loadAdminData();
     if (currentSeller) {
         const stillExists = sellers.find(s => s.id === currentSeller.sellerId);
         if (stillExists && stillExists.kycStatus === 'verified') {
-            // Seller still verified, keep session
             currentSeller = { ...currentSeller, ...stillExists };
             localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
+            // If seller dashboard should be shown, show it
+            if (document.getElementById('sellerDashboard').style.display === 'block') {
+                renderSellerDashboard();
+            }
         } else if (stillExists && stillExists.kycStatus !== 'verified') {
-            document.getElementById('sellerDashboard').style.display = 'none';
-            document.getElementById('sellerRegisterBox').style.display = 'block';
-            currentSeller = null;
-            localStorage.removeItem('gb_current_seller');
-            showToast("Your KYC is not verified yet.", true);
+            if (currentSeller?.sellerId === stillExists.id) {
+                document.getElementById('sellerDashboard').style.display = 'none';
+                document.getElementById('sellerRegisterBox').style.display = 'block';
+                currentSeller = null;
+                localStorage.removeItem('gb_current_seller');
+                if (stillExists.kycStatus === 'pending') {
+                    showToast("Your KYC is pending verification by admin.", true);
+                } else if (stillExists.kycStatus === 'rejected') {
+                    showToast("Your KYC was rejected. Contact support.", true);
+                }
+            }
         }
     }
-    if (document.getElementById('adminContent').style.display === 'block') loadAdminData();
 });
-function updateAdminPendingBadge(){
-    let pendingCount = sellers.filter(s => s.kycStatus === 'pending').length;
-    let badge = document.getElementById('adminPendingBadge');
-    if(badge){
-        if(pendingCount > 0){ badge.style.display = 'inline-block'; badge.innerText = pendingCount; }
-        else { badge.style.display = 'none'; }
+
+function updateAdminPendingBadge() {
+    const pendingSellers = sellers.filter(s => s.kycStatus === 'pending');
+    const count = pendingSellers.length;
+    const badge = document.getElementById('adminPendingBadge');
+    if (badge) {
+        if (count > 0) {
+            badge.style.display = 'inline-block';
+            badge.innerText = count;
+        } else {
+            badge.style.display = 'none';
+        }
     }
 }
 
@@ -924,7 +938,9 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) =
             createdAt: new Date().toISOString(),
             avatar: avatarUrl
         };
-        await db.collection("sellers").add(newSeller);
+        const docRef = await db.collection("sellers").add(newSeller);
+        newSeller.id = docRef.id;
+        
         document.getElementById('sellerRegForm').reset();
         sellerPhoneVerified = false;
         document.getElementById('sellerSubmitBtn').disabled = true;
@@ -937,7 +953,7 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) =
             name: newSeller.fullName, 
             email: newSeller.email, 
             role: 'seller', 
-            sellerId: newSeller.id, 
+            sellerId: docRef.id, 
             phone: newSeller.phone,
             kycStatus: 'pending'
         };
@@ -946,6 +962,14 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) =
         let modal = document.getElementById('sellerSummaryModal');
         if(modal) modal.style.display = 'block';
         document.getElementById('debugMsg').innerText = "Registration successful!";
+        
+        // Refresh sellers list
+        const snapshot = await db.collection("sellers").get();
+        sellers = [];
+        snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
+        updateAdminPendingBadge();
+        if (document.getElementById('adminContent').style.display === 'block') loadAdminData();
+        
     } catch(err) {
         console.error(err);
         showToast("Registration failed: " + err.message, true);
@@ -964,7 +988,7 @@ function showMyShopLogin(){
             return;
         }
         currentSeller = { name: seller.fullName, email: seller.email, role: 'seller', sellerId: seller.id, phone: seller.phone, kycStatus: seller.kycStatus };
-        saveAllLocal();
+        localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
         document.getElementById('sellerRegisterBox').style.display = 'none';
         document.getElementById('sellerDashboard').style.display = 'block';
         renderSellerDashboard();
@@ -1078,7 +1102,7 @@ function loadAdminData(){
     document.getElementById('pendingKycList').innerHTML = pendingHtml;
     let verifiedHtml = verified.length ? `<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Joined</th></tr></thead><tbody>${verified.map(s => `<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td>${new Date(s.createdAt).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>` : '<div>No verified sellers yet</div>';
     document.getElementById('verifiedSellersList').innerHTML = verifiedHtml;
-    let rejectedHtml = rejected.length ? `<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Reason</th></tr></thead><tbody>${rejected.map(s => `<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td>${s.rejectionReason||'No reason'}</td></tr>`).join('')}</tbody></table>` : '<div>No rejected sellers</div>';
+    let rejectedHtml = rejected.length ? `<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Reason</th><tr></thead><tbody>${rejected.map(s => `<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td>${s.rejectionReason||'No reason'}</td></tr>`).join('')}</tbody></table>` : '<div>No rejected sellers</div>';
     document.getElementById('rejectedSellersList').innerHTML = rejectedHtml;
     document.querySelectorAll('.btn-approve').forEach(btn => btn.addEventListener('click', async () => {
         let sellerId = btn.dataset.id;
@@ -1093,6 +1117,7 @@ function loadAdminData(){
             const snapshot = await db.collection("sellers").get();
             sellers = [];
             snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
+            updateAdminPendingBadge();
             loadAdminData();
         }
     }));
@@ -1110,6 +1135,7 @@ function loadAdminData(){
                 const snapshot = await db.collection("sellers").get();
                 sellers = [];
                 snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
+                updateAdminPendingBadge();
                 loadAdminData();
             }
         } else if(reason === "") showToast("Please enter a reason", true);
