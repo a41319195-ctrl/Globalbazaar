@@ -10,7 +10,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <style>
-        /* ===== FULL CSS (same as working version) ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: linear-gradient(135deg, #f5f7fb 0%, #eef2f8 100%); padding-bottom: 90px; transition: all 0.3s ease; }
         body.dark-mode { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f1f5f9; }
@@ -43,7 +42,6 @@
         .header-3d { background: linear-gradient(145deg, #ffffff, #f0f4fa); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 10px 25px -8px rgba(0,0,0,0.15); border-bottom: 1px solid rgba(59,130,246,0.15); flex-wrap: wrap; gap: 10px; }
         .header-left { display: flex; align-items: center; gap: 15px; }
         .header-right { display: flex; align-items: center; gap: 10px; }
-        .login-btn, .logout-btn { background: linear-gradient(145deg, #3b82f6, #2563eb); border: none; padding: 8px 16px; border-radius: 40px; color: white; font-weight: 600; cursor: pointer; font-size: 14px; }
         .menu-icon-3d { background: linear-gradient(145deg, #1e293b, #0f172a); border: none; font-size: 22px; cursor: pointer; padding: 8px 14px; border-radius: 18px; color: white; box-shadow: 0 8px 12px rgba(0,0,0,0.2); }
         .brand-3d { font-weight: 800; font-size: 28px; background: linear-gradient(135deg, #1e3a8a, #3b82f6, #06b6d4); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .logo-3d { font-size: 32px; background: radial-gradient(circle at 35% 35%, #ffdd77, #ffaa33); border-radius: 50%; padding: 5px; }
@@ -145,7 +143,6 @@
             .product-card .main-img { height: 120px; }
             .modal-thumbnails img { width: 50px; height: 50px; }
             .kyc-table th, .kyc-table td { padding: 8px; font-size: 11px; }
-            .login-btn, .logout-btn { padding: 4px 10px; font-size: 11px; }
         }
     </style>
 </head>
@@ -156,11 +153,7 @@
     <div class="header-right">
         <button class="notification-bell" id="notificationBell">🔔<span class="notification-badge" id="notificationCount">0</span></button>
         <select id="currencySelect" class="currency-dropdown"><option value="SAR">🇸🇦 SAR</option><option value="USD">🇺🇸 USD $</option><option value="EUR">🇪🇺 EUR €</option><option value="GBP">🇬🇧 GBP £</option><option value="INR">🇮🇳 INR ₹</option><option value="PKR">🇵🇰 PKR ₨</option><option value="NPR">🇳🇵 NPR रू</option><option value="BDT">🇧🇩 BDT ৳</option><option value="LKR">🇱🇰 LKR Rs</option><option value="AED">🇦🇪 AED د.إ</option><option value="CAD">🇨🇦 CAD $</option><option value="AUD">🇦🇺 AUD $</option><option value="SGD">🇸🇬 SGD $</option><option value="MYR">🇲🇾 MYR RM</option><option value="THB">🇹🇭 THB ฿</option><option value="JPY">🇯🇵 JPY ¥</option><option value="CNY">🇨🇳 CNY ¥</option></select>
-        <div id="authSection">
-            <button id="loginBtn" class="login-btn">👤 Login</button>
-            <span id="userNameDisplay" style="display:none;"></span>
-            <button id="logoutBtn" style="display:none;" class="logout-btn">🚪 Logout</button>
-        </div>
+        <!-- LOGIN BUTTON REMOVED as per Option A -->
     </div>
 </div>
 <div class="notification-panel" id="notificationPanel"><div style="padding:12px;font-weight:bold;border-bottom:1px solid #e2e8f0;">🔔 Notifications</div><div id="notificationsList"></div></div>
@@ -170,7 +163,7 @@
     <div id="buyerSection" class="section active"><div class="cat-scroll" id="catList"></div><div class="search-container"><input type="text" id="searchInput" placeholder="🔍 Search products..."></div><div class="product-grid" id="productsGrid"></div></div>
     <div id="sellerSection" class="section"><div id="sellerRegisterBox" class="premium-card"><h2>🏪 Open Your Shop</h2><form id="sellerRegForm"><input type="file" id="sellerAvatar" accept="image/*" class="input"><input type="text" id="sellerFullName" placeholder="Full Legal Name" class="input" required><input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required><input type="email" id="sellerEmail" placeholder="Email" class="input" required><div class="phone-group"><div class="country-search-select" id="sellerCountrySearchContainer"><input type="text" id="sellerCountrySearch" placeholder="🔍 Search country..." autocomplete="off"><div class="country-dropdown-list" id="sellerCountryDropdown"></div><select id="sellerCountryCode" style="display:none;"></select></div><input type="tel" id="sellerPhone" placeholder="Phone Number" class="input" required></div><div class="otp-section" id="sellerOtpSection"><input type="text" id="sellerOtp" placeholder="Enter OTP" class="input"><button type="button" id="sellerVerifyOtpBtn" class="btn-secondary">Verify OTP</button></div><input type="password" id="sellerPassword" placeholder="Password" class="input" required><label style="font-weight:600; margin-top:10px;">🎂 Date of Birth</label><input type="date" id="sellerDob" class="input" required><h4>📍 Shop Address</h4><input type="text" id="sellerHouseNo" placeholder="House No." class="input" required><input type="text" id="sellerStreet" placeholder="Street" class="input" required><input type="text" id="sellerCity" placeholder="City" class="input" required><input type="text" id="sellerState" placeholder="State" class="input" required><input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required><select id="sellerCountryReg" class="input" required><option value="">Select Country</option></select><div class="doc-section"><div class="doc-title">🌍 KYC Documents</div><select id="sellerDocType" class="input" required><option value="">Select Document Type</option><option value="passport">📘 Passport</option><option value="national_id">🆔 National ID Card</option><option value="driving_license">🚗 Driving License</option><option value="residence_permit">📄 Residence Permit</option></select><input type="text" id="sellerDocNumber" placeholder="Document Number" class="input" required><input type="file" id="sellerDocImage" accept="image/*,application/pdf" class="input" required></div>
         <div class="checkbox-group"><input type="checkbox" id="sellerAgreement" required><label>I agree to <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label></div><button type="submit" class="btn-primary" id="sellerSubmitBtn" disabled>✅ Register Shop (Verify Phone First)</button></form></div><div id="sellerDashboard" style="display:none;"></div></div>
-    <div id="profileSection" class="section"><div id="buyerProfilePanel" style="display:block;"><div class="premium-card"><div class="flex-between"><h2>👋 My Account</h2><span class="role-badge" id="userRoleBadge">Buyer</span></div></div><div class="premium-card"><h3>📜 My Orders</h3><div id="buyerOrdersList"></div></div><div class="premium-card"><h3>❤️ My Wishlist</h3><div id="buyerWishlistList"></div></div></div></div>
+    <div id="profileSection" class="section"><div id="buyerProfilePanel" style="display:block;"><div class="premium-card"><div class="flex-between"><h2>👋 Guest User</h2><span class="role-badge">Buyer</span></div></div><div class="premium-card"><h3>📜 My Orders</h3><div id="buyerOrdersList"></div></div><div class="premium-card"><h3>❤️ My Wishlist</h3><div id="buyerWishlistList"></div></div></div></div>
     <div id="adminSection" class="section"><div id="adminPanel" class="premium-card"><h2>⚙️ Admin Dashboard</h2><div id="adminLoginBox"><input type="password" id="adminKey" class="input" placeholder="Enter Admin Key"><button class="btn-primary" id="adminLoginBtn">Login</button></div><div id="adminContent" style="display:none;"><div style="margin-bottom:25px;"><div class="kyc-section-title">⏳ Pending KYC Verification Requests</div><div id="pendingKycList"></div></div><div style="margin-bottom:25px;"><div class="kyc-section-title">✅ Verified Sellers</div><div id="verifiedSellersList"></div></div><div style="margin-bottom:25px;"><div class="kyc-section-title">❌ Rejected Sellers</div><div id="rejectedSellersList"></div></div>
         <div class="flex-between" style="margin: 20px 0 10px;"><h3>💰 Platform Earnings</h3><button id="refreshAdminBtn" style="background:#64748b; padding:8px 16px; border-radius:30px;">Refresh</button></div>
         <div id="platformEarnings" style="margin-bottom:20px;"><h2>SAR 0.00</h2></div>
@@ -184,31 +177,25 @@
 <button class="fixed-cart" id="cartFloatBtn">🛒 Cart <span class="cart-badge" id="cartCountBadge">0</span></button>
 <div class="toast" id="toast"></div>
 
-<!-- LOGIN/SIGNUP MODAL -->
+<!-- LOGIN MODAL (kept for checkout) -->
 <div id="loginModal" class="modal" style="display:none;">
     <div class="modal-card" style="max-width: 400px;">
         <span class="close-modal" id="closeLoginModal">&times;</span>
         <h2 id="modalAuthTitle">🔐 Login to GlobalBazaar</h2>
-        
         <div id="loginForm">
             <input type="email" id="loginEmail" placeholder="Email" class="input" required>
             <input type="password" id="loginPassword" placeholder="Password" class="input" required>
             <button id="doLoginBtn" class="btn-primary">Login</button>
             <button id="googleSignInBtn" class="btn-primary" style="background:#4285F4; margin-top:10px;">🔵 Sign in with Google</button>
-            <p style="text-align:center; margin-top:15px;">
-                New user? <span id="showRegisterLink" style="color:#3b82f6; cursor:pointer;">Create Account</span>
-            </p>
+            <p style="text-align:center; margin-top:15px;">New user? <span id="showRegisterLink" style="color:#3b82f6; cursor:pointer;">Create Account</span></p>
         </div>
-        
         <div id="registerForm" style="display:none;">
             <input type="text" id="regName" placeholder="Full Name" class="input" required>
             <input type="email" id="regEmail" placeholder="Email" class="input" required>
             <input type="password" id="regPassword" placeholder="Password (min 6 chars)" class="input" required>
             <button id="doRegisterBtn" class="btn-primary">Create Account</button>
             <button id="googleSignUpBtn" class="btn-primary" style="background:#4285F4; margin-top:10px;">🔵 Sign up with Google</button>
-            <p style="text-align:center; margin-top:15px;">
-                Already have account? <span id="showLoginLink" style="color:#3b82f6; cursor:pointer;">Login</span>
-            </p>
+            <p style="text-align:center; margin-top:15px;">Already have account? <span id="showLoginLink" style="color:#3b82f6; cursor:pointer;">Login</span></p>
         </div>
     </div>
 </div>
@@ -237,7 +224,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-// ========== IMAGE COMPRESSION UTILITY ==========
+// ========== IMAGE COMPRESSION ==========
 function compressImage(file, maxSizeMB = 0.5, maxWidth = 1024, maxHeight = 1024) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -249,19 +236,16 @@ function compressImage(file, maxSizeMB = 0.5, maxWidth = 1024, maxHeight = 1024)
                 let width = img.width;
                 let height = img.height;
                 let quality = 0.7;
-
                 if (width > maxWidth || height > maxHeight) {
                     const ratio = Math.min(maxWidth / width, maxHeight / height);
                     width = width * ratio;
                     height = height * ratio;
                 }
-
                 const canvas = document.createElement('canvas');
                 canvas.width = width;
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
-
                 let attempt = 0;
                 const maxAttempts = 5;
                 const tryQuality = (q) => {
@@ -299,7 +283,7 @@ async function uploadCompressedImage(file, type = 'image') {
     }
 }
 
-// ========== DEFAULT PRODUCTS SEED ==========
+// ========== DEFAULT PRODUCTS ==========
 const defaultProducts = [
     { sellerId: 0, sellerName: "GlobalBazaar", name: "Wireless Headphones", price: 89.99, category: "Electronics", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400"], description: "Premium wireless headphones", stock: 10 },
     { sellerId: 0, sellerName: "GlobalBazaar", name: "Cotton T-Shirt", price: 24.99, category: "Textile", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", images: ["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400"], description: "100% combed cotton", stock: 25 },
@@ -329,7 +313,7 @@ let notifications = JSON.parse(localStorage.getItem('gb_notifications')) || [];
 let selectedCurrency = localStorage.getItem('selectedCurrency') || 'SAR';
 let buyerCountry = localStorage.getItem('buyerCountry') || 'SA';
 let sellerRevenueChart = null;
-let currentUserData = null;
+let currentBuyer = null;
 
 const TELEGRAM_BOT_TOKEN = "8328824652:AAE-b4o6DaFDa9WPtZfrOfM7SYGU9gUa9HQ";
 const TELEGRAM_CHAT_ID = "7111653640";
@@ -364,6 +348,16 @@ function updateNotificationUI() {
         updateNotificationUI();
     }));
 }
+document.getElementById('notificationBell')?.addEventListener('click', () => {
+    let p = document.getElementById('notificationPanel');
+    if (p) p.style.display = p.style.display === 'block' ? 'none' : 'block';
+});
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.notification-bell') && !e.target.closest('#notificationPanel')) {
+        let p = document.getElementById('notificationPanel');
+        if (p) p.style.display = 'none';
+    }
+});
 
 let isDarkMode = localStorage.getItem('darkMode') === 'true';
 if (isDarkMode) document.body.classList.add('dark-mode');
@@ -476,25 +470,11 @@ const PLATFORM_COMMISSION=0.05, GATEWAY_FEE=0.025, HANDLING_FEE=2;
 function calculateFinalPrice(basePrice,sellerCountry,buyerCountry){ let shipping=getShippingCost(sellerCountry,buyerCountry); let commission=basePrice*PLATFORM_COMMISSION; let gateway=basePrice*GATEWAY_FEE; return { total: basePrice+commission+gateway+shipping+HANDLING_FEE, basePrice, shipping, commission, gateway }; }
 
 // ========== AUTHENTICATION ==========
-let currentBuyer = null;
-
-// Check if user is already logged in
 auth.onAuthStateChanged(async (user) => {
     if (user) {
         currentBuyer = user;
-        document.getElementById('loginBtn').style.display = 'none';
-        document.getElementById('logoutBtn').style.display = 'inline-block';
-        document.getElementById('userNameDisplay').style.display = 'inline-block';
-        document.getElementById('userNameDisplay').innerHTML = `👋 ${user.email.split('@')[0]}`;
-        document.getElementById('userRoleBadge').innerText = 'Buyer';
-        
-        // Load user's cart from database
-        await loadUserCart(user.uid);
     } else {
         currentBuyer = null;
-        document.getElementById('loginBtn').style.display = 'inline-block';
-        document.getElementById('logoutBtn').style.display = 'none';
-        document.getElementById('userNameDisplay').style.display = 'none';
         cart = [];
         updateCartUI();
     }
@@ -505,20 +485,13 @@ auth.onAuthStateChanged(async (user) => {
 document.getElementById('doLoginBtn')?.addEventListener('click', async () => {
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
-    
-    if (!email || !password) {
-        showToast("Please enter email and password", true);
-        return;
-    }
-    
+    if (!email || !password) { showToast("Please enter email and password", true); return; }
     try {
         const userCredential = await auth.signInWithEmailAndPassword(email, password);
         showToast(`Welcome back ${userCredential.user.email}!`, false);
         document.getElementById('loginModal').style.display = 'none';
         document.getElementById('loginEmail').value = '';
         document.getElementById('loginPassword').value = '';
-        
-        // Check if there was pending checkout
         const pendingCheckout = sessionStorage.getItem('pendingCheckout');
         if (pendingCheckout === 'true') {
             sessionStorage.removeItem('pendingCheckout');
@@ -526,23 +499,17 @@ document.getElementById('doLoginBtn')?.addEventListener('click', async () => {
             if (pendingCart) {
                 cart = JSON.parse(pendingCart);
                 sessionStorage.removeItem('pendingCart');
-                await saveUserCart(userCredential.user.uid);
                 updateCartUI();
             }
             showSection('checkout');
             loadSavedAddresses();
         }
-        
         await loadUserCart(userCredential.user.uid);
         renderCartPage();
     } catch (error) {
-        if (error.code === 'auth/user-not-found') {
-            showToast("No account found with this email", true);
-        } else if (error.code === 'auth/wrong-password') {
-            showToast("Wrong password", true);
-        } else {
-            showToast("Login failed: " + error.message, true);
-        }
+        if (error.code === 'auth/user-not-found') showToast("No account found", true);
+        else if (error.code === 'auth/wrong-password') showToast("Wrong password", true);
+        else showToast("Login failed", true);
     }
 });
 
@@ -551,34 +518,16 @@ document.getElementById('doRegisterBtn')?.addEventListener('click', async () => 
     const name = document.getElementById('regName').value;
     const email = document.getElementById('regEmail').value;
     const password = document.getElementById('regPassword').value;
-    
-    if (!name || !email || !password) {
-        showToast("Please fill all fields", true);
-        return;
-    }
-    
-    if (password.length < 6) {
-        showToast("Password must be at least 6 characters", true);
-        return;
-    }
-    
+    if (!name || !email || !password) { showToast("Please fill all fields", true); return; }
+    if (password.length < 6) { showToast("Password must be at least 6 characters", true); return; }
     try {
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        
-        await db.collection('users').doc(userCredential.user.uid).set({
-            name: name,
-            email: email,
-            createdAt: new Date().toISOString(),
-            role: 'buyer'
-        });
-        
+        await db.collection('users').doc(userCredential.user.uid).set({ name, email, createdAt: new Date().toISOString(), role: 'buyer' });
         showToast("Account created successfully!", false);
         document.getElementById('loginModal').style.display = 'none';
         document.getElementById('regName').value = '';
         document.getElementById('regEmail').value = '';
         document.getElementById('regPassword').value = '';
-        
-        // Check for pending checkout
         const pendingCheckout = sessionStorage.getItem('pendingCheckout');
         if (pendingCheckout === 'true') {
             sessionStorage.removeItem('pendingCheckout');
@@ -586,18 +535,14 @@ document.getElementById('doRegisterBtn')?.addEventListener('click', async () => 
             if (pendingCart) {
                 cart = JSON.parse(pendingCart);
                 sessionStorage.removeItem('pendingCart');
-                await saveUserCart(userCredential.user.uid);
                 updateCartUI();
             }
             showSection('checkout');
             loadSavedAddresses();
         }
     } catch (error) {
-        if (error.code === 'auth/email-already-in-use') {
-            showToast("Email already registered", true);
-        } else {
-            showToast("Registration failed: " + error.message, true);
-        }
+        if (error.code === 'auth/email-already-in-use') showToast("Email already registered", true);
+        else showToast("Registration failed", true);
     }
 });
 
@@ -609,16 +554,10 @@ document.getElementById('googleSignInBtn')?.addEventListener('click', async () =
         const userRef = db.collection('users').doc(result.user.uid);
         const doc = await userRef.get();
         if (!doc.exists) {
-            await userRef.set({
-                name: result.user.displayName,
-                email: result.user.email,
-                createdAt: new Date().toISOString(),
-                role: 'buyer'
-            });
+            await userRef.set({ name: result.user.displayName, email: result.user.email, createdAt: new Date().toISOString(), role: 'buyer' });
         }
         showToast(`Welcome ${result.user.displayName}!`, false);
         document.getElementById('loginModal').style.display = 'none';
-        
         const pendingCheckout = sessionStorage.getItem('pendingCheckout');
         if (pendingCheckout === 'true') {
             sessionStorage.removeItem('pendingCheckout');
@@ -626,15 +565,12 @@ document.getElementById('googleSignInBtn')?.addEventListener('click', async () =
             if (pendingCart) {
                 cart = JSON.parse(pendingCart);
                 sessionStorage.removeItem('pendingCart');
-                await saveUserCart(result.user.uid);
                 updateCartUI();
             }
             showSection('checkout');
             loadSavedAddresses();
         }
-    } catch (error) {
-        showToast("Google sign-in failed", true);
-    }
+    } catch (error) { showToast("Google sign-in failed", true); }
 });
 
 document.getElementById('googleSignUpBtn')?.addEventListener('click', async () => {
@@ -644,16 +580,10 @@ document.getElementById('googleSignUpBtn')?.addEventListener('click', async () =
         const userRef = db.collection('users').doc(result.user.uid);
         const doc = await userRef.get();
         if (!doc.exists) {
-            await userRef.set({
-                name: result.user.displayName,
-                email: result.user.email,
-                createdAt: new Date().toISOString(),
-                role: 'buyer'
-            });
+            await userRef.set({ name: result.user.displayName, email: result.user.email, createdAt: new Date().toISOString(), role: 'buyer' });
         }
         showToast(`Welcome ${result.user.displayName}!`, false);
         document.getElementById('loginModal').style.display = 'none';
-        
         const pendingCheckout = sessionStorage.getItem('pendingCheckout');
         if (pendingCheckout === 'true') {
             sessionStorage.removeItem('pendingCheckout');
@@ -661,15 +591,12 @@ document.getElementById('googleSignUpBtn')?.addEventListener('click', async () =
             if (pendingCart) {
                 cart = JSON.parse(pendingCart);
                 sessionStorage.removeItem('pendingCart');
-                await saveUserCart(result.user.uid);
                 updateCartUI();
             }
             showSection('checkout');
             loadSavedAddresses();
         }
-    } catch (error) {
-        showToast("Google sign-up failed", true);
-    }
+    } catch (error) { showToast("Google sign-up failed", true); }
 });
 
 // LOGOUT FUNCTION
@@ -682,13 +609,9 @@ document.getElementById('logoutBtn')?.addEventListener('click', async () => {
     showSection('buyer');
 });
 
-// Cart database functions
 async function saveUserCart(userId) {
     if (!userId) return;
-    await db.collection('carts').doc(userId).set({
-        items: cart,
-        updatedAt: new Date().toISOString()
-    });
+    await db.collection('carts').doc(userId).set({ items: cart, updatedAt: new Date().toISOString() });
 }
 
 async function loadUserCart(userId) {
@@ -709,29 +632,15 @@ function showMyOrdersPage() {
         document.getElementById('loginModal').style.display = 'block';
         return;
     }
-    
     const myOrders = orders.filter(o => o.buyerEmail === user.email);
-    
     if (myOrders.length === 0) {
         document.getElementById('buyerOrdersList').innerHTML = '<div class="premium-card"><p>No orders yet. Start shopping!</p></div>';
     } else {
-        let ordersHtml = myOrders.map(o => `
-            <div class="order-card">
-                <strong>🔖 ${o.trackingNumber}</strong><br>
-                ${o.productName} x${o.qty}<br>
-                ${getCurrencySymbol()}${convertPrice(o.amount)}<br>
-                Status: ${o.status}<br>
-                ${renderTrackingMap(o)}
-                ${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981;">✅ Received</button>` : ''}
-                ${o.status === "Processing" ? `<button class="cancelOrderBtn" data-id="${o.id}" style="background:#dc2626;">❌ Cancel Order</button>` : ''}
-            </div>
-        `).join('');
+        let ordersHtml = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty}<br>${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: ${o.status}<br>${renderTrackingMap(o)}${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981;">✅ Received</button>` : ''}${o.status === "Processing" ? `<button class="cancelOrderBtn" data-id="${o.id}" style="background:#dc2626;">❌ Cancel Order</button>` : ''}</div>`).join('');
         document.getElementById('buyerOrdersList').innerHTML = ordersHtml;
-        
         document.querySelectorAll('.confirmReceivedBtn').forEach(btn => btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id))));
         document.querySelectorAll('.cancelOrderBtn').forEach(btn => btn.addEventListener('click', () => cancelOrder(parseFloat(btn.dataset.id))));
     }
-    
     showSection('profile');
 }
 
