@@ -6,7 +6,6 @@
     <title>GlobalBazaar - Auto Compress Images</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://js.stripe.com/v3/"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
@@ -131,7 +130,6 @@
         .btn-approve { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; margin-right: 8px; }
         .btn-reject { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; }
         .btn-view-doc { background: #3b82f6; color: white; border: none; padding: 4px 10px; border-radius: 15px; cursor: pointer; font-size: 11px; }
-        .stripe-btn { background: linear-gradient(145deg, #635bff, #4f46e5); color: white; border: none; padding: 14px; border-radius: 60px; font-weight: 700; width: 100%; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .payment-divider { display: flex; align-items: center; gap: 10px; margin: 15px 0; }
         .payment-divider hr { flex: 1; border: none; border-top: 1px solid #e2e8f0; }
         body.dark-mode .payment-divider hr { border-top-color: #475569; }
@@ -159,7 +157,8 @@
 <div class="drawer" id="drawer"><div class="drawer-header"><h2>GlobalBazaar 🌍</h2><p style="font-size:12px;">Multi‑Seller Hub</p></div><div class="dark-mode-menu-item" id="drawerDarkModeToggle">🌙 Dark Mode</div><div class="drawer-item" id="drawerBuyer">🛒 Buyer Shopping</div><div class="drawer-item" id="drawerSeller">🏪 Seller Dashboard</div><div class="drawer-item" id="drawerMyShop" class="my-shop-btn">🏪 My Shop</div><div class="drawer-item" id="drawerAdmin">⚙️ Admin Panel <span id="adminPendingBadge" style="background:#ef4444; color:white; border-radius:20px; padding:2px 8px; font-size:12px; margin-left:8px; display:none;">0</span></div><div class="drawer-item" id="drawerCartPage">🛍️ My Cart</div><div class="drawer-item" id="drawerWishlist">❤️ Wishlist</div><div class="drawer-item" id="drawerSupport">📞 Support</div><div class="drawer-item" id="drawerLogout">🚪 Logout</div></div>
 <div class="container">
     <div id="buyerSection" class="section active"><div class="cat-scroll" id="catList"></div><div class="search-container"><input type="text" id="searchInput" placeholder="🔍 Search products..."></div><div class="product-grid" id="productsGrid"></div></div>
-    <div id="sellerSection" class="section"><div id="sellerRegisterBox" class="premium-card"><h2>🏪 Open Your Shop</h2><form id="sellerRegForm"><input type="file" id="sellerAvatar" accept="image/*" class="input"><input type="text" id="sellerFullName" placeholder="Full Legal Name" class="input" required><input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required><input type="email" id="sellerEmail" placeholder="Email" class="input" required><div class="phone-group"><div class="country-search-select" id="sellerCountrySearchContainer"><input type="text" id="sellerCountrySearch" placeholder="🔍 Search country..." autocomplete="off"><div class="country-dropdown-list" id="sellerCountryDropdown"></div><select id="sellerCountryCode" style="display:none;"></select></div><input type="tel" id="sellerPhone" placeholder="Phone Number" class="input" required></div><div class="otp-section" id="sellerOtpSection"><input type="text" id="sellerOtp" placeholder="Enter OTP" class="input"><button type="button" id="sellerVerifyOtpBtn" class="btn-secondary">Verify OTP</button></div><input type="password" id="sellerPassword" placeholder="Password" class="input" required><label style="font-weight:600; margin-top:10px;">🎂 Date of Birth</label><input type="date" id="sellerDob" class="input" required><h4>📍 Shop Address</h4><input type="text" id="sellerHouseNo" placeholder="House No." class="input" required><input type="text" id="sellerStreet" placeholder="Street" class="input" required><input type="text" id="sellerCity" placeholder="City" class="input" required><input type="text" id="sellerState" placeholder="State" class="input" required><input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required><select id="sellerCountryReg" class="input" required><option value="">Select Country</option></select><div class="doc-section"><div class="doc-title">🌍 KYC Documents</div><select id="sellerDocType" class="input" required><option value="">Select Document Type</option><option value="passport">📘 Passport</option><option value="national_id">🆔 National ID Card</option><option value="driving_license">🚗 Driving License</option><option value="residence_permit">📄 Residence Permit</option></select><input type="text" id="sellerDocNumber" placeholder="Document Number" class="input" required><input type="file" id="sellerDocImage" accept="image/*,application/pdf" class="input" required></div><h4>🏦 Bank Account Details</h4><input type="text" id="sellerBank" placeholder="Bank Name" class="input" required><input type="text" id="sellerAccountNo" placeholder="Account Number" class="input" required><input type="text" id="sellerIfsc" placeholder="IFSC / SWIFT Code" class="input" required><input type="text" id="sellerAccountHolder" placeholder="Account Holder Full Name" class="input" required><div class="checkbox-group"><input type="checkbox" id="sellerAgreement" required><label>I agree to <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label></div><button type="submit" class="btn-primary" id="sellerSubmitBtn" disabled>✅ Register Shop (Verify Phone First)</button></form></div><div id="sellerDashboard" style="display:none;"></div></div>
+    <div id="sellerSection" class="section"><div id="sellerRegisterBox" class="premium-card"><h2>🏪 Open Your Shop</h2><form id="sellerRegForm"><input type="file" id="sellerAvatar" accept="image/*" class="input"><input type="text" id="sellerFullName" placeholder="Full Legal Name" class="input" required><input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required><input type="email" id="sellerEmail" placeholder="Email" class="input" required><div class="phone-group"><div class="country-search-select" id="sellerCountrySearchContainer"><input type="text" id="sellerCountrySearch" placeholder="🔍 Search country..." autocomplete="off"><div class="country-dropdown-list" id="sellerCountryDropdown"></div><select id="sellerCountryCode" style="display:none;"></select></div><input type="tel" id="sellerPhone" placeholder="Phone Number" class="input" required></div><div class="otp-section" id="sellerOtpSection"><input type="text" id="sellerOtp" placeholder="Enter OTP" class="input"><button type="button" id="sellerVerifyOtpBtn" class="btn-secondary">Verify OTP</button></div><input type="password" id="sellerPassword" placeholder="Password" class="input" required><label style="font-weight:600; margin-top:10px;">🎂 Date of Birth</label><input type="date" id="sellerDob" class="input" required><h4>📍 Shop Address</h4><input type="text" id="sellerHouseNo" placeholder="House No." class="input" required><input type="text" id="sellerStreet" placeholder="Street" class="input" required><input type="text" id="sellerCity" placeholder="City" class="input" required><input type="text" id="sellerState" placeholder="State" class="input" required><input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required><select id="sellerCountryReg" class="input" required><option value="">Select Country</option></select><div class="doc-section"><div class="doc-title">🌍 KYC Documents</div><select id="sellerDocType" class="input" required><option value="">Select Document Type</option><option value="passport">📘 Passport</option><option value="national_id">🆔 National ID Card</option><option value="driving_license">🚗 Driving License</option><option value="residence_permit">📄 Residence Permit</option></select><input type="text" id="sellerDocNumber" placeholder="Document Number" class="input" required><input type="file" id="sellerDocImage" accept="image/*,application/pdf" class="input" required></div>
+        <div class="checkbox-group"><input type="checkbox" id="sellerAgreement" required><label>I agree to <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label></div><button type="submit" class="btn-primary" id="sellerSubmitBtn" disabled>✅ Register Shop (Verify Phone First)</button></form></div><div id="sellerDashboard" style="display:none;"></div></div>
     <div id="profileSection" class="section"><div id="buyerProfilePanel" style="display:block;"><div class="premium-card"><div class="flex-between"><h2>👋 Guest User</h2><span class="role-badge">Buyer</span></div></div><div class="premium-card"><h3>📜 My Orders</h3><div id="buyerOrdersList"></div></div><div class="premium-card"><h3>❤️ My Wishlist</h3><div id="buyerWishlistList"></div></div></div></div>
     <div id="adminSection" class="section"><div id="adminPanel" class="premium-card"><h2>⚙️ Admin Dashboard</h2><div id="adminLoginBox"><input type="password" id="adminKey" class="input" placeholder="Enter Admin Key"><button class="btn-primary" id="adminLoginBtn">Login</button></div><div id="adminContent" style="display:none;"><div style="margin-bottom:25px;"><div class="kyc-section-title">⏳ Pending KYC Verification Requests</div><div id="pendingKycList"></div></div><div style="margin-bottom:25px;"><div class="kyc-section-title">✅ Verified Sellers</div><div id="verifiedSellersList"></div></div><div style="margin-bottom:25px;"><div class="kyc-section-title">❌ Rejected Sellers</div><div id="rejectedSellersList"></div></div>
         <div class="flex-between" style="margin: 20px 0 10px;"><h3>💰 Platform Earnings</h3><button id="refreshAdminBtn" style="background:#64748b; padding:8px 16px; border-radius:30px;">Refresh</button></div>
@@ -169,7 +168,7 @@
     </div></div></div>
     <div id="cartPageSection" class="section"><div class="premium-card"><h2>🛍️ My Cart</h2><div id="cartItemsList"></div><div id="cartTotal" class="flex-between" style="margin-top:20px; padding-top:20px; border-top:2px solid #e2e8f0;"><h3>Total:</h3><h3 id="cartTotalAmount">SAR 0.00</h3></div><button id="proceedToCheckoutBtn" class="btn-primary" style="margin-top:20px;">Proceed to Checkout</button></div></div>
     <div id="checkoutSection" class="section"><div class="premium-card"><h2>📦 Delivery Details</h2><div id="deliveryForm"><input type="text" id="deliveryFullName" placeholder="Receiver Full Name *" class="input"><div class="phone-group"><div class="country-search-select" id="deliveryCountrySearchContainer"><input type="text" id="deliveryCountrySearch" placeholder="🔍 Search country..." autocomplete="off"><div class="country-dropdown-list" id="deliveryCountryDropdown"></div><select id="deliveryCountryCode" style="display:none;"></select></div><input type="tel" id="deliveryPhone" placeholder="Phone Number *" class="input"></div><select id="deliveryCountry" class="input" required><option value="">Select Country *</option></select><input type="text" id="deliveryCity" placeholder="City *" class="input"><input type="text" id="deliveryPostcode" placeholder="Post Code / ZIP *" class="input"><input type="text" id="deliveryStreet" placeholder="Street Address *" class="input"><input type="text" id="deliveryHouseNo" placeholder="House No. (Optional)" class="input"><div class="checkbox-group"><input type="checkbox" id="saveAddressCheckbox"> <label>Save this address for future</label></div><button id="confirmDeliveryBtn" class="btn-primary">Continue to Payment</button></div></div></div>
-    <div id="paymentSection" class="section"><div class="premium-card"><h2>💳 Payment Options</h2><div id="paymentForm"><input type="text" id="cardNumber" placeholder="Card Number *" class="input" maxlength="19"><input type="text" id="cardHolderName" placeholder="Card Holder Name *" class="input"><div class="delivery-form-row"><input type="text" id="expiryDate" placeholder="MM/YY *" maxlength="5"><input type="password" id="cvv" placeholder="CVV *" maxlength="4"></div><div class="checkbox-group"><input type="checkbox" id="saveCardCheckbox"> <label>Save card for next time</label></div><button id="payNowBtn" class="btn-primary">Pay with Card (Dummy)</button></div><div class="payment-divider"><hr><span>OR</span><hr></div><button id="stripePayBtn" class="stripe-btn">💳 Pay with Stripe (International Cards)</button><div id="savedCardsSection" style="margin-top:20px; display:none;"><h4>💳 Saved Cards</h4><div id="savedCardsList"></div></div></div></div>
+    <div id="paymentSection" class="section"><div class="premium-card"><h2>💳 Payment Options</h2><div id="paymentForm"><input type="text" id="cardNumber" placeholder="Card Number *" class="input" maxlength="19"><input type="text" id="cardHolderName" placeholder="Card Holder Name *" class="input"><div class="delivery-form-row"><input type="text" id="expiryDate" placeholder="MM/YY *" maxlength="5"><input type="password" id="cvv" placeholder="CVV *" maxlength="4"></div><div class="checkbox-group"><input type="checkbox" id="saveCardCheckbox"> <label>Save card for next time</label></div><button id="payNowBtn" class="btn-primary">Pay with Card (Dummy)</button></div><div class="payment-divider"><hr><span>OR</span><hr></div><div id="savedCardsSection" style="margin-top:20px; display:none;"><h4>💳 Saved Cards</h4><div id="savedCardsList"></div></div></div></div>
 </div>
 <button class="fixed-cart" id="cartFloatBtn">🛒 Cart <span class="cart-badge" id="cartCountBadge">0</span></button>
 <div class="toast" id="toast"></div>
@@ -197,7 +196,6 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 // ========== IMAGE COMPRESSION UTILITY ==========
-// Compresses an image file to a max width/height and quality, returns a Blob (JPEG)
 function compressImage(file, maxSizeMB = 0.5, maxWidth = 1024, maxHeight = 1024) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -208,9 +206,8 @@ function compressImage(file, maxSizeMB = 0.5, maxWidth = 1024, maxHeight = 1024)
             img.onload = () => {
                 let width = img.width;
                 let height = img.height;
-                let quality = 0.7; // start with good quality
+                let quality = 0.7;
 
-                // Resize if too large
                 if (width > maxWidth || height > maxHeight) {
                     const ratio = Math.min(maxWidth / width, maxHeight / height);
                     width = width * ratio;
@@ -223,7 +220,6 @@ function compressImage(file, maxSizeMB = 0.5, maxWidth = 1024, maxHeight = 1024)
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // Try to achieve target size by reducing quality iteratively
                 let attempt = 0;
                 const maxAttempts = 5;
                 const tryQuality = (q) => {
@@ -245,7 +241,6 @@ function compressImage(file, maxSizeMB = 0.5, maxWidth = 1024, maxHeight = 1024)
     });
 }
 
-// Upload compressed image to ImgBB and return URL
 async function uploadCompressedImage(file, type = 'image') {
     try {
         const compressedBlob = await compressImage(file);
@@ -277,7 +272,7 @@ async function seedProductsIfEmpty() {
 }
 seedProductsIfEmpty();
 
-// ========== GLOBAL VARIABLES & HELPERS (similar to previous working version) ==========
+// ========== GLOBAL VARIABLES & HELPERS ==========
 let products = [];
 let sellers = [];
 let currentSeller = null;
@@ -304,7 +299,6 @@ async function sendTelegramMessage(msg) {
     } catch(e) {}
 }
 
-// Notification functions
 function addNotification(msg, type = 'info') {
     let n = { id: Date.now(), message: msg, type, date: new Date().toLocaleString(), read: false };
     notifications.unshift(n);
@@ -338,7 +332,6 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Dark mode
 let isDarkMode = localStorage.getItem('darkMode') === 'true';
 if (isDarkMode) document.body.classList.add('dark-mode');
 function toggleDarkMode() {
@@ -347,7 +340,6 @@ function toggleDarkMode() {
 }
 document.getElementById('drawerDarkModeToggle')?.addEventListener('click', () => { toggleDarkMode(); closeDrawer(); });
 
-// Reviews
 let productReviews = JSON.parse(localStorage.getItem('gb_reviews')) || {};
 function renderReviewStars(containerId, onRatingSelect) {
     let cont = document.getElementById(containerId);
@@ -406,7 +398,6 @@ function showDocumentModal(docData, docType, sellerName) {
 }
 function closeDocumentModal() { document.getElementById('documentModal').style.display = 'none'; }
 
-// Country codes (abbreviated for brevity - same as before)
 const countryCodes = [
     {code:"+91",name:"India",flag:"🇮🇳"},{code:"+92",name:"Pakistan",flag:"🇵🇰"},{code:"+880",name:"Bangladesh",flag:"🇧🇩"},{code:"+977",name:"Nepal",flag:"🇳🇵"},{code:"+94",name:"Sri Lanka",flag:"🇱🇰"},{code:"+60",name:"Malaysia",flag:"🇲🇾"},{code:"+62",name:"Indonesia",flag:"🇮🇩"},{code:"+63",name:"Philippines",flag:"🇵🇭"},{code:"+66",name:"Thailand",flag:"🇹🇭"},{code:"+84",name:"Vietnam",flag:"🇻🇳"},{code:"+86",name:"China",flag:"🇨🇳"},{code:"+81",name:"Japan",flag:"🇯🇵"},{code:"+82",name:"South Korea",flag:"🇰🇷"},
     {code:"+49",name:"Germany",flag:"🇩🇪"},{code:"+33",name:"France",flag:"🇫🇷"},{code:"+44",name:"UK",flag:"🇬🇧"},{code:"+39",name:"Italy",flag:"🇮🇹"},{code:"+34",name:"Spain",flag:"🇪🇸"},{code:"+41",name:"Switzerland",flag:"🇨🇭"},{code:"+31",name:"Netherlands",flag:"🇳🇱"},{code:"+46",name:"Sweden",flag:"🇸🇪"},{code:"+47",name:"Norway",flag:"🇳🇴"},{code:"+45",name:"Denmark",flag:"🇩🇰"},{code:"+358",name:"Finland",flag:"🇫🇮"},{code:"+32",name:"Belgium",flag:"🇧🇪"},{code:"+43",name:"Austria",flag:"🇦🇹"},{code:"+48",name:"Poland",flag:"🇵🇱"},{code:"+420",name:"Czech Republic",flag:"🇨🇿"},{code:"+36",name:"Hungary",flag:"🇭🇺"},{code:"+40",name:"Romania",flag:"🇷🇴"},{code:"+359",name:"Bulgaria",flag:"🇧🇬"},{code:"+30",name:"Greece",flag:"🇬🇷"},{code:"+90",name:"Turkey",flag:"🇹🇷"},
@@ -435,14 +426,12 @@ initCountrySearch('sellerCountrySearch','sellerCountryDropdown','sellerCountryCo
 let delCountry=document.getElementById('deliveryCountry'); if(delCountry) shippingCountries.forEach(c=>{ let opt=document.createElement('option'); opt.value=c; opt.textContent=c; delCountry.appendChild(opt); });
 let sellerCountryReg=document.getElementById('sellerCountryReg'); if(sellerCountryReg) shippingCountries.forEach(c=>{ let opt=document.createElement('option'); opt.value=c; opt.textContent=c; sellerCountryReg.appendChild(opt); });
 
-// Phone OTP dummy
 let sellerPhoneVerified=false;
 function sendDummyOTP(phone,type){ alert(`📱 OTP sent to ${phone}\n🔑 OTP: 123456`); if(type==='seller') document.getElementById('sellerOtpSection').style.display='block'; }
 function verifyDummyOTP(otp,type){ if(otp==="123456"){ if(type==='seller'){ sellerPhoneVerified=true; document.getElementById('sellerSubmitBtn').disabled=false; document.getElementById('sellerSubmitBtn').innerHTML='✅ Register Shop'; document.getElementById('sellerOtpSection').style.display='none'; showToast('Phone verified!',false); } return true; } else { showToast('Invalid OTP!',true); return false; } }
 document.getElementById('sellerPhone')?.addEventListener('blur',function(){ let ph=this.value, cc=document.getElementById('sellerCountryCode').value; if(ph&&ph.length>=8) sendDummyOTP(cc+ph,'seller'); });
 document.getElementById('sellerVerifyOtpBtn')?.addEventListener('click',function(){ verifyDummyOTP(document.getElementById('sellerOtp').value,'seller'); });
 
-// Currency
 const fxRates={SAR:3.75,USD:1,EUR:0.92,GBP:0.78,INR:83.5,PKR:278,NPR:133.5,BDT:117,LKR:305,AED:3.67,CAD:1.36,AUD:1.52,SGD:1.35,MYR:4.70,THB:36.5,JPY:150.2,CNY:7.25};
 const currencySymbols={SAR:"SAR ",USD:"$",EUR:"€",GBP:"£",INR:"₹",PKR:"₨",NPR:"रू ",BDT:"৳",LKR:"Rs ",AED:"د.إ ",CAD:"$",AUD:"$",SGD:"$",MYR:"RM ",THB:"฿",JPY:"¥",CNY:"¥"};
 function convertPrice(usd){ return (usd*fxRates[selectedCurrency]).toFixed(2); }
@@ -453,7 +442,6 @@ function getShippingCost(sellerCountry,buyerCountry){ if(sellerCountry===buyerCo
 const PLATFORM_COMMISSION=0.05, GATEWAY_FEE=0.025, HANDLING_FEE=2;
 function calculateFinalPrice(basePrice,sellerCountry,buyerCountry){ let shipping=getShippingCost(sellerCountry,buyerCountry); let commission=basePrice*PLATFORM_COMMISSION; let gateway=basePrice*GATEWAY_FEE; return { total: basePrice+commission+gateway+shipping+HANDLING_FEE, basePrice, shipping, commission, gateway }; }
 
-// ========== FIRESTORE LISTENERS ==========
 db.collection("products").onSnapshot(snapshot => {
     products = [];
     snapshot.forEach(doc => { products.push({ id: doc.id, ...doc.data() }); });
@@ -486,7 +474,6 @@ function updateAdminPendingBadge(){
     }
 }
 
-// ========== RENDER FUNCTIONS ==========
 let currentCategory = "All";
 function renderCats(){
     let cats = ["All", ...new Set(products.map(p => p.category))];
@@ -603,7 +590,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async () => {
     for(let item of cart){
         let seller = sellers.find(s => s.id == item.sellerId);
         let final = calculateFinalPrice(item.price, seller?.country || "SA", buyerCountry);
-        let newOrder = { id: Date.now()+Math.random(), trackingNumber: tracking, sellerId: item.sellerId, sellerName: item.sellerName, buyerEmail: "guest@globalbazaar.com", buyerName: currentDelivery.fullName, productName: item.name, amount: final.total, basePrice: item.price, address: currentDelivery.fullAddress, date: new Date().toLocaleString(), status: "Processing", qty: item.qty, shippingCost: final.shipping, commission: final.commission, trackingInfo: null };
+        let newOrder = { id: Date.now()+Math.random(), trackingNumber: tracking, sellerId: item.sellerId, sellerName: seller?.shopName || "GlobalBazaar", buyerEmail: "guest@globalbazaar.com", buyerName: currentDelivery.fullName, productName: item.name, amount: final.total, basePrice: item.price, address: currentDelivery.fullAddress, date: new Date().toLocaleString(), status: "Processing", qty: item.qty, shippingCost: final.shipping, commission: final.commission, trackingInfo: null };
         orders.push(newOrder);
         platformEarnings += final.commission * item.qty;
         let prod = products.find(p => p.id == item.id);
@@ -620,7 +607,6 @@ document.getElementById('payNowBtn')?.addEventListener('click', async () => {
     document.getElementById('cardNumber').value=''; document.getElementById('cardHolderName').value=''; document.getElementById('expiryDate').value=''; document.getElementById('cvv').value='';
     renderProducts();
 });
-document.getElementById('stripePayBtn')?.addEventListener('click', async () => { showToast("Stripe backend not yet deployed. Add publishable key and Cloud Function.", true); });
 function confirmOrderReceived(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Shipped"){ order.status = "Delivered"; saveAllLocal(); showToast("Order marked Delivered", false); renderBuyerOrders(); addNotification(`Order ${order.trackingNumber} delivered`,'order'); setTimeout(()=>{ let ord = orders.find(o => o.id === orderId); if(ord && ord.status === "Delivered"){ ord.status = "Completed"; let seller = sellers.find(s => s.id == ord.sellerId); if(seller){ let sellerEarning = ord.basePrice - ord.shippingCost - HANDLING_FEE; seller.earnings = (seller.earnings||0) + (sellerEarning * ord.qty); saveAllLocal(); showToast(`Payment released to seller`,false); if(currentSeller) renderSellerDashboard(); } } },5000); } else showToast("Order not shipped yet",true); }
 function cancelOrder(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Processing"){ let prod = products.find(p => p.name === order.productName && p.sellerId === order.sellerId); if(prod){ prod.stock += order.qty; saveAllLocal(); } order.status = "Cancelled"; saveAllLocal(); showToast("Order cancelled successfully",false); renderBuyerOrders(); renderProducts(); addNotification(`Order ${order.trackingNumber} cancelled`,'order'); if(currentSeller) renderSellerDashboard(); } else { showToast("Only orders in 'Processing' status can be cancelled",true); } }
 function markOrderShipped(orderId, trackingNum){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Processing"){ order.status = "Shipped"; order.trackingInfo = trackingNum; saveAllLocal(); showToast(`Order Shipped! Tracking: ${trackingNum}`,false); renderSellerDashboard(); renderBuyerOrders(); addNotification(`Your order ${order.trackingNumber} shipped`,'order'); } }
@@ -628,7 +614,6 @@ function requestWithdrawal(sellerId){ let seller = sellers.find(s => s.id == sel
 function processWeeklyWithdrawals(){ let last = localStorage.getItem('gb_last_withdrawal'); let now = new Date(); let day = now.getDay(); if((day===1||day===5) && (!last || new Date(last).getDate() !== now.getDate())){ pendingWithdrawals.forEach(w => { if(w.status === "Pending") w.status = "Approved"; }); saveAllLocal(); localStorage.setItem('gb_last_withdrawal', now.toString()); } }
 setInterval(processWeeklyWithdrawals, 3600000); processWeeklyWithdrawals();
 
-// ========== SELLER REGISTRATION WITH COMPRESSION ==========
 document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if(!sellerPhoneVerified){ showToast("Verify phone first",true); return; }
@@ -672,17 +657,12 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) =
             country: document.getElementById('sellerCountryReg').value,
             docType: docType,
             docNumber: docNum,
-            docImage: docImageUrl,   // store only URL, not base64
-            bankName: document.getElementById('sellerBank').value,
-            accountNo: document.getElementById('sellerAccountNo').value,
-            ifsc: document.getElementById('sellerIfsc').value,
-            accountHolder: document.getElementById('sellerAccountHolder').value,
+            docImage: docImageUrl,
             earnings: 0, kycStatus: "pending", totalSales: 0, totalWithdrawn: 0,
             createdAt: new Date().toISOString(),
             avatar: avatarUrl
         };
         await db.collection("sellers").add(newSeller);
-        // reset form
         document.getElementById('sellerRegForm').reset();
         sellerPhoneVerified = false;
         document.getElementById('sellerSubmitBtn').disabled = true;
@@ -736,7 +716,7 @@ function renderSellerDashboard(){
     let prodListHtml = myProducts.map(p => `<div class="flex-between"><span><img src="${p.mainImage}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;"> ${p.name} - ${getCurrencySymbol()}${convertPrice(p.price)} (Stock: ${p.stock})</span><button class="editProdBtn" data-id="${p.id}" style="background:#3b82f6;border:none;padding:4px 12px;border-radius:20px;">✏️ Edit</button><button class="delProd" data-id="${p.id}" style="background:#dc2626;border:none;padding:4px 12px;border-radius:20px;">Delete</button></div>`).join('');
     let ordersHtml = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty}<br>${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: ${o.status}<br>Buyer: ${o.buyerName}<br>${o.status === "Processing" ? `<button class="shipBtn" data-id="${o.id}" style="background:#3b82f6;margin-top:6px;">📦 Mark Shipped</button>` : ''}${o.status === "Shipped" ? `<br>Tracking: ${o.trackingInfo}` : ''}</div>`).join('');
     let sellerDashboardHtml = `
-<div class="premium-card"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📧 ${seller.email}<br>📍 ${seller.city}, ${seller.country}</p></div><div><span class="kyc-status ${kycClass}">${kycText}</span></div><div>🏦 ${seller.bankName}<br>💰 Balance: ${getCurrencySymbol()}${convertPrice(seller.earnings)}</div>${seller.kycStatus === "verified" ? `<button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Withdraw</button>` : `<button class="btn-primary" disabled>🔒 KYC Required</button>`}</div>
+<div class="premium-card"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📧 ${seller.email}<br>📍 ${seller.city}, ${seller.country}</p></div><div><span class="kyc-status ${kycClass}">${kycText}</span></div><div>🏦 Bank: Payout via DEED (to be added)<br>💰 Balance: ${getCurrencySymbol()}${convertPrice(seller.earnings)}</div>${seller.kycStatus === "verified" ? `<button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Withdraw</button>` : `<button class="btn-primary" disabled>🔒 KYC Required</button>`}</div>
 <div class="chart-container"><h3>📊 Revenue</h3><canvas id="revenueChart"></canvas></div>
 <div class="premium-card"><h3>📈 Top Products</h3>${topList.map(p=>`${p[0]}: ${p[1]} sold`).join('<br>') || 'No sales'}</div>
 ${seller.kycStatus === "verified" ? `
@@ -902,9 +882,8 @@ function closeSellerSummary(){ document.getElementById('sellerSummaryModal').sty
 function closeOrderSummary(){ document.getElementById('orderSummaryModal').style.display='none'; showSection('buyer'); }
 document.getElementById('goToMyShopBtn')?.addEventListener('click', () => { closeSellerSummary(); showMyShopLogin(); });
 
-// Initial render
 renderCats(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge();
-document.getElementById('debugMsg').innerHTML = "Auto image compress active | Stripe pending";
+document.getElementById('debugMsg').innerHTML = "Auto image compress active | Stripe removed, DEED integration ready";
 </script>
 </body>
 </html>
