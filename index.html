@@ -10,6 +10,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <style>
+        /* FULL CSS from original working version - same as before */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: linear-gradient(135deg, #f5f7fb 0%, #eef2f8 100%); padding-bottom: 90px; transition: all 0.3s ease; }
         body.dark-mode { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f1f5f9; }
@@ -153,7 +154,6 @@
     <div class="header-right">
         <button class="notification-bell" id="notificationBell">🔔<span class="notification-badge" id="notificationCount">0</span></button>
         <select id="currencySelect" class="currency-dropdown"><option value="SAR">🇸🇦 SAR</option><option value="USD">🇺🇸 USD $</option><option value="EUR">🇪🇺 EUR €</option><option value="GBP">🇬🇧 GBP £</option><option value="INR">🇮🇳 INR ₹</option><option value="PKR">🇵🇰 PKR ₨</option><option value="NPR">🇳🇵 NPR रू</option><option value="BDT">🇧🇩 BDT ৳</option><option value="LKR">🇱🇰 LKR Rs</option><option value="AED">🇦🇪 AED د.إ</option><option value="CAD">🇨🇦 CAD $</option><option value="AUD">🇦🇺 AUD $</option><option value="SGD">🇸🇬 SGD $</option><option value="MYR">🇲🇾 MYR RM</option><option value="THB">🇹🇭 THB ฿</option><option value="JPY">🇯🇵 JPY ¥</option><option value="CNY">🇨🇳 CNY ¥</option></select>
-        <!-- LOGIN BUTTON REMOVED as per Option A -->
     </div>
 </div>
 <div class="notification-panel" id="notificationPanel"><div style="padding:12px;font-weight:bold;border-bottom:1px solid #e2e8f0;">🔔 Notifications</div><div id="notificationsList"></div></div>
@@ -163,7 +163,7 @@
     <div id="buyerSection" class="section active"><div class="cat-scroll" id="catList"></div><div class="search-container"><input type="text" id="searchInput" placeholder="🔍 Search products..."></div><div class="product-grid" id="productsGrid"></div></div>
     <div id="sellerSection" class="section"><div id="sellerRegisterBox" class="premium-card"><h2>🏪 Open Your Shop</h2><form id="sellerRegForm"><input type="file" id="sellerAvatar" accept="image/*" class="input"><input type="text" id="sellerFullName" placeholder="Full Legal Name" class="input" required><input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required><input type="email" id="sellerEmail" placeholder="Email" class="input" required><div class="phone-group"><div class="country-search-select" id="sellerCountrySearchContainer"><input type="text" id="sellerCountrySearch" placeholder="🔍 Search country..." autocomplete="off"><div class="country-dropdown-list" id="sellerCountryDropdown"></div><select id="sellerCountryCode" style="display:none;"></select></div><input type="tel" id="sellerPhone" placeholder="Phone Number" class="input" required></div><div class="otp-section" id="sellerOtpSection"><input type="text" id="sellerOtp" placeholder="Enter OTP" class="input"><button type="button" id="sellerVerifyOtpBtn" class="btn-secondary">Verify OTP</button></div><input type="password" id="sellerPassword" placeholder="Password" class="input" required><label style="font-weight:600; margin-top:10px;">🎂 Date of Birth</label><input type="date" id="sellerDob" class="input" required><h4>📍 Shop Address</h4><input type="text" id="sellerHouseNo" placeholder="House No." class="input" required><input type="text" id="sellerStreet" placeholder="Street" class="input" required><input type="text" id="sellerCity" placeholder="City" class="input" required><input type="text" id="sellerState" placeholder="State" class="input" required><input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required><select id="sellerCountryReg" class="input" required><option value="">Select Country</option></select><div class="doc-section"><div class="doc-title">🌍 KYC Documents</div><select id="sellerDocType" class="input" required><option value="">Select Document Type</option><option value="passport">📘 Passport</option><option value="national_id">🆔 National ID Card</option><option value="driving_license">🚗 Driving License</option><option value="residence_permit">📄 Residence Permit</option></select><input type="text" id="sellerDocNumber" placeholder="Document Number" class="input" required><input type="file" id="sellerDocImage" accept="image/*,application/pdf" class="input" required></div>
         <div class="checkbox-group"><input type="checkbox" id="sellerAgreement" required><label>I agree to <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label></div><button type="submit" class="btn-primary" id="sellerSubmitBtn" disabled>✅ Register Shop (Verify Phone First)</button></form></div><div id="sellerDashboard" style="display:none;"></div></div>
-    <div id="profileSection" class="section"><div id="buyerProfilePanel" style="display:block;"><div class="premium-card"><div class="flex-between"><h2>👋 Guest User</h2><span class="role-badge">Buyer</span></div></div><div class="premium-card"><h3>📜 My Orders</h3><div id="buyerOrdersList"></div></div><div class="premium-card"><h3>❤️ My Wishlist</h3><div id="buyerWishlistList"></div></div></div></div>
+    <div id="profileSection" class="section"><div id="buyerProfilePanel" style="display:block;"><div class="premium-card"><div class="flex-between"><h2>👋 My Account</h2><span class="role-badge" id="userRoleBadge">Buyer</span></div></div><div class="premium-card"><h3>📜 My Orders</h3><div id="buyerOrdersList"></div></div><div class="premium-card"><h3>❤️ My Wishlist</h3><div id="buyerWishlistList"></div></div></div></div>
     <div id="adminSection" class="section"><div id="adminPanel" class="premium-card"><h2>⚙️ Admin Dashboard</h2><div id="adminLoginBox"><input type="password" id="adminKey" class="input" placeholder="Enter Admin Key"><button class="btn-primary" id="adminLoginBtn">Login</button></div><div id="adminContent" style="display:none;"><div style="margin-bottom:25px;"><div class="kyc-section-title">⏳ Pending KYC Verification Requests</div><div id="pendingKycList"></div></div><div style="margin-bottom:25px;"><div class="kyc-section-title">✅ Verified Sellers</div><div id="verifiedSellersList"></div></div><div style="margin-bottom:25px;"><div class="kyc-section-title">❌ Rejected Sellers</div><div id="rejectedSellersList"></div></div>
         <div class="flex-between" style="margin: 20px 0 10px;"><h3>💰 Platform Earnings</h3><button id="refreshAdminBtn" style="background:#64748b; padding:8px 16px; border-radius:30px;">Refresh</button></div>
         <div id="platformEarnings" style="margin-bottom:20px;"><h2>SAR 0.00</h2></div>
@@ -177,7 +177,7 @@
 <button class="fixed-cart" id="cartFloatBtn">🛒 Cart <span class="cart-badge" id="cartCountBadge">0</span></button>
 <div class="toast" id="toast"></div>
 
-<!-- LOGIN MODAL (kept for checkout) -->
+<!-- LOGIN MODAL -->
 <div id="loginModal" class="modal" style="display:none;">
     <div class="modal-card" style="max-width: 400px;">
         <span class="close-modal" id="closeLoginModal">&times;</span>
@@ -481,6 +481,12 @@ auth.onAuthStateChanged(async (user) => {
     renderProducts();
 });
 
+// Check stored seller session on page load
+const storedSeller = localStorage.getItem('gb_current_seller');
+if (storedSeller) {
+    currentSeller = JSON.parse(storedSeller);
+}
+
 // LOGIN FUNCTION
 document.getElementById('doLoginBtn')?.addEventListener('click', async () => {
     const email = document.getElementById('loginEmail').value;
@@ -652,13 +658,18 @@ db.collection("products").onSnapshot(snapshot => {
 });
 db.collection("sellers").onSnapshot(snapshot => {
     sellers = [];
-    snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
+    snapshot.forEach(doc => { 
+        sellers.push({ id: doc.id, ...doc.data() }); 
+    });
     updateAdminPendingBadge();
-    if (document.getElementById('adminContent').style.display === 'block') loadAdminData();
+    // Restore seller session if exists and matches
     if (currentSeller) {
-        let stillExists = sellers.find(s => s.id === currentSeller.sellerId);
-        if (stillExists && stillExists.kycStatus === 'verified') renderSellerDashboard();
-        else if (stillExists && stillExists.kycStatus !== 'verified') {
+        const stillExists = sellers.find(s => s.id === currentSeller.sellerId);
+        if (stillExists && stillExists.kycStatus === 'verified') {
+            // Seller still verified, keep session
+            currentSeller = { ...currentSeller, ...stillExists };
+            localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
+        } else if (stillExists && stillExists.kycStatus !== 'verified') {
             document.getElementById('sellerDashboard').style.display = 'none';
             document.getElementById('sellerRegisterBox').style.display = 'block';
             currentSeller = null;
@@ -666,6 +677,7 @@ db.collection("sellers").onSnapshot(snapshot => {
             showToast("Your KYC is not verified yet.", true);
         }
     }
+    if (document.getElementById('adminContent').style.display === 'block') loadAdminData();
 });
 function updateAdminPendingBadge(){
     let pendingCount = sellers.filter(s => s.kycStatus === 'pending').length;
@@ -919,6 +931,18 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) =
         document.getElementById('sellerSubmitBtn').innerHTML = '✅ Register Shop (Verify Phone First)';
         sendTelegramMessage(`🏪 New Seller: ${newSeller.shopName}\nEmail: ${newSeller.email}\nKYC Pending`).catch(e=>console.warn);
         addNotification(`New seller ${newSeller.shopName} registered! Pending KYC.`, 'info');
+        
+        // Auto login seller after registration
+        currentSeller = { 
+            name: newSeller.fullName, 
+            email: newSeller.email, 
+            role: 'seller', 
+            sellerId: newSeller.id, 
+            phone: newSeller.phone,
+            kycStatus: 'pending'
+        };
+        localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
+        
         let modal = document.getElementById('sellerSummaryModal');
         if(modal) modal.style.display = 'block';
         document.getElementById('debugMsg').innerText = "Registration successful!";
@@ -930,15 +954,16 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) =
 });
 
 function showMyShopLogin(){
-    let verified = sellers.filter(s => s.kycStatus === 'verified');
-    if(verified.length === 0){ showToast("No verified seller", true); return; }
     let email = prompt("Enter registered email:");
     if(!email) return;
     let pwd = prompt("Password:");
     let seller = sellers.find(s => s.email === email && s.password === pwd);
     if(seller){
-        if(seller.kycStatus !== 'verified'){ showToast("KYC not verified", true); return; }
-        currentSeller = { name: seller.fullName, email: seller.email, role: 'seller', sellerId: seller.id, phone: seller.phone };
+        if(seller.kycStatus !== 'verified'){ 
+            showToast("KYC not verified yet. Please wait for admin approval.", true);
+            return;
+        }
+        currentSeller = { name: seller.fullName, email: seller.email, role: 'seller', sellerId: seller.id, phone: seller.phone, kycStatus: seller.kycStatus };
         saveAllLocal();
         document.getElementById('sellerRegisterBox').style.display = 'none';
         document.getElementById('sellerDashboard').style.display = 'block';
@@ -1064,6 +1089,11 @@ function loadAdminData(){
             addNotification(`Your shop ${seller.shopName} has been approved! You can now login and sell.`, 'info');
             await sendTelegramMessage(`✅ KYC Verified: ${seller.shopName}`);
             showToast(`${seller.shopName} verified`, false);
+            // Refresh sellers list to update UI
+            const snapshot = await db.collection("sellers").get();
+            sellers = [];
+            snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
+            loadAdminData();
         }
     }));
     document.querySelectorAll('.btn-reject').forEach(btn => btn.addEventListener('click', async () => {
@@ -1077,6 +1107,10 @@ function loadAdminData(){
                 addNotification(`Your shop ${seller.shopName} KYC was rejected. Reason: ${reason}`, 'info');
                 await sendTelegramMessage(`❌ KYC Rejected: ${seller.shopName}\nReason: ${reason}`);
                 showToast(`${seller.shopName} rejected`, false);
+                const snapshot = await db.collection("sellers").get();
+                sellers = [];
+                snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
+                loadAdminData();
             }
         } else if(reason === "") showToast("Please enter a reason", true);
     }));
@@ -1135,12 +1169,6 @@ function closeOrderSummary(){ document.getElementById('orderSummaryModal').style
 document.getElementById('goToMyShopBtn')?.addEventListener('click', () => { closeSellerSummary(); showMyShopLogin(); });
 
 // Modal toggle functions
-document.getElementById('loginBtn')?.addEventListener('click', () => {
-    document.getElementById('loginForm').style.display = 'block';
-    document.getElementById('registerForm').style.display = 'none';
-    document.getElementById('modalAuthTitle').innerText = '🔐 Login to GlobalBazaar';
-    document.getElementById('loginModal').style.display = 'block';
-});
 document.getElementById('showRegisterLink')?.addEventListener('click', () => {
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('registerForm').style.display = 'block';
