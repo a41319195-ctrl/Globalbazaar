@@ -1334,23 +1334,92 @@ ${seller.kycStatus === "verified" ? `
     let ctx = document.getElementById('revenueChart')?.getContext('2d'); if(ctx){ if(sellerRevenueChart) sellerRevenueChart.destroy(); sellerRevenueChart = new Chart(ctx, { type: 'bar', data: { labels: chartLabels, datasets: [{ label: 'Revenue', data: chartData.map(v => parseFloat(convertPrice(v))), backgroundColor: '#3b82f6' }] } }); }
     if(seller.kycStatus === "verified"){
         document.getElementById('publishBtn')?.addEventListener('click', async () => {
-            let name = document.getElementById('prodName').value, price = parseFloat(document.getElementById('prodPrice').value), cat = document.getElementById('prodCat').value, stock = parseInt(document.getElementById('prodStock').value), desc = document.getElementById('prodDesc').value;
-            if(!name || !price || !stock){ showToast("Name, price, stock required", true); return; }
-            let mainFile = document.getElementById('prodMainImg').files[0];
-            if(!mainFile){ showToast("Main image required", true); return; }
-            let mainUrl = await uploadCompressedImage(mainFile);
-            if(!mainUrl){ showToast("Image upload failed", true); return; }
-            let additionalFiles = document.getElementById('prodImagesFiles').files;
-            let additionalUrls = [];
-            for(let f of additionalFiles){ if(additionalUrls.length >= 4) break; let url = await uploadCompressedImage(f); if(url) additionalUrls.push(url); }
-            let images = [mainUrl, ...additionalUrls];
-            let newProduct = { sellerId: seller.id, sellerName: seller.shopName, name, price, category: cat, mainImage: mainUrl, images, description: desc || "", sellerCountry: seller.country, rating: 0, stock: stock };
-            await db.collection("products").add(newProduct);
-            renderSellerDashboard(); renderProducts();
-            showToast("Product published", false);
-            sendTelegramMessage(`📦 New product: ${name} by ${seller.shopName}`);
-            addNotification(`Product "${name}" published`,'info');
-            document.getElementById('prodName').value=''; document.getElementById('prodPrice').value=''; document.getElementById('prodStock').value=''; document.getElementById('prodMainImg').value=''; document.getElementById('prodImagesFiles').value=''; document.getElementById('prodDesc').value='';
+            const name = document.getElementById('prodName').value;
+            const price = parseFloat(document.getElementById('prodPrice').value);
+            const cat = document.getElementById('prodCat').value;
+            const stock = parseInt(document.getElementById('prodStock').value);
+            const desc = document.getElementById('prodDesc').value;
+            
+            // Validation
+            if (!name) { showToast("Product name required", true); return; }
+            if (!price || price <= 0) { showToast("Valid price required", true); return; }
+            if (!stock || stock <= 0) { showToast("Valid stock required", true); return; }
+            
+            const mainFile = document.getElementById('prodMainImg').files[0];
+            if (!mainFile) { showToast("Main image required", true); return; }
+            
+            // Check if seller exists
+            if (!currentSeller || !currentSeller.sellerId) {
+                showToast("Please login as seller first", true);
+                return;
+            }
+            
+            // Find seller from database
+            const seller = sellers.find(s => s.id === currentSeller.sellerId);
+            if (!seller || seller.kycStatus !== 'verified') {
+                showToast("Your KYC is not verified. Please wait for admin approval.", true);
+                return;
+            }
+            
+            showToast("Uploading image...", false);
+            
+            try {
+                // Upload main image
+                const mainUrl = await uploadCompressedImage(mainFile);
+                if (!mainUrl) {
+                    showToast("Image upload failed. Try again.", true);
+                    return;
+                }
+                
+                // Upload additional images
+                const additionalFiles = document.getElementById('prodImagesFiles').files;
+                const additionalUrls = [];
+                for (let f of additionalFiles) {
+                    if (additionalUrls.length >= 4) break;
+                    const url = await uploadCompressedImage(f);
+                    if (url) additionalUrls.push(url);
+                }
+                
+                const images = [mainUrl, ...additionalUrls];
+                
+                // Create product object
+                const newProduct = {
+                    sellerId: seller.id,
+                    sellerName: seller.shopName || "GlobalBazaar",
+                    name: name,
+                    price: price,
+                    category: cat,
+                    mainImage: mainUrl,
+                    images: images,
+                    description: desc || "",
+                    sellerCountry: seller.country || "SA",
+                    rating: 0,
+                    stock: stock,
+                    createdAt: new Date().toISOString()
+                };
+                
+                // Save to Firebase
+                await db.collection("products").add(newProduct);
+                
+                showToast("✅ Product published successfully!", false);
+                addNotification(`Product "${name}" published`, 'info');
+                await sendTelegramMessage(`📦 New product: ${name} by ${seller.shopName}`);
+                
+                // Clear form
+                document.getElementById('prodName').value = '';
+                document.getElementById('prodPrice').value = '';
+                document.getElementById('prodStock').value = '';
+                document.getElementById('prodMainImg').value = '';
+                document.getElementById('prodImagesFiles').value = '';
+                document.getElementById('prodDesc').value = '';
+                
+                renderSellerDashboard();
+                renderProducts();
+                
+            } catch (error) {
+                console.error("Publish error:", error);
+                showToast("Error: " + error.message, true);
+            }
         });
         document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', async () => { let id = btn.dataset.id; await db.collection("products").doc(id).delete(); renderSellerDashboard(); renderProducts(); showToast("Product deleted", false); }));
         document.querySelectorAll('.editProdBtn').forEach(btn => btn.addEventListener('click', () => { let prod = products.find(p => p.id == btn.dataset.id); if(prod){ document.getElementById('editProdId').value = prod.id; document.getElementById('editProdName').value = prod.name; document.getElementById('editProdPrice').value = prod.price; document.getElementById('editProdCat').value = prod.category; document.getElementById('editProdStock').value = prod.stock; document.getElementById('editProdDesc').value = prod.description || ''; let currImgHtml = prod.images.map(img => `<div><img src="${img}" width="50" style="border-radius:8px; margin:4px;"> <a href="${img}" target="_blank">View</a></div>`).join(''); document.getElementById('editCurrentImages').innerHTML = `<strong>Current Images:</strong>${currImgHtml}`; document.getElementById('editProductModal').style.display = 'block'; } }));
