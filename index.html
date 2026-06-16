@@ -184,13 +184,25 @@
             </div>
         </div>
         <div style="clear:both;"></div>
-        <div style="margin-bottom:25px;"><div class="kyc-section-title">⏳ Pending KYC Verification Requests</div><div id="pendingKycList"></div></div>
-        <div style="margin-bottom:25px;"><div class="kyc-section-title">✅ Verified Sellers</div><div id="verifiedSellersList"></div></div>
-        <div style="margin-bottom:25px;"><div class="kyc-section-title">❌ Rejected Sellers</div><div id="rejectedSellersList"></div></div>
-        <div class="flex-between" style="margin: 20px 0 10px;"><h3>💰 Platform Earnings</h3><button id="refreshAdminBtn" style="background:#64748b; padding:8px 16px; border-radius:30px;">Refresh</button></div>
-        <div id="platformEarnings" style="margin-bottom:20px;"><h2>SAR 0.00</h2></div>
-        <h3>💸 Pending Withdrawals</h3><div id="pendingWithdrawals"></div>
-        <h3>📊 All Orders</h3><div id="adminOrdersList"></div>
+        
+        <!-- ✅ ONLY REVENUE SHOWN ON DASHBOARD -->
+        <div style="margin-bottom:25px;">
+            <div class="kyc-section-title">💰 Platform Revenue</div>
+            <div id="platformEarnings" style="margin:20px 0; padding:20px; background:#f1f5f9; border-radius:16px; text-align:center;">
+                <h2 style="font-size:32px; color:#1e3a8a;" id="revenueDisplay">SAR 0.00</h2>
+                <p style="color:#64748b; font-size:14px;">Total earnings from platform commission</p>
+            </div>
+        </div>
+        
+        <!-- ✅ HIDDEN SECTIONS (Only visible via 3-dots menu) -->
+        <div id="pendingKycList" style="display:none;"></div>
+        <div id="verifiedSellersList" style="display:none;"></div>
+        <div id="pendingWithdrawals" style="display:none;"></div>
+        <div id="adminOrdersList" style="display:none;"></div>
+        
+        <div style="margin-top:20px;">
+            <button id="refreshAdminBtn" style="background:#64748b; padding:8px 16px; border-radius:30px; border:none; color:white; cursor:pointer;">🔄 Refresh</button>
+        </div>
     </div></div></div>
     <div id="cartPageSection" class="section"><div class="premium-card"><h2>🛍️ My Cart</h2><div id="cartItemsList"></div><div id="cartTotal" class="flex-between" style="margin-top:20px; padding-top:20px; border-top:2px solid #e2e8f0;"><h3>Total:</h3><h3 id="cartTotalAmount">SAR 0.00</h3></div><button id="proceedToCheckoutBtn" class="btn-primary" style="margin-top:20px;">Proceed to Checkout</button></div></div>
     <div id="checkoutSection" class="section"><div class="premium-card"><h2>📦 Delivery Details</h2><div id="deliveryForm"><input type="text" id="deliveryFullName" placeholder="Receiver Full Name *" class="input"><div class="phone-group"><div class="country-search-select" id="deliveryCountrySearchContainer"><input type="text" id="deliveryCountrySearch" placeholder="🔍 Search country..." autocomplete="off"><div class="country-dropdown-list" id="deliveryCountryDropdown"></div><select id="deliveryCountryCode" style="display:none;"></select></div><input type="tel" id="deliveryPhone" placeholder="Phone Number *" class="input"></div><select id="deliveryCountry" class="input" required><option value="">Select Country *</option></select><input type="text" id="deliveryCity" placeholder="City *" class="input"><input type="text" id="deliveryPostcode" placeholder="Post Code / ZIP *" class="input"><input type="text" id="deliveryStreet" placeholder="Street Address *" class="input"><input type="text" id="deliveryHouseNo" placeholder="House No. (Optional)" class="input"><div class="checkbox-group"><input type="checkbox" id="saveAddressCheckbox"> <label>Save this address for future</label></div><button id="confirmDeliveryBtn" class="btn-primary">Continue to Payment</button></div></div></div>
@@ -226,7 +238,8 @@
 <div id="editProductModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeEditModal()">&times;</span><h2>✏️ Edit Product</h2><input type="hidden" id="editProdId"><input type="text" id="editProdName" placeholder="Product Name" class="input" required><input type="number" id="editProdPrice" placeholder="Price (USD)" class="input" required><select id="editProdCat" class="input" required><option>Electronics</option><option>Fashion</option><option>Home</option><option>Textile</option><option>Cosmetic</option></select><input type="number" id="editProdStock" placeholder="Stock Quantity" class="input" required min="0"><textarea id="editProdDesc" placeholder="Product Description" class="input" rows="3"></textarea><label>Main Image (upload new)</label><input type="file" id="editMainImg" accept="image/*" class="input"><label>Additional Images (upload multiple, max 4)</label><input type="file" id="editExtraImgs" accept="image/*" multiple class="input"><div id="editCurrentImages"></div><button id="updateProductBtn" class="btn-primary">💾 Update Product</button></div></div>
 <div id="sellerSummaryModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSellerSummary()">&times;</span><h2>🎉 Thank you for registering!</h2><p style="margin:20px 0;">Your shop is under review. You will receive a notification once admin approves your KYC.</p><p><strong>⏳ Waiting for admin approval...</strong></p><button class="btn-primary" id="goToMyShopBtn">Go to My Shop</button></div></div>
 <div id="orderSummaryModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeOrderSummary()">&times;</span><h2>✅ Payment Successful!</h2><div id="orderSummaryContent"></div><button class="btn-primary" onclick="closeOrderSummary()">Continue Shopping</button></div></div>
-<div id="termsModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeTermsModal()">&times;</span><h2>Terms & Conditions</h2><p><strong>Last Updated:</strong> 16 June 2026</p>
+<div id="termsModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeTermsModal()">&times;</span><h2>Terms & Conditions</h2>
+        <p><strong>Last Updated:</strong> 16 June 2026</p>
         <h3>1. Acceptance of Terms</h3>
         <p>By using GlobalBazaar, you agree to these Terms & Conditions.</p>
         <h3>2. User Accounts</h3>
@@ -535,7 +548,7 @@ function getCurrencySymbol(){ return currencySymbols[selectedCurrency]; }
 document.getElementById('currencySelect').value=selectedCurrency;
 document.getElementById('currencySelect').addEventListener('change',(e)=>{ selectedCurrency=e.target.value; localStorage.setItem('selectedCurrency',selectedCurrency); renderProducts(); updateCartUI(); renderCartPage(); if(currentSeller) renderSellerDashboard(); showToast(`Currency: ${selectedCurrency}`,false); });
 function getShippingCost(sellerCountry,buyerCountry){ if(sellerCountry===buyerCountry) return 5; const nearby=["SA","AE","IN","PK","BD","LK","NP"]; if(nearby.includes(sellerCountry)&&nearby.includes(buyerCountry)) return 12; return 25; }
-const PLATFORM_COMMISSION = 0.10; // ✅ Updated: 10% commission
+const PLATFORM_COMMISSION = 0.10;
 const GATEWAY_FEE = 0.025;
 const HANDLING_FEE = 2;
 function calculateFinalPrice(basePrice,sellerCountry,buyerCountry){ let shipping=getShippingCost(sellerCountry,buyerCountry); let commission=basePrice*PLATFORM_COMMISSION; let gateway=basePrice*GATEWAY_FEE; return { total: basePrice+commission+gateway+shipping+HANDLING_FEE, basePrice, shipping, commission, gateway }; }
@@ -734,7 +747,7 @@ db.collection("sellers").onSnapshot(snapshot => {
         sellers.push({ id: doc.id, ...doc.data() }); 
     });
     updateAdminPendingBadge();
-    updateAdminMenuBadges(); // ✅ Update 3-dots menu badges
+    updateAdminMenuBadges();
     if (document.getElementById('adminContent').style.display === 'block') loadAdminData();
     if (currentSeller) {
         const stillExists = sellers.find(s => s.id === currentSeller.sellerId);
@@ -774,7 +787,6 @@ function updateAdminPendingBadge() {
     }
 }
 
-// ✅ New Function: Update 3-dots menu badges
 function updateAdminMenuBadges() {
     const pending = sellers.filter(s => s.kycStatus === 'pending').length;
     const verified = sellers.filter(s => s.kycStatus === 'verified').length;
@@ -789,14 +801,13 @@ function updateAdminMenuBadges() {
     if (withdrawalBadge) withdrawalBadge.textContent = withdrawals;
 }
 
-// ✅ 3-Dots Menu Toggle
+// 3-Dots Menu Toggle
 document.getElementById('adminMenuBtn')?.addEventListener('click', function(e) {
     e.stopPropagation();
     const menu = document.getElementById('adminDropdownMenu');
     menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
 });
 
-// Close menu when clicking outside
 document.addEventListener('click', function(e) {
     const menu = document.getElementById('adminDropdownMenu');
     if (menu && !e.target.closest('#adminMenuBtn') && !e.target.closest('#adminDropdownMenu')) {
@@ -804,19 +815,169 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Menu item clicks - scroll to section
+// Menu item clicks - show/hide sections
 document.querySelectorAll('.admin-menu-item').forEach(item => {
     item.addEventListener('click', function() {
         const section = this.dataset.section;
+        // Hide all sections first
+        document.getElementById('pendingKycList').style.display = 'none';
+        document.getElementById('verifiedSellersList').style.display = 'none';
+        document.getElementById('pendingWithdrawals').style.display = 'none';
+        document.getElementById('adminOrdersList').style.display = 'none';
+        
+        // Show the selected section
         const targetId = section === 'pending' ? 'pendingKycList' : 
                          section === 'verified' ? 'verifiedSellersList' : 'pendingWithdrawals';
         const target = document.getElementById(targetId);
         if (target) {
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            target.style.display = 'block';
+            // Load data if not already loaded
+            if (section === 'pending') loadPendingSellers();
+            else if (section === 'verified') loadVerifiedSellers();
+            else if (section === 'withdrawals') loadWithdrawalsList();
         }
         document.getElementById('adminDropdownMenu').style.display = 'none';
     });
 });
+
+// Load Pending Sellers (shows Approve/Reject buttons)
+function loadPendingSellers() {
+    const pending = sellers.filter(s => s.kycStatus === 'pending');
+    const container = document.getElementById('pendingKycList');
+    if (pending.length === 0) {
+        container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">✅ No pending KYC requests</div>';
+        return;
+    }
+    let html = `<div style="margin-bottom:15px;"><strong>Total Pending: ${pending.length}</strong></div><div style="display:flex; flex-direction:column; gap:12px;">`;
+    pending.forEach((seller, idx) => {
+        html += `
+            <div style="background:#f8fafc; border-radius:16px; padding:12px; border-left:4px solid #fbbf24;">
+                <div style="font-weight:bold;">${idx+1}. ${seller.shopName}</div>
+                <div>👤 ${seller.fullName}</div>
+                <div>📧 ${seller.email}</div>
+                <div>📞 ${seller.phone}</div>
+                <div>📄 ${seller.docType} - ${seller.docNumber}</div>
+                <div style="margin-top:8px;">
+                    <button class="btn-approve" data-id="${seller.id}" style="background:#10b981; color:white; border:none; padding:6px 12px; border-radius:20px; margin-right:8px;">✅ Approve</button>
+                    <button class="btn-reject" data-id="${seller.id}" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:20px;">❌ Reject</button>
+                    <button class="btn-view-doc" onclick='viewSellerDocument("${seller.docImage}","${seller.docType}","${seller.shopName}")' style="background:#3b82f6; color:white; border:none; padding:4px 10px; border-radius:15px; margin-left:8px;">📄 View</button>
+                </div>
+            </div>
+        `;
+    });
+    html += '</div>';
+    container.innerHTML = html;
+    
+    // Attach approve/reject events
+    container.querySelectorAll('.btn-approve').forEach(btn => {
+        btn.addEventListener('click', async function(e) {
+            e.stopPropagation();
+            const sellerId = this.dataset.id;
+            if (!sellerId) { showToast("Seller ID not found", true); return; }
+            try {
+                const user = auth.currentUser;
+                if (!user) { showToast("Please login as admin", true); return; }
+                await db.collection("sellers").doc(sellerId).update({ 
+                    kycStatus: 'verified',
+                    verifiedAt: new Date().toISOString()
+                });
+                showToast("✅ Seller approved!", false);
+                addNotification(`Seller KYC verified`, 'info');
+                await sendTelegramMessage(`✅ KYC Verified: ${sellerId}`);
+                // Refresh data
+                const snapshot = await db.collection("sellers").get();
+                sellers = [];
+                snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
+                updateAdminPendingBadge();
+                updateAdminMenuBadges();
+                loadPendingSellers();
+                document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
+            } catch (error) {
+                console.error("Approve error:", error);
+                showToast("Error approving seller: " + error.message, true);
+            }
+        });
+    });
+    
+    container.querySelectorAll('.btn-reject').forEach(btn => {
+        btn.addEventListener('click', async function(e) {
+            e.stopPropagation();
+            const sellerId = this.dataset.id;
+            if (!sellerId) { showToast("Seller ID not found", true); return; }
+            const reason = prompt("Enter rejection reason:");
+            if (reason === null) return;
+            if (!reason.trim()) { showToast("Please enter a reason", true); return; }
+            try {
+                const user = auth.currentUser;
+                if (!user) { showToast("Please login as admin", true); return; }
+                await db.collection("sellers").doc(sellerId).update({ 
+                    kycStatus: 'rejected', 
+                    rejectionReason: reason.trim() 
+                });
+                showToast("❌ Seller rejected", false);
+                addNotification(`Seller KYC rejected: ${reason}`, 'info');
+                await sendTelegramMessage(`❌ KYC Rejected: ${reason}`);
+                const snapshot = await db.collection("sellers").get();
+                sellers = [];
+                snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
+                updateAdminPendingBadge();
+                updateAdminMenuBadges();
+                loadPendingSellers();
+                document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
+            } catch (error) {
+                console.error("Reject error:", error);
+                showToast("Error rejecting seller: " + error.message, true);
+            }
+        });
+    });
+}
+
+function loadVerifiedSellers() {
+    const verified = sellers.filter(s => s.kycStatus === 'verified');
+    const container = document.getElementById('verifiedSellersList');
+    if (verified.length === 0) {
+        container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">No verified sellers yet</div>';
+        return;
+    }
+    let html = `<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Joined</th></tr></thead><tbody>`;
+    verified.forEach(s => {
+        html += `<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td>${new Date(s.createdAt).toLocaleDateString()}</td></tr>`;
+    });
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+function loadWithdrawalsList() {
+    const container = document.getElementById('pendingWithdrawals');
+    if (pendingWithdrawals.length === 0) {
+        container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">No pending withdrawals</div>';
+        return;
+    }
+    let html = pendingWithdrawals.map(w => `<div class="order-card"><span>💰 ${getCurrencySymbol()}${convertPrice(w.amount)} - ${w.sellerName}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981; color:white; border:none; padding:4px 12px; border-radius:20px;">Approve</button></div>`).join('');
+    container.innerHTML = html;
+    container.querySelectorAll('.approveBtn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            let w = pendingWithdrawals.find(w => w.id === parseInt(btn.dataset.id));
+            if(w){ w.status = 'Approved'; saveAllLocal(); showToast(`Approved ${getCurrencySymbol()}${convertPrice(w.amount)}`, false); await sendTelegramMessage(`💰 Withdrawal Approved: ${w.sellerName} - ${getCurrencySymbol()}${convertPrice(w.amount)}`); addNotification(`Withdrawal approved for ${w.sellerName}`, 'payment'); loadWithdrawalsList(); }
+        });
+    });
+}
+
+function loadAdminData() {
+    const user = auth.currentUser;
+    if (!user) {
+        document.getElementById('adminLoginBox').style.display = 'block';
+        document.getElementById('adminContent').style.display = 'none';
+        return;
+    }
+    // Only show revenue on main dashboard
+    document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
+    // Hide sections by default - only shown via 3-dots menu
+    document.getElementById('pendingKycList').style.display = 'none';
+    document.getElementById('verifiedSellersList').style.display = 'none';
+    document.getElementById('pendingWithdrawals').style.display = 'none';
+    document.getElementById('adminOrdersList').style.display = 'none';
+}
 
 let currentCategory = "All";
 function renderCats(){
@@ -1064,7 +1225,6 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) =
         sendTelegramMessage(`🏪 New Seller: ${newSeller.shopName}\nEmail: ${newSeller.email}\nKYC Pending`).catch(e=>console.warn);
         addNotification(`New seller ${newSeller.shopName} registered! Pending KYC.`, 'info');
         
-        // Auto login seller after registration
         currentSeller = { 
             name: newSeller.fullName, 
             email: newSeller.email, 
@@ -1079,7 +1239,6 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) =
         if(modal) modal.style.display = 'block';
         document.getElementById('debugMsg').innerText = "Registration successful!";
         
-        // Refresh sellers list
         const snapshot = await db.collection("sellers").get();
         sellers = [];
         snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
@@ -1189,121 +1348,18 @@ function renderBuyerOrders(){
     document.querySelectorAll('.cancelOrderBtn').forEach(btn => btn.addEventListener('click', () => cancelOrder(parseFloat(btn.dataset.id))));
 }
 function renderBuyerWishlist(){ let w = products.filter(p => wishlist.includes(p.id)); document.getElementById('buyerWishlistList').innerHTML = w.map(p => `<div class="order-card"><strong>${p.name}</strong><br>Price: ${getCurrencySymbol()}${convertPrice(p.price)}<br><button class="removeWishlistBtn" data-id="${p.id}" style="background:#dc2626;">Remove</button></div>`).join(''); document.querySelectorAll('.removeWishlistBtn').forEach(btn => btn.addEventListener('click', () => { wishlist = wishlist.filter(id => id != btn.dataset.id); saveAllLocal(); renderProducts(); renderBuyerWishlist(); showToast("Removed", false); })); }
-function loadAdminData(){
-    let pending = sellers.filter(s => s.kycStatus === 'pending');
-    let verified = sellers.filter(s => s.kycStatus === 'verified');
-    let rejected = sellers.filter(s => s.kycStatus === 'rejected');
-    updateAdminPendingBadge();
-    updateAdminMenuBadges();
-    let pendingHtml = '';
-    if(pending.length === 0){ pendingHtml = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">✅ No pending KYC requests</div>'; }
-    else {
-        pendingHtml = `<div style="margin-bottom:15px;"><strong>Total Pending: ${pending.length}</strong></div><div style="display:flex; flex-direction:column; gap:12px;">`;
-        pending.forEach((seller, idx) => {
-            pendingHtml += `
-                <div style="background:#f8fafc; border-radius:16px; padding:12px; border-left:4px solid #fbbf24;">
-                    <div style="font-weight:bold;">${idx+1}. ${seller.shopName}</div>
-                    <div>👤 ${seller.fullName}</div>
-                    <div>📧 ${seller.email}</div>
-                    <div>📞 ${seller.phone}</div>
-                    <div>📄 ${seller.docType} - ${seller.docNumber}</div>
-                    <div style="margin-top:8px;">
-                        <button class="btn-approve" data-id="${seller.id}" style="background:#10b981; color:white; border:none; padding:6px 12px; border-radius:20px; margin-right:8px;">✅ Approve</button>
-                        <button class="btn-reject" data-id="${seller.id}" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:20px;">❌ Reject</button>
-                        <button class="btn-view-doc" onclick='viewSellerDocument("${seller.docImage}","${seller.docType}","${seller.shopName}")' style="background:#3b82f6; color:white; border:none; padding:4px 10px; border-radius:15px; margin-left:8px;">📄 View Document</button>
-                    </div>
-                </div>
-            `;
-        });
-        pendingHtml += '</div>';
-    }
-    document.getElementById('pendingKycList').innerHTML = pendingHtml;
-    let verifiedHtml = verified.length ? `<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Joined</th></tr></thead><tbody>${verified.map(s => `<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td>${new Date(s.createdAt).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>` : '<div>No verified sellers yet</div>';
-    document.getElementById('verifiedSellersList').innerHTML = verifiedHtml;
-    let rejectedHtml = rejected.length ? `<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Reason</th><tr></thead><tbody>${rejected.map(s => `<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td>${s.rejectionReason||'No reason'}</td></tr>`).join('')}</tbody></table>` : '<div>No rejected sellers</div>';
-    document.getElementById('rejectedSellersList').innerHTML = rejectedHtml;
-    
-    // Approve Button Fix - Working Code
-    document.querySelectorAll('.btn-approve').forEach(btn => {
-        btn.addEventListener('click', async function(e) {
-            e.stopPropagation();
-            const sellerId = this.dataset.id;
-            if (!sellerId) {
-                showToast("Seller ID not found", true);
-                return;
-            }
-            try {
-                await db.collection("sellers").doc(sellerId).update({ 
-                    kycStatus: 'verified',
-                    verifiedAt: new Date().toISOString()
-                });
-                showToast("✅ Seller approved successfully!", false);
-                addNotification(`Seller KYC verified`, 'info');
-                await sendTelegramMessage(`✅ KYC Verified: Seller ID: ${sellerId}`);
-                // Refresh data
-                const snapshot = await db.collection("sellers").get();
-                sellers = [];
-                snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
-                updateAdminPendingBadge();
-                updateAdminMenuBadges();
-                loadAdminData();
-            } catch (error) {
-                console.error("Approve error:", error);
-                showToast("Error approving seller: " + error.message, true);
-            }
-        });
-    });
-    
-    // Reject Button Fix - Working Code
-    document.querySelectorAll('.btn-reject').forEach(btn => {
-        btn.addEventListener('click', async function(e) {
-            e.stopPropagation();
-            const sellerId = this.dataset.id;
-            if (!sellerId) {
-                showToast("Seller ID not found", true);
-                return;
-            }
-            const reason = prompt("Enter rejection reason:");
-            if (reason === null) return;
-            if (!reason.trim()) {
-                showToast("Please enter a reason", true);
-                return;
-            }
-            try {
-                await db.collection("sellers").doc(sellerId).update({ 
-                    kycStatus: 'rejected', 
-                    rejectionReason: reason.trim() 
-                });
-                showToast("❌ Seller rejected", false);
-                addNotification(`Seller KYC rejected: ${reason}`, 'info');
-                await sendTelegramMessage(`❌ KYC Rejected: ${reason}`);
-                // Refresh data
-                const snapshot = await db.collection("sellers").get();
-                sellers = [];
-                snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
-                updateAdminPendingBadge();
-                updateAdminMenuBadges();
-                loadAdminData();
-            } catch (error) {
-                console.error("Reject error:", error);
-                showToast("Error rejecting seller: " + error.message, true);
-            }
-        });
-    });
-    
-    document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
-    document.getElementById('pendingWithdrawals').innerHTML = pendingWithdrawals.map(w => `<div class="order-card"><span>💰 ${getCurrencySymbol()}${convertPrice(w.amount)} - ${w.sellerName}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981;">Approve</button></div>`).join('');
-    document.querySelectorAll('.approveBtn').forEach(btn => btn.addEventListener('click', async () => {
-        let w = pendingWithdrawals.find(w => w.id === parseInt(btn.dataset.id));
-        if(w){ w.status = 'Approved'; saveAllLocal(); loadAdminData(); showToast(`Approved ${getCurrencySymbol()}${convertPrice(w.amount)}`, false); await sendTelegramMessage(`💰 Withdrawal Approved: ${w.sellerName} - ${getCurrencySymbol()}${convertPrice(w.amount)}`); addNotification(`Withdrawal approved for ${w.sellerName}`, 'payment'); }
-    }));
-    document.getElementById('adminOrdersList').innerHTML = orders.map(o => `<div class="order-card">🔖 ${o.trackingNumber}<br>${o.productName} x${o.qty}<br>${o.buyerName}<br>Status: ${o.status}</div>`).join('');
-}
-document.getElementById('adminLoginBtn')?.addEventListener('click', () => { if(document.getElementById('adminKey').value === 'Haque0786@'){ document.getElementById('adminLoginBox').style.display='none'; document.getElementById('adminContent').style.display='block'; loadAdminData(); showToast("Admin logged in", false); } else showToast("Wrong key", true); });
+
+document.getElementById('adminLoginBtn')?.addEventListener('click', () => { 
+    if(document.getElementById('adminKey').value === 'Haque0786@'){ 
+        document.getElementById('adminLoginBox').style.display='none'; 
+        document.getElementById('adminContent').style.display='block'; 
+        loadAdminData(); 
+        showToast("Admin logged in", false); 
+    } else showToast("Wrong key", true); 
+});
 document.getElementById('refreshAdminBtn')?.addEventListener('click', loadAdminData);
 window.viewSellerDocument = function(docImage, docType, sellerName){ if(docImage && docImage.startsWith('http')){ window.open(docImage, '_blank'); } else { alert(`No image available for ${sellerName}`); } };
 
-// Privacy Policy Function
 function showPrivacy() {
     document.getElementById('termsModal').style.display = 'block';
     document.getElementById('termsModal').querySelector('.modal-card').innerHTML = `
@@ -1337,7 +1393,6 @@ function showPrivacy() {
     `;
 }
 
-// Terms Function
 function showTerms() {
     document.getElementById('termsModal').style.display = 'block';
     document.getElementById('termsModal').querySelector('.modal-card').innerHTML = `
@@ -1415,7 +1470,6 @@ function closeSellerSummary(){ document.getElementById('sellerSummaryModal').sty
 function closeOrderSummary(){ document.getElementById('orderSummaryModal').style.display='none'; showSection('buyer'); }
 document.getElementById('goToMyShopBtn')?.addEventListener('click', () => { closeSellerSummary(); showMyShopLogin(); });
 
-// Modal toggle functions
 document.getElementById('showRegisterLink')?.addEventListener('click', () => {
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('registerForm').style.display = 'block';
