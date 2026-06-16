@@ -164,7 +164,6 @@
         <div class="checkbox-group"><input type="checkbox" id="sellerAgreement" required><label>I agree to <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label></div><button type="submit" class="btn-primary" id="sellerSubmitBtn" disabled>✅ Register Shop (Verify Phone First)</button></form></div><div id="sellerDashboard" style="display:none;"></div></div>
     <div id="profileSection" class="section"><div id="buyerProfilePanel" style="display:block;"><div class="premium-card"><div class="flex-between"><h2>👋 My Account</h2><span class="role-badge" id="userRoleBadge">Buyer</span></div></div><div class="premium-card"><h3>📜 My Orders</h3><div id="buyerOrdersList"></div></div><div class="premium-card"><h3>❤️ My Wishlist</h3><div id="buyerWishlistList"></div></div></div></div>
     <div id="adminSection" class="section"><div id="adminPanel" class="premium-card"><h2>⚙️ Admin Dashboard</h2><div id="adminLoginBox"><input type="password" id="adminKey" class="input" placeholder="Enter Admin Key"><button class="btn-primary" id="adminLoginBtn">Login</button></div><div id="adminContent" style="display:none;">
-        <!-- Admin 3-Dots Menu -->
         <div style="position:relative; display:inline-block; float:right; margin-top:-40px;">
             <button id="adminMenuBtn" style="background:none; border:none; font-size:24px; cursor:pointer;">⋮</button>
             <div id="adminDropdownMenu" style="display:none; position:absolute; right:0; top:30px; background:white; border-radius:12px; box-shadow:0 8px 25px rgba(0,0,0,0.2); z-index:100; min-width:220px; padding:8px 0; border:1px solid #e2e8f0;">
@@ -740,30 +739,26 @@ db.collection("sellers").onSnapshot(snapshot => {
         sellers.push({ id: doc.id, ...doc.data() }); 
     });
     
-    // ✅ FIX: Update currentSeller session if KYC status changed
+    // ✅ FIX: Force update currentSeller from the fresh sellers array
     if (currentSeller) {
-        const updatedSeller = sellers.find(s => s.id === currentSeller.sellerId);
-        if (updatedSeller) {
-            // KYC status change hua hai toh update karo
-            if (updatedSeller.kycStatus !== currentSeller.kycStatus) {
-                currentSeller.kycStatus = updatedSeller.kycStatus;
-                localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
-                
-                if (updatedSeller.kycStatus === 'verified') {
-                    showToast("✅ Your KYC has been verified! You can now access your shop.", false);
-                } else if (updatedSeller.kycStatus === 'rejected') {
-                    showToast("❌ Your KYC was rejected. Contact support.", true);
-                }
-            }
+        const freshSeller = sellers.find(s => s.id === currentSeller.sellerId);
+        if (freshSeller) {
+            // Completely replace currentSeller with fresh data
+            currentSeller = { 
+                ...currentSeller,
+                kycStatus: freshSeller.kycStatus,
+                earnings: freshSeller.earnings,
+            };
+            localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
             
-            // Agar seller verified hai aur dashboard show nahi ho raha toh show karo
-            if (updatedSeller.kycStatus === 'verified' && 
-                document.getElementById('sellerDashboard').style.display === 'none' &&
-                document.getElementById('sellerRegisterBox').style.display === 'block') {
-                // Seller verified ho gaya, dashboard dikhao
-                document.getElementById('sellerRegisterBox').style.display = 'none';
-                document.getElementById('sellerDashboard').style.display = 'block';
-                renderSellerDashboard();
+            if (freshSeller.kycStatus === 'verified') {
+                showToast("✅ Your KYC has been verified! You can now access your shop.", false);
+                // Auto-show dashboard if it's hidden
+                if (document.getElementById('sellerRegisterBox').style.display === 'block') {
+                    document.getElementById('sellerRegisterBox').style.display = 'none';
+                    document.getElementById('sellerDashboard').style.display = 'block';
+                    renderSellerDashboard();
+                }
             }
         }
     }
