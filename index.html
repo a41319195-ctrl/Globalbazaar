@@ -1325,7 +1325,51 @@ function renderSellerDashboard(){
 <div class="chart-container"><h3>📊 Revenue</h3><canvas id="revenueChart"></canvas></div>
 <div class="premium-card"><h3>📈 Top Products</h3>${topList.map(p=>`${p[0]}: ${p[1]} sold`).join('<br>') || 'No sales'}</div>
 ${seller.kycStatus === "verified" ? `
-<div class="premium-card"><h3>➕ Add Product</h3><input type="text" id="prodName" placeholder="Product Name" class="input"><input type="number" id="prodPrice" placeholder="Price (USD)" class="input"><select id="prodCat" class="input"><option>Electronics</option><option>Fashion</option><option>Home</option><option>Textile</option><option>Cosmetic</option></select><input type="number" id="prodStock" placeholder="Stock Quantity" class="input" required><label>Main Image (upload)</label><input type="file" id="prodMainImg" accept="image/*" class="input" required><label>Additional Images (optional, max 4)</label><input type="file" id="prodImagesFiles" accept="image/*" multiple class="input"><textarea id="prodDesc" placeholder="Description" class="input" rows="2"></textarea><button id="publishBtn" class="btn-primary">📢 Publish</button></div>
+<div class="premium-card"><h3>➕ Add Product</h3>
+    <input type="text" id="prodName" placeholder="Product Name" class="input" required>
+    <input type="number" id="prodPrice" placeholder="Price (USD)" class="input" required>
+    <select id="prodCat" class="input" required>
+        <option>Electronics</option>
+        <option>Fashion</option>
+        <option>Home</option>
+        <option>Textile</option>
+        <option>Cosmetic</option>
+    </select>
+    <input type="number" id="prodStock" placeholder="Stock Quantity" class="input" required>
+    
+    <!-- ✅ NEW: Weight + Size Fields -->
+    <div style="background:#f8fafc; padding:16px; border-radius:16px; margin-top:12px; border:1px solid #e2e8f0;">
+        <h4 style="margin-bottom:10px;">📦 Shipping Details (Required)</h4>
+        <div style="margin-bottom:12px;">
+            <label style="font-size:13px; font-weight:600;">Weight (kg) *</label>
+            <input type="number" id="prodWeight" placeholder="e.g., 2.5" class="input" required step="0.1" min="0.1">
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+            <div>
+                <label style="font-size:13px; font-weight:600;">Length (cm) *</label>
+                <input type="number" id="prodLength" placeholder="e.g., 30" class="input" required min="1">
+            </div>
+            <div>
+                <label style="font-size:13px; font-weight:600;">Width (cm) *</label>
+                <input type="number" id="prodWidth" placeholder="e.g., 20" class="input" required min="1">
+            </div>
+            <div>
+                <label style="font-size:13px; font-weight:600;">Height (cm) *</label>
+                <input type="number" id="prodHeight" placeholder="e.g., 10" class="input" required min="1">
+            </div>
+        </div>
+        <p style="font-size:12px; color:#64748b; margin-top:8px;">
+            ⚠️ Accurate weight & size help calculate shipping rates correctly.
+        </p>
+    </div>
+    
+    <label style="margin-top:12px; display:block;">Main Image (upload)</label>
+    <input type="file" id="prodMainImg" accept="image/*" class="input" required>
+    <label>Additional Images (optional, max 4)</label>
+    <input type="file" id="prodImagesFiles" accept="image/*" multiple class="input">
+    <textarea id="prodDesc" placeholder="Description" class="input" rows="2"></textarea>
+    <button id="publishBtn" class="btn-primary">📢 Publish</button>
+</div>
 <div class="premium-card"><h3>📋 My Products (${myProducts.length})</h3><div id="myProductsList">${prodListHtml}</div></div>
 <div class="premium-card"><h3>📦 Orders</h3><div id="ordersList">${ordersHtml}</div></div>
 ` : `<div class="premium-card"><h3>⚠️ KYC Pending</h3><p>Wait for admin verification</p></div>`}
@@ -1347,6 +1391,18 @@ ${seller.kycStatus === "verified" ? `
             
             const mainFile = document.getElementById('prodMainImg').files[0];
             if (!mainFile) { showToast("Main image required", true); return; }
+            
+            // ✅ NEW: Weight + Size validation
+            const weight = parseFloat(document.getElementById('prodWeight').value);
+            const length = parseFloat(document.getElementById('prodLength').value);
+            const width = parseFloat(document.getElementById('prodWidth').value);
+            const height = parseFloat(document.getElementById('prodHeight').value);
+            
+            if (!weight || weight <= 0) { showToast("Valid weight required", true); return; }
+            if (!length || length <= 0 || !width || width <= 0 || !height || height <= 0) {
+                showToast("Valid dimensions required (length, width, height)", true); 
+                return;
+            }
             
             // Check if seller exists
             if (!currentSeller || !currentSeller.sellerId) {
@@ -1382,7 +1438,7 @@ ${seller.kycStatus === "verified" ? `
                 
                 const images = [mainUrl, ...additionalUrls];
                 
-                // Create product object
+                // ✅ NEW: Create product object with weight + size
                 const newProduct = {
                     sellerId: seller.id,
                     sellerName: seller.shopName || "GlobalBazaar",
@@ -1395,6 +1451,12 @@ ${seller.kycStatus === "verified" ? `
                     sellerCountry: seller.country || "SA",
                     rating: 0,
                     stock: stock,
+                    weight: weight,
+                    size: {
+                        length: length,
+                        width: width,
+                        height: height
+                    },
                     createdAt: new Date().toISOString()
                 };
                 
@@ -1412,6 +1474,10 @@ ${seller.kycStatus === "verified" ? `
                 document.getElementById('prodMainImg').value = '';
                 document.getElementById('prodImagesFiles').value = '';
                 document.getElementById('prodDesc').value = '';
+                document.getElementById('prodWeight').value = '';
+                document.getElementById('prodLength').value = '';
+                document.getElementById('prodWidth').value = '';
+                document.getElementById('prodHeight').value = '';
                 
                 renderSellerDashboard();
                 renderProducts();
