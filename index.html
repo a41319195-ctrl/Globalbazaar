@@ -163,7 +163,30 @@
     <div id="sellerSection" class="section"><div id="sellerRegisterBox" class="premium-card"><h2>🏪 Open Your Shop</h2><form id="sellerRegForm"><input type="file" id="sellerAvatar" accept="image/*" class="input"><input type="text" id="sellerFullName" placeholder="Full Legal Name" class="input" required><input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required><input type="email" id="sellerEmail" placeholder="Email" class="input" required><div class="phone-group"><div class="country-search-select" id="sellerCountrySearchContainer"><input type="text" id="sellerCountrySearch" placeholder="🔍 Search country..." autocomplete="off"><div class="country-dropdown-list" id="sellerCountryDropdown"></div><select id="sellerCountryCode" style="display:none;"></select></div><input type="tel" id="sellerPhone" placeholder="Phone Number" class="input" required></div><div class="otp-section" id="sellerOtpSection"><input type="text" id="sellerOtp" placeholder="Enter OTP" class="input"><button type="button" id="sellerVerifyOtpBtn" class="btn-secondary">Verify OTP</button></div><input type="password" id="sellerPassword" placeholder="Password" class="input" required><label style="font-weight:600; margin-top:10px;">🎂 Date of Birth</label><input type="date" id="sellerDob" class="input" required><h4>📍 Shop Address</h4><input type="text" id="sellerHouseNo" placeholder="House No." class="input" required><input type="text" id="sellerStreet" placeholder="Street" class="input" required><input type="text" id="sellerCity" placeholder="City" class="input" required><input type="text" id="sellerState" placeholder="State" class="input" required><input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required><select id="sellerCountryReg" class="input" required><option value="">Select Country</option></select><div class="doc-section"><div class="doc-title">🌍 KYC Documents</div><select id="sellerDocType" class="input" required><option value="">Select Document Type</option><option value="passport">📘 Passport</option><option value="national_id">🆔 National ID Card</option><option value="driving_license">🚗 Driving License</option><option value="residence_permit">📄 Residence Permit</option></select><input type="text" id="sellerDocNumber" placeholder="Document Number" class="input" required><input type="file" id="sellerDocImage" accept="image/*,application/pdf" class="input" required></div>
         <div class="checkbox-group"><input type="checkbox" id="sellerAgreement" required><label>I agree to <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label></div><button type="submit" class="btn-primary" id="sellerSubmitBtn" disabled>✅ Register Shop (Verify Phone First)</button></form></div><div id="sellerDashboard" style="display:none;"></div></div>
     <div id="profileSection" class="section"><div id="buyerProfilePanel" style="display:block;"><div class="premium-card"><div class="flex-between"><h2>👋 My Account</h2><span class="role-badge" id="userRoleBadge">Buyer</span></div></div><div class="premium-card"><h3>📜 My Orders</h3><div id="buyerOrdersList"></div></div><div class="premium-card"><h3>❤️ My Wishlist</h3><div id="buyerWishlistList"></div></div></div></div>
-    <div id="adminSection" class="section"><div id="adminPanel" class="premium-card"><h2>⚙️ Admin Dashboard</h2><div id="adminLoginBox"><input type="password" id="adminKey" class="input" placeholder="Enter Admin Key"><button class="btn-primary" id="adminLoginBtn">Login</button></div><div id="adminContent" style="display:none;"><div style="margin-bottom:25px;"><div class="kyc-section-title">⏳ Pending KYC Verification Requests</div><div id="pendingKycList"></div></div><div style="margin-bottom:25px;"><div class="kyc-section-title">✅ Verified Sellers</div><div id="verifiedSellersList"></div></div><div style="margin-bottom:25px;"><div class="kyc-section-title">❌ Rejected Sellers</div><div id="rejectedSellersList"></div></div>
+    <div id="adminSection" class="section"><div id="adminPanel" class="premium-card"><h2>⚙️ Admin Dashboard</h2><div id="adminLoginBox"><input type="password" id="adminKey" class="input" placeholder="Enter Admin Key"><button class="btn-primary" id="adminLoginBtn">Login</button></div><div id="adminContent" style="display:none;">
+        <!-- Admin 3-Dots Menu -->
+        <div style="position:relative; display:inline-block; float:right; margin-top:-40px;">
+            <button id="adminMenuBtn" style="background:none; border:none; font-size:24px; cursor:pointer;">⋮</button>
+            <div id="adminDropdownMenu" style="display:none; position:absolute; right:0; top:30px; background:white; border-radius:12px; box-shadow:0 8px 25px rgba(0,0,0,0.2); z-index:100; min-width:220px; padding:8px 0; border:1px solid #e2e8f0;">
+                <div style="padding:10px 16px; border-bottom:1px solid #eef2f8; font-weight:600; font-size:13px; color:#475569;">📋 Admin Menu</div>
+                <div class="admin-menu-item" data-section="pending" style="padding:10px 16px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9;">
+                    <span>⏳ Pending Verification</span>
+                    <span id="pendingCountBadge" style="background:#fbbf24; color:#1e293b; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:bold;">0</span>
+                </div>
+                <div class="admin-menu-item" data-section="verified" style="padding:10px 16px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9;">
+                    <span>✅ Verified Sellers</span>
+                    <span id="verifiedCountBadge" style="background:#10b981; color:white; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:bold;">0</span>
+                </div>
+                <div class="admin-menu-item" data-section="withdrawals" style="padding:10px 16px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+                    <span>💸 Withdrawal Requests</span>
+                    <span id="withdrawalCountBadge" style="background:#ef4444; color:white; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:bold;">0</span>
+                </div>
+            </div>
+        </div>
+        <div style="clear:both;"></div>
+        <div style="margin-bottom:25px;"><div class="kyc-section-title">⏳ Pending KYC Verification Requests</div><div id="pendingKycList"></div></div>
+        <div style="margin-bottom:25px;"><div class="kyc-section-title">✅ Verified Sellers</div><div id="verifiedSellersList"></div></div>
+        <div style="margin-bottom:25px;"><div class="kyc-section-title">❌ Rejected Sellers</div><div id="rejectedSellersList"></div></div>
         <div class="flex-between" style="margin: 20px 0 10px;"><h3>💰 Platform Earnings</h3><button id="refreshAdminBtn" style="background:#64748b; padding:8px 16px; border-radius:30px;">Refresh</button></div>
         <div id="platformEarnings" style="margin-bottom:20px;"><h2>SAR 0.00</h2></div>
         <h3>💸 Pending Withdrawals</h3><div id="pendingWithdrawals"></div>
@@ -203,8 +226,55 @@
 <div id="editProductModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeEditModal()">&times;</span><h2>✏️ Edit Product</h2><input type="hidden" id="editProdId"><input type="text" id="editProdName" placeholder="Product Name" class="input" required><input type="number" id="editProdPrice" placeholder="Price (USD)" class="input" required><select id="editProdCat" class="input" required><option>Electronics</option><option>Fashion</option><option>Home</option><option>Textile</option><option>Cosmetic</option></select><input type="number" id="editProdStock" placeholder="Stock Quantity" class="input" required min="0"><textarea id="editProdDesc" placeholder="Product Description" class="input" rows="3"></textarea><label>Main Image (upload new)</label><input type="file" id="editMainImg" accept="image/*" class="input"><label>Additional Images (upload multiple, max 4)</label><input type="file" id="editExtraImgs" accept="image/*" multiple class="input"><div id="editCurrentImages"></div><button id="updateProductBtn" class="btn-primary">💾 Update Product</button></div></div>
 <div id="sellerSummaryModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSellerSummary()">&times;</span><h2>🎉 Thank you for registering!</h2><p style="margin:20px 0;">Your shop is under review. You will receive a notification once admin approves your KYC.</p><p><strong>⏳ Waiting for admin approval...</strong></p><button class="btn-primary" id="goToMyShopBtn">Go to My Shop</button></div></div>
 <div id="orderSummaryModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeOrderSummary()">&times;</span><h2>✅ Payment Successful!</h2><div id="orderSummaryContent"></div><button class="btn-primary" onclick="closeOrderSummary()">Continue Shopping</button></div></div>
-<div id="termsModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeTermsModal()">&times;</span><h2>Terms & Conditions</h2><p>By using GlobalBazaar, you agree to our terms. You must be 18+ years old.</p><button class="btn-primary" onclick="closeTermsModal()">Close</button></div></div>
-<div id="sellerAgreementModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSellerAgreementModal()">&times;</span><h2>Seller Agreement</h2><p>Commission: 5% | Gateway Fee: 2.5% | Handling Fee: $2<br>Payments released after delivery confirmation.<br>Weekly withdrawal available (Monday & Friday).</p><button class="btn-primary" onclick="closeSellerAgreementModal()">Close</button></div></div>
+<div id="termsModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeTermsModal()">&times;</span><h2>Terms & Conditions</h2><p><strong>Last Updated:</strong> 16 June 2026</p>
+        <h3>1. Acceptance of Terms</h3>
+        <p>By using GlobalBazaar, you agree to these Terms & Conditions.</p>
+        <h3>2. User Accounts</h3>
+        <ul style="text-align:left;">
+            <li>You must be <strong>18 years or older</strong></li>
+            <li>You are responsible for your account security</li>
+        </ul>
+        <h3>3. ⭐ Auto-Order Confirmation (2 Days Rule)</h3>
+        <ul style="text-align:left;">
+            <li><strong>Confirm within 2 days (48 hours)</strong> of receiving the product</li>
+            <li><strong>If not confirmed:</strong> Order will be <strong>automatically marked as delivered</strong></li>
+            <li><strong>Disputes:</strong> Must be filed within 2 days of delivery</li>
+        </ul>
+        <h3>4. Seller Terms</h3>
+        <ul style="text-align:left;">
+            <li>Sellers must provide accurate product descriptions</li>
+            <li>Commission: <strong>10-12%</strong> of each sale</li>
+            <li>KYC verification required for withdrawals</li>
+        </ul>
+        <h3>5. Refund and Dispute</h3>
+        <ul style="text-align:left;">
+            <li>If not received within <strong>7 days</strong>, request a refund</li>
+            <li>Disputes must be raised within <strong>2 days</strong> of delivery</li>
+        </ul>
+        <h3>6. Contact Us</h3>
+        <p>Email: support@globalbazaar.com</p>
+        <button class="btn-primary" onclick="closeTermsModal()">Close</button></div></div>
+<div id="sellerAgreementModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSellerAgreementModal()">&times;</span><h2>Seller Agreement</h2>
+        <p><strong>Commission:</strong> 10-12% of each sale</p>
+        <p><strong>Gateway Fee:</strong> 2.5%</p>
+        <p><strong>Handling Fee:</strong> $2 per order</p>
+        <br>
+        <p><strong>Payment Release:</strong></p>
+        <ul style="text-align:left;">
+            <li>✅ Buyer confirms delivery → Payment released to seller</li>
+            <li>✅ Auto-confirm after 2 days (if buyer doesn't confirm)</li>
+            <li>✅ Weekly withdrawal available (Monday & Friday)</li>
+        </ul>
+        <br>
+        <p><strong>📌 Why 10-12%?</strong></p>
+        <ul style="text-align:left;">
+            <li>🔹 Amazon/Flipkart take 15-30%</li>
+            <li>🔹 GlobalBazaar takes only 10-12%</li>
+            <li>🔹 More profit for sellers 💰</li>
+        </ul>
+        <br>
+        <p><strong>📞 Support:</strong> support@globalbazaar.com</p>
+        <button class="btn-primary" onclick="closeSellerAgreementModal()">Close</button></div></div>
 <div id="supportModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSupportModal()">&times;</span><h2>📞 Support</h2><p>Email: support@globalbazaar.com<br>WhatsApp: +966 123 456 789<br>24/7 Customer Support</p><button class="btn-primary" onclick="closeSupportModal()">Close</button></div></div>
 <div id="documentModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeDocumentModal()">&times;</span><h2>📄 KYC Document</h2><img id="documentModalImg" style="width:100%; border-radius:12px;"><p id="documentModalText" style="margin-top:10px;"></p><button class="btn-primary" onclick="closeDocumentModal()">Close</button></div></div>
 <div class="footer-legal">© 2026 GlobalBazaar Marketplace | <span class="legal-link" onclick="showTerms()">Terms</span> | <span class="legal-link" onclick="showPrivacy()">Privacy</span> | <span class="legal-link" onclick="showSupport()">Support</span></div>
@@ -465,7 +535,9 @@ function getCurrencySymbol(){ return currencySymbols[selectedCurrency]; }
 document.getElementById('currencySelect').value=selectedCurrency;
 document.getElementById('currencySelect').addEventListener('change',(e)=>{ selectedCurrency=e.target.value; localStorage.setItem('selectedCurrency',selectedCurrency); renderProducts(); updateCartUI(); renderCartPage(); if(currentSeller) renderSellerDashboard(); showToast(`Currency: ${selectedCurrency}`,false); });
 function getShippingCost(sellerCountry,buyerCountry){ if(sellerCountry===buyerCountry) return 5; const nearby=["SA","AE","IN","PK","BD","LK","NP"]; if(nearby.includes(sellerCountry)&&nearby.includes(buyerCountry)) return 12; return 25; }
-const PLATFORM_COMMISSION=0.05, GATEWAY_FEE=0.025, HANDLING_FEE=2;
+const PLATFORM_COMMISSION = 0.10; // ✅ Updated: 10% commission
+const GATEWAY_FEE = 0.025;
+const HANDLING_FEE = 2;
 function calculateFinalPrice(basePrice,sellerCountry,buyerCountry){ let shipping=getShippingCost(sellerCountry,buyerCountry); let commission=basePrice*PLATFORM_COMMISSION; let gateway=basePrice*GATEWAY_FEE; return { total: basePrice+commission+gateway+shipping+HANDLING_FEE, basePrice, shipping, commission, gateway }; }
 
 // ========== AUTHENTICATION ==========
@@ -662,13 +734,13 @@ db.collection("sellers").onSnapshot(snapshot => {
         sellers.push({ id: doc.id, ...doc.data() }); 
     });
     updateAdminPendingBadge();
+    updateAdminMenuBadges(); // ✅ Update 3-dots menu badges
     if (document.getElementById('adminContent').style.display === 'block') loadAdminData();
     if (currentSeller) {
         const stillExists = sellers.find(s => s.id === currentSeller.sellerId);
         if (stillExists && stillExists.kycStatus === 'verified') {
             currentSeller = { ...currentSeller, ...stillExists };
             localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
-            // If seller dashboard should be shown, show it
             if (document.getElementById('sellerDashboard').style.display === 'block') {
                 renderSellerDashboard();
             }
@@ -701,6 +773,50 @@ function updateAdminPendingBadge() {
         }
     }
 }
+
+// ✅ New Function: Update 3-dots menu badges
+function updateAdminMenuBadges() {
+    const pending = sellers.filter(s => s.kycStatus === 'pending').length;
+    const verified = sellers.filter(s => s.kycStatus === 'verified').length;
+    const withdrawals = pendingWithdrawals.filter(w => w.status === 'Pending').length;
+    
+    const pendingBadge = document.getElementById('pendingCountBadge');
+    const verifiedBadge = document.getElementById('verifiedCountBadge');
+    const withdrawalBadge = document.getElementById('withdrawalCountBadge');
+    
+    if (pendingBadge) pendingBadge.textContent = pending;
+    if (verifiedBadge) verifiedBadge.textContent = verified;
+    if (withdrawalBadge) withdrawalBadge.textContent = withdrawals;
+}
+
+// ✅ 3-Dots Menu Toggle
+document.getElementById('adminMenuBtn')?.addEventListener('click', function(e) {
+    e.stopPropagation();
+    const menu = document.getElementById('adminDropdownMenu');
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+});
+
+// Close menu when clicking outside
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('adminDropdownMenu');
+    if (menu && !e.target.closest('#adminMenuBtn') && !e.target.closest('#adminDropdownMenu')) {
+        menu.style.display = 'none';
+    }
+});
+
+// Menu item clicks - scroll to section
+document.querySelectorAll('.admin-menu-item').forEach(item => {
+    item.addEventListener('click', function() {
+        const section = this.dataset.section;
+        const targetId = section === 'pending' ? 'pendingKycList' : 
+                         section === 'verified' ? 'verifiedSellersList' : 'pendingWithdrawals';
+        const target = document.getElementById(targetId);
+        if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        document.getElementById('adminDropdownMenu').style.display = 'none';
+    });
+});
 
 let currentCategory = "All";
 function renderCats(){
@@ -968,6 +1084,7 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) =
         sellers = [];
         snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
         updateAdminPendingBadge();
+        updateAdminMenuBadges();
         if (document.getElementById('adminContent').style.display === 'block') loadAdminData();
         
     } catch(err) {
@@ -1077,6 +1194,7 @@ function loadAdminData(){
     let verified = sellers.filter(s => s.kycStatus === 'verified');
     let rejected = sellers.filter(s => s.kycStatus === 'rejected');
     updateAdminPendingBadge();
+    updateAdminMenuBadges();
     let pendingHtml = '';
     if(pending.length === 0){ pendingHtml = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">✅ No pending KYC requests</div>'; }
     else {
@@ -1104,42 +1222,75 @@ function loadAdminData(){
     document.getElementById('verifiedSellersList').innerHTML = verifiedHtml;
     let rejectedHtml = rejected.length ? `<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Reason</th><tr></thead><tbody>${rejected.map(s => `<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td>${s.rejectionReason||'No reason'}</td></tr>`).join('')}</tbody></table>` : '<div>No rejected sellers</div>';
     document.getElementById('rejectedSellersList').innerHTML = rejectedHtml;
-    document.querySelectorAll('.btn-approve').forEach(btn => btn.addEventListener('click', async () => {
-        let sellerId = btn.dataset.id;
-        let seller = sellers.find(s => s.id === sellerId);
-        if(seller){
-            await db.collection("sellers").doc(sellerId).update({ kycStatus: 'verified' });
-            addNotification(`${seller.shopName} KYC verified`, 'info');
-            addNotification(`Your shop ${seller.shopName} has been approved! You can now login and sell.`, 'info');
-            await sendTelegramMessage(`✅ KYC Verified: ${seller.shopName}`);
-            showToast(`${seller.shopName} verified`, false);
-            // Refresh sellers list to update UI
-            const snapshot = await db.collection("sellers").get();
-            sellers = [];
-            snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
-            updateAdminPendingBadge();
-            loadAdminData();
-        }
-    }));
-    document.querySelectorAll('.btn-reject').forEach(btn => btn.addEventListener('click', async () => {
-        let reason = prompt("Enter rejection reason:");
-        if(reason){
-            let sellerId = btn.dataset.id;
-            let seller = sellers.find(s => s.id === sellerId);
-            if(seller){
-                await db.collection("sellers").doc(sellerId).update({ kycStatus: 'rejected', rejectionReason: reason });
-                addNotification(`${seller.shopName} KYC rejected`, 'info');
-                addNotification(`Your shop ${seller.shopName} KYC was rejected. Reason: ${reason}`, 'info');
-                await sendTelegramMessage(`❌ KYC Rejected: ${seller.shopName}\nReason: ${reason}`);
-                showToast(`${seller.shopName} rejected`, false);
+    
+    // Approve Button Fix - Working Code
+    document.querySelectorAll('.btn-approve').forEach(btn => {
+        btn.addEventListener('click', async function(e) {
+            e.stopPropagation();
+            const sellerId = this.dataset.id;
+            if (!sellerId) {
+                showToast("Seller ID not found", true);
+                return;
+            }
+            try {
+                await db.collection("sellers").doc(sellerId).update({ 
+                    kycStatus: 'verified',
+                    verifiedAt: new Date().toISOString()
+                });
+                showToast("✅ Seller approved successfully!", false);
+                addNotification(`Seller KYC verified`, 'info');
+                await sendTelegramMessage(`✅ KYC Verified: Seller ID: ${sellerId}`);
+                // Refresh data
                 const snapshot = await db.collection("sellers").get();
                 sellers = [];
                 snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
                 updateAdminPendingBadge();
+                updateAdminMenuBadges();
                 loadAdminData();
+            } catch (error) {
+                console.error("Approve error:", error);
+                showToast("Error approving seller: " + error.message, true);
             }
-        } else if(reason === "") showToast("Please enter a reason", true);
-    }));
+        });
+    });
+    
+    // Reject Button Fix - Working Code
+    document.querySelectorAll('.btn-reject').forEach(btn => {
+        btn.addEventListener('click', async function(e) {
+            e.stopPropagation();
+            const sellerId = this.dataset.id;
+            if (!sellerId) {
+                showToast("Seller ID not found", true);
+                return;
+            }
+            const reason = prompt("Enter rejection reason:");
+            if (reason === null) return;
+            if (!reason.trim()) {
+                showToast("Please enter a reason", true);
+                return;
+            }
+            try {
+                await db.collection("sellers").doc(sellerId).update({ 
+                    kycStatus: 'rejected', 
+                    rejectionReason: reason.trim() 
+                });
+                showToast("❌ Seller rejected", false);
+                addNotification(`Seller KYC rejected: ${reason}`, 'info');
+                await sendTelegramMessage(`❌ KYC Rejected: ${reason}`);
+                // Refresh data
+                const snapshot = await db.collection("sellers").get();
+                sellers = [];
+                snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
+                updateAdminPendingBadge();
+                updateAdminMenuBadges();
+                loadAdminData();
+            } catch (error) {
+                console.error("Reject error:", error);
+                showToast("Error rejecting seller: " + error.message, true);
+            }
+        });
+    });
+    
     document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
     document.getElementById('pendingWithdrawals').innerHTML = pendingWithdrawals.map(w => `<div class="order-card"><span>💰 ${getCurrencySymbol()}${convertPrice(w.amount)} - ${w.sellerName}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981;">Approve</button></div>`).join('');
     document.querySelectorAll('.approveBtn').forEach(btn => btn.addEventListener('click', async () => {
@@ -1151,6 +1302,78 @@ function loadAdminData(){
 document.getElementById('adminLoginBtn')?.addEventListener('click', () => { if(document.getElementById('adminKey').value === 'Haque0786@'){ document.getElementById('adminLoginBox').style.display='none'; document.getElementById('adminContent').style.display='block'; loadAdminData(); showToast("Admin logged in", false); } else showToast("Wrong key", true); });
 document.getElementById('refreshAdminBtn')?.addEventListener('click', loadAdminData);
 window.viewSellerDocument = function(docImage, docType, sellerName){ if(docImage && docImage.startsWith('http')){ window.open(docImage, '_blank'); } else { alert(`No image available for ${sellerName}`); } };
+
+// Privacy Policy Function
+function showPrivacy() {
+    document.getElementById('termsModal').style.display = 'block';
+    document.getElementById('termsModal').querySelector('.modal-card').innerHTML = `
+        <span class="close-modal" onclick="closeTermsModal()">&times;</span>
+        <h2>Privacy Policy</h2>
+        <p><strong>Last Updated:</strong> 16 June 2026</p>
+        <h3>1. Information We Collect</h3>
+        <ul style="text-align:left;">
+            <li><strong>Personal Information:</strong> Name, email, phone, shipping address</li>
+            <li><strong>Payment Information:</strong> Processed securely by payment partners</li>
+            <li><strong>Device Information:</strong> IP address, browser type</li>
+        </ul>
+        <h3>2. How We Use Your Information</h3>
+        <ul style="text-align:left;">
+            <li>Process orders and deliver products</li>
+            <li>Communicate with you about orders</li>
+            <li>Improve our website and user experience</li>
+            <li>Prevent fraud and ensure security</li>
+        </ul>
+        <h3>3. Data Sharing</h3>
+        <ul style="text-align:left;">
+            <li><strong>Sellers:</strong> To fulfill your orders</li>
+            <li><strong>Payment Partners:</strong> To process payments</li>
+            <li><strong>Shipping Partners:</strong> To deliver orders</li>
+        </ul>
+        <h3>4. Data Security</h3>
+        <p>We use industry-standard security measures. All payments are encrypted via SSL.</p>
+        <h3>5. Contact Us</h3>
+        <p>Email: support@globalbazaar.com</p>
+        <button class="btn-primary" onclick="closeTermsModal()">Close</button>
+    `;
+}
+
+// Terms Function
+function showTerms() {
+    document.getElementById('termsModal').style.display = 'block';
+    document.getElementById('termsModal').querySelector('.modal-card').innerHTML = `
+        <span class="close-modal" onclick="closeTermsModal()">&times;</span>
+        <h2>Terms & Conditions</h2>
+        <p><strong>Last Updated:</strong> 16 June 2026</p>
+        <h3>1. Acceptance of Terms</h3>
+        <p>By using GlobalBazaar, you agree to these Terms & Conditions.</p>
+        <h3>2. User Accounts</h3>
+        <ul style="text-align:left;">
+            <li>You must be <strong>18 years or older</strong></li>
+            <li>You are responsible for your account security</li>
+        </ul>
+        <h3>3. ⭐ Auto-Order Confirmation (2 Days Rule)</h3>
+        <ul style="text-align:left;">
+            <li><strong>Confirm within 2 days (48 hours)</strong> of receiving the product</li>
+            <li><strong>If not confirmed:</strong> Order will be <strong>automatically marked as delivered</strong></li>
+            <li><strong>Disputes:</strong> Must be filed within 2 days of delivery</li>
+        </ul>
+        <h3>4. Seller Terms</h3>
+        <ul style="text-align:left;">
+            <li>Sellers must provide accurate product descriptions</li>
+            <li>Commission: <strong>10-12%</strong> of each sale</li>
+            <li>KYC verification required for withdrawals</li>
+        </ul>
+        <h3>5. Refund and Dispute</h3>
+        <ul style="text-align:left;">
+            <li>If not received within <strong>7 days</strong>, request a refund</li>
+            <li>Disputes must be raised within <strong>2 days</strong> of delivery</li>
+        </ul>
+        <h3>6. Contact Us</h3>
+        <p>Email: support@globalbazaar.com</p>
+        <button class="btn-primary" onclick="closeTermsModal()">Close</button>
+    `;
+}
+
 function showSection(section){ document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.getElementById(section+"Section").classList.add('active'); }
 document.getElementById('drawerBuyer')?.addEventListener('click', () => { showMyOrdersPage(); closeDrawer(); });
 document.getElementById('drawerSeller')?.addEventListener('click', () => { showSection('seller'); document.getElementById('sellerRegisterBox').style.display='block'; document.getElementById('sellerDashboard').style.display='none'; closeDrawer(); });
@@ -1182,13 +1405,11 @@ function saveAllLocal(){
     if(currentSeller) localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
 }
 function showToast(msg, isError){ let t = document.getElementById('toast'); t.innerText = msg; t.style.backgroundColor = isError ? '#dc2626' : '#10b981'; t.style.display = 'block'; setTimeout(()=> t.style.display='none', 3000); }
-function showTerms(){ document.getElementById('termsModal').style.display='block'; }
 function closeTermsModal(){ document.getElementById('termsModal').style.display='none'; }
 function showSellerAgreement(){ document.getElementById('sellerAgreementModal').style.display='block'; }
 function closeSellerAgreementModal(){ document.getElementById('sellerAgreementModal').style.display='none'; }
 function showSupport(){ document.getElementById('supportModal').style.display='block'; }
 function closeSupportModal(){ document.getElementById('supportModal').style.display='none'; }
-function showPrivacy(){ alert("Privacy Policy: We collect name, email, phone, address for order processing."); }
 function calculateAge(dob){ return new Date().getFullYear() - new Date(dob).getFullYear(); }
 function closeSellerSummary(){ document.getElementById('sellerSummaryModal').style.display='none'; showSection('buyer'); }
 function closeOrderSummary(){ document.getElementById('orderSummaryModal').style.display='none'; showSection('buyer'); }
@@ -1214,7 +1435,7 @@ document.getElementById('loginModal')?.addEventListener('click', (e) => {
     }
 });
 
-renderCats(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge();
+renderCats(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge(); updateAdminMenuBadges();
 document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | Login Required for Checkout";
 </script>
 </body>
