@@ -200,7 +200,9 @@
         <div id="pendingWithdrawals" style="display:none;"></div>
         <div id="adminOrdersList" style="display:none;"></div>
         
-        <div style="margin-top:20px;">
+        <!-- ✅ BACK + REFRESH BUTTONS -->
+        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button id="adminBackBtn" style="background:#64748b; padding:8px 16px; border-radius:30px; border:none; color:white; cursor:pointer;">🔙 Back</button>
             <button id="refreshAdminBtn" style="background:#64748b; padding:8px 16px; border-radius:30px; border:none; color:white; cursor:pointer;">🔄 Refresh</button>
         </div>
     </div></div></div>
@@ -962,7 +964,7 @@ function loadWithdrawalsList() {
     });
 }
 
-// ========== ADMIN LOGIN FIX ==========
+// ========== ADMIN LOGIN ==========
 document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
     const enteredKey = document.getElementById('adminKey').value;
     if (enteredKey === 'Haque0786@') {
@@ -977,7 +979,17 @@ document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
     }
 });
 
-// Updated loadAdminData - doesn't require auth.currentUser
+// ========== ADMIN BACK BUTTON ==========
+document.getElementById('adminBackBtn')?.addEventListener('click', function() {
+    // Hide all sections
+    document.getElementById('pendingKycList').style.display = 'none';
+    document.getElementById('verifiedSellersList').style.display = 'none';
+    document.getElementById('pendingWithdrawals').style.display = 'none';
+    document.getElementById('adminOrdersList').style.display = 'none';
+    showToast("Back to dashboard", false);
+});
+
+// ========== LOAD ADMIN DATA ==========
 function loadAdminData() {
     if (!isAdminLoggedIn) {
         document.getElementById('adminLoginBox').style.display = 'block';
