@@ -185,7 +185,6 @@
         </div>
         <div style="clear:both;"></div>
         
-        <!-- ✅ ONLY REVENUE SHOWN ON DASHBOARD -->
         <div style="margin-bottom:25px;">
             <div class="kyc-section-title">💰 Platform Revenue</div>
             <div id="platformEarnings" style="margin:20px 0; padding:20px; background:#f1f5f9; border-radius:16px; text-align:center;">
@@ -194,13 +193,11 @@
             </div>
         </div>
         
-        <!-- ✅ HIDDEN SECTIONS (Only visible via 3-dots menu) -->
         <div id="pendingKycList" style="display:none;"></div>
         <div id="verifiedSellersList" style="display:none;"></div>
         <div id="pendingWithdrawals" style="display:none;"></div>
         <div id="adminOrdersList" style="display:none;"></div>
         
-        <!-- ✅ BACK + REFRESH BUTTONS -->
         <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
             <button id="adminBackBtn" style="background:#64748b; padding:8px 16px; border-radius:30px; border:none; color:white; cursor:pointer;">🔙 Back</button>
             <button id="refreshAdminBtn" style="background:#64748b; padding:8px 16px; border-radius:30px; border:none; color:white; cursor:pointer;">🔄 Refresh</button>
@@ -213,7 +210,6 @@
 <button class="fixed-cart" id="cartFloatBtn">🛒 Cart <span class="cart-badge" id="cartCountBadge">0</span></button>
 <div class="toast" id="toast"></div>
 
-<!-- LOGIN MODAL -->
 <div id="loginModal" class="modal" style="display:none;">
     <div class="modal-card" style="max-width: 400px;">
         <span class="close-modal" id="closeLoginModal">&times;</span>
@@ -308,7 +304,6 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-// ========== IMAGE COMPRESSION ==========
 function compressImage(file, maxSizeMB = 0.5, maxWidth = 1024, maxHeight = 1024) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -367,7 +362,6 @@ async function uploadCompressedImage(file, type = 'image') {
     }
 }
 
-// ========== DEFAULT PRODUCTS ==========
 const defaultProducts = [
     { sellerId: 0, sellerName: "GlobalBazaar", name: "Wireless Headphones", price: 89.99, category: "Electronics", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400"], description: "Premium wireless headphones", stock: 10 },
     { sellerId: 0, sellerName: "GlobalBazaar", name: "Cotton T-Shirt", price: 24.99, category: "Textile", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", images: ["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400"], description: "100% combed cotton", stock: 25 },
@@ -556,7 +550,6 @@ const GATEWAY_FEE = 0.025;
 const HANDLING_FEE = 2;
 function calculateFinalPrice(basePrice,sellerCountry,buyerCountry){ let shipping=getShippingCost(sellerCountry,buyerCountry); let commission=basePrice*PLATFORM_COMMISSION; let gateway=basePrice*GATEWAY_FEE; return { total: basePrice+commission+gateway+shipping+HANDLING_FEE, basePrice, shipping, commission, gateway }; }
 
-// ========== AUTHENTICATION ==========
 auth.onAuthStateChanged(async (user) => {
     if (user) {
         currentBuyer = user;
@@ -568,13 +561,11 @@ auth.onAuthStateChanged(async (user) => {
     renderProducts();
 });
 
-// Check stored seller session on page load
 const storedSeller = localStorage.getItem('gb_current_seller');
 if (storedSeller) {
     currentSeller = JSON.parse(storedSeller);
 }
 
-// LOGIN FUNCTION
 document.getElementById('doLoginBtn')?.addEventListener('click', async () => {
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
@@ -606,7 +597,6 @@ document.getElementById('doLoginBtn')?.addEventListener('click', async () => {
     }
 });
 
-// REGISTER FUNCTION
 document.getElementById('doRegisterBtn')?.addEventListener('click', async () => {
     const name = document.getElementById('regName').value;
     const email = document.getElementById('regEmail').value;
@@ -639,7 +629,6 @@ document.getElementById('doRegisterBtn')?.addEventListener('click', async () => 
     }
 });
 
-// GOOGLE SIGN IN
 document.getElementById('googleSignInBtn')?.addEventListener('click', async () => {
     const provider = new firebase.auth.GoogleAuthProvider();
     try {
@@ -692,7 +681,6 @@ document.getElementById('googleSignUpBtn')?.addEventListener('click', async () =
     } catch (error) { showToast("Google sign-up failed", true); }
 });
 
-// LOGOUT FUNCTION
 document.getElementById('logoutBtn')?.addEventListener('click', async () => {
     await auth.signOut();
     showToast("Logged out successfully", false);
@@ -717,7 +705,6 @@ async function loadUserCart(userId) {
     }
 }
 
-// My Orders Function
 function showMyOrdersPage() {
     const user = auth.currentUser;
     if (!user) {
@@ -744,14 +731,47 @@ db.collection("products").onSnapshot(snapshot => {
     document.getElementById('debugMsg').innerText = `Products: ${products.length}`;
 });
 
+// ============================================================
+// ✅ FIXED: sellers listener with KYC status auto-update
+// ============================================================
 db.collection("sellers").onSnapshot(snapshot => {
     sellers = [];
     snapshot.forEach(doc => { 
         sellers.push({ id: doc.id, ...doc.data() }); 
     });
+    
+    // ✅ FIX: Update currentSeller session if KYC status changed
+    if (currentSeller) {
+        const updatedSeller = sellers.find(s => s.id === currentSeller.sellerId);
+        if (updatedSeller) {
+            // KYC status change hua hai toh update karo
+            if (updatedSeller.kycStatus !== currentSeller.kycStatus) {
+                currentSeller.kycStatus = updatedSeller.kycStatus;
+                localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
+                
+                if (updatedSeller.kycStatus === 'verified') {
+                    showToast("✅ Your KYC has been verified! You can now access your shop.", false);
+                } else if (updatedSeller.kycStatus === 'rejected') {
+                    showToast("❌ Your KYC was rejected. Contact support.", true);
+                }
+            }
+            
+            // Agar seller verified hai aur dashboard show nahi ho raha toh show karo
+            if (updatedSeller.kycStatus === 'verified' && 
+                document.getElementById('sellerDashboard').style.display === 'none' &&
+                document.getElementById('sellerRegisterBox').style.display === 'block') {
+                // Seller verified ho gaya, dashboard dikhao
+                document.getElementById('sellerRegisterBox').style.display = 'none';
+                document.getElementById('sellerDashboard').style.display = 'block';
+                renderSellerDashboard();
+            }
+        }
+    }
+    
     updateAdminPendingBadge();
     updateAdminMenuBadges();
     if (isAdminLoggedIn) loadAdminData();
+    
     if (currentSeller) {
         const stillExists = sellers.find(s => s.id === currentSeller.sellerId);
         if (stillExists && stillExists.kycStatus === 'verified') {
@@ -775,6 +795,7 @@ db.collection("sellers").onSnapshot(snapshot => {
         }
     }
 });
+// ============================================================
 
 function updateAdminPendingBadge() {
     const pendingSellers = sellers.filter(s => s.kycStatus === 'pending');
@@ -804,7 +825,6 @@ function updateAdminMenuBadges() {
     if (withdrawalBadge) withdrawalBadge.textContent = withdrawals;
 }
 
-// 3-Dots Menu Toggle
 document.getElementById('adminMenuBtn')?.addEventListener('click', function(e) {
     e.stopPropagation();
     const menu = document.getElementById('adminDropdownMenu');
@@ -818,23 +838,19 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Menu item clicks - show/hide sections
 document.querySelectorAll('.admin-menu-item').forEach(item => {
     item.addEventListener('click', function() {
         const section = this.dataset.section;
-        // Hide all sections first
         document.getElementById('pendingKycList').style.display = 'none';
         document.getElementById('verifiedSellersList').style.display = 'none';
         document.getElementById('pendingWithdrawals').style.display = 'none';
         document.getElementById('adminOrdersList').style.display = 'none';
         
-        // Show the selected section
         const targetId = section === 'pending' ? 'pendingKycList' : 
                          section === 'verified' ? 'verifiedSellersList' : 'pendingWithdrawals';
         const target = document.getElementById(targetId);
         if (target) {
             target.style.display = 'block';
-            // Load data if not already loaded
             if (section === 'pending') loadPendingSellers();
             else if (section === 'verified') loadVerifiedSellers();
             else if (section === 'withdrawals') loadWithdrawalsList();
@@ -843,7 +859,6 @@ document.querySelectorAll('.admin-menu-item').forEach(item => {
     });
 });
 
-// Load Pending Sellers
 function loadPendingSellers() {
     const pending = sellers.filter(s => s.kycStatus === 'pending');
     const container = document.getElementById('pendingKycList');
@@ -871,7 +886,6 @@ function loadPendingSellers() {
     html += '</div>';
     container.innerHTML = html;
     
-    // Attach approve/reject events
     container.querySelectorAll('.btn-approve').forEach(btn => {
         btn.addEventListener('click', async function(e) {
             e.stopPropagation();
@@ -886,7 +900,6 @@ function loadPendingSellers() {
                 showToast("✅ Seller approved!", false);
                 addNotification(`Seller KYC verified`, 'info');
                 await sendTelegramMessage(`✅ KYC Verified: ${sellerId}`);
-                // Refresh data
                 const snapshot = await db.collection("sellers").get();
                 sellers = [];
                 snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
@@ -964,7 +977,6 @@ function loadWithdrawalsList() {
     });
 }
 
-// ========== ADMIN LOGIN ==========
 document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
     const enteredKey = document.getElementById('adminKey').value;
     if (enteredKey === 'Haque0786@') {
@@ -979,9 +991,7 @@ document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
     }
 });
 
-// ========== ADMIN BACK BUTTON ==========
 document.getElementById('adminBackBtn')?.addEventListener('click', function() {
-    // Hide all sections
     document.getElementById('pendingKycList').style.display = 'none';
     document.getElementById('verifiedSellersList').style.display = 'none';
     document.getElementById('pendingWithdrawals').style.display = 'none';
@@ -989,22 +999,15 @@ document.getElementById('adminBackBtn')?.addEventListener('click', function() {
     showToast("Back to dashboard", false);
 });
 
-// ========== LOAD ADMIN DATA ==========
 function loadAdminData() {
     if (!isAdminLoggedIn) {
         document.getElementById('adminLoginBox').style.display = 'block';
         document.getElementById('adminContent').style.display = 'none';
         return;
     }
-    
-    // Show revenue on main dashboard
     document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
-    
-    // Update admin menu badges
     updateAdminMenuBadges();
     updateAdminPendingBadge();
-    
-    // Hide sections by default - only shown via 3-dots menu
     document.getElementById('pendingKycList').style.display = 'none';
     document.getElementById('verifiedSellersList').style.display = 'none';
     document.getElementById('pendingWithdrawals').style.display = 'none';
