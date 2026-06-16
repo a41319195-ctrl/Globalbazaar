@@ -396,6 +396,7 @@ let selectedCurrency = localStorage.getItem('selectedCurrency') || 'SAR';
 let buyerCountry = localStorage.getItem('buyerCountry') || 'SA';
 let sellerRevenueChart = null;
 let currentBuyer = null;
+let isAdminLoggedIn = false;
 
 const TELEGRAM_BOT_TOKEN = "8328824652:AAE-b4o6DaFDa9WPtZfrOfM7SYGU9gUa9HQ";
 const TELEGRAM_CHAT_ID = "7111653640";
@@ -748,7 +749,7 @@ db.collection("sellers").onSnapshot(snapshot => {
     });
     updateAdminPendingBadge();
     updateAdminMenuBadges();
-    if (document.getElementById('adminContent').style.display === 'block') loadAdminData();
+    if (isAdminLoggedIn) loadAdminData();
     if (currentSeller) {
         const stillExists = sellers.find(s => s.id === currentSeller.sellerId);
         if (stillExists && stillExists.kycStatus === 'verified') {
@@ -840,7 +841,7 @@ document.querySelectorAll('.admin-menu-item').forEach(item => {
     });
 });
 
-// Load Pending Sellers (shows Approve/Reject buttons)
+// Load Pending Sellers
 function loadPendingSellers() {
     const pending = sellers.filter(s => s.kycStatus === 'pending');
     const container = document.getElementById('pendingKycList');
@@ -875,8 +876,7 @@ function loadPendingSellers() {
             const sellerId = this.dataset.id;
             if (!sellerId) { showToast("Seller ID not found", true); return; }
             try {
-                const user = auth.currentUser;
-                if (!user) { showToast("Please login as admin", true); return; }
+                if (!isAdminLoggedIn) { showToast("Please login as admin", true); return; }
                 await db.collection("sellers").doc(sellerId).update({ 
                     kycStatus: 'verified',
                     verifiedAt: new Date().toISOString()
@@ -908,8 +908,7 @@ function loadPendingSellers() {
             if (reason === null) return;
             if (!reason.trim()) { showToast("Please enter a reason", true); return; }
             try {
-                const user = auth.currentUser;
-                if (!user) { showToast("Please login as admin", true); return; }
+                if (!isAdminLoggedIn) { showToast("Please login as admin", true); return; }
                 await db.collection("sellers").doc(sellerId).update({ 
                     kycStatus: 'rejected', 
                     rejectionReason: reason.trim() 
@@ -963,15 +962,36 @@ function loadWithdrawalsList() {
     });
 }
 
+// ========== ADMIN LOGIN FIX ==========
+document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
+    const enteredKey = document.getElementById('adminKey').value;
+    if (enteredKey === 'Haque0786@') {
+        isAdminLoggedIn = true;
+        document.getElementById('adminLoginBox').style.display = 'none';
+        document.getElementById('adminContent').style.display = 'block';
+        loadAdminData();
+        showToast("Admin logged in successfully!", false);
+        document.getElementById('adminKey').value = '';
+    } else {
+        showToast("Wrong admin key!", true);
+    }
+});
+
+// Updated loadAdminData - doesn't require auth.currentUser
 function loadAdminData() {
-    const user = auth.currentUser;
-    if (!user) {
+    if (!isAdminLoggedIn) {
         document.getElementById('adminLoginBox').style.display = 'block';
         document.getElementById('adminContent').style.display = 'none';
         return;
     }
-    // Only show revenue on main dashboard
+    
+    // Show revenue on main dashboard
     document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
+    
+    // Update admin menu badges
+    updateAdminMenuBadges();
+    updateAdminPendingBadge();
+    
     // Hide sections by default - only shown via 3-dots menu
     document.getElementById('pendingKycList').style.display = 'none';
     document.getElementById('verifiedSellersList').style.display = 'none';
@@ -1244,7 +1264,7 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) =
         snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
         updateAdminPendingBadge();
         updateAdminMenuBadges();
-        if (document.getElementById('adminContent').style.display === 'block') loadAdminData();
+        if (isAdminLoggedIn) loadAdminData();
         
     } catch(err) {
         console.error(err);
@@ -1349,14 +1369,6 @@ function renderBuyerOrders(){
 }
 function renderBuyerWishlist(){ let w = products.filter(p => wishlist.includes(p.id)); document.getElementById('buyerWishlistList').innerHTML = w.map(p => `<div class="order-card"><strong>${p.name}</strong><br>Price: ${getCurrencySymbol()}${convertPrice(p.price)}<br><button class="removeWishlistBtn" data-id="${p.id}" style="background:#dc2626;">Remove</button></div>`).join(''); document.querySelectorAll('.removeWishlistBtn').forEach(btn => btn.addEventListener('click', () => { wishlist = wishlist.filter(id => id != btn.dataset.id); saveAllLocal(); renderProducts(); renderBuyerWishlist(); showToast("Removed", false); })); }
 
-document.getElementById('adminLoginBtn')?.addEventListener('click', () => { 
-    if(document.getElementById('adminKey').value === 'Haque0786@'){ 
-        document.getElementById('adminLoginBox').style.display='none'; 
-        document.getElementById('adminContent').style.display='block'; 
-        loadAdminData(); 
-        showToast("Admin logged in", false); 
-    } else showToast("Wrong key", true); 
-});
 document.getElementById('refreshAdminBtn')?.addEventListener('click', loadAdminData);
 window.viewSellerDocument = function(docImage, docType, sellerName){ if(docImage && docImage.startsWith('http')){ window.open(docImage, '_blank'); } else { alert(`No image available for ${sellerName}`); } };
 
