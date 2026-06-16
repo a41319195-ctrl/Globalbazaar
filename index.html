@@ -134,6 +134,11 @@
         .payment-divider hr { flex: 1; border: none; border-top: 1px solid #e2e8f0; }
         body.dark-mode .payment-divider hr { border-top-color: #475569; }
         .debug-status { position: fixed; bottom: 10px; left: 10px; background: #000000aa; color: #0f0; padding: 4px 8px; border-radius: 8px; font-size: 10px; z-index: 9999; pointer-events: none; }
+        .shipping-cost-display { margin-top: 12px; padding: 12px; background: #f1f5f9; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .shipping-cost-display .label { font-weight: 600; color: #475569; }
+        .shipping-cost-display .cost { font-weight: 700; color: #1e3a8a; font-size: 18px; }
+        .shipping-loading { animation: pulse 1.5s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
         @media (max-width: 600px) {
             .brand-3d { font-size: 18px; }
             .logo-3d { font-size: 24px; }
@@ -143,6 +148,7 @@
             .product-card .main-img { height: 120px; }
             .modal-thumbnails img { width: 50px; height: 50px; }
             .kyc-table th, .kyc-table td { padding: 8px; font-size: 11px; }
+            .shipping-cost-display { flex-direction: column; gap: 8px; text-align: center; }
         }
     </style>
 </head>
@@ -183,7 +189,6 @@
             </div>
         </div>
         <div style="clear:both;"></div>
-        
         <div style="margin-bottom:25px;">
             <div class="kyc-section-title">💰 Platform Revenue</div>
             <div id="platformEarnings" style="margin:20px 0; padding:20px; background:#f1f5f9; border-radius:16px; text-align:center;">
@@ -191,19 +196,48 @@
                 <p style="color:#64748b; font-size:14px;">Total earnings from platform commission</p>
             </div>
         </div>
-        
         <div id="pendingKycList" style="display:none;"></div>
         <div id="verifiedSellersList" style="display:none;"></div>
         <div id="pendingWithdrawals" style="display:none;"></div>
         <div id="adminOrdersList" style="display:none;"></div>
-        
         <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
             <button id="adminBackBtn" style="background:#64748b; padding:8px 16px; border-radius:30px; border:none; color:white; cursor:pointer;">🔙 Back</button>
             <button id="refreshAdminBtn" style="background:#64748b; padding:8px 16px; border-radius:30px; border:none; color:white; cursor:pointer;">🔄 Refresh</button>
         </div>
     </div></div></div>
     <div id="cartPageSection" class="section"><div class="premium-card"><h2>🛍️ My Cart</h2><div id="cartItemsList"></div><div id="cartTotal" class="flex-between" style="margin-top:20px; padding-top:20px; border-top:2px solid #e2e8f0;"><h3>Total:</h3><h3 id="cartTotalAmount">SAR 0.00</h3></div><button id="proceedToCheckoutBtn" class="btn-primary" style="margin-top:20px;">Proceed to Checkout</button></div></div>
-    <div id="checkoutSection" class="section"><div class="premium-card"><h2>📦 Delivery Details</h2><div id="deliveryForm"><input type="text" id="deliveryFullName" placeholder="Receiver Full Name *" class="input"><div class="phone-group"><div class="country-search-select" id="deliveryCountrySearchContainer"><input type="text" id="deliveryCountrySearch" placeholder="🔍 Search country..." autocomplete="off"><div class="country-dropdown-list" id="deliveryCountryDropdown"></div><select id="deliveryCountryCode" style="display:none;"></select></div><input type="tel" id="deliveryPhone" placeholder="Phone Number *" class="input"></div><select id="deliveryCountry" class="input" required><option value="">Select Country *</option></select><input type="text" id="deliveryCity" placeholder="City *" class="input"><input type="text" id="deliveryPostcode" placeholder="Post Code / ZIP *" class="input"><input type="text" id="deliveryStreet" placeholder="Street Address *" class="input"><input type="text" id="deliveryHouseNo" placeholder="House No. (Optional)" class="input"><div class="checkbox-group"><input type="checkbox" id="saveAddressCheckbox"> <label>Save this address for future</label></div><button id="confirmDeliveryBtn" class="btn-primary">Continue to Payment</button></div></div></div>
+    <div id="checkoutSection" class="section">
+        <div class="premium-card">
+            <h2>📦 Delivery Details</h2>
+            <div id="deliveryForm">
+                <input type="text" id="deliveryFullName" placeholder="Receiver Full Name *" class="input">
+                <div class="phone-group">
+                    <div class="country-search-select" id="deliveryCountrySearchContainer">
+                        <input type="text" id="deliveryCountrySearch" placeholder="🔍 Search country..." autocomplete="off">
+                        <div class="country-dropdown-list" id="deliveryCountryDropdown"></div>
+                        <select id="deliveryCountryCode" style="display:none;"></select>
+                    </div>
+                    <input type="tel" id="deliveryPhone" placeholder="Phone Number *" class="input">
+                </div>
+                <select id="deliveryCountry" class="input" required><option value="">Select Country *</option></select>
+                <input type="text" id="deliveryCity" placeholder="City *" class="input">
+                <input type="text" id="deliveryPostcode" placeholder="Post Code / ZIP *" class="input">
+                <input type="text" id="deliveryStreet" placeholder="Street Address *" class="input">
+                <input type="text" id="deliveryHouseNo" placeholder="House No. (Optional)" class="input">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="saveAddressCheckbox"> <label>Save this address for future</label>
+                </div>
+
+                <!-- ✅ EASYSHIP SHIPPING COST DISPLAY -->
+                <div id="shippingCostContainer" style="display:none;" class="shipping-cost-display">
+                    <span class="label">📦 Shipping Cost</span>
+                    <span class="cost" id="shippingCostDisplay">Calculating...</span>
+                </div>
+
+                <button id="confirmDeliveryBtn" class="btn-primary">Continue to Payment</button>
+            </div>
+        </div>
+    </div>
     <div id="paymentSection" class="section"><div class="premium-card"><h2>💳 Payment Options</h2><div id="paymentForm"><input type="text" id="cardNumber" placeholder="Card Number *" class="input" maxlength="19"><input type="text" id="cardHolderName" placeholder="Card Holder Name *" class="input"><div class="delivery-form-row"><input type="text" id="expiryDate" placeholder="MM/YY *" maxlength="5"><input type="password" id="cvv" placeholder="CVV *" maxlength="4"></div><div class="checkbox-group"><input type="checkbox" id="saveCardCheckbox"> <label>Save card for next time</label></div><button id="payNowBtn" class="btn-primary">Pay with Card (Dummy)</button></div><div class="payment-divider"><hr><span>OR</span><hr></div><div id="savedCardsSection" style="margin-top:20px; display:none;"><h4>💳 Saved Cards</h4><div id="savedCardsList"></div></div></div></div>
 </div>
 <button class="fixed-cart" id="cartFloatBtn">🛒 Cart <span class="cart-badge" id="cartCountBadge">0</span></button>
@@ -240,49 +274,24 @@
         <h3>1. Acceptance of Terms</h3>
         <p>By using GlobalBazaar, you agree to these Terms & Conditions.</p>
         <h3>2. User Accounts</h3>
-        <ul style="text-align:left;">
-            <li>You must be <strong>18 years or older</strong></li>
-            <li>You are responsible for your account security</li>
-        </ul>
+        <ul style="text-align:left;"><li>You must be <strong>18 years or older</strong></li><li>You are responsible for your account security</li></ul>
         <h3>3. ⭐ Auto-Order Confirmation (2 Days Rule)</h3>
-        <ul style="text-align:left;">
-            <li><strong>Confirm within 2 days (48 hours)</strong> of receiving the product</li>
-            <li><strong>If not confirmed:</strong> Order will be <strong>automatically marked as delivered</strong></li>
-            <li><strong>Disputes:</strong> Must be filed within 2 days of delivery</li>
-        </ul>
+        <ul style="text-align:left;"><li><strong>Confirm within 2 days (48 hours)</strong> of receiving the product</li><li><strong>If not confirmed:</strong> Order will be <strong>automatically marked as delivered</strong></li><li><strong>Disputes:</strong> Must be filed within 2 days of delivery</li></ul>
         <h3>4. Seller Terms</h3>
-        <ul style="text-align:left;">
-            <li>Sellers must provide accurate product descriptions</li>
-            <li>Commission: <strong>10-12%</strong> of each sale</li>
-            <li>KYC verification required for withdrawals</li>
-        </ul>
+        <ul style="text-align:left;"><li>Sellers must provide accurate product descriptions</li><li>Commission: <strong>10-12%</strong> of each sale</li><li>KYC verification required for withdrawals</li></ul>
         <h3>5. Refund and Dispute</h3>
-        <ul style="text-align:left;">
-            <li>If not received within <strong>7 days</strong>, request a refund</li>
-            <li>Disputes must be raised within <strong>2 days</strong> of delivery</li>
-        </ul>
+        <ul style="text-align:left;"><li>If not received within <strong>7 days</strong>, request a refund</li><li>Disputes must be raised within <strong>2 days</strong> of delivery</li></ul>
         <h3>6. Contact Us</h3>
         <p>Email: support@globalbazaar.com</p>
         <button class="btn-primary" onclick="closeTermsModal()">Close</button></div></div>
 <div id="sellerAgreementModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSellerAgreementModal()">&times;</span><h2>Seller Agreement</h2>
         <p><strong>Commission:</strong> 10-12% of each sale</p>
         <p><strong>Gateway Fee:</strong> 2.5%</p>
-        <p><strong>Handling Fee:</strong> $2 per order</p>
-        <br>
+        <p><strong>Handling Fee:</strong> $2 per order</p><br>
         <p><strong>Payment Release:</strong></p>
-        <ul style="text-align:left;">
-            <li>✅ Buyer confirms delivery → Payment released to seller</li>
-            <li>✅ Auto-confirm after 2 days (if buyer doesn't confirm)</li>
-            <li>✅ Weekly withdrawal available (Monday & Friday)</li>
-        </ul>
-        <br>
+        <ul style="text-align:left;"><li>✅ Buyer confirms delivery → Payment released to seller</li><li>✅ Auto-confirm after 2 days (if buyer doesn't confirm)</li><li>✅ Weekly withdrawal available (Monday & Friday)</li></ul><br>
         <p><strong>📌 Why 10-12%?</strong></p>
-        <ul style="text-align:left;">
-            <li>🔹 Amazon/Flipkart take 15-30%</li>
-            <li>🔹 GlobalBazaar takes only 10-12%</li>
-            <li>🔹 More profit for sellers 💰</li>
-        </ul>
-        <br>
+        <ul style="text-align:left;"><li>🔹 Amazon/Flipkart take 15-30%</li><li>🔹 GlobalBazaar takes only 10-12%</li><li>🔹 More profit for sellers 💰</li></ul><br>
         <p><strong>📞 Support:</strong> support@globalbazaar.com</p>
         <button class="btn-primary" onclick="closeSellerAgreementModal()">Close</button></div></div>
 <div id="supportModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSupportModal()">&times;</span><h2>📞 Support</h2><p>Email: support@globalbazaar.com<br>WhatsApp: +966 123 456 789<br>24/7 Customer Support</p><button class="btn-primary" onclick="closeSupportModal()">Close</button></div></div>
@@ -303,6 +312,363 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
+// ============================================================
+// 🚀 EASYSHIP API INTEGRATION - COMPLETE
+// ============================================================
+
+const EASYSHIP_API_KEY = 'prod_FCky2t1qk8dLSqRk6O8a62kUklUmcQuxmzLDmq+mhCI='; // ✅ Tumhara API token
+const EASYSHIP_MODE = 'sandbox'; // 'sandbox' for testing, 'production' for live
+const EASYSHIP_BASE_URL = EASYSHIP_MODE === 'sandbox' 
+    ? 'https://api.sandbox.easyship.com/2024-09' 
+    : 'https://api.easyship.com/2024-09';
+
+// ============================================================
+// 1. EASYSHIP RATES FETCH
+// ============================================================
+async function getEasyshipRates(sellerAddress, buyerAddress, parcelDetails) {
+    try {
+        const response = await fetch(`${EASYSHIP_BASE_URL}/rates`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${EASYSHIP_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                origin_address: {
+                    country_alpha2: sellerAddress.country || 'SA',
+                    postal_code: sellerAddress.postal_code || '',
+                    city: sellerAddress.city || '',
+                    state: sellerAddress.state || '',
+                    line1: sellerAddress.line1 || ''
+                },
+                destination_address: {
+                    country_alpha2: buyerAddress.country || 'US',
+                    postal_code: buyerAddress.postal_code || '',
+                    city: buyerAddress.city || '',
+                    state: buyerAddress.state || '',
+                    line1: buyerAddress.line1 || ''
+                },
+                parcels: [{
+                    weight: parcelDetails.weight || 1,
+                    dimensions: {
+                        length: parcelDetails.length || 10,
+                        width: parcelDetails.width || 10,
+                        height: parcelDetails.height || 10
+                    }
+                }],
+                currency: 'USD'
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data.rates || [];
+    } catch (error) {
+        console.error('Easyship rates error:', error);
+        return [];
+    }
+}
+
+// ============================================================
+// 2. EASYSHIP SHIPMENT CREATE
+// ============================================================
+async function createEasyshipShipment(orderData, sellerAddress, buyerAddress, parcelDetails) {
+    try {
+        const response = await fetch(`${EASYSHIP_BASE_URL}/shipments`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${EASYSHIP_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                shipment: {
+                    origin_address: {
+                        country_alpha2: sellerAddress.country || 'SA',
+                        postal_code: sellerAddress.postal_code || '',
+                        city: sellerAddress.city || '',
+                        state: sellerAddress.state || '',
+                        line1: sellerAddress.line1 || ''
+                    },
+                    destination_address: {
+                        country_alpha2: buyerAddress.country || 'US',
+                        postal_code: buyerAddress.postal_code || '',
+                        city: buyerAddress.city || '',
+                        state: buyerAddress.state || '',
+                        line1: buyerAddress.line1 || ''
+                    },
+                    parcels: [{
+                        weight: parcelDetails.weight || 1,
+                        dimensions: {
+                            length: parcelDetails.length || 10,
+                            width: parcelDetails.width || 10,
+                            height: parcelDetails.height || 10
+                        }
+                    }],
+                    selected_rate_id: orderData.selected_rate_id || null,
+                    order_data: {
+                        order_id: orderData.order_id || 'GB_' + Date.now()
+                    }
+                }
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Easyship shipment error:', error);
+        return null;
+    }
+}
+
+// ============================================================
+// 3. EASYSHIP LABEL BUY
+// ============================================================
+async function buyEasyshipLabel(shipmentId, rateId) {
+    try {
+        const response = await fetch(`${EASYSHIP_BASE_URL}/shipments/${shipmentId}/buy-label`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${EASYSHIP_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                selected_rate_id: rateId
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Easyship label buy error:', error);
+        return null;
+    }
+}
+
+// ============================================================
+// 4. EASYSHIP TRACK
+// ============================================================
+async function trackEasyshipShipment(trackingNumber, carrierCode) {
+    try {
+        const response = await fetch(`${EASYSHIP_BASE_URL}/trackings`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${EASYSHIP_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                tracking_number: trackingNumber,
+                carrier_code: carrierCode
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Easyship tracking error:', error);
+        return null;
+    }
+}
+
+// ============================================================
+// 5. FETCH & DISPLAY SHIPPING RATES (Checkout)
+// ============================================================
+let lastShippingFetch = 0;
+
+async function fetchAndDisplayShippingRates() {
+    // Prevent multiple rapid calls
+    if (Date.now() - lastShippingFetch < 3000) {
+        return;
+    }
+    lastShippingFetch = Date.now();
+
+    const shippingContainer = document.getElementById('shippingCostContainer');
+    const shippingDisplay = document.getElementById('shippingCostDisplay');
+
+    // Show loading
+    shippingContainer.style.display = 'flex';
+    shippingDisplay.textContent = 'Calculating...';
+    shippingDisplay.className = 'cost shipping-loading';
+
+    try {
+        // Get first product from cart
+        const firstCartItem = cart[0];
+        if (!firstCartItem) {
+            shippingDisplay.textContent = 'No items in cart';
+            shippingDisplay.className = 'cost';
+            return;
+        }
+
+        const product = products.find(p => p.id === firstCartItem.id);
+        if (!product) {
+            shippingDisplay.textContent = 'Product not found';
+            shippingDisplay.className = 'cost';
+            return;
+        }
+
+        // Get seller info
+        const seller = sellers.find(s => s.id === product.sellerId);
+        if (!seller) {
+            shippingDisplay.textContent = 'Seller info missing';
+            shippingDisplay.className = 'cost';
+            return;
+        }
+
+        // Get buyer address from form
+        const buyerAddress = {
+            country: document.getElementById('deliveryCountry').value || 'SA',
+            city: document.getElementById('deliveryCity').value || '',
+            postal_code: document.getElementById('deliveryPostcode').value || '',
+            state: document.getElementById('deliveryState')?.value || '',
+            line1: document.getElementById('deliveryStreet').value || ''
+        };
+
+        // Validate buyer address
+        if (!buyerAddress.country || buyerAddress.country === '') {
+            shippingDisplay.textContent = 'Select country first';
+            shippingDisplay.className = 'cost';
+            return;
+        }
+
+        const sellerAddress = {
+            country: seller.country || 'SA',
+            city: seller.city || '',
+            postal_code: seller.pincode || '',
+            state: seller.state || '',
+            line1: seller.street || ''
+        };
+
+        const parcelDetails = {
+            weight: product.weight || 1,
+            length: product.size?.length || 10,
+            width: product.size?.width || 10,
+            height: product.size?.height || 10
+        };
+
+        const rates = await getEasyshipRates(sellerAddress, buyerAddress, parcelDetails);
+
+        if (rates && rates.length > 0) {
+            // Find cheapest rate
+            const cheapest = rates.reduce((a, b) => a.total_charge < b.total_charge ? a : b);
+            const shippingCost = cheapest.total_charge || 0;
+
+            shippingDisplay.textContent = `${getCurrencySymbol()}${convertPrice(shippingCost)}`;
+            shippingDisplay.className = 'cost';
+
+            // Store for order
+            sessionStorage.setItem('selected_rate_id', cheapest.id);
+            sessionStorage.setItem('shipping_cost', shippingCost);
+            sessionStorage.setItem('shipping_rates', JSON.stringify(rates));
+
+            // Show carrier name
+            if (cheapest.carrier_name) {
+                shippingDisplay.title = `Carrier: ${cheapest.carrier_name}`;
+            }
+
+            showToast(`Shipping: ${getCurrencySymbol()}${convertPrice(shippingCost)}`, false);
+        } else {
+            // Fallback - use default shipping
+            const defaultShipping = 10;
+            shippingDisplay.textContent = `${getCurrencySymbol()}${convertPrice(defaultShipping)}`;
+            shippingDisplay.className = 'cost';
+            sessionStorage.setItem('shipping_cost', defaultShipping);
+
+            // Show message in toast
+            showToast('Using default shipping rate', true);
+        }
+    } catch (error) {
+        console.error('Shipping fetch error:', error);
+        shippingDisplay.textContent = 'Error fetching rates';
+        shippingDisplay.className = 'cost';
+        showToast('Could not fetch shipping rates', true);
+    }
+}
+
+// ============================================================
+// 6. CREATE SHIPMENT AFTER ORDER
+// ============================================================
+async function createShipmentAfterOrder(orderData) {
+    try {
+        const seller = sellers.find(s => s.id === orderData.sellerId);
+        if (!seller) {
+            console.error('Seller not found');
+            return null;
+        }
+
+        const sellerAddress = {
+            country: seller.country || 'SA',
+            city: seller.city || '',
+            postal_code: seller.pincode || '',
+            state: seller.state || '',
+            line1: seller.street || ''
+        };
+
+        const buyerAddress = {
+            country: orderData.buyerCountry || 'SA',
+            city: orderData.buyerCity || '',
+            postal_code: orderData.buyerPostcode || '',
+            state: orderData.buyerState || '',
+            line1: orderData.buyerStreet || ''
+        };
+
+        const parcelDetails = {
+            weight: orderData.weight || 1,
+            length: orderData.length || 10,
+            width: orderData.width || 10,
+            height: orderData.height || 10
+        };
+
+        const selectedRateId = sessionStorage.getItem('selected_rate_id');
+
+        // Create shipment
+        const shipmentData = await createEasyshipShipment(
+            { order_id: orderData.orderId, selected_rate_id: selectedRateId },
+            sellerAddress,
+            buyerAddress,
+            parcelDetails
+        );
+
+        if (shipmentData && shipmentData.shipment) {
+            // Buy label
+            const labelData = await buyEasyshipLabel(
+                shipmentData.shipment.id,
+                selectedRateId
+            );
+
+            if (labelData) {
+                return {
+                    trackingNumber: labelData.tracking_number || labelData.trackingNumber || 'N/A',
+                    labelUrl: labelData.label_url || labelData.labelUrl || '',
+                    carrierName: labelData.carrier_name || labelData.carrierName || 'Unknown',
+                    shipmentId: shipmentData.shipment.id
+                };
+            }
+        }
+
+        return null;
+    } catch (error) {
+        console.error('Create shipment error:', error);
+        return null;
+    }
+}
+
+// ============================================================
+// 7. IMAGE COMPRESSION
+// ============================================================
 function compressImage(file, maxSizeMB = 0.5, maxWidth = 1024, maxHeight = 1024) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -361,10 +727,13 @@ async function uploadCompressedImage(file, type = 'image') {
     }
 }
 
+// ============================================================
+// 8. DEFAULT PRODUCTS
+// ============================================================
 const defaultProducts = [
-    { sellerId: 0, sellerName: "GlobalBazaar", name: "Wireless Headphones", price: 89.99, category: "Electronics", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400"], description: "Premium wireless headphones", stock: 10 },
-    { sellerId: 0, sellerName: "GlobalBazaar", name: "Cotton T-Shirt", price: 24.99, category: "Textile", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", images: ["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400"], description: "100% combed cotton", stock: 25 },
-    { sellerId: 0, sellerName: "GlobalBazaar", name: "Matte Lipstick Set", price: 29.99, category: "Cosmetic", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400", images: ["https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400"], description: "Long-lasting set", stock: 15 }
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Wireless Headphones", price: 89.99, category: "Electronics", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400"], description: "Premium wireless headphones", stock: 10, weight: 0.5, size: { length: 15, width: 10, height: 5 } },
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Cotton T-Shirt", price: 24.99, category: "Textile", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", images: ["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400"], description: "100% combed cotton", stock: 25, weight: 0.3, size: { length: 25, width: 20, height: 5 } },
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Matte Lipstick Set", price: 29.99, category: "Cosmetic", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400", images: ["https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400"], description: "Long-lasting set", stock: 15, weight: 0.2, size: { length: 10, width: 8, height: 4 } }
 ];
 async function seedProductsIfEmpty() {
     const snapshot = await db.collection("products").get();
@@ -375,7 +744,9 @@ async function seedProductsIfEmpty() {
 }
 seedProductsIfEmpty();
 
-// ========== GLOBAL VARIABLES ==========
+// ============================================================
+// 9. GLOBAL VARIABLES
+// ============================================================
 let products = [];
 let sellers = [];
 let currentSeller = null;
@@ -549,6 +920,9 @@ const GATEWAY_FEE = 0.025;
 const HANDLING_FEE = 2;
 function calculateFinalPrice(basePrice,sellerCountry,buyerCountry){ let shipping=getShippingCost(sellerCountry,buyerCountry); let commission=basePrice*PLATFORM_COMMISSION; let gateway=basePrice*GATEWAY_FEE; return { total: basePrice+commission+gateway+shipping+HANDLING_FEE, basePrice, shipping, commission, gateway }; }
 
+// ============================================================
+// 10. AUTHENTICATION
+// ============================================================
 auth.onAuthStateChanged(async (user) => {
     if (user) {
         currentBuyer = user;
@@ -723,6 +1097,9 @@ function showMyOrdersPage() {
     showSection('profile');
 }
 
+// ============================================================
+// 11. FIRESTORE LISTENERS
+// ============================================================
 db.collection("products").onSnapshot(snapshot => {
     products = [];
     snapshot.forEach(doc => { products.push({ id: doc.id, ...doc.data() }); });
@@ -730,20 +1107,15 @@ db.collection("products").onSnapshot(snapshot => {
     document.getElementById('debugMsg').innerText = `Products: ${products.length}`;
 });
 
-// ============================================================
-// ✅ FIXED: sellers listener with KYC status auto-update
-// ============================================================
 db.collection("sellers").onSnapshot(snapshot => {
     sellers = [];
     snapshot.forEach(doc => { 
         sellers.push({ id: doc.id, ...doc.data() }); 
     });
     
-    // ✅ FIX: Force update currentSeller from the fresh sellers array
     if (currentSeller) {
         const freshSeller = sellers.find(s => s.id === currentSeller.sellerId);
         if (freshSeller) {
-            // Completely replace currentSeller with fresh data
             currentSeller = { 
                 ...currentSeller,
                 kycStatus: freshSeller.kycStatus,
@@ -753,7 +1125,6 @@ db.collection("sellers").onSnapshot(snapshot => {
             
             if (freshSeller.kycStatus === 'verified') {
                 showToast("✅ Your KYC has been verified! You can now access your shop.", false);
-                // Auto-show dashboard if it's hidden
                 if (document.getElementById('sellerRegisterBox').style.display === 'block') {
                     document.getElementById('sellerRegisterBox').style.display = 'none';
                     document.getElementById('sellerDashboard').style.display = 'block';
@@ -790,7 +1161,6 @@ db.collection("sellers").onSnapshot(snapshot => {
         }
     }
 });
-// ============================================================
 
 function updateAdminPendingBadge() {
     const pendingSellers = sellers.filter(s => s.kycStatus === 'pending');
@@ -1009,6 +1379,9 @@ function loadAdminData() {
     document.getElementById('adminOrdersList').style.display = 'none';
 }
 
+// ============================================================
+// 12. RENDER FUNCTIONS
+// ============================================================
 let currentCategory = "All";
 function renderCats(){
     let cats = ["All", ...new Set(products.map(p => p.category))];
@@ -1108,6 +1481,10 @@ function renderCartPage(){
     }));
 }
 let currentDelivery = null;
+
+// ============================================================
+// 13. CHECKOUT WITH EASYSHIP
+// ============================================================
 document.getElementById('proceedToCheckoutBtn')?.addEventListener('click', () => {
     if(cart.length === 0){ showToast("Cart empty",true); return; }
     const user = auth.currentUser;
@@ -1131,7 +1508,9 @@ document.getElementById('proceedToCheckoutBtn')?.addEventListener('click', () =>
         document.getElementById('saveAddressCheckbox').checked = true;
     }
 });
-document.getElementById('confirmDeliveryBtn')?.addEventListener('click', () => {
+
+// ✅ CONFIRM DELIVERY WITH EASYSHIP RATES
+document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async function() {
     const user = auth.currentUser;
     if (!user) {
         sessionStorage.setItem('pendingCheckout', 'true');
@@ -1140,63 +1519,198 @@ document.getElementById('confirmDeliveryBtn')?.addEventListener('click', () => {
         document.getElementById('loginModal').style.display = 'block';
         return;
     }
-    let fn = document.getElementById('deliveryFullName').value, ph = document.getElementById('deliveryPhone').value, c = document.getElementById('deliveryCountry').value, ci = document.getElementById('deliveryCity').value, pc = document.getElementById('deliveryPostcode').value, st = document.getElementById('deliveryStreet').value;
-    if(!fn||!ph||!c||!ci||!pc||!st){ showToast("Fill all fields!",true); return; }
-    buyerCountry = c; localStorage.setItem('buyerCountry', buyerCountry);
-    currentDelivery = { fullName: fn, phone: ph, country: c, city: ci, postcode: pc, street: st, houseNo: document.getElementById('deliveryHouseNo').value, fullAddress: `${document.getElementById('deliveryHouseNo').value||''}, ${st}, ${ci}, ${pc}, ${c}`, email: user.email };
-    if(document.getElementById('saveAddressCheckbox').checked){
+    
+    let fn = document.getElementById('deliveryFullName').value;
+    let ph = document.getElementById('deliveryPhone').value;
+    let c = document.getElementById('deliveryCountry').value;
+    let ci = document.getElementById('deliveryCity').value;
+    let pc = document.getElementById('deliveryPostcode').value;
+    let st = document.getElementById('deliveryStreet').value;
+    
+    if (!fn || !ph || !c || !ci || !pc || !st) {
+        showToast("Fill all fields!", true);
+        return;
+    }
+    
+    buyerCountry = c;
+    localStorage.setItem('buyerCountry', buyerCountry);
+    
+    currentDelivery = {
+        fullName: fn,
+        phone: ph,
+        country: c,
+        city: ci,
+        postcode: pc,
+        street: st,
+        houseNo: document.getElementById('deliveryHouseNo').value,
+        fullAddress: `${document.getElementById('deliveryHouseNo').value || ''}, ${st}, ${ci}, ${pc}, ${c}`,
+        email: user.email,
+        state: document.getElementById('deliveryState')?.value || ''
+    };
+    
+    if (document.getElementById('saveAddressCheckbox').checked) {
         let idx = savedAddresses.findIndex(a => a.email === user.email);
-        let addr = { email: user.email, fullName: fn, phone: ph, country: c, city: ci, postcode: pc, street: st, houseNo: document.getElementById('deliveryHouseNo').value };
-        if(idx >= 0) savedAddresses[idx] = addr;
+        let addr = {
+            email: user.email,
+            fullName: fn,
+            phone: ph,
+            country: c,
+            city: ci,
+            postcode: pc,
+            street: st,
+            houseNo: document.getElementById('deliveryHouseNo').value,
+            state: document.getElementById('deliveryState')?.value || ''
+        };
+        if (idx >= 0) savedAddresses[idx] = addr;
         else savedAddresses.push(addr);
         saveAllLocal();
     }
-    showSection('payment');
-    loadSavedCards();
+    
+    // ✅ Fetch Easyship shipping rates
+    showToast("Calculating shipping...", false);
+    await fetchAndDisplayShippingRates();
+    
+    // Proceed to payment after short delay
+    setTimeout(() => {
+        showSection('payment');
+        loadSavedCards();
+    }, 1000);
 });
-function loadSavedCards(){ let userCards = savedCards.filter(c => c.userEmail === "guest@globalbazaar.com"); if(userCards.length > 0){ document.getElementById('savedCardsSection').style.display = 'block'; document.getElementById('savedCardsList').innerHTML = userCards.map((card,idx) => `<div class="flex-between"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}">Use</button></div>`).join(''); document.querySelectorAll('.useSavedCardBtn').forEach(btn => btn.addEventListener('click', () => { let card = userCards[parseInt(btn.dataset.idx)]; document.getElementById('cardNumber').value = card.cardNumber; document.getElementById('cardHolderName').value = card.cardHolderName; document.getElementById('expiryDate').value = card.expiryDate; document.getElementById('cvv').value = ''; showToast("Card loaded", false); })); } }
+
+// ✅ PayNowBtn with Easyship shipment creation
 document.getElementById('payNowBtn')?.addEventListener('click', async () => {
     let cardNum = document.getElementById('cardNumber').value.replace(/\s/g,''), cardName = document.getElementById('cardHolderName').value, expiry = document.getElementById('expiryDate').value, cvv = document.getElementById('cvv').value;
     if(!cardNum || !cardName || !expiry || !cvv){ showToast("Fill card details",true); return; }
     if(cardNum.length < 15){ showToast("Invalid card",true); return; }
     if(cvv.length < 3){ showToast("Invalid CVV",true); return; }
+    
     if(document.getElementById('saveCardCheckbox').checked){
         let existing = savedCards.findIndex(c => c.userEmail === "guest@globalbazaar.com" && c.cardNumber === cardNum);
         let cardData = { userEmail: "guest@globalbazaar.com", cardNumber: cardNum, cardHolderName: cardName, expiryDate: expiry };
         if(existing >= 0) savedCards[existing] = cardData; else savedCards.push(cardData);
         saveAllLocal();
     }
+    
     let totalUSD = cart.reduce((sum,item) => { let seller = sellers.find(s => s.id == item.sellerId); let final = calculateFinalPrice(item.price, seller?.country || "SA", buyerCountry); return sum + (final.total * item.qty); }, 0);
     let tracking = "GB" + Date.now();
     let cartCopy = [...cart];
+    
+    // Add shipping cost from Easyship
+    const shippingCost = parseFloat(sessionStorage.getItem('shipping_cost')) || 10;
+    const totalWithShipping = totalUSD + shippingCost;
+    
     for(let item of cart){
         let seller = sellers.find(s => s.id == item.sellerId);
         let final = calculateFinalPrice(item.price, seller?.country || "SA", buyerCountry);
-        let newOrder = { id: Date.now()+Math.random(), trackingNumber: tracking, sellerId: item.sellerId, sellerName: seller?.shopName || "GlobalBazaar", buyerEmail: currentDelivery.email, buyerName: currentDelivery.fullName, productName: item.name, amount: final.total, basePrice: item.price, address: currentDelivery.fullAddress, date: new Date().toLocaleString(), status: "Processing", qty: item.qty, shippingCost: final.shipping, commission: final.commission, trackingInfo: null };
+        let product = products.find(p => p.id == item.id);
+        
+        let newOrder = { 
+            id: Date.now()+Math.random(), 
+            trackingNumber: tracking, 
+            sellerId: item.sellerId, 
+            sellerName: seller?.shopName || "GlobalBazaar", 
+            buyerEmail: currentDelivery.email, 
+            buyerName: currentDelivery.fullName, 
+            productName: item.name, 
+            amount: final.total + (shippingCost / cart.length), 
+            basePrice: item.price, 
+            address: currentDelivery.fullAddress, 
+            date: new Date().toLocaleString(), 
+            status: "Processing", 
+            qty: item.qty, 
+            shippingCost: final.shipping, 
+            commission: final.commission, 
+            trackingInfo: null,
+            shippingCharge: shippingCost / cart.length
+        };
         orders.push(newOrder);
         platformEarnings += final.commission * item.qty;
-        let prod = products.find(p => p.id == item.id);
-        if(prod){ prod.stock -= item.qty; if(prod.stock === 0){ addNotification(`Product ${prod.name} is now SOLD OUT!`, 'info'); sendTelegramMessage(`⚠️ Product ${prod.name} out of stock.`); } }
+        
+        if(product){ product.stock -= item.qty; if(product.stock === 0){ addNotification(`Product ${product.name} is now SOLD OUT!`, 'info'); sendTelegramMessage(`⚠️ Product ${product.name} out of stock.`); } }
     }
+    
     saveAllLocal();
-    await sendTelegramMessage(`🛍️ NEW ORDER!\nOrder: ${tracking}\nCustomer: ${currentDelivery.fullName}\nAmount: ${getCurrencySymbol()}${convertPrice(totalUSD)}`);
+    
+    // ✅ Create Easyship shipment for the first product (for demo)
+    try {
+        const firstItem = cart[0];
+        const product = products.find(p => p.id === firstItem?.id);
+        const seller = sellers.find(s => s.id === firstItem?.sellerId);
+        
+        if (product && seller) {
+            const shipmentResult = await createShipmentAfterOrder({
+                sellerId: seller.id,
+                orderId: tracking,
+                buyerCountry: currentDelivery.country || 'SA',
+                buyerCity: currentDelivery.city || '',
+                buyerPostcode: currentDelivery.postcode || '',
+                buyerState: currentDelivery.state || '',
+                buyerStreet: currentDelivery.street || '',
+                weight: product.weight || 1,
+                length: product.size?.length || 10,
+                width: product.size?.width || 10,
+                height: product.size?.height || 10
+            });
+            
+            if (shipmentResult && shipmentResult.trackingNumber) {
+                // Update order with tracking info
+                const orderIndex = orders.findIndex(o => o.trackingNumber === tracking);
+                if (orderIndex !== -1) {
+                    orders[orderIndex].trackingInfo = {
+                        trackingNumber: shipmentResult.trackingNumber,
+                        labelUrl: shipmentResult.labelUrl,
+                        carrierName: shipmentResult.carrierName
+                    };
+                    orders[orderIndex].status = 'Shipped';
+                    saveAllLocal();
+                    addNotification(`📦 Order shipped! Tracking: ${shipmentResult.trackingNumber}`, 'order');
+                    sendTelegramMessage(`📦 Order ${tracking} shipped via ${shipmentResult.carrierName} - Tracking: ${shipmentResult.trackingNumber}`);
+                }
+            }
+        }
+    } catch (e) {
+        console.error('Shipment creation failed:', e);
+        // Order still placed, just without tracking
+    }
+    
+    await sendTelegramMessage(`🛍️ NEW ORDER!\nOrder: ${tracking}\nCustomer: ${currentDelivery.fullName}\nAmount: ${getCurrencySymbol()}${convertPrice(totalWithShipping)}`);
     addNotification(`Order placed! #${tracking}`, 'order');
+    
     cart = []; saveAllLocal(); updateCartUI();
     if (currentBuyer) await saveUserCart(currentBuyer.uid);
+    
     let last4 = cardNum.slice(-4);
     let itemsHtml = cartCopy.map(i => `<li>${i.name} x${i.qty} = ${getCurrencySymbol()}${convertPrice(i.price * i.qty)}</li>`).join('');
-    document.getElementById('orderSummaryContent').innerHTML = `<p><strong>Order ID:</strong> ${tracking}</p><h3>📦 Items</h3><ul>${itemsHtml}</ul><h3>💰 Total Paid: ${getCurrencySymbol()}${convertPrice(totalUSD)}</h3><h3>👤 Delivery Details</h3><p>${currentDelivery.fullName}<br>${currentDelivery.phone}<br>${currentDelivery.fullAddress}</p><h3>💳 Payment</h3><p>Card ending: ${last4}</p><p>🔮 We'll notify you when your order ships.</p>`;
+    document.getElementById('orderSummaryContent').innerHTML = `
+        <p><strong>Order ID:</strong> ${tracking}</p>
+        <h3>📦 Items</h3>
+        <ul>${itemsHtml}</ul>
+        <h3>💰 Total Paid: ${getCurrencySymbol()}${convertPrice(totalWithShipping)}</h3>
+        <h3>📦 Shipping Cost: ${getCurrencySymbol()}${convertPrice(shippingCost)}</h3>
+        <h3>👤 Delivery Details</h3>
+        <p>${currentDelivery.fullName}<br>${currentDelivery.phone}<br>${currentDelivery.fullAddress}</p>
+        <h3>💳 Payment</h3>
+        <p>Card ending: ${last4}</p>
+        <p>🔮 We'll notify you when your order ships.</p>
+    `;
     document.getElementById('orderSummaryModal').style.display = 'block';
     document.getElementById('cardNumber').value=''; document.getElementById('cardHolderName').value=''; document.getElementById('expiryDate').value=''; document.getElementById('cvv').value='';
     renderProducts();
 });
+
+// ============================================================
+// 14. ORDER FUNCTIONS
+// ============================================================
 function confirmOrderReceived(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Shipped"){ order.status = "Delivered"; saveAllLocal(); showToast("Order marked Delivered", false); renderBuyerOrders(); addNotification(`Order ${order.trackingNumber} delivered`,'order'); setTimeout(()=>{ let ord = orders.find(o => o.id === orderId); if(ord && ord.status === "Delivered"){ ord.status = "Completed"; let seller = sellers.find(s => s.id == ord.sellerId); if(seller){ let sellerEarning = ord.basePrice - ord.shippingCost - HANDLING_FEE; seller.earnings = (seller.earnings||0) + (sellerEarning * ord.qty); saveAllLocal(); showToast(`Payment released to seller`,false); if(currentSeller) renderSellerDashboard(); } } },5000); } else showToast("Order not shipped yet",true); }
 function cancelOrder(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Processing"){ let prod = products.find(p => p.name === order.productName && p.sellerId === order.sellerId); if(prod){ prod.stock += order.qty; saveAllLocal(); } order.status = "Cancelled"; saveAllLocal(); showToast("Order cancelled successfully",false); renderBuyerOrders(); renderProducts(); addNotification(`Order ${order.trackingNumber} cancelled`,'order'); if(currentSeller) renderSellerDashboard(); } else { showToast("Only orders in 'Processing' status can be cancelled",true); } }
-function markOrderShipped(orderId, trackingNum){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Processing"){ order.status = "Shipped"; order.trackingInfo = trackingNum; saveAllLocal(); showToast(`Order Shipped! Tracking: ${trackingNum}`,false); renderSellerDashboard(); renderBuyerOrders(); addNotification(`Your order ${order.trackingNumber} shipped`,'order'); } }
+function markOrderShipped(orderId, trackingNum){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Processing"){ order.status = "Shipped"; order.trackingInfo = { trackingNumber: trackingNum }; saveAllLocal(); showToast(`Order Shipped! Tracking: ${trackingNum}`,false); renderSellerDashboard(); renderBuyerOrders(); addNotification(`Your order ${order.trackingNumber} shipped`,'order'); } }
 function requestWithdrawal(sellerId){ let seller = sellers.find(s => s.id == sellerId); if(seller && seller.earnings > 0){ let newWithdrawal = { id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, amount: seller.earnings, date: new Date().toLocaleString(), status: "Pending" }; pendingWithdrawals.push(newWithdrawal); seller.earnings = 0; saveAllLocal(); showToast("Withdrawal request submitted",false); renderSellerDashboard(); sendTelegramMessage(`💰 Withdrawal Request: ${seller.shopName} - ${getCurrencySymbol()}${convertPrice(newWithdrawal.amount)}`); addNotification(`Withdrawal request for ${getCurrencySymbol()}${convertPrice(newWithdrawal.amount)}`,'payment'); } else showToast("No balance",true); }
 function processWeeklyWithdrawals(){ let last = localStorage.getItem('gb_last_withdrawal'); let now = new Date(); let day = now.getDay(); if((day===1||day===5) && (!last || new Date(last).getDate() !== now.getDate())){ pendingWithdrawals.forEach(w => { if(w.status === "Pending") w.status = "Approved"; }); saveAllLocal(); localStorage.setItem('gb_last_withdrawal', now.toString()); } }
 setInterval(processWeeklyWithdrawals, 3600000); processWeeklyWithdrawals();
 
+// ============================================================
+// 15. SELLER REGISTRATION
+// ============================================================
 document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if(!sellerPhoneVerified){ showToast("Verify phone first",true); return; }
@@ -1306,6 +1820,9 @@ function showMyShopLogin(){
 }
 document.getElementById('drawerMyShop')?.addEventListener('click', () => { showMyShopLogin(); });
 
+// ============================================================
+// 16. SELLER DASHBOARD
+// ============================================================
 function renderSellerDashboard(){
     if(!currentSeller?.sellerId) return;
     let seller = sellers.find(s => s.id === currentSeller.sellerId);
@@ -1319,7 +1836,7 @@ function renderSellerDashboard(){
     let kycText = seller.kycStatus === "pending" ? "⏳ KYC Pending - Wait for Admin" : (seller.kycStatus === "verified" ? "✅ KYC Verified" : "❌ KYC Rejected");
     let topProducts = {}; myOrders.forEach(o => { topProducts[o.productName] = (topProducts[o.productName]||0) + o.qty; }); let topList = Object.entries(topProducts).sort((a,b)=>b[1]-a[1]).slice(0,5);
     let prodListHtml = myProducts.map(p => `<div class="flex-between"><span><img src="${p.mainImage}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;"> ${p.name} - ${getCurrencySymbol()}${convertPrice(p.price)} (Stock: ${p.stock})</span><button class="editProdBtn" data-id="${p.id}" style="background:#3b82f6;border:none;padding:4px 12px;border-radius:20px;">✏️ Edit</button><button class="delProd" data-id="${p.id}" style="background:#dc2626;border:none;padding:4px 12px;border-radius:20px;">Delete</button></div>`).join('');
-    let ordersHtml = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty}<br>${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: ${o.status}<br>Buyer: ${o.buyerName}<br>${o.status === "Processing" ? `<button class="shipBtn" data-id="${o.id}" style="background:#3b82f6;margin-top:6px;">📦 Mark Shipped</button>` : ''}${o.status === "Shipped" ? `<br>Tracking: ${o.trackingInfo}` : ''}</div>`).join('');
+    let ordersHtml = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty}<br>${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: ${o.status}<br>Buyer: ${o.buyerName}<br>${o.trackingInfo ? `<br>📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}` : ''}${o.status === "Processing" ? `<br><button class="shipBtn" data-id="${o.id}" style="background:#3b82f6;margin-top:6px;">📦 Mark Shipped</button>` : ''}</div>`).join('');
     let sellerDashboardHtml = `
 <div class="premium-card"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📧 ${seller.email}<br>📍 ${seller.city}, ${seller.country}</p></div><div><span class="kyc-status ${kycClass}">${kycText}</span></div><div>🏦 Bank: Payout via DEED (to be added)<br>💰 Balance: ${getCurrencySymbol()}${convertPrice(seller.earnings)}</div>${seller.kycStatus === "verified" ? `<button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Withdraw</button>` : `<button class="btn-primary" disabled>🔒 KYC Required</button>`}</div>
 <div class="chart-container"><h3>📊 Revenue</h3><canvas id="revenueChart"></canvas></div>
@@ -1328,16 +1845,8 @@ ${seller.kycStatus === "verified" ? `
 <div class="premium-card"><h3>➕ Add Product</h3>
     <input type="text" id="prodName" placeholder="Product Name" class="input" required>
     <input type="number" id="prodPrice" placeholder="Price (USD)" class="input" required>
-    <select id="prodCat" class="input" required>
-        <option>Electronics</option>
-        <option>Fashion</option>
-        <option>Home</option>
-        <option>Textile</option>
-        <option>Cosmetic</option>
-    </select>
+    <select id="prodCat" class="input" required><option>Electronics</option><option>Fashion</option><option>Home</option><option>Textile</option><option>Cosmetic</option></select>
     <input type="number" id="prodStock" placeholder="Stock Quantity" class="input" required>
-    
-    <!-- ✅ NEW: Weight + Size Fields -->
     <div style="background:#f8fafc; padding:16px; border-radius:16px; margin-top:12px; border:1px solid #e2e8f0;">
         <h4 style="margin-bottom:10px;">📦 Shipping Details (Required)</h4>
         <div style="margin-bottom:12px;">
@@ -1345,24 +1854,12 @@ ${seller.kycStatus === "verified" ? `
             <input type="number" id="prodWeight" placeholder="e.g., 2.5" class="input" required step="0.1" min="0.1">
         </div>
         <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
-            <div>
-                <label style="font-size:13px; font-weight:600;">Length (cm) *</label>
-                <input type="number" id="prodLength" placeholder="e.g., 30" class="input" required min="1">
-            </div>
-            <div>
-                <label style="font-size:13px; font-weight:600;">Width (cm) *</label>
-                <input type="number" id="prodWidth" placeholder="e.g., 20" class="input" required min="1">
-            </div>
-            <div>
-                <label style="font-size:13px; font-weight:600;">Height (cm) *</label>
-                <input type="number" id="prodHeight" placeholder="e.g., 10" class="input" required min="1">
-            </div>
+            <div><label style="font-size:13px; font-weight:600;">Length (cm) *</label><input type="number" id="prodLength" placeholder="e.g., 30" class="input" required min="1"></div>
+            <div><label style="font-size:13px; font-weight:600;">Width (cm) *</label><input type="number" id="prodWidth" placeholder="e.g., 20" class="input" required min="1"></div>
+            <div><label style="font-size:13px; font-weight:600;">Height (cm) *</label><input type="number" id="prodHeight" placeholder="e.g., 10" class="input" required min="1"></div>
         </div>
-        <p style="font-size:12px; color:#64748b; margin-top:8px;">
-            ⚠️ Accurate weight & size help calculate shipping rates correctly.
-        </p>
+        <p style="font-size:12px; color:#64748b; margin-top:8px;">⚠️ Accurate weight & size help calculate shipping rates correctly.</p>
     </div>
-    
     <label style="margin-top:12px; display:block;">Main Image (upload)</label>
     <input type="file" id="prodMainImg" accept="image/*" class="input" required>
     <label>Additional Images (optional, max 4)</label>
@@ -1384,7 +1881,6 @@ ${seller.kycStatus === "verified" ? `
             const stock = parseInt(document.getElementById('prodStock').value);
             const desc = document.getElementById('prodDesc').value;
             
-            // Validation
             if (!name) { showToast("Product name required", true); return; }
             if (!price || price <= 0) { showToast("Valid price required", true); return; }
             if (!stock || stock <= 0) { showToast("Valid stock required", true); return; }
@@ -1392,7 +1888,6 @@ ${seller.kycStatus === "verified" ? `
             const mainFile = document.getElementById('prodMainImg').files[0];
             if (!mainFile) { showToast("Main image required", true); return; }
             
-            // ✅ NEW: Weight + Size validation
             const weight = parseFloat(document.getElementById('prodWeight').value);
             const length = parseFloat(document.getElementById('prodLength').value);
             const width = parseFloat(document.getElementById('prodWidth').value);
@@ -1404,30 +1899,16 @@ ${seller.kycStatus === "verified" ? `
                 return;
             }
             
-            // Check if seller exists
-            if (!currentSeller || !currentSeller.sellerId) {
-                showToast("Please login as seller first", true);
-                return;
-            }
-            
-            // Find seller from database
+            if (!currentSeller || !currentSeller.sellerId) { showToast("Please login as seller first", true); return; }
             const seller = sellers.find(s => s.id === currentSeller.sellerId);
-            if (!seller || seller.kycStatus !== 'verified') {
-                showToast("Your KYC is not verified. Please wait for admin approval.", true);
-                return;
-            }
+            if (!seller || seller.kycStatus !== 'verified') { showToast("Your KYC is not verified. Please wait for admin approval.", true); return; }
             
             showToast("Uploading image...", false);
             
             try {
-                // Upload main image
                 const mainUrl = await uploadCompressedImage(mainFile);
-                if (!mainUrl) {
-                    showToast("Image upload failed. Try again.", true);
-                    return;
-                }
+                if (!mainUrl) { showToast("Image upload failed. Try again.", true); return; }
                 
-                // Upload additional images
                 const additionalFiles = document.getElementById('prodImagesFiles').files;
                 const additionalUrls = [];
                 for (let f of additionalFiles) {
@@ -1438,7 +1919,6 @@ ${seller.kycStatus === "verified" ? `
                 
                 const images = [mainUrl, ...additionalUrls];
                 
-                // ✅ NEW: Create product object with weight + size
                 const newProduct = {
                     sellerId: seller.id,
                     sellerName: seller.shopName || "GlobalBazaar",
@@ -1452,22 +1932,16 @@ ${seller.kycStatus === "verified" ? `
                     rating: 0,
                     stock: stock,
                     weight: weight,
-                    size: {
-                        length: length,
-                        width: width,
-                        height: height
-                    },
+                    size: { length: length, width: width, height: height },
                     createdAt: new Date().toISOString()
                 };
                 
-                // Save to Firebase
                 await db.collection("products").add(newProduct);
                 
                 showToast("✅ Product published successfully!", false);
                 addNotification(`Product "${name}" published`, 'info');
                 await sendTelegramMessage(`📦 New product: ${name} by ${seller.shopName}`);
                 
-                // Clear form
                 document.getElementById('prodName').value = '';
                 document.getElementById('prodPrice').value = '';
                 document.getElementById('prodStock').value = '';
@@ -1508,7 +1982,7 @@ function renderBuyerOrders(){
     const user = auth.currentUser;
     if (!user) return;
     let myOrders = orders.filter(o => o.buyerEmail === user.email);
-    document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty}<br>${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: ${o.status}<br>${renderTrackingMap(o)}<br>${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981;">✅ Received</button>` : ''}${o.status === "Processing" ? `<button class="cancelOrderBtn" data-id="${o.id}" style="background:#dc2626;">❌ Cancel Order</button>` : ''}</div>`).join('');
+    document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty}<br>${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: ${o.status}<br>${renderTrackingMap(o)}${o.trackingInfo ? `<br>📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}` : ''}<br>${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981;">✅ Received</button>` : ''}${o.status === "Processing" ? `<button class="cancelOrderBtn" data-id="${o.id}" style="background:#dc2626;">❌ Cancel Order</button>` : ''}</div>`).join('');
     document.querySelectorAll('.confirmReceivedBtn').forEach(btn => btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id))));
     document.querySelectorAll('.cancelOrderBtn').forEach(btn => btn.addEventListener('click', () => cancelOrder(parseFloat(btn.dataset.id))));
 }
@@ -1524,24 +1998,11 @@ function showPrivacy() {
         <h2>Privacy Policy</h2>
         <p><strong>Last Updated:</strong> 16 June 2026</p>
         <h3>1. Information We Collect</h3>
-        <ul style="text-align:left;">
-            <li><strong>Personal Information:</strong> Name, email, phone, shipping address</li>
-            <li><strong>Payment Information:</strong> Processed securely by payment partners</li>
-            <li><strong>Device Information:</strong> IP address, browser type</li>
-        </ul>
+        <ul style="text-align:left;"><li><strong>Personal Information:</strong> Name, email, phone, shipping address</li><li><strong>Payment Information:</strong> Processed securely by payment partners</li><li><strong>Device Information:</strong> IP address, browser type</li></ul>
         <h3>2. How We Use Your Information</h3>
-        <ul style="text-align:left;">
-            <li>Process orders and deliver products</li>
-            <li>Communicate with you about orders</li>
-            <li>Improve our website and user experience</li>
-            <li>Prevent fraud and ensure security</li>
-        </ul>
+        <ul style="text-align:left;"><li>Process orders and deliver products</li><li>Communicate with you about orders</li><li>Improve our website and user experience</li><li>Prevent fraud and ensure security</li></ul>
         <h3>3. Data Sharing</h3>
-        <ul style="text-align:left;">
-            <li><strong>Sellers:</strong> To fulfill your orders</li>
-            <li><strong>Payment Partners:</strong> To process payments</li>
-            <li><strong>Shipping Partners:</strong> To deliver orders</li>
-        </ul>
+        <ul style="text-align:left;"><li><strong>Sellers:</strong> To fulfill your orders</li><li><strong>Payment Partners:</strong> To process payments</li><li><strong>Shipping Partners:</strong> To deliver orders</li></ul>
         <h3>4. Data Security</h3>
         <p>We use industry-standard security measures. All payments are encrypted via SSL.</p>
         <h3>5. Contact Us</h3>
@@ -1559,27 +2020,13 @@ function showTerms() {
         <h3>1. Acceptance of Terms</h3>
         <p>By using GlobalBazaar, you agree to these Terms & Conditions.</p>
         <h3>2. User Accounts</h3>
-        <ul style="text-align:left;">
-            <li>You must be <strong>18 years or older</strong></li>
-            <li>You are responsible for your account security</li>
-        </ul>
+        <ul style="text-align:left;"><li>You must be <strong>18 years or older</strong></li><li>You are responsible for your account security</li></ul>
         <h3>3. ⭐ Auto-Order Confirmation (2 Days Rule)</h3>
-        <ul style="text-align:left;">
-            <li><strong>Confirm within 2 days (48 hours)</strong> of receiving the product</li>
-            <li><strong>If not confirmed:</strong> Order will be <strong>automatically marked as delivered</strong></li>
-            <li><strong>Disputes:</strong> Must be filed within 2 days of delivery</li>
-        </ul>
+        <ul style="text-align:left;"><li><strong>Confirm within 2 days (48 hours)</strong> of receiving the product</li><li><strong>If not confirmed:</strong> Order will be <strong>automatically marked as delivered</strong></li><li><strong>Disputes:</strong> Must be filed within 2 days of delivery</li></ul>
         <h3>4. Seller Terms</h3>
-        <ul style="text-align:left;">
-            <li>Sellers must provide accurate product descriptions</li>
-            <li>Commission: <strong>10-12%</strong> of each sale</li>
-            <li>KYC verification required for withdrawals</li>
-        </ul>
+        <ul style="text-align:left;"><li>Sellers must provide accurate product descriptions</li><li>Commission: <strong>10-12%</strong> of each sale</li><li>KYC verification required for withdrawals</li></ul>
         <h3>5. Refund and Dispute</h3>
-        <ul style="text-align:left;">
-            <li>If not received within <strong>7 days</strong>, request a refund</li>
-            <li>Disputes must be raised within <strong>2 days</strong> of delivery</li>
-        </ul>
+        <ul style="text-align:left;"><li>If not received within <strong>7 days</strong>, request a refund</li><li>Disputes must be raised within <strong>2 days</strong> of delivery</li></ul>
         <h3>6. Contact Us</h3>
         <p>Email: support@globalbazaar.com</p>
         <button class="btn-primary" onclick="closeTermsModal()">Close</button>
@@ -1647,7 +2094,7 @@ document.getElementById('loginModal')?.addEventListener('click', (e) => {
 });
 
 renderCats(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge(); updateAdminMenuBadges();
-document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | Login Required for Checkout";
+document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | Easyship Shipping Integrated | Mode: " + EASYSHIP_MODE;
 </script>
 </body>
 </html>
