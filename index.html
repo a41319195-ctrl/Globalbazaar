@@ -18,6 +18,10 @@
         body.dark-mode .cat-pill { background: #334155; color: white; }
         body.dark-mode .input, body.dark-mode select, body.dark-mode textarea { background: #334155; color: white; border-color: #475569; }
         body.dark-mode .drawer-item:hover { background: #334155; }
+        body.dark-mode .modal-verify-card { background: #1e293b; color: #f1f5f9; }
+        body.dark-mode .modal-verify-card h3 { color: #f1f5f9; }
+        body.dark-mode .modal-verify-card p { color: #94a3b8; }
+        body.dark-mode .modal-verify-card .spam-note { background: #450a0a; color: #fca5a5; }
         .dark-mode-menu-item { display: flex; align-items: center; gap: 14px; padding: 14px 20px; font-weight: 600; font-size: 16px; cursor: pointer; margin: 4px 12px; border-radius: 14px; }
         .dark-mode-menu-item:hover { background: #f1f5f9; }
         body.dark-mode .dark-mode-menu-item:hover { background: #334155; }
@@ -188,6 +192,95 @@
         }
         .kyc-blocked-message h2 { font-size: 24px; margin-bottom: 10px; }
         .kyc-blocked-message p { font-size: 14px; }
+
+        /* Verify Modal Styles */
+        .modal-verify-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-verify-card {
+            background: white;
+            padding: 30px 25px;
+            border-radius: 16px;
+            width: 92%;
+            max-width: 420px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .modal-verify-card .icon { font-size: 48px; margin-bottom: 10px; }
+        .modal-verify-card h3 { color: #1e293b; margin-bottom: 10px; font-size: 22px; }
+        .modal-verify-card p { color: #64748b; font-size: 15px; margin-bottom: 8px; }
+        .modal-verify-card .spam-note {
+            background: #fef2f2;
+            color: #dc2626;
+            font-size: 14px;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .modal-verify-card .checkbox-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+            cursor: pointer;
+        }
+        .modal-verify-card .checkbox-label input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .modal-verify-card .checkbox-label span {
+            font-size: 14px;
+            color: #1e293b;
+        }
+        .modal-verify-card .resend-btn {
+            padding: 12px 24px;
+            background: #ccc;
+            border: none;
+            border-radius: 40px;
+            cursor: not-allowed;
+            font-weight: 700;
+            font-size: 15px;
+            width: 100%;
+            transition: all 0.3s;
+            color: #666;
+        }
+        .modal-verify-card .resend-btn.active {
+            background: #1e3a8a;
+            color: white;
+            cursor: pointer;
+        }
+        .modal-verify-card .resend-btn.active:hover {
+            background: #1e40af;
+            transform: scale(1.02);
+        }
+        .modal-verify-card .footer-text {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 12px;
+        }
+        body.dark-mode .modal-verify-card {
+            background: #1e293b;
+        }
+        body.dark-mode .modal-verify-card h3 { color: #f1f5f9; }
+        body.dark-mode .modal-verify-card p { color: #94a3b8; }
+        body.dark-mode .modal-verify-card .spam-note {
+            background: #450a0a;
+            color: #fca5a5;
+        }
+        body.dark-mode .modal-verify-card .checkbox-label span { color: #f1f5f9; }
+        body.dark-mode .modal-verify-card .footer-text { color: #64748b; }
+
         @media (max-width: 600px) {
             .brand-3d { font-size: 18px; }
             .logo-3d { font-size: 24px; }
@@ -206,6 +299,8 @@
             .offer-banner { padding: 10px 14px; margin: 6px 0; }
             .offer-banner span:first-child { font-size: 14px; }
             .offer-banner span:last-child { font-size: 11px; }
+            .modal-verify-card { padding: 20px 16px; }
+            .modal-verify-card h3 { font-size: 18px; }
         }
     </style>
 </head>
@@ -277,6 +372,28 @@
 <button class="fixed-cart" id="cartFloatBtn">🛒 Cart <span class="cart-badge" id="cartCountBadge">0</span></button>
 <div class="toast" id="toast"></div>
 
+<!-- ============================================================ -->
+<!-- EMAIL VERIFICATION MODAL - Tab tak rahega jab tak verify na ho -->
+<!-- ============================================================ -->
+<div class="modal-verify-overlay" id="verifyModal">
+    <div class="modal-verify-card">
+        <div class="icon">📧</div>
+        <h3>Email Verification Required!</h3>
+        <p>We have sent a verification link to your email.</p>
+        <div class="spam-note">
+            <b>⚠️ Note:</b> If not in inbox, please check your <b>Spam</b> or <b>Promotions</b> folder.
+        </div>
+        <label class="checkbox-label">
+            <input type="checkbox" id="checkSpam" onchange="enableResend()">
+            <span>I have checked my Spam folder.</span>
+        </label>
+        <button class="resend-btn" id="resendBtn" onclick="resendEmail()" disabled>
+            🔄 Resend Verification Link
+        </button>
+        <p class="footer-text">This window will close automatically after verification.</p>
+    </div>
+</div>
+
 <div id="loginModal" class="modal" style="display:none;">
     <div class="modal-card" style="max-width: 400px;">
         <span class="close-modal" id="closeLoginModal">&times;</span>
@@ -334,7 +451,7 @@
 
 <script>
 // ============================================================
-// GLOBAL ERROR HANDLING (FIX #5)
+// GLOBAL ERROR HANDLING
 // ============================================================
 window.onerror = function(message, source, lineno, colno, error) {
     console.error('Global Error:', message, source, lineno, colno, error);
@@ -343,7 +460,6 @@ window.onerror = function(message, source, lineno, colno, error) {
     return true;
 };
 
-// Wrapper function for safe async operations
 async function safeAsync(fn, fallback = null) {
     try {
         return await fn();
@@ -368,7 +484,7 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 
 // ============================================================
-// 🚀 EASYSHIP API INTEGRATION
+// EASYSHIP API
 // ============================================================
 const EASYSHIP_API_KEY = 'prod_FCky2t1qk8dLSqRk6O8a62kUklUmcQuxmzLDmq+mhCI=';
 const EASYSHIP_MODE = 'sandbox';
@@ -487,7 +603,7 @@ async function buyEasyshipLabel(shipmentId, rateId) {
 }
 
 // ============================================================
-// IMAGE COMPRESSION - DO NOT CHANGE (Auto Compress)
+// IMAGE COMPRESSION - DO NOT CHANGE
 // ============================================================
 function compressImage(file, maxSizeMB = 0.5, maxWidth = 1024, maxHeight = 1024) {
     return new Promise((resolve, reject) => {
@@ -548,20 +664,33 @@ async function uploadCompressedImage(file, type = 'image') {
 }
 
 // ============================================================
-// DEFAULT PRODUCTS
+// DEFAULT PRODUCTS - SIRF 3 PRODUCTS (FIX)
 // ============================================================
 const defaultProducts = [
-    { sellerId: 0, sellerName: "GlobalBazaar", name: "Wireless Headphones", price: 89.99, category: "Electronics", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400", "https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=400"], description: "Premium wireless headphones", stock: 10, weight: 0.5, size: { length: 15, width: 10, height: 5 } },
-    { sellerId: 0, sellerName: "GlobalBazaar", name: "Cotton T-Shirt", price: 24.99, category: "Textile", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", images: ["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400"], description: "100% combed cotton", stock: 25, weight: 0.3, size: { length: 25, width: 20, height: 5 } },
-    { sellerId: 0, sellerName: "GlobalBazaar", name: "Matte Lipstick Set", price: 29.99, category: "Cosmetic", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400", images: ["https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400", "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=400"], description: "Long-lasting set", stock: 15, weight: 0.2, size: { length: 10, width: 8, height: 4 } },
-    { sellerId: 0, sellerName: "GlobalBazaar", name: "Smart Watch", price: 49.99, category: "Electronics", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", images: ["https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400"], description: "Latest smart watch", stock: 8, weight: 0.4, size: { length: 12, width: 8, height: 3 } }
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Wireless Headphones", price: 89.99, category: "Electronics", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400"], description: "Premium wireless headphones with noise cancellation", stock: 10, weight: 0.5, size: { length: 15, width: 10, height: 5 } },
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Cotton T-Shirt", price: 24.99, category: "Textile", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", images: ["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400"], description: "100% combed cotton t-shirt", stock: 25, weight: 0.3, size: { length: 25, width: 20, height: 5 } },
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Smart Watch", price: 49.99, category: "Electronics", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", images: ["https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400"], description: "Latest smart watch with health tracking", stock: 8, weight: 0.4, size: { length: 12, width: 8, height: 3 } }
 ];
+
 async function seedProductsIfEmpty() {
     try {
         const snapshot = await db.collection("products").get();
         if (snapshot.empty) {
-            for (let p of defaultProducts) await db.collection("products").add(p);
-            console.log("Seeded default products");
+            for (let p of defaultProducts) {
+                const calc = calculateProductPrice(p.price);
+                await db.collection("products").add({
+                    ...p,
+                    price: calc.publicPrice,
+                    publicPrice: calc.publicPrice,
+                    gatewayFee: calc.gatewayFee,
+                    handlingFee: calc.handlingFee,
+                    commission: calc.commission,
+                    sellerEarning: calc.sellerEarning,
+                    platformRevenue: calc.platformRevenue,
+                    createdAt: new Date().toISOString()
+                });
+            }
+            console.log("Seeded 3 default products");
         }
     } catch (e) { console.error('Seed error:', e); }
 }
@@ -588,19 +717,7 @@ let currentBuyer = null;
 let isAdminLoggedIn = false;
 let currentShippingCost = 0;
 let lastShippingFetch = 0;
-
-// ============================================================
-// FIX #5: GLOBAL ERROR HANDLING - Try Catch Wrapper
-// ============================================================
-function safeExecute(fn) {
-    try {
-        return fn();
-    } catch (error) {
-        console.error('SafeExecute Error:', error);
-        showToast('⚠️ ' + (error.message || 'Something went wrong'), true);
-        return null;
-    }
-}
+let verificationCheckInterval = null;
 
 // ============================================================
 // TELEGRAM NOTIFICATIONS
@@ -764,18 +881,26 @@ document.getElementById('currencySelect').value=selectedCurrency;
 document.getElementById('currencySelect').addEventListener('change',(e)=>{ selectedCurrency=e.target.value; localStorage.setItem('selectedCurrency',selectedCurrency); renderProducts(); updateCartUI(); renderCartPage(); if(currentSeller) renderSellerDashboard(); showToast(`Currency: ${selectedCurrency}`,false); });
 
 // ============================================================
-// FIX #3: DYNAMIC PRICE CALCULATION (No Hardcoded Values)
+// DYNAMIC PRICE CALCULATION
 // ============================================================
-const PLATFORM_COMMISSION = 0.10;        // 10%
-const GATEWAY_FEE_PERCENT = 0.0299;      // 2.99%
-const GATEWAY_FEE_FIXED = 0.49;          // $0.49
-const HANDLING_FEE = 1.50;               // $1.50 - SINGLE SOURCE OF TRUTH
+const PLATFORM_COMMISSION = 0.10;
+const GATEWAY_FEE_PERCENT = 0.0299;
+const GATEWAY_FEE_FIXED = 0.49;
+const HANDLING_FEE = 1.50;
 
-// FIX #3: Final Total = Product Price + EasyShip Dynamic Shipping + Handling Fee
+function calculateProductPrice(basePrice) {
+    let gatewayFee = (basePrice * GATEWAY_FEE_PERCENT) + GATEWAY_FEE_FIXED;
+    let handlingFee = HANDLING_FEE;
+    let publicPrice = basePrice + gatewayFee + handlingFee;
+    let commission = basePrice * PLATFORM_COMMISSION;
+    let sellerEarning = basePrice - commission - handlingFee;
+    let platformRevenue = gatewayFee + commission + handlingFee;
+    return { basePrice, gatewayFee, handlingFee, publicPrice, commission, sellerEarning, platformRevenue };
+}
+
 function calculateFinalPrice(basePrice, sellerCountry, buyerCountry, shippingCost = 0) {
     let gatewayFee = (basePrice * GATEWAY_FEE_PERCENT) + GATEWAY_FEE_FIXED;
     let commission = basePrice * PLATFORM_COMMISSION;
-    // FIX #3: No hardcoded values - all dynamic
     let total = basePrice + gatewayFee + commission + shippingCost + HANDLING_FEE;
     return { 
         total: total, 
@@ -789,7 +914,7 @@ function calculateFinalPrice(basePrice, sellerCountry, buyerCountry, shippingCos
 }
 
 // ============================================================
-// EASYSHIP DYNAMIC SHIPPING - FETCH RATES
+// EASYSHIP DYNAMIC SHIPPING
 // ============================================================
 async function fetchAndDisplayShippingRates() {
     if (Date.now() - lastShippingFetch < 3000) return;
@@ -878,7 +1003,67 @@ async function fetchAndDisplayShippingRates() {
 }
 
 // ============================================================
-// AUTHENTICATION - SINGLE LISTENER (FIX #1: Email Verification)
+// EMAIL VERIFICATION MODAL FUNCTIONS
+// ============================================================
+function showVerifyModal() {
+    document.getElementById('verifyModal').style.display = 'flex';
+    startVerificationCheck();
+}
+
+function enableResend() {
+    const checkbox = document.getElementById('checkSpam');
+    const btn = document.getElementById('resendBtn');
+    if(checkbox.checked) {
+        btn.disabled = false;
+        btn.className = 'resend-btn active';
+    } else {
+        btn.disabled = true;
+        btn.className = 'resend-btn';
+    }
+}
+
+async function resendEmail() {
+    const user = auth.currentUser;
+    if (user) {
+        try {
+            await user.sendEmailVerification();
+            alert("✅ Verification link resent! Please check your inbox and spam folder.");
+        } catch (error) {
+            alert("❌ Error sending email: " + error.message);
+        }
+    } else {
+        alert("Please login first.");
+    }
+}
+
+function checkEmailVerificationStatus() {
+    const user = auth.currentUser;
+    if (user) {
+        user.reload().then(() => {
+            if (user.emailVerified) {
+                document.getElementById('verifyModal').style.display = 'none';
+                stopVerificationCheck();
+                showToast("✅ Email verified! You can now access your shop.", false);
+                showMyShopLogin();
+            }
+        }).catch(err => console.error('Reload error:', err));
+    }
+}
+
+function startVerificationCheck() {
+    if (verificationCheckInterval) clearInterval(verificationCheckInterval);
+    verificationCheckInterval = setInterval(checkEmailVerificationStatus, 5000);
+}
+
+function stopVerificationCheck() {
+    if (verificationCheckInterval) {
+        clearInterval(verificationCheckInterval);
+        verificationCheckInterval = null;
+    }
+}
+
+// ============================================================
+// AUTHENTICATION
 // ============================================================
 auth.onAuthStateChanged(async (user) => {
     if (user) {
@@ -887,7 +1072,6 @@ auth.onAuthStateChanged(async (user) => {
         if (!sellerSnapshot.empty) {
             const sellerData = sellerSnapshot.docs[0].data();
             const sellerId = sellerSnapshot.docs[0].id;
-            // FIX #1: Email verification check
             if (user.emailVerified && !sellerData.emailVerified) {
                 await db.collection("sellers").doc(sellerId).update({
                     emailVerified: true,
@@ -1366,7 +1550,7 @@ function loadAdminData() {
 }
 
 // ============================================================
-// RENDER PRODUCTS WITH OFFER BANNER
+// RENDER PRODUCTS
 // ============================================================
 let currentCategory = "All";
 
@@ -1517,7 +1701,7 @@ function renderCartPage(){
 let currentDelivery = null;
 
 // ============================================================
-// CHECKOUT WITH EASYSHIP
+// CHECKOUT
 // ============================================================
 document.getElementById('proceedToCheckoutBtn')?.addEventListener('click', () => {
     if(cart.length === 0){ showToast("Cart empty",true); return; }
@@ -1603,9 +1787,11 @@ document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async f
 
 function loadSavedCards(){ let userCards = savedCards.filter(c => c.userEmail === "guest@globalbazaar.com"); if(userCards.length > 0){ document.getElementById('savedCardsSection').style.display = 'block'; document.getElementById('savedCardsList').innerHTML = userCards.map((card,idx) => `<div class="flex-between"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}">Use</button></div>`).join(''); document.querySelectorAll('.useSavedCardBtn').forEach(btn => btn.addEventListener('click', () => { let card = userCards[parseInt(btn.dataset.idx)]; document.getElementById('cardNumber').value = card.cardNumber; document.getElementById('cardHolderName').value = card.cardHolderName; document.getElementById('expiryDate').value = card.expiryDate; document.getElementById('cvv').value = ''; showToast("Card loaded", false); })); } }
 
-document.getElementById('payNowBtn')?.addEventListener('click', async () => {
-    // FIX #2: Double-Click Protection
-    const btn = document.getElementById('payNowBtn');
+// ============================================================
+// PAYMENT - FIX: Double-Click Protection
+// ============================================================
+document.getElementById('payNowBtn')?.addEventListener('click', async function() {
+    const btn = this;
     btn.disabled = true;
     btn.textContent = '⏳ Processing...';
     
@@ -1735,25 +1921,24 @@ function processWeeklyWithdrawals(){ let last = localStorage.getItem('gb_last_wi
 setInterval(processWeeklyWithdrawals, 3600000); processWeeklyWithdrawals();
 
 // ============================================================
-// SELLER REGISTRATION - FIX #1: Email Verification (NO OTP)
+// SELLER REGISTRATION - FIX: Email Verification + Double-Click Protection
 // ============================================================
-document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) => {
+document.getElementById('sellerRegForm')?.addEventListener('submit', async function(e) {
     e.preventDefault();
-    // FIX #2: Double-Click Protection
-    const submitBtn = document.getElementById('sellerSubmitBtn');
-    submitBtn.disabled = true;
-    submitBtn.textContent = '⏳ Registering...';
+    const btn = document.getElementById('sellerSubmitBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Registering...';
     
     try {
-        if(!document.getElementById('sellerAgreement').checked){ showToast("Accept agreement",true); submitBtn.disabled = false; submitBtn.textContent = '✅ Register Shop'; return; }
+        if(!document.getElementById('sellerAgreement').checked){ showToast("Accept agreement",true); btn.disabled = false; btn.textContent = '✅ Register Shop'; return; }
         let dob = document.getElementById('sellerDob').value;
-        if(calculateAge(dob) < 18){ showToast("18+ required",true); submitBtn.disabled = false; submitBtn.textContent = '✅ Register Shop'; return; }
+        if(calculateAge(dob) < 18){ showToast("18+ required",true); btn.disabled = false; btn.textContent = '✅ Register Shop'; return; }
         let docImgFile = document.getElementById('sellerDocImage').files[0];
-        if(!docImgFile){ showToast("KYC document image required",true); submitBtn.disabled = false; submitBtn.textContent = '✅ Register Shop'; return; }
+        if(!docImgFile){ showToast("KYC document image required",true); btn.disabled = false; btn.textContent = '✅ Register Shop'; return; }
         let docNum = document.getElementById('sellerDocNumber').value;
-        if(!docNum.trim()){ showToast("Document number required",true); submitBtn.disabled = false; submitBtn.textContent = '✅ Register Shop'; return; }
+        if(!docNum.trim()){ showToast("Document number required",true); btn.disabled = false; btn.textContent = '✅ Register Shop'; return; }
         let docType = document.getElementById('sellerDocType').value;
-        if(!docType){ showToast("Select document type",true); submitBtn.disabled = false; submitBtn.textContent = '✅ Register Shop'; return; }
+        if(!docType){ showToast("Select document type",true); btn.disabled = false; btn.textContent = '✅ Register Shop'; return; }
         let avatarFile = document.getElementById('sellerAvatar').files[0];
         let countryCodeSel = document.getElementById('sellerCountryCode');
         let countryCode = countryCodeSel.value || "+91";
@@ -1763,7 +1948,6 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) =
         showToast("Creating account...", false);
         document.getElementById('debugMsg').innerText = "Creating account...";
 
-        // FIX #1: Create account + Send verification email + Sign out
         const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
         const user = userCredential.user;
         await user.sendEmailVerification();
@@ -1802,8 +1986,7 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) =
             emailVerified: false,
             uid: user.uid
         };
-        const docRef = await db.collection("sellers").add(newSeller);
-        newSeller.id = docRef.id;
+        await db.collection("sellers").doc(user.uid).set(newSeller);
         document.getElementById('sellerRegForm').reset();
         sendTelegramMessage(`📧 New Seller: ${newSeller.shopName}\nEmail: ${newSeller.email}\nWaiting for email verification`).catch(e=>console.warn);
         addNotification(`📧 Verification link sent to ${email}`, 'info');
@@ -1820,70 +2003,97 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) =
         updateAdminMenuBadges();
         if (isAdminLoggedIn) loadAdminData();
         
-        submitBtn.disabled = false;
-        submitBtn.textContent = '✅ Register Shop';
+        btn.disabled = false;
+        btn.textContent = '✅ Register Shop';
     } catch(err) {
         console.error(err);
         showToast("Registration failed: " + err.message, true);
         document.getElementById('debugMsg').innerText = "Error: " + err.message;
-        submitBtn.disabled = false;
-        submitBtn.textContent = '✅ Register Shop';
+        btn.disabled = false;
+        btn.textContent = '✅ Register Shop';
     }
 });
 
 // ============================================================
-// MY SHOP LOGIN - SIMPLE EMAIL + PASSWORD (NO OTP)
+// MY SHOP LOGIN - With Email Verification Check
 // ============================================================
-function showMyShopLogin(){
-    const email = prompt("Enter registered email:");
-    if(!email) return;
-    const password = prompt("Enter your password:");
-    if(!password) return;
+async function showMyShopLogin(){
+    const user = auth.currentUser;
+    if (!user) {
+        showToast("Please login first", true);
+        document.getElementById('loginModal').style.display = 'block';
+        return;
+    }
     
-    firebase.auth().signInWithEmailAndPassword(email, password)
-        .then(async (userCredential) => {
-            const user = userCredential.user;
-            const sellerSnapshot = await db.collection("sellers").where("uid", "==", user.uid).get();
-            if (sellerSnapshot.empty) {
-                showToast("No seller account found.", true);
-                return;
-            }
-            const seller = sellerSnapshot.docs[0].data();
-            const sellerId = sellerSnapshot.docs[0].id;
-            
-            if (!seller.emailVerified) {
-                showToast("⚠️ Please verify your email first. Check your inbox.", true);
-                return;
-            }
-            if(seller.kycStatus !== 'verified'){ 
-                showToast(`⏳ Your KYC is ${seller.kycStatus}. Please wait for admin approval.`, true);
-                return;
-            }
-            currentSeller = { 
-                name: seller.fullName, 
-                email: seller.email, 
-                role: 'seller', 
-                sellerId: sellerId, 
-                phone: seller.phone, 
-                kycStatus: seller.kycStatus,
-                shopName: seller.shopName
-            };
-            localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
-            document.getElementById('sellerRegisterBox').style.display = 'none';
-            document.getElementById('sellerDashboard').style.display = 'block';
-            renderSellerDashboard();
-            showToast(`Welcome ${seller.shopName}!`, false);
-            addNotification(`Welcome back ${seller.shopName}`, 'info');
-            closeDrawer();
-            showSection('seller');
-        })
-        .catch(error => {
-            if (error.code === 'auth/wrong-password') showToast("Wrong password!", true);
-            else if (error.code === 'auth/user-not-found') showToast("No account found!", true);
-            else showToast("Login failed: " + error.message, true);
-        });
+    // Check if email is verified
+    if (!user.emailVerified) {
+        showVerifyModal();
+        return;
+    }
+    
+    const email = user.email;
+    const password = prompt("Enter your password to access your shop:");
+    if (!password) return;
+    
+    try {
+        // Re-authenticate to confirm password
+        const credential = firebase.auth.EmailAuthProvider.credential(email, password);
+        await user.reauthenticateWithCredential(credential);
+        
+        const sellerSnapshot = await db.collection("sellers").where("uid", "==", user.uid).get();
+        if (sellerSnapshot.empty) {
+            showToast("No seller account found with this email. Please register first.", true);
+            return;
+        }
+        
+        const seller = sellerSnapshot.docs[0].data();
+        const sellerId = sellerSnapshot.docs[0].id;
+        
+        if (seller.kycStatus !== 'verified') {
+            showToast(`⏳ Your KYC is ${seller.kycStatus}. Please wait for admin approval.`, true);
+            return;
+        }
+        
+        currentSeller = {
+            name: seller.fullName,
+            email: seller.email,
+            role: 'seller',
+            sellerId: sellerId,
+            phone: seller.phone,
+            kycStatus: seller.kycStatus,
+            shopName: seller.shopName
+        };
+        localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
+        document.getElementById('sellerRegisterBox').style.display = 'none';
+        document.getElementById('sellerDashboard').style.display = 'block';
+        renderSellerDashboard();
+        showToast(`Welcome ${seller.shopName}!`, false);
+        addNotification(`Welcome back ${seller.shopName}`, 'info');
+        closeDrawer();
+        showSection('seller');
+    } catch (error) {
+        if (error.code === 'auth/wrong-password') {
+            showToast("Wrong password! Please try again.", true);
+        } else {
+            showToast("Login failed: " + error.message, true);
+        }
+    }
 }
-document.getElementById('drawerMyShop')?.addEventListener('click', () => { 
+
+document.getElementById('drawerMyShop')?.addEventListener('click', function() {
+    const user = auth.currentUser;
+    
+    if (!user) {
+        showToast("Please login first", true);
+        document.getElementById('loginModal').style.display = 'block';
+        return;
+    }
+    
+    if (!user.emailVerified) {
+        showVerifyModal();
+        return;
+    }
+    
     if (currentSeller && currentSeller.kycStatus === 'verified') {
         document.getElementById('sellerRegisterBox').style.display = 'none';
         document.getElementById('sellerDashboard').style.display = 'block';
@@ -1896,14 +2106,14 @@ document.getElementById('drawerMyShop')?.addEventListener('click', () => {
 });
 
 // ============================================================
-// SELLER DASHBOARD - FIX #4: KYC Strict Control
+// SELLER DASHBOARD - FIX: KYC Strict Control
 // ============================================================
 function renderSellerDashboard(){
     if(!currentSeller?.sellerId) return;
     let seller = sellers.find(s => s.id === currentSeller.sellerId);
     if(!seller) return;
     
-    // FIX #4: KYC Strict Control - If not verified, show blocked message
+    // FIX #4: KYC Strict Control
     if (seller.kycStatus !== 'verified') {
         document.getElementById('sellerDashboard').innerHTML = `
             <div class="kyc-blocked-message">
@@ -1961,7 +2171,7 @@ function renderSellerDashboard(){
     document.getElementById('sellerDashboard').innerHTML = sellerDashboardHtml;
     let ctx = document.getElementById('revenueChart')?.getContext('2d'); if(ctx){ if(sellerRevenueChart) sellerRevenueChart.destroy(); sellerRevenueChart = new Chart(ctx, { type: 'bar', data: { labels: chartLabels, datasets: [{ label: 'Revenue', data: chartData.map(v => parseFloat(convertPrice(v))), backgroundColor: '#3b82f6' }] } }); }
     
-    // FIX #2: Double-Click Protection on Publish Button
+    // FIX: Double-Click Protection on Publish Button
     document.getElementById('publishBtn')?.addEventListener('click', async function() {
         const btn = this;
         btn.disabled = true;
@@ -2041,8 +2251,8 @@ function renderSellerDashboard(){
     
     document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', async () => { let id = btn.dataset.id; await db.collection("products").doc(id).delete(); renderSellerDashboard(); renderProducts(); showToast("Product deleted", false); }));
     document.querySelectorAll('.editProdBtn').forEach(btn => btn.addEventListener('click', () => { let prod = products.find(p => p.id == btn.dataset.id); if(prod){ document.getElementById('editProdId').value = prod.id; document.getElementById('editProdName').value = prod.name; document.getElementById('editProdPrice').value = prod.price; document.getElementById('editProdCat').value = prod.category; document.getElementById('editProdStock').value = prod.stock; document.getElementById('editProdDesc').value = prod.description || ''; let currImgHtml = prod.images.map(img => `<div><img src="${img}" width="50" style="border-radius:8px; margin:4px;"> <a href="${img}" target="_blank">View</a></div>`).join(''); document.getElementById('editCurrentImages').innerHTML = `<strong>Current Images:</strong>${currImgHtml}`; document.getElementById('editProductModal').style.display = 'block'; } }));
-    document.getElementById('updateProductBtn')?.addEventListener('click', async () => {
-        const btn = document.getElementById('updateProductBtn');
+    document.getElementById('updateProductBtn')?.addEventListener('click', async function() {
+        const btn = this;
         btn.disabled = true;
         btn.textContent = '⏳ Updating...';
         try {
@@ -2081,7 +2291,7 @@ document.getElementById('refreshAdminBtn')?.addEventListener('click', loadAdminD
 window.viewSellerDocument = function(docImage, docType, sellerName){ if(docImage && docImage.startsWith('http')){ window.open(docImage, '_blank'); } else { alert(`No image available for ${sellerName}`); } };
 
 // ============================================================
-// KYC DOCUMENT VALIDATION - REAL (File Type Check + Preview)
+// KYC DOCUMENT VALIDATION
 // ============================================================
 function validateKYCFileType(file) {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
@@ -2220,7 +2430,7 @@ document.getElementById('loginModal')?.addEventListener('click', (e) => {
 });
 
 renderCats(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge(); updateAdminMenuBadges();
-document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | Easyship Shipping Integrated | Mode: " + EASYSHIP_MODE;
+document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 3 Products | Easyship Shipping | Mode: " + EASYSHIP_MODE;
 </script>
 </body>
 </html>
