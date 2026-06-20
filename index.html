@@ -113,7 +113,6 @@
         .cart-remove { background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 12px; }
         .delivery-form-row { display: flex; gap: 10px; margin-bottom: 14px; }
         .delivery-form-row input, .delivery-form-row select { flex: 1; padding: 12px; border: 1px solid #e2e8f0; border-radius: 16px; }
-        .otp-section { display: none; margin-top: 10px; }
         .whatsapp-share { background: #25D366; color: white; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; }
         .tracking-map { background: #f1f5f9; border-radius: 16px; padding: 15px; text-align: center; margin-top: 10px; }
         .tracking-steps { display: flex; justify-content: space-between; margin-top: 15px; flex-wrap: wrap; }
@@ -168,6 +167,44 @@
             .offer-banner span:first-child { font-size: 14px; }
             .offer-banner span:last-child { font-size: 11px; }
         }
+        /* CHANGE 4: Notification Badge - Red Dot */
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 50%;
+            min-width: 18px;
+            text-align: center;
+        }
+        /* CHANGE 3: KYC Preview */
+        .kyc-preview-container {
+            display: none;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 2px dashed #e2e8f0;
+        }
+        body.dark-mode .kyc-preview-container {
+            background: #334155;
+            border-color: #475569;
+        }
+        .kyc-preview-container img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            object-fit: contain;
+        }
+        .kyc-preview-container .preview-label {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
@@ -184,10 +221,13 @@
 <div class="drawer" id="drawer"><div class="drawer-header"><h2>GlobalBazaar 🌍</h2><p style="font-size:12px;">Multi‑Seller Hub</p></div><div class="dark-mode-menu-item" id="drawerDarkModeToggle">🌙 Dark Mode</div><div class="drawer-item" id="drawerBuyer">📦 My Orders</div><div class="drawer-item" id="drawerSeller">🏪 Seller Dashboard</div><div class="drawer-item" id="drawerMyShop" class="my-shop-btn">🏪 My Shop</div><div class="drawer-item" id="drawerAdmin">⚙️ Admin Panel <span id="adminPendingBadge" style="background:#ef4444; color:white; border-radius:20px; padding:2px 8px; font-size:12px; margin-left:8px; display:none;">0</span></div><div class="drawer-item" id="drawerCartPage">🛍️ My Cart</div><div class="drawer-item" id="drawerWishlist">❤️ Wishlist</div><div class="drawer-item" id="drawerSupport">📞 Support</div><div class="drawer-item" id="drawerLogout">🚪 Logout</div></div>
 <div class="container">
     <div id="buyerSection" class="section active"><div class="cat-scroll" id="catList"></div><div class="search-container"><input type="text" id="searchInput" placeholder="🔍 Search products..."></div><div class="product-grid" id="productsGrid"></div></div>
-    <div id="sellerSection" class="section"><div id="sellerRegisterBox" class="premium-card"><h2>🏪 Open Your Shop</h2><form id="sellerRegForm"><input type="file" id="sellerAvatar" accept="image/*" class="input"><input type="text" id="sellerFullName" placeholder="Full Legal Name" class="input" required><input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required><input type="email" id="sellerEmail" placeholder="Email" class="input" required><div class="phone-group"><div class="country-search-select" id="sellerCountrySearchContainer"><input type="text" id="sellerCountrySearch" placeholder="🔍 Search country..." autocomplete="off"><div class="country-dropdown-list" id="sellerCountryDropdown"></div><select id="sellerCountryCode" style="display:none;"></select></div><input type="tel" id="sellerPhone" placeholder="Phone Number" class="input" required></div>
-        <input type="password" id="sellerPassword" placeholder="Password" class="input" required><label style="font-weight:600; margin-top:10px;">🎂 Date of Birth</label><input type="date" id="sellerDob" class="input" required><h4>📍 Shop Address</h4><input type="text" id="sellerHouseNo" placeholder="House No." class="input" required><input type="text" id="sellerStreet" placeholder="Street" class="input" required><input type="text" id="sellerCity" placeholder="City" class="input" required><input type="text" id="sellerState" placeholder="State" class="input" required><input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required><select id="sellerCountryReg" class="input" required><option value="">Select Country</option></select><div class="doc-section"><div class="doc-title">🌍 KYC Documents</div><select id="sellerDocType" class="input" required><option value="">Select Document Type</option><option value="passport">📘 Passport</option><option value="national_id">🆔 National ID Card</option><option value="driving_license">🚗 Driving License</option><option value="residence_permit">📄 Residence Permit</option></select><input type="text" id="sellerDocNumber" placeholder="Document Number" class="input" required><input type="file" id="sellerDocImage" accept="image/*,application/pdf" class="input" required></div>
-        <div class="checkbox-group"><input type="checkbox" id="sellerAgreement" required><label>I agree to <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label></div>
-        <button type="submit" class="btn-primary" id="sellerSubmitBtn">✅ Register Shop</button></form></div><div id="sellerDashboard" style="display:none;"></div></div>
+    <div id="sellerSection" class="section"><div id="sellerRegisterBox" class="premium-card"><h2>🏪 Open Your Shop</h2><form id="sellerRegForm"><input type="file" id="sellerAvatar" accept="image/*" class="input"><input type="text" id="sellerFullName" placeholder="Full Legal Name" class="input" required><input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required><input type="email" id="sellerEmail" placeholder="Email" class="input" required><div class="phone-group"><div class="country-search-select" id="sellerCountrySearchContainer"><input type="text" id="sellerCountrySearch" placeholder="🔍 Search country..." autocomplete="off"><div class="country-dropdown-list" id="sellerCountryDropdown"></div><select id="sellerCountryCode" style="display:none;"></select></div><input type="tel" id="sellerPhone" placeholder="Phone Number" class="input" required></div><input type="password" id="sellerPassword" placeholder="Password" class="input" required><label style="font-weight:600; margin-top:10px;">🎂 Date of Birth</label><input type="date" id="sellerDob" class="input" required><h4>📍 Shop Address</h4><input type="text" id="sellerHouseNo" placeholder="House No." class="input" required><input type="text" id="sellerStreet" placeholder="Street" class="input" required><input type="text" id="sellerCity" placeholder="City" class="input" required><input type="text" id="sellerState" placeholder="State" class="input" required><input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required><select id="sellerCountryReg" class="input" required><option value="">Select Country</option></select><div class="doc-section"><div class="doc-title">🌍 KYC Documents</div><select id="sellerDocType" class="input" required><option value="">Select Document Type</option><option value="passport">📘 Passport</option><option value="national_id">🆔 National ID Card</option><option value="driving_license">🚗 Driving License</option><option value="residence_permit">📄 Residence Permit</option></select><input type="text" id="sellerDocNumber" placeholder="Document Number" class="input" required><input type="file" id="sellerDocImage" accept="image/*,application/pdf" class="input" required>
+        <!-- CHANGE 3: KYC Preview -->
+        <div class="kyc-preview-container" id="kycPreview">
+            <div class="preview-label">📄 Document Preview:</div>
+            <img id="kycPreviewImg" style="display:none;">
+        </div></div>
+        <div class="checkbox-group"><input type="checkbox" id="sellerAgreement" required><label>I agree to <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label></div><button type="submit" class="btn-primary" id="sellerSubmitBtn">✅ Register Shop</button></form></div><div id="sellerDashboard" style="display:none;"></div></div>
     <div id="profileSection" class="section"><div id="buyerProfilePanel" style="display:block;"><div class="premium-card"><div class="flex-between"><h2>👋 My Account</h2><span class="role-badge" id="userRoleBadge">Buyer</span></div></div><div class="premium-card"><h3>📜 My Orders</h3><div id="buyerOrdersList"></div></div><div class="premium-card"><h3>❤️ My Wishlist</h3><div id="buyerWishlistList"></div></div></div></div>
     <div id="adminSection" class="section"><div id="adminPanel" class="premium-card"><h2>⚙️ Admin Dashboard</h2><div id="adminLoginBox"><input type="password" id="adminKey" class="input" placeholder="Enter Admin Key"><button class="btn-primary" id="adminLoginBtn">Login</button></div><div id="adminContent" style="display:none;">
         <div style="position:relative; display:inline-block; float:right; margin-top:-40px;">
@@ -278,13 +318,13 @@
         <p>Email: support@globalbazaar.com</p>
         <button class="btn-primary" onclick="closeTermsModal()">Close</button></div></div>
 <div id="sellerAgreementModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSellerAgreementModal()">&times;</span><h2>Seller Agreement</h2>
-        <p><strong>Commission:</strong> 10-12% of each sale</p>
-        <p><strong>Gateway Fee:</strong> 2.5%</p>
-        <p><strong>Handling Fee:</strong> $2 per order</p><br>
+        <p><strong>Commission:</strong> 10% of each sale</p>
+        <p><strong>Gateway Fee:</strong> 2.99% + $0.49</p>
+        <p><strong>Handling Fee:</strong> $1.50 per order</p><br>
         <p><strong>Payment Release:</strong></p>
         <ul style="text-align:left;"><li>✅ Buyer confirms delivery → Payment released to seller</li><li>✅ Auto-confirm after 2 days (if buyer doesn't confirm)</li><li>✅ Weekly withdrawal available (Monday & Friday)</li></ul><br>
-        <p><strong>📌 Why 10-12%?</strong></p>
-        <ul style="text-align:left;"><li>🔹 Amazon/Flipkart take 15-30%</li><li>🔹 GlobalBazaar takes only 10-12%</li><li>🔹 More profit for sellers 💰</li></ul><br>
+        <p><strong>📌 Why 10%?</strong></p>
+        <ul style="text-align:left;"><li>🔹 Amazon/Flipkart take 15-30%</li><li>🔹 GlobalBazaar takes only 10%</li><li>🔹 More profit for sellers 💰</li></ul><br>
         <p><strong>📞 Support:</strong> support@globalbazaar.com</p>
         <button class="btn-primary" onclick="closeSellerAgreementModal()">Close</button></div></div>
 <div id="supportModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSupportModal()">&times;</span><h2>📞 Support</h2><p>Email: support@globalbazaar.com<br>WhatsApp: +966 123 456 789<br>24/7 Customer Support</p><button class="btn-primary" onclick="closeSupportModal()">Close</button></div></div>
@@ -425,7 +465,7 @@ async function buyEasyshipLabel(shipmentId, rateId) {
 }
 
 // ============================================================
-// IMAGE COMPRESSION
+// IMAGE COMPRESSION - DO NOT CHANGE (Auto Compress)
 // ============================================================
 function compressImage(file, maxSizeMB = 0.5, maxWidth = 1024, maxHeight = 1024) {
     return new Promise((resolve, reject) => {
@@ -486,44 +526,6 @@ async function uploadCompressedImage(file, type = 'image') {
 }
 
 // ============================================================
-// PRICE CALCULATION - GATEWAY FEE + HANDLING FEE ADDED
-// ============================================================
-const GATEWAY_FEE_PERCENT = 0.0299;  // 2.99%
-const GATEWAY_FEE_FIXED = 0.49;      // $0.49
-const HANDLING_FEE = 1.50;           // $1.50
-const COMMISSION_PERCENT = 0.10;     // 10%
-
-function calculateProductPrice(basePrice) {
-    // Gateway Fee: 2.99% + $0.49
-    const gatewayFee = (basePrice * GATEWAY_FEE_PERCENT) + GATEWAY_FEE_FIXED;
-    
-    // Handling Fee: $1.50 fixed
-    const handlingFee = HANDLING_FEE;
-    
-    // Public Price (what customer sees)
-    const publicPrice = basePrice + gatewayFee + handlingFee;
-    
-    // Commission (10% of base price)
-    const commission = basePrice * COMMISSION_PERCENT;
-    
-    // Seller Net Earning (what seller gets)
-    const sellerEarning = basePrice - commission - handlingFee;
-    
-    // Platform Revenue
-    const platformRevenue = gatewayFee + commission + handlingFee;
-    
-    return {
-        basePrice,
-        gatewayFee,
-        handlingFee,
-        publicPrice,
-        commission,
-        sellerEarning,
-        platformRevenue
-    };
-}
-
-// ============================================================
 // DEFAULT PRODUCTS
 // ============================================================
 const defaultProducts = [
@@ -580,9 +582,16 @@ function addNotification(msg, type = 'info') {
     updateNotificationUI();
     showToast(msg, false);
 }
+
+// CHANGE 4: Notification Bell - Red Dot
 function updateNotificationUI() {
     let unread = notifications.filter(n => !n.read).length;
-    document.getElementById('notificationCount').innerText = unread;
+    const badge = document.getElementById('notificationCount');
+    if (badge) {
+        badge.innerText = unread > 0 ? unread : '0';
+        badge.style.display = 'inline-block';
+        badge.style.background = '#ef4444';
+    }
     let html = notifications.map(n => `<div class="notification-item" data-id="${n.id}" style="${n.read ? 'opacity:0.6' : ''}"><strong>${n.type === 'order' ? '🛍️' : (n.type === 'payment' ? '💰' : 'ℹ️')}</strong> ${n.message}<br><small>${n.date}</small></div>`).join('');
     if (notifications.length === 0) html = '<div style="padding:20px;text-align:center;">No notifications</div>';
     document.getElementById('notificationsList').innerHTML = html;
@@ -699,6 +708,9 @@ initCountrySearch('sellerCountrySearch','sellerCountryDropdown','sellerCountryCo
 let delCountry=document.getElementById('deliveryCountry'); if(delCountry) shippingCountries.forEach(c=>{ let opt=document.createElement('option'); opt.value=c; opt.textContent=c; delCountry.appendChild(opt); });
 let sellerCountryReg=document.getElementById('sellerCountryReg'); if(sellerCountryReg) shippingCountries.forEach(c=>{ let opt=document.createElement('option'); opt.value=c; opt.textContent=c; sellerCountryReg.appendChild(opt); });
 
+// ============================================================
+// CURRENCY
+// ============================================================
 const fxRates={SAR:3.75,USD:1,EUR:0.92,GBP:0.78,INR:83.5,PKR:278,NPR:133.5,BDT:117,LKR:305,AED:3.67,CAD:1.36,AUD:1.52,SGD:1.35,MYR:4.70,THB:36.5,JPY:150.2,CNY:7.25};
 const currencySymbols={SAR:"SAR ",USD:"$",EUR:"€",GBP:"£",INR:"₹",PKR:"₨",NPR:"रू ",BDT:"৳",LKR:"Rs ",AED:"د.إ ",CAD:"$",AUD:"$",SGD:"$",MYR:"RM ",THB:"฿",JPY:"¥",CNY:"¥"};
 function convertPrice(usd){ return (usd*fxRates[selectedCurrency]).toFixed(2); }
@@ -706,30 +718,63 @@ function getCurrencySymbol(){ return currencySymbols[selectedCurrency]; }
 document.getElementById('currencySelect').value=selectedCurrency;
 document.getElementById('currencySelect').addEventListener('change',(e)=>{ selectedCurrency=e.target.value; localStorage.setItem('selectedCurrency',selectedCurrency); renderProducts(); updateCartUI(); renderCartPage(); if(currentSeller) renderSellerDashboard(); showToast(`Currency: ${selectedCurrency}`,false); });
 
+// CHANGE 2: Gateway Fee (2.99% + $0.49) + Handling Fee ($1.50)
+function getShippingCost(sellerCountry,buyerCountry){ 
+    if(sellerCountry===buyerCountry) return 5; 
+    const nearby=["SA","AE","IN","PK","BD","LK","NP"]; 
+    if(nearby.includes(sellerCountry)&&nearby.includes(buyerCountry)) return 12; 
+    return 25; 
+}
+const PLATFORM_COMMISSION = 0.10;
+const GATEWAY_FEE_PERCENT = 0.0299;
+const GATEWAY_FEE_FIXED = 0.49;
+const HANDLING_FEE = 1.50;
+
+function calculateFinalPrice(basePrice, sellerCountry, buyerCountry){
+    let shipping = getShippingCost(sellerCountry, buyerCountry);
+    let gatewayFee = (basePrice * GATEWAY_FEE_PERCENT) + GATEWAY_FEE_FIXED;
+    let commission = basePrice * PLATFORM_COMMISSION;
+    let total = basePrice + gatewayFee + commission + shipping + HANDLING_FEE;
+    return { 
+        total: total, 
+        basePrice: basePrice, 
+        shipping: shipping, 
+        commission: commission, 
+        gateway: gatewayFee,
+        handling: HANDLING_FEE,
+        sellerEarning: basePrice - commission - HANDLING_FEE
+    };
+}
+
 // ============================================================
 // AUTHENTICATION
 // ============================================================
+
+// CHANGE 1: Auth State Listener with Email Verification
 auth.onAuthStateChanged(async (user) => {
     if (user) {
         currentBuyer = user;
-        // Check if seller
-        const sellerDoc = await db.collection('sellers').doc(user.uid).get();
-        if (sellerDoc.exists) {
-            const sellerData = sellerDoc.data();
+        // Check if this is a seller
+        const sellerSnapshot = await db.collection("sellers").where("uid", "==", user.uid).get();
+        if (!sellerSnapshot.empty) {
+            const sellerData = sellerSnapshot.docs[0].data();
+            const sellerId = sellerSnapshot.docs[0].id;
+            
+            // If email is now verified but not updated in DB
             if (user.emailVerified && !sellerData.emailVerified) {
-                await db.collection('sellers').doc(user.uid).update({
+                await db.collection("sellers").doc(sellerId).update({
                     emailVerified: true,
                     kycStatus: 'pending'
                 });
                 showToast("✅ Email verified! Your account is now active. Waiting for admin KYC approval.", false);
-                addNotification(`Seller ${sellerData.shopName} verified email!`, 'info');
+                addNotification(`Seller ${sellerData.shopName} verified email! Now pending KYC.`, 'info');
                 await sendTelegramMessage(`✅ Email verified: ${sellerData.shopName}\nNow pending KYC approval.`);
                 
                 currentSeller = {
                     name: sellerData.fullName,
                     email: sellerData.email,
                     role: 'seller',
-                    sellerId: user.uid,
+                    sellerId: sellerId,
                     phone: sellerData.phone,
                     kycStatus: 'pending',
                     shopName: sellerData.shopName
@@ -739,12 +784,14 @@ auth.onAuthStateChanged(async (user) => {
                 document.getElementById('sellerDashboard').style.display = 'block';
                 renderSellerDashboard();
             }
+            
+            // If already verified, auto-login
             if (sellerData.emailVerified) {
                 currentSeller = {
                     name: sellerData.fullName,
                     email: sellerData.email,
                     role: 'seller',
-                    sellerId: user.uid,
+                    sellerId: sellerId,
                     phone: sellerData.phone,
                     kycStatus: sellerData.kycStatus || 'pending',
                     shopName: sellerData.shopName
@@ -771,277 +818,7 @@ if (storedSeller) {
 }
 
 // ============================================================
-// SELLER REGISTRATION - ONLY EMAIL VERIFICATION (NO OTP)
-// ============================================================
-document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    if (!document.getElementById('sellerAgreement').checked) {
-        showToast("Accept agreement", true);
-        return;
-    }
-    
-    let dob = document.getElementById('sellerDob').value;
-    if (calculateAge(dob) < 18) {
-        showToast("18+ required", true);
-        return;
-    }
-    
-    let docImgFile = document.getElementById('sellerDocImage').files[0];
-    if (!docImgFile) {
-        showToast("KYC document image required", true);
-        return;
-    }
-    
-    let docNum = document.getElementById('sellerDocNumber').value;
-    if (!docNum.trim()) {
-        showToast("Document number required", true);
-        return;
-    }
-    
-    let docType = document.getElementById('sellerDocType').value;
-    if (!docType) {
-        showToast("Select document type", true);
-        return;
-    }
-
-    let countryCodeSel = document.getElementById('sellerCountryCode');
-    let countryCode = countryCodeSel.value || "+91";
-
-    const email = document.getElementById('sellerEmail').value;
-    const password = document.getElementById('sellerPassword').value;
-    
-    try {
-        // STEP 1: Create Firebase account
-        const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
-        const user = userCredential.user;
-        
-        // STEP 2: Send email verification link (NO OTP)
-        await user.sendEmailVerification();
-        
-        // STEP 3: Upload KYC document
-        let docImageUrl = null;
-        if (docImgFile) {
-            docImageUrl = await uploadCompressedImage(docImgFile, 'kyc');
-            if (!docImageUrl) throw new Error("KYC document upload failed");
-        }
-
-        let avatarFile = document.getElementById('sellerAvatar').files[0];
-        let avatarUrl = "https://randomuser.me/api/portraits/lego/1.jpg";
-        if (avatarFile) {
-            avatarUrl = await uploadCompressedImage(avatarFile, 'avatar');
-            if (!avatarUrl) throw new Error("Avatar upload failed");
-        }
-
-        // STEP 4: Save seller data to Firestore
-        const sellerData = {
-            fullName: document.getElementById('sellerFullName').value,
-            shopName: document.getElementById('sellerShopName').value,
-            email: email,
-            phone: countryCode + document.getElementById('sellerPhone').value,
-            password: password,
-            dob: dob,
-            houseNo: document.getElementById('sellerHouseNo').value,
-            street: document.getElementById('sellerStreet').value,
-            city: document.getElementById('sellerCity').value,
-            state: document.getElementById('sellerState').value,
-            pincode: document.getElementById('sellerPincode').value,
-            country: document.getElementById('sellerCountryReg').value,
-            docType: docType,
-            docNumber: docNum,
-            docImage: docImageUrl,
-            avatar: avatarUrl,
-            earnings: 0,
-            kycStatus: "pending",
-            emailVerified: false,
-            totalSales: 0,
-            totalWithdrawn: 0,
-            createdAt: new Date().toISOString(),
-            uid: user.uid
-        };
-
-        await db.collection("sellers").doc(user.uid).set(sellerData);
-
-        // STEP 5: Sign out so user verifies first
-        await firebase.auth().signOut();
-
-        // STEP 6: Show success message
-        showToast("📧 Verification link sent to your email! Please check your inbox.", false);
-        addNotification(`New seller registration: ${sellerData.shopName} - Pending email verification`, 'info');
-        await sendTelegramMessage(`📧 New seller registered: ${sellerData.shopName}\nEmail: ${email}\nWaiting for email verification`);
-
-        // Clear form
-        document.getElementById('sellerRegForm').reset();
-
-        // Show waiting modal
-        let modal = document.getElementById('sellerSummaryModal');
-        if (modal) {
-            modal.style.display = 'block';
-            modal.querySelector('p').innerHTML = 
-                '📧 <strong>Please check your email!</strong><br><br>' +
-                'We have sent a verification link to your email address.<br><br>' +
-                'Click the link to verify your email and activate your seller account.<br><br>' +
-                '⏳ Waiting for email verification...';
-        }
-        
-        document.getElementById('debugMsg').innerText = "Registration successful - Email verification sent";
-
-    } catch (error) {
-        console.error("Registration error:", error);
-        showToast("Registration failed: " + error.message, true);
-        document.getElementById('debugMsg').innerText = "Error: " + error.message;
-    }
-});
-
-// ============================================================
-// MY SHOP BUTTON - SIMPLE EMAIL + PASSWORD LOGIN (NO OTP)
-// ============================================================
-async function showMyShopLogin() {
-    const email = prompt("Enter your registered email:");
-    if (!email) return;
-    
-    const password = prompt("Enter your password:");
-    if (!password) return;
-    
-    try {
-        const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
-        const user = userCredential.user;
-        
-        const sellerDoc = await db.collection('sellers').doc(user.uid).get();
-        
-        if (!sellerDoc.exists) {
-            showToast("No seller account found with this email.", true);
-            return;
-        }
-        
-        const sellerData = sellerDoc.data();
-        
-        if (!sellerData.emailVerified) {
-            showToast("⚠️ Please verify your email first. Check your inbox for verification link.", true);
-            return;
-        }
-        
-        if (sellerData.kycStatus !== 'verified') {
-            showToast(`⏳ Your KYC is ${sellerData.kycStatus}. Please wait for admin approval.`, true);
-            return;
-        }
-        
-        currentSeller = {
-            name: sellerData.fullName,
-            email: sellerData.email,
-            role: 'seller',
-            sellerId: user.uid,
-            phone: sellerData.phone,
-            kycStatus: sellerData.kycStatus,
-            shopName: sellerData.shopName
-        };
-        localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
-        
-        document.getElementById('sellerRegisterBox').style.display = 'none';
-        document.getElementById('sellerDashboard').style.display = 'block';
-        renderSellerDashboard();
-        
-        showToast(`Welcome back ${sellerData.shopName}! 🏪`, false);
-        addNotification(`Seller ${sellerData.shopName} logged in`, 'info');
-        closeDrawer();
-        showSection('seller');
-        
-    } catch (error) {
-        console.error("Login error:", error);
-        if (error.code === 'auth/user-not-found') {
-            showToast("No account found with this email.", true);
-        } else if (error.code === 'auth/wrong-password') {
-            showToast("Wrong password. Please try again.", true);
-        } else {
-            showToast("Login failed: " + error.message, true);
-        }
-    }
-}
-
-document.getElementById('drawerMyShop')?.addEventListener('click', () => {
-    if (currentSeller && currentSeller.kycStatus === 'verified') {
-        document.getElementById('sellerRegisterBox').style.display = 'none';
-        document.getElementById('sellerDashboard').style.display = 'block';
-        renderSellerDashboard();
-        showSection('seller');
-        closeDrawer();
-    } else {
-        showMyShopLogin();
-    }
-});
-
-// ============================================================
-// GOOGLE SIGN-IN
-// ============================================================
-document.getElementById('googleSignInBtn')?.addEventListener('click', async () => {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    try {
-        const result = await firebase.auth().signInWithPopup(provider);
-        const user = result.user;
-        const email = user.email;
-        const name = user.displayName;
-        const photo = user.photoURL;
-
-        const sellerSnapshot = await db.collection('sellers').where('email', '==', email).get();
-        if (!sellerSnapshot.empty) {
-            const sellerData = sellerSnapshot.docs[0].data();
-            if (sellerData.kycStatus === 'verified') {
-                currentSeller = { id: sellerSnapshot.docs[0].id, ...sellerData };
-                localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
-                renderSellerDashboard();
-                showToast(`Welcome back ${sellerData.shopName}!`, false);
-            } else {
-                showToast("Your KYC is pending. Please wait for admin approval.", true);
-            }
-        } else {
-            await db.collection('users').doc(user.uid).set({
-                name: name,
-                email: email,
-                photo: photo,
-                createdAt: new Date().toISOString(),
-                role: 'buyer'
-            });
-            showToast(`Welcome ${name}! You are now logged in as a buyer.`, false);
-        }
-        document.getElementById('loginModal').style.display = 'none';
-    } catch (error) {
-        console.error("Google Sign-In Error:", error);
-        showToast("Google Sign-In failed: " + error.message, true);
-    }
-});
-
-document.getElementById('googleSignUpBtn')?.addEventListener('click', async () => {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    try {
-        const result = await firebase.auth().signInWithPopup(provider);
-        const user = result.user;
-        const email = user.email;
-        const name = user.displayName;
-        const photo = user.photoURL;
-
-        const existingSeller = await db.collection('sellers').where('email', '==', email).get();
-        if (!existingSeller.empty) {
-            showToast("This email is already registered. Please login.", true);
-            return;
-        }
-
-        await db.collection('users').doc(user.uid).set({
-            name: name,
-            email: email,
-            photo: photo,
-            createdAt: new Date().toISOString(),
-            role: 'buyer'
-        });
-        showToast(`Welcome ${name}! Account created successfully.`, false);
-        document.getElementById('loginModal').style.display = 'none';
-    } catch (error) {
-        console.error("Google Sign-Up Error:", error);
-        showToast("Google Sign-Up failed: " + error.message, true);
-    }
-});
-
-// ============================================================
-// LOGIN FUNCTION
+// LOGIN
 // ============================================================
 document.getElementById('doLoginBtn')?.addEventListener('click', async () => {
     const email = document.getElementById('loginEmail').value;
@@ -1074,9 +851,6 @@ document.getElementById('doLoginBtn')?.addEventListener('click', async () => {
     }
 });
 
-// ============================================================
-// REGISTER FUNCTION
-// ============================================================
 document.getElementById('doRegisterBtn')?.addEventListener('click', async () => {
     const name = document.getElementById('regName').value;
     const email = document.getElementById('regEmail').value;
@@ -1109,9 +883,58 @@ document.getElementById('doRegisterBtn')?.addEventListener('click', async () => 
     }
 });
 
-// ============================================================
-// LOGOUT FUNCTION
-// ============================================================
+document.getElementById('googleSignInBtn')?.addEventListener('click', async () => {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    try {
+        const result = await auth.signInWithPopup(provider);
+        const userRef = db.collection('users').doc(result.user.uid);
+        const doc = await userRef.get();
+        if (!doc.exists) {
+            await userRef.set({ name: result.user.displayName, email: result.user.email, createdAt: new Date().toISOString(), role: 'buyer' });
+        }
+        showToast(`Welcome ${result.user.displayName}!`, false);
+        document.getElementById('loginModal').style.display = 'none';
+        const pendingCheckout = sessionStorage.getItem('pendingCheckout');
+        if (pendingCheckout === 'true') {
+            sessionStorage.removeItem('pendingCheckout');
+            const pendingCart = sessionStorage.getItem('pendingCart');
+            if (pendingCart) {
+                cart = JSON.parse(pendingCart);
+                sessionStorage.removeItem('pendingCart');
+                updateCartUI();
+            }
+            showSection('checkout');
+            loadSavedAddresses();
+        }
+    } catch (error) { showToast("Google sign-in failed", true); }
+});
+
+document.getElementById('googleSignUpBtn')?.addEventListener('click', async () => {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    try {
+        const result = await auth.signInWithPopup(provider);
+        const userRef = db.collection('users').doc(result.user.uid);
+        const doc = await userRef.get();
+        if (!doc.exists) {
+            await userRef.set({ name: result.user.displayName, email: result.user.email, createdAt: new Date().toISOString(), role: 'buyer' });
+        }
+        showToast(`Welcome ${result.user.displayName}!`, false);
+        document.getElementById('loginModal').style.display = 'none';
+        const pendingCheckout = sessionStorage.getItem('pendingCheckout');
+        if (pendingCheckout === 'true') {
+            sessionStorage.removeItem('pendingCheckout');
+            const pendingCart = sessionStorage.getItem('pendingCart');
+            if (pendingCart) {
+                cart = JSON.parse(pendingCart);
+                sessionStorage.removeItem('pendingCart');
+                updateCartUI();
+            }
+            showSection('checkout');
+            loadSavedAddresses();
+        }
+    } catch (error) { showToast("Google sign-up failed", true); }
+});
+
 document.getElementById('logoutBtn')?.addEventListener('click', async () => {
     await auth.signOut();
     showToast("Logged out successfully", false);
@@ -1136,9 +959,6 @@ async function loadUserCart(userId) {
     }
 }
 
-// ============================================================
-// SELLER DASHBOARD & OTHER FUNCTIONS
-// ============================================================
 function showMyOrdersPage() {
     const user = auth.currentUser;
     if (!user) {
@@ -1422,23 +1242,16 @@ function loadAdminData() {
 }
 
 // ============================================================
-// RENDER PRODUCTS WITH PRICE CALCULATION
+// RENDER PRODUCTS WITH OFFER BANNER
 // ============================================================
 let currentCategory = "All";
 
 function renderProductCard(p) {
     const seller = sellers.find(s => s.id === p.sellerId) || { shopName: "GlobalBazaar", country: "SA" };
+    const final = calculateFinalPrice(p.price, seller.country, buyerCountry);
     const reviews = productReviews[p.id] || [];
     const avgRating = reviews.length ? (reviews.reduce((s,r)=>s+r.rating,0)/reviews.length).toFixed(1) : 0;
     const stockBadge = p.stock < 5 ? `<div class="stock-badge">Only ${p.stock} left</div>` : '';
-    
-    // Use publicPrice if available, otherwise calculate from basePrice
-    let displayPrice = p.publicPrice || p.price || 0;
-    if (!p.publicPrice && p.basePrice) {
-        const calc = calculateProductPrice(p.basePrice);
-        displayPrice = calc.publicPrice;
-    }
-    
     let thumbnailsHtml = '';
     if (p.images && p.images.length > 1) {
         thumbnailsHtml = p.images.slice(0,4).map(img => 
@@ -1453,7 +1266,7 @@ function renderProductCard(p) {
         </div>
         <div class="seller-name-tag">🏪 ${seller.shopName}</div>
         <h4 style="font-size:13px; margin:2px 0;">${p.name}</h4>
-        <div class="prod-price">${getCurrencySymbol()}${convertPrice(displayPrice)}</div>
+        <div class="prod-price">${getCurrencySymbol()}${convertPrice(final.total)}</div>
         <div class="card-actions">
             <button class="btn-sm btn-buy addCartBtn" data-id="${p.id}">🛒 Buy</button>
         </div>
@@ -1473,9 +1286,11 @@ function renderProducts(){
         document.getElementById('productsGrid').innerHTML = '<div style="text-align:center;padding:40px;grid-column:1/-1;">No products found</div>';
         return;
     }
+    // Split products: first 2, then banner, then rest
     const firstTwo = filtered.slice(0, 2);
     const rest = filtered.slice(2);
     let html = firstTwo.map(p => renderProductCard(p)).join('');
+    // Offer banner
     html += `
         <div class="offer-banner">
             <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
@@ -1498,6 +1313,7 @@ function changeProductImage(pid, url){
     let modalImg = document.getElementById('mainImg_' + pid);
     if (modalImg) {
         modalImg.src = url;
+        // Update active thumbnail
         document.querySelectorAll('.product-thumbnails img').forEach(img => {
             img.classList.toggle('active', img.src === url);
         });
@@ -1509,28 +1325,19 @@ function openProduct(id){
     let p = products.find(x => x.id == id); if(!p) return;
     currentProduct = p;
     let seller = sellers.find(s => s.id == p.sellerId) || { shopName: "GlobalBazaar", country: "SA" };
-    
-    // Calculate price with fees
-    let basePrice = p.basePrice || p.price || 0;
-    let calc = calculateProductPrice(basePrice);
-    let finalPrice = calc.publicPrice;
-    
+    let final = calculateFinalPrice(p.price, seller.country, buyerCountry);
     document.getElementById('modalMainImg').src = p.mainImage;
     document.getElementById('modalTitle').innerText = p.name;
     document.getElementById('modalDesc').innerText = p.description;
-    document.getElementById('modalPriceBreakdown').innerHTML = `
-        Base: ${getCurrencySymbol()}${convertPrice(basePrice)}<br>
-        + Gateway Fee (2.99% + $0.49): ${getCurrencySymbol()}${convertPrice(calc.gatewayFee)}<br>
-        + Handling Fee: ${getCurrencySymbol()}${convertPrice(calc.handlingFee)}
-    `;
-    document.getElementById('modalPrice').innerHTML = `<strong>Total: ${getCurrencySymbol()}${convertPrice(finalPrice)}</strong>`;
+    document.getElementById('modalPriceBreakdown').innerHTML = `Base: ${getCurrencySymbol()}${convertPrice(p.price)}<br>+ Shipping: ${getCurrencySymbol()}${convertPrice(final.shipping)}<br>+ Gateway Fee (2.99% + $0.49): ${getCurrencySymbol()}${convertPrice(final.gateway)}<br>+ Handling Fee: ${getCurrencySymbol()}${convertPrice(HANDLING_FEE)}<br>+ Commission: ${getCurrencySymbol()}${convertPrice(final.commission)}`;
+    document.getElementById('modalPrice').innerHTML = `<strong>Total: ${getCurrencySymbol()}${convertPrice(final.total)}</strong>`;
     let thumb = document.getElementById('modalThumbnails'); if(thumb && p.images && p.images.length) thumb.innerHTML = p.images.map(img => `<img src="${img}" onclick="changeProductImage('${p.id}','${img}')">`).join('');
     let reviews = productReviews[p.id] || [];
     let avg = reviews.length ? (reviews.reduce((s,r)=>s+r.rating,0)/reviews.length).toFixed(1) : 0;
     document.getElementById('modalRatingStars').innerHTML = `<div class="rating-display"><span class="rating-badge">⭐ ${avg}</span><span>(${reviews.length} reviews)</span></div>`;
     document.getElementById('productReviews').innerHTML = reviews.map(r => `<div class="review-item"><strong>${r.userName||'User'}</strong> ⭐${r.rating}<br>${r.review}<br><small>${r.date}</small></div>`).join('');
     currentRatingHandler.currentRating = 0; renderReviewStars('reviewStars', currentRatingHandler);
-    document.getElementById('whatsappShareBtn').onclick = () => shareOnWhatsApp(p, finalPrice);
+    document.getElementById('whatsappShareBtn').onclick = () => shareOnWhatsApp(p, final.total);
     document.getElementById('submitReviewBtn').onclick = () => { let txt = document.getElementById('reviewText').value; if(!txt){ showToast("Write review",true); return; } if(currentRatingHandler.currentRating===0){ showToast("Select rating",true); return; } addReview(p.id, currentRatingHandler.currentRating, txt, currentBuyer ? currentBuyer.email : "Guest User"); document.getElementById('reviewText').value=''; currentRatingHandler.currentRating=0; renderReviewStars('reviewStars',currentRatingHandler); };
     document.getElementById('productModal').style.display = 'block';
 }
@@ -1540,20 +1347,7 @@ function addToCart(id){
     if(p.stock <= 0){ showToast("Out of stock!",true); return; }
     let existing = cart.find(i => i.id == id);
     if(existing){ if(existing.qty < p.stock) existing.qty++; else { showToast(`Only ${p.stock} in stock`,true); return; } }
-    else { 
-        let basePrice = p.basePrice || p.price || 0;
-        let calc = calculateProductPrice(basePrice);
-        cart.push({ 
-            id: p.id, 
-            name: p.name, 
-            price: calc.publicPrice,
-            basePrice: basePrice,
-            sellerId: p.sellerId, 
-            sellerCountry: p.sellerCountry || "SA", 
-            qty: 1, 
-            image: p.mainImage 
-        }); 
-    }
+    else { cart.push({ id: p.id, name: p.name, price: p.price, sellerId: p.sellerId, sellerCountry: p.sellerCountry || "SA", qty: 1, image: p.mainImage }); }
     saveAllLocal(); updateCartUI(); renderCartPage(); showToast("Added to cart", false); addNotification(`${p.name} added to cart`,'info');
     if (currentBuyer) saveUserCart(currentBuyer.uid);
 }
@@ -1567,9 +1361,11 @@ function renderCartPage(){
     if(cart.length === 0){ document.getElementById('cartItemsList').innerHTML = '<p style="text-align:center;padding:40px;">Cart empty</p>'; document.getElementById('cartTotalAmount').innerHTML = `${getCurrencySymbol()}0.00`; return; }
     let totalUSD = 0;
     let html = cart.map((item, idx) => {
-        let itemTotal = item.price * item.qty;
+        let seller = sellers.find(s => s.id == item.sellerId) || { country: "SA" };
+        let final = calculateFinalPrice(item.price, seller.country, buyerCountry);
+        let itemTotal = final.total * item.qty;
         totalUSD += itemTotal;
-        return `<div class="cart-item"><div><strong>${item.name}</strong><br>${getCurrencySymbol()}${convertPrice(item.price)} each</div><div class="cart-item-controls"><button class="cart-qty-btn" data-idx="${idx}" data-dir="dec">-</button><span>${item.qty}</span><button class="cart-qty-btn" data-idx="${idx}" data-dir="inc">+</button><button class="cart-remove" data-idx="${idx}">Remove</button></div></div>`;
+        return `<div class="cart-item"><div><strong>${item.name}</strong><br>${getCurrencySymbol()}${convertPrice(final.total)} each</div><div class="cart-item-controls"><button class="cart-qty-btn" data-idx="${idx}" data-dir="dec">-</button><span>${item.qty}</span><button class="cart-qty-btn" data-idx="${idx}" data-dir="inc">+</button><button class="cart-remove" data-idx="${idx}">Remove</button></div></div>`;
     }).join('');
     document.getElementById('cartItemsList').innerHTML = html;
     document.getElementById('cartTotalAmount').innerHTML = `${getCurrencySymbol()}${convertPrice(totalUSD)}`;
@@ -1805,15 +1601,14 @@ document.getElementById('payNowBtn')?.addEventListener('click', async () => {
         if(existing >= 0) savedCards[existing] = cardData; else savedCards.push(cardData);
         saveAllLocal();
     }
-    let totalUSD = cart.reduce((sum,item) => { return sum + (item.price * item.qty); }, 0);
+    let totalUSD = cart.reduce((sum,item) => { let seller = sellers.find(s => s.id == item.sellerId); let final = calculateFinalPrice(item.price, seller?.country || "SA", buyerCountry); return sum + (final.total * item.qty); }, 0);
     let tracking = "GB" + Date.now();
     let cartCopy = [...cart];
     const shippingCost = parseFloat(sessionStorage.getItem('shipping_cost')) || 10;
     const totalWithShipping = totalUSD + shippingCost;
     for(let item of cart){
         let seller = sellers.find(s => s.id == item.sellerId);
-        let basePrice = item.basePrice || item.price || 0;
-        let calc = calculateProductPrice(basePrice);
+        let final = calculateFinalPrice(item.price, seller?.country || "SA", buyerCountry);
         let product = products.find(p => p.id == item.id);
         let newOrder = { 
             id: Date.now()+Math.random(), 
@@ -1823,21 +1618,21 @@ document.getElementById('payNowBtn')?.addEventListener('click', async () => {
             buyerEmail: currentDelivery.email, 
             buyerName: currentDelivery.fullName, 
             productName: item.name, 
-            amount: calc.publicPrice + (shippingCost / cart.length), 
-            basePrice: basePrice,
+            amount: final.total + (shippingCost / cart.length), 
+            basePrice: item.price, 
             address: currentDelivery.fullAddress, 
             date: new Date().toLocaleString(), 
             status: "Processing", 
             qty: item.qty, 
-            shippingCost: calc.handlingFee || 0, 
-            commission: calc.commission, 
-            gatewayFee: calc.gatewayFee,
-            handlingFee: calc.handlingFee,
+            shippingCost: final.shipping, 
+            commission: final.commission, 
+            gatewayFee: final.gateway,
+            handlingFee: HANDLING_FEE,
             trackingInfo: null,
             shippingCharge: shippingCost / cart.length
         };
         orders.push(newOrder);
-        platformEarnings += calc.commission * item.qty + calc.gatewayFee * item.qty + calc.handlingFee * item.qty;
+        platformEarnings += final.commission * item.qty + final.gateway * item.qty + HANDLING_FEE * item.qty;
         if(product){ product.stock -= item.qty; if(product.stock === 0){ addNotification(`Product ${product.name} is now SOLD OUT!`, 'info'); sendTelegramMessage(`⚠️ Product ${product.name} out of stock.`); } }
     }
     saveAllLocal();
@@ -1900,12 +1695,423 @@ document.getElementById('payNowBtn')?.addEventListener('click', async () => {
     renderProducts();
 });
 
-function confirmOrderReceived(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Shipped"){ order.status = "Delivered"; saveAllLocal(); showToast("Order marked Delivered", false); renderBuyerOrders(); addNotification(`Order ${order.trackingNumber} delivered`,'order'); setTimeout(()=>{ let ord = orders.find(o => o.id === orderId); if(ord && ord.status === "Delivered"){ ord.status = "Completed"; let seller = sellers.find(s => s.id == ord.sellerId); if(seller){ let sellerEarning = ord.basePrice - ord.commission - ord.handlingFee; seller.earnings = (seller.earnings||0) + (sellerEarning * ord.qty); saveAllLocal(); showToast(`Payment released to seller`,false); if(currentSeller) renderSellerDashboard(); } } },5000); } else showToast("Order not shipped yet",true); }
+function confirmOrderReceived(orderId){ 
+    let order = orders.find(o => o.id === orderId); 
+    if(order && order.status === "Shipped"){ 
+        order.status = "Delivered"; 
+        saveAllLocal(); 
+        showToast("Order marked Delivered", false); 
+        renderBuyerOrders(); 
+        addNotification(`Order ${order.trackingNumber} delivered`,'order'); 
+        setTimeout(()=>{ 
+            let ord = orders.find(o => o.id === orderId); 
+            if(ord && ord.status === "Delivered"){ 
+                ord.status = "Completed"; 
+                let seller = sellers.find(s => s.id == ord.sellerId); 
+                if(seller){ 
+                    // CHANGE 2: Seller earning calculation with new fees
+                    let sellerEarning = ord.basePrice - ord.commission - HANDLING_FEE; 
+                    seller.earnings = (seller.earnings||0) + (sellerEarning * ord.qty); 
+                    saveAllLocal(); 
+                    showToast(`Payment released to seller`,false); 
+                    if(currentSeller) renderSellerDashboard(); 
+                } 
+            } 
+        },5000); 
+    } else showToast("Order not shipped yet",true); 
+}
 function cancelOrder(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Processing"){ let prod = products.find(p => p.name === order.productName && p.sellerId === order.sellerId); if(prod){ prod.stock += order.qty; saveAllLocal(); } order.status = "Cancelled"; saveAllLocal(); showToast("Order cancelled successfully",false); renderBuyerOrders(); renderProducts(); addNotification(`Order ${order.trackingNumber} cancelled`,'order'); if(currentSeller) renderSellerDashboard(); } else { showToast("Only orders in 'Processing' status can be cancelled",true); } }
 function markOrderShipped(orderId, trackingNum){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Processing"){ order.status = "Shipped"; order.trackingInfo = { trackingNumber: trackingNum }; saveAllLocal(); showToast(`Order Shipped! Tracking: ${trackingNum}`,false); renderSellerDashboard(); renderBuyerOrders(); addNotification(`Your order ${order.trackingNumber} shipped`,'order'); } }
 function requestWithdrawal(sellerId){ let seller = sellers.find(s => s.id == sellerId); if(seller && seller.earnings > 0){ let newWithdrawal = { id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, amount: seller.earnings, date: new Date().toLocaleString(), status: "Pending" }; pendingWithdrawals.push(newWithdrawal); seller.earnings = 0; saveAllLocal(); showToast("Withdrawal request submitted",false); renderSellerDashboard(); sendTelegramMessage(`💰 Withdrawal Request: ${seller.shopName} - ${getCurrencySymbol()}${convertPrice(newWithdrawal.amount)}`); addNotification(`Withdrawal request for ${getCurrencySymbol()}${convertPrice(newWithdrawal.amount)}`,'payment'); } else showToast("No balance",true); }
 function processWeeklyWithdrawals(){ let last = localStorage.getItem('gb_last_withdrawal'); let now = new Date(); let day = now.getDay(); if((day===1||day===5) && (!last || new Date(last).getDate() !== now.getDate())){ pendingWithdrawals.forEach(w => { if(w.status === "Pending") w.status = "Approved"; }); saveAllLocal(); localStorage.setItem('gb_last_withdrawal', now.toString()); } }
 setInterval(processWeeklyWithdrawals, 3600000); processWeeklyWithdrawals();
+
+// ============================================================
+// SELLER REGISTRATION - CHANGE 1: No OTP, Email Verification Only
+// ============================================================
+document.getElementById('sellerRegForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if(!document.getElementById('sellerAgreement').checked){ showToast("Accept agreement",true); return; }
+    let dob = document.getElementById('sellerDob').value;
+    if(calculateAge(dob) < 18){ showToast("18+ required",true); return; }
+    let docImgFile = document.getElementById('sellerDocImage').files[0];
+    if(!docImgFile){ showToast("KYC document image required",true); return; }
+    let docNum = document.getElementById('sellerDocNumber').value;
+    if(!docNum.trim()){ showToast("Document number required",true); return; }
+    let docType = document.getElementById('sellerDocType').value;
+    if(!docType){ showToast("Select document type",true); return; }
+    let avatarFile = document.getElementById('sellerAvatar').files[0];
+    let countryCodeSel = document.getElementById('sellerCountryCode');
+    let countryCode = countryCodeSel.value || "+91";
+    const email = document.getElementById('sellerEmail').value;
+    const password = document.getElementById('sellerPassword').value;
+
+    showToast("Creating account...", false);
+    document.getElementById('debugMsg').innerText = "Creating account...";
+
+    try {
+        // STEP 1: Create Firebase account
+        const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+        
+        // STEP 2: Send email verification link (NO OTP)
+        await user.sendEmailVerification();
+        
+        // STEP 3: Sign out so user verifies first
+        await firebase.auth().signOut();
+
+        let avatarUrl = "https://randomuser.me/api/portraits/lego/1.jpg";
+        if (avatarFile) {
+            avatarUrl = await uploadCompressedImage(avatarFile, 'avatar');
+            if (!avatarUrl) throw new Error("Avatar upload failed");
+        }
+        let docImageUrl = await uploadCompressedImage(docImgFile, 'kyc');
+        if (!docImageUrl) throw new Error("KYC document upload failed");
+
+        let newSeller = {
+            fullName: document.getElementById('sellerFullName').value,
+            shopName: document.getElementById('sellerShopName').value,
+            email: email,
+            phone: countryCode + document.getElementById('sellerPhone').value,
+            password: password,
+            dob: document.getElementById('sellerDob').value,
+            houseNo: document.getElementById('sellerHouseNo').value,
+            street: document.getElementById('sellerStreet').value,
+            city: document.getElementById('sellerCity').value,
+            state: document.getElementById('sellerState').value,
+            pincode: document.getElementById('sellerPincode').value,
+            country: document.getElementById('sellerCountryReg').value,
+            docType: docType,
+            docNumber: docNum,
+            docImage: docImageUrl,
+            earnings: 0, 
+            kycStatus: "pending", 
+            totalSales: 0, 
+            totalWithdrawn: 0,
+            createdAt: new Date().toISOString(),
+            avatar: avatarUrl,
+            emailVerified: false,
+            uid: user.uid
+        };
+        const docRef = await db.collection("sellers").add(newSeller);
+        newSeller.id = docRef.id;
+        document.getElementById('sellerRegForm').reset();
+        sendTelegramMessage(`📧 New Seller: ${newSeller.shopName}\nEmail: ${newSeller.email}\nWaiting for email verification`).catch(e=>console.warn);
+        addNotification(`📧 Verification link sent to ${email}`, 'info');
+        
+        let modal = document.getElementById('sellerSummaryModal');
+        if(modal) {
+            modal.style.display = 'block';
+            modal.querySelector('p').innerHTML = '📧 <strong>Please check your email!</strong><br><br>We have sent a verification link to your email address.<br><br>Click the link to verify your email and activate your seller account.<br><br>⏳ Waiting for email verification...';
+        }
+        document.getElementById('debugMsg').innerText = "Registration successful - Email verification sent";
+        const snapshot = await db.collection("sellers").get();
+        sellers = [];
+        snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
+        updateAdminPendingBadge();
+        updateAdminMenuBadges();
+        if (isAdminLoggedIn) loadAdminData();
+    } catch(err) {
+        console.error(err);
+        showToast("Registration failed: " + err.message, true);
+        document.getElementById('debugMsg').innerText = "Error: " + err.message;
+    }
+});
+
+// CHANGE 1: My Shop Login - Simple Email + Password (No OTP)
+function showMyShopLogin(){
+    const email = prompt("Enter registered email:");
+    if(!email) return;
+    const password = prompt("Enter your password:");
+    if(!password) return;
+    
+    firebase.auth().signInWithEmailAndPassword(email, password)
+        .then(async (userCredential) => {
+            const user = userCredential.user;
+            const sellerSnapshot = await db.collection("sellers").where("uid", "==", user.uid).get();
+            if (sellerSnapshot.empty) {
+                showToast("No seller account found.", true);
+                return;
+            }
+            const seller = sellerSnapshot.docs[0].data();
+            const sellerId = sellerSnapshot.docs[0].id;
+            
+            if (!seller.emailVerified) {
+                showToast("⚠️ Please verify your email first. Check your inbox.", true);
+                return;
+            }
+            if(seller.kycStatus !== 'verified'){ 
+                showToast(`⏳ Your KYC is ${seller.kycStatus}. Please wait for admin approval.`, true);
+                return;
+            }
+            currentSeller = { 
+                name: seller.fullName, 
+                email: seller.email, 
+                role: 'seller', 
+                sellerId: sellerId, 
+                phone: seller.phone, 
+                kycStatus: seller.kycStatus,
+                shopName: seller.shopName
+            };
+            localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
+            document.getElementById('sellerRegisterBox').style.display = 'none';
+            document.getElementById('sellerDashboard').style.display = 'block';
+            renderSellerDashboard();
+            showToast(`Welcome ${seller.shopName}!`, false);
+            addNotification(`Welcome back ${seller.shopName}`, 'info');
+            closeDrawer();
+            showSection('seller');
+        })
+        .catch(error => {
+            if (error.code === 'auth/wrong-password') showToast("Wrong password!", true);
+            else if (error.code === 'auth/user-not-found') showToast("No account found!", true);
+            else showToast("Login failed: " + error.message, true);
+        });
+}
+document.getElementById('drawerMyShop')?.addEventListener('click', () => { 
+    if (currentSeller && currentSeller.kycStatus === 'verified') {
+        document.getElementById('sellerRegisterBox').style.display = 'none';
+        document.getElementById('sellerDashboard').style.display = 'block';
+        renderSellerDashboard();
+        showSection('seller');
+        closeDrawer();
+    } else {
+        showMyShopLogin();
+    }
+});
+
+function renderSellerDashboard(){
+    if(!currentSeller?.sellerId) return;
+    let seller = sellers.find(s => s.id === currentSeller.sellerId);
+    if(!seller) return;
+    let myProducts = products.filter(p => p.sellerId == seller.id);
+    let myOrders = orders.filter(o => o.sellerId == seller.id);
+    let totalSales = 0, monthlyRevenue = {};
+    myOrders.forEach(o => { if(o.status === "Completed"){ 
+        // CHANGE 2: Seller earning with new calculation
+        let earning = (o.basePrice - o.commission - HANDLING_FEE) * o.qty; 
+        totalSales += earning; 
+        let date = new Date(o.date); 
+        let my = `${date.getMonth()+1}/${date.getFullYear()}`; 
+        monthlyRevenue[my] = (monthlyRevenue[my]||0) + earning; 
+    } });
+    let chartLabels = Object.keys(monthlyRevenue), chartData = Object.values(monthlyRevenue); if(chartLabels.length === 0){ chartLabels = ["No Data"]; chartData = [0]; }
+    let kycClass = seller.kycStatus === "pending" ? "kyc-pending" : (seller.kycStatus === "verified" ? "kyc-verified" : "kyc-rejected");
+    let kycText = seller.kycStatus === "pending" ? "⏳ KYC Pending - Wait for Admin" : (seller.kycStatus === "verified" ? "✅ KYC Verified" : "❌ KYC Rejected");
+    let topProducts = {}; myOrders.forEach(o => { topProducts[o.productName] = (topProducts[o.productName]||0) + o.qty; }); let topList = Object.entries(topProducts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    let prodListHtml = myProducts.map(p => `<div class="flex-between"><span><img src="${p.mainImage}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;"> ${p.name} - ${getCurrencySymbol()}${convertPrice(p.price)} (Stock: ${p.stock})</span><button class="editProdBtn" data-id="${p.id}" style="background:#3b82f6;border:none;padding:4px 12px;border-radius:20px;">✏️ Edit</button><button class="delProd" data-id="${p.id}" style="background:#dc2626;border:none;padding:4px 12px;border-radius:20px;">Delete</button></div>`).join('');
+    let ordersHtml = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty}<br>${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: ${o.status}<br>Buyer: ${o.buyerName}<br>${o.trackingInfo ? `<br>📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}` : ''}${o.status === "Processing" ? `<br><button class="shipBtn" data-id="${o.id}" style="background:#3b82f6;margin-top:6px;">📦 Mark Shipped</button>` : ''}</div>`).join('');
+    let sellerDashboardHtml = `
+<div class="premium-card"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📧 ${seller.email}<br>📍 ${seller.city}, ${seller.country}</p></div><div><span class="kyc-status ${kycClass}">${kycText}</span></div><div>🏦 Bank: Payout via DEED (to be added)<br>💰 Balance: ${getCurrencySymbol()}${convertPrice(seller.earnings)}</div>${seller.kycStatus === "verified" ? `<button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Withdraw</button>` : `<button class="btn-primary" disabled>🔒 KYC Required</button>`}</div>
+<div class="chart-container"><h3>📊 Revenue</h3><canvas id="revenueChart"></canvas></div>
+<div class="premium-card"><h3>📈 Top Products</h3>${topList.map(p=>`${p[0]}: ${p[1]} sold`).join('<br>') || 'No sales'}</div>
+${seller.kycStatus === "verified" ? `
+<div class="premium-card"><h3>➕ Add Product</h3>
+    <input type="text" id="prodName" placeholder="Product Name" class="input" required>
+    <input type="number" id="prodPrice" placeholder="Price (USD)" class="input" required>
+    <select id="prodCat" class="input" required><option>Electronics</option><option>Fashion</option><option>Home</option><option>Textile</option><option>Cosmetic</option></select>
+    <input type="number" id="prodStock" placeholder="Stock Quantity" class="input" required>
+    <div style="background:#f8fafc; padding:16px; border-radius:16px; margin-top:12px; border:1px solid #e2e8f0;">
+        <h4 style="margin-bottom:10px;">📦 Shipping Details (Required)</h4>
+        <div style="margin-bottom:12px;">
+            <label style="font-size:13px; font-weight:600;">Weight (kg) *</label>
+            <input type="number" id="prodWeight" placeholder="e.g., 2.5" class="input" required step="0.1" min="0.1">
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+            <div><label style="font-size:13px; font-weight:600;">Length (cm) *</label><input type="number" id="prodLength" placeholder="e.g., 30" class="input" required min="1"></div>
+            <div><label style="font-size:13px; font-weight:600;">Width (cm) *</label><input type="number" id="prodWidth" placeholder="e.g., 20" class="input" required min="1"></div>
+            <div><label style="font-size:13px; font-weight:600;">Height (cm) *</label><input type="number" id="prodHeight" placeholder="e.g., 10" class="input" required min="1"></div>
+        </div>
+        <p style="font-size:12px; color:#64748b; margin-top:8px;">⚠️ Accurate weight & size help calculate shipping rates correctly.</p>
+    </div>
+    <label style="margin-top:12px; display:block;">Main Image (upload)</label>
+    <input type="file" id="prodMainImg" accept="image/*" class="input" required>
+    <label>Additional Images (optional, max 4)</label>
+    <input type="file" id="prodImagesFiles" accept="image/*" multiple class="input">
+    <textarea id="prodDesc" placeholder="Description" class="input" rows="2"></textarea>
+    <button id="publishBtn" class="btn-primary">📢 Publish</button>
+</div>
+<div class="premium-card"><h3>📋 My Products (${myProducts.length})</h3><div id="myProductsList">${prodListHtml}</div></div>
+<div class="premium-card"><h3>📦 Orders</h3><div id="ordersList">${ordersHtml}</div></div>
+` : `<div class="premium-card"><h3>⚠️ KYC Pending</h3><p>Wait for admin verification</p></div>`}
+`;
+    document.getElementById('sellerDashboard').innerHTML = sellerDashboardHtml;
+    let ctx = document.getElementById('revenueChart')?.getContext('2d'); if(ctx){ if(sellerRevenueChart) sellerRevenueChart.destroy(); sellerRevenueChart = new Chart(ctx, { type: 'bar', data: { labels: chartLabels, datasets: [{ label: 'Revenue', data: chartData.map(v => parseFloat(convertPrice(v))), backgroundColor: '#3b82f6' }] } }); }
+    if(seller.kycStatus === "verified"){
+        document.getElementById('publishBtn')?.addEventListener('click', async () => {
+            const name = document.getElementById('prodName').value;
+            const price = parseFloat(document.getElementById('prodPrice').value);
+            const cat = document.getElementById('prodCat').value;
+            const stock = parseInt(document.getElementById('prodStock').value);
+            const desc = document.getElementById('prodDesc').value;
+            if (!name) { showToast("Product name required", true); return; }
+            if (!price || price <= 0) { showToast("Valid price required", true); return; }
+            if (!stock || stock <= 0) { showToast("Valid stock required", true); return; }
+            const mainFile = document.getElementById('prodMainImg').files[0];
+            if (!mainFile) { showToast("Main image required", true); return; }
+            const weight = parseFloat(document.getElementById('prodWeight').value);
+            const length = parseFloat(document.getElementById('prodLength').value);
+            const width = parseFloat(document.getElementById('prodWidth').value);
+            const height = parseFloat(document.getElementById('prodHeight').value);
+            if (!weight || weight <= 0) { showToast("Valid weight required", true); return; }
+            if (!length || length <= 0 || !width || width <= 0 || !height || height <= 0) {
+                showToast("Valid dimensions required (length, width, height)", true); 
+                return;
+            }
+            if (!currentSeller || !currentSeller.sellerId) { showToast("Please login as seller first", true); return; }
+            const seller = sellers.find(s => s.id === currentSeller.sellerId);
+            if (!seller || seller.kycStatus !== 'verified') { showToast("Your KYC is not verified. Please wait for admin approval.", true); return; }
+            showToast("Uploading image...", false);
+            try {
+                const mainUrl = await uploadCompressedImage(mainFile);
+                if (!mainUrl) { showToast("Image upload failed. Try again.", true); return; }
+                const additionalFiles = document.getElementById('prodImagesFiles').files;
+                const additionalUrls = [];
+                for (let f of additionalFiles) { if (additionalUrls.length >= 4) break; const url = await uploadCompressedImage(f); if (url) additionalUrls.push(url); }
+                const images = [mainUrl, ...additionalUrls];
+                const newProduct = {
+                    sellerId: seller.id,
+                    sellerName: seller.shopName || "GlobalBazaar",
+                    name: name,
+                    price: price,
+                    category: cat,
+                    mainImage: mainUrl,
+                    images: images,
+                    description: desc || "",
+                    sellerCountry: seller.country || "SA",
+                    rating: 0,
+                    stock: stock,
+                    weight: weight,
+                    size: { length: length, width: width, height: height },
+                    createdAt: new Date().toISOString()
+                };
+                await db.collection("products").add(newProduct);
+                showToast("✅ Product published successfully!", false);
+                addNotification(`Product "${name}" published`, 'info');
+                await sendTelegramMessage(`📦 New product: ${name} by ${seller.shopName}`);
+                document.getElementById('prodName').value = '';
+                document.getElementById('prodPrice').value = '';
+                document.getElementById('prodStock').value = '';
+                document.getElementById('prodMainImg').value = '';
+                document.getElementById('prodImagesFiles').value = '';
+                document.getElementById('prodDesc').value = '';
+                document.getElementById('prodWeight').value = '';
+                document.getElementById('prodLength').value = '';
+                document.getElementById('prodWidth').value = '';
+                document.getElementById('prodHeight').value = '';
+                renderSellerDashboard();
+                renderProducts();
+            } catch (error) {
+                console.error("Publish error:", error);
+                showToast("Error: " + error.message, true);
+            }
+        });
+        document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', async () => { let id = btn.dataset.id; await db.collection("products").doc(id).delete(); renderSellerDashboard(); renderProducts(); showToast("Product deleted", false); }));
+        document.querySelectorAll('.editProdBtn').forEach(btn => btn.addEventListener('click', () => { let prod = products.find(p => p.id == btn.dataset.id); if(prod){ document.getElementById('editProdId').value = prod.id; document.getElementById('editProdName').value = prod.name; document.getElementById('editProdPrice').value = prod.price; document.getElementById('editProdCat').value = prod.category; document.getElementById('editProdStock').value = prod.stock; document.getElementById('editProdDesc').value = prod.description || ''; let currImgHtml = prod.images.map(img => `<div><img src="${img}" width="50" style="border-radius:8px; margin:4px;"> <a href="${img}" target="_blank">View</a></div>`).join(''); document.getElementById('editCurrentImages').innerHTML = `<strong>Current Images:</strong>${currImgHtml}`; document.getElementById('editProductModal').style.display = 'block'; } }));
+        document.getElementById('updateProductBtn')?.addEventListener('click', async () => {
+            let pid = document.getElementById('editProdId').value;
+            let prodRef = db.collection("products").doc(pid);
+            let updates = { name: document.getElementById('editProdName').value, price: parseFloat(document.getElementById('editProdPrice').value), category: document.getElementById('editProdCat').value, stock: parseInt(document.getElementById('editProdStock').value), description: document.getElementById('editProdDesc').value };
+            let newMain = document.getElementById('editMainImg').files[0];
+            if(newMain){ let mainUrl = await uploadCompressedImage(newMain); if(mainUrl){ updates.mainImage = mainUrl; updates.images = [mainUrl, ...(updates.images || [])]; } }
+            let newExtra = document.getElementById('editExtraImgs').files;
+            if(newExtra.length > 0){ let extraUrls = []; for(let i=0;i<Math.min(newExtra.length,4);i++){ let url = await uploadCompressedImage(newExtra[i]); if(url) extraUrls.push(url); } if(extraUrls.length) updates.images = [updates.mainImage || (await prodRef.get()).data().mainImage, ...extraUrls]; }
+            await prodRef.update(updates);
+            renderSellerDashboard(); renderProducts(); showToast("Product updated", false); document.getElementById('editProductModal').style.display = 'none';
+        });
+        document.querySelectorAll('.shipBtn').forEach(btn => btn.addEventListener('click', () => { let track = prompt("Enter tracking number:"); if(track) markOrderShipped(parseFloat(btn.dataset.id), track); }));
+        document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
+    }
+}
+function renderBuyerOrders(){
+    const user = auth.currentUser;
+    if (!user) return;
+    let myOrders = orders.filter(o => o.buyerEmail === user.email);
+    document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty}<br>${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: ${o.status}<br>${renderTrackingMap(o)}${o.trackingInfo ? `<br>📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}` : ''}<br>${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981;">✅ Received</button>` : ''}${o.status === "Processing" ? `<button class="cancelOrderBtn" data-id="${o.id}" style="background:#dc2626;">❌ Cancel Order</button>` : ''}</div>`).join('');
+    document.querySelectorAll('.confirmReceivedBtn').forEach(btn => btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id))));
+    document.querySelectorAll('.cancelOrderBtn').forEach(btn => btn.addEventListener('click', () => cancelOrder(parseFloat(btn.dataset.id))));
+}
+function renderBuyerWishlist(){ let w = products.filter(p => wishlist.includes(p.id)); document.getElementById('buyerWishlistList').innerHTML = w.map(p => `<div class="order-card"><strong>${p.name}</strong><br>Price: ${getCurrencySymbol()}${convertPrice(p.price)}<br><button class="removeWishlistBtn" data-id="${p.id}" style="background:#dc2626;">Remove</button></div>`).join(''); document.querySelectorAll('.removeWishlistBtn').forEach(btn => btn.addEventListener('click', () => { wishlist = wishlist.filter(id => id != btn.dataset.id); saveAllLocal(); renderProducts(); renderBuyerWishlist(); showToast("Removed", false); })); }
+
+document.getElementById('refreshAdminBtn')?.addEventListener('click', loadAdminData);
+window.viewSellerDocument = function(docImage, docType, sellerName){ if(docImage && docImage.startsWith('http')){ window.open(docImage, '_blank'); } else { alert(`No image available for ${sellerName}`); } };
+
+// CHANGE 3: KYC Document - Real File Type Check + Preview
+function validateKYCFileType(file) {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+        showToast("❌ Only JPG, PNG, and PDF files are allowed!", true);
+        return false;
+    }
+    return true;
+}
+
+document.getElementById('sellerDocImage')?.addEventListener('change', function(e) {
+    const file = this.files[0];
+    const preview = document.getElementById('kycPreview');
+    const img = document.getElementById('kycPreviewImg');
+    
+    if (file) {
+        if (!validateKYCFileType(file)) {
+            this.value = '';
+            preview.style.display = 'none';
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            preview.style.display = 'block';
+            img.style.display = 'block';
+            img.src = event.target.result;
+            showToast("✅ Document uploaded! Auto-compressing...", false);
+        };
+        reader.readAsDataURL(file);
+    } else {
+        preview.style.display = 'none';
+        img.style.display = 'none';
+    }
+});
+
+function showPrivacy() {
+    document.getElementById('termsModal').style.display = 'block';
+    document.getElementById('termsModal').querySelector('.modal-card').innerHTML = `
+        <span class="close-modal" onclick="closeTermsModal()">&times;</span>
+        <h2>Privacy Policy</h2>
+        <p><strong>Last Updated:</strong> 16 June 2026</p>
+        <h3>1. Information We Collect</h3>
+        <ul style="text-align:left;"><li><strong>Personal Information:</strong> Name, email, phone, shipping address</li><li><strong>Payment Information:</strong> Processed securely by payment partners</li><li><strong>Device Information:</strong> IP address, browser type</li></ul>
+        <h3>2. How We Use Your Information</h3>
+        <ul style="text-align:left;"><li>Process orders and deliver products</li><li>Communicate with you about orders</li><li>Improve our website and user experience</li><li>Prevent fraud and ensure security</li></ul>
+        <h3>3. Data Sharing</h3>
+        <ul style="text-align:left;"><li><strong>Sellers:</strong> To fulfill your orders</li><li><strong>Payment Partners:</strong> To process payments</li><li><strong>Shipping Partners:</strong> To deliver orders</li></ul>
+        <h3>4. Data Security</h3>
+        <p>We use industry-standard security measures. All payments are encrypted via SSL.</p>
+        <h3>5. Contact Us</h3>
+        <p>Email: support@globalbazaar.com</p>
+        <button class="btn-primary" onclick="closeTermsModal()">Close</button>
+    `;
+}
+
+function showTerms() {
+    document.getElementById('termsModal').style.display = 'block';
+    document.getElementById('termsModal').querySelector('.modal-card').innerHTML = `
+        <span class="close-modal" onclick="closeTermsModal()">&times;</span>
+        <h2>Terms & Conditions</h2>
+        <p><strong>Last Updated:</strong> 16 June 2026</p>
+        <h3>1. Acceptance of Terms</h3>
+        <p>By using GlobalBazaar, you agree to these Terms & Conditions.</p>
+        <h3>2. User Accounts</h3>
+        <ul style="text-align:left;"><li>You must be <strong>18 years or older</strong></li><li>You are responsible for your account security</li></ul>
+        <h3>3. ⭐ Auto-Order Confirmation (2 Days Rule)</h3>
+        <ul style="text-align:left;"><li><strong>Confirm within 2 days (48 hours)</strong> of receiving the product</li><li><strong>If not confirmed:</strong> Order will be <strong>automatically marked as delivered</strong></li><li><strong>Disputes:</strong> Must be filed within 2 days of delivery</li></ul>
+        <h3>4. Seller Terms</h3>
+        <ul style="text-align:left;"><li>Sellers must provide accurate product descriptions</li><li>Commission: <strong>10%</strong> of each sale</li><li>KYC verification required for withdrawals</li></ul>
+        <h3>5. Refund and Dispute</h3>
+        <ul style="text-align:left;"><li>If not received within <strong>7 days</strong>, request a refund</li><li>Disputes must be raised within <strong>2 days</strong> of delivery</li></ul>
+        <h3>6. Contact Us</h3>
+        <p>Email: support@globalbazaar.com</p>
+        <button class="btn-primary" onclick="closeTermsModal()">Close</button>
+    `;
+}
 
 function showSection(section){ document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.getElementById(section+"Section").classList.add('active'); }
 document.getElementById('drawerBuyer')?.addEventListener('click', () => { showMyOrdersPage(); closeDrawer(); });
@@ -1966,192 +2172,6 @@ document.getElementById('loginModal')?.addEventListener('click', (e) => {
         document.getElementById('loginModal').style.display = 'none';
     }
 });
-
-// Placeholder functions
-function renderSellerDashboard() {
-    if (!currentSeller) return;
-    const seller = sellers.find(s => s.id === currentSeller.sellerId);
-    if (!seller) return;
-    const sellerProducts = products.filter(p => p.sellerId === currentSeller.sellerId);
-    const sellerOrders = orders.filter(o => o.sellerId === currentSeller.sellerId);
-    const totalEarnings = seller.earnings || 0;
-    let html = `
-        <div class="premium-card">
-            <div class="flex-between">
-                <h2>🏪 ${seller.shopName}</h2>
-                <span class="role-badge" style="background:#10b981;color:white;">${seller.kycStatus}</span>
-            </div>
-            <p>👤 ${seller.fullName}</p>
-            <p>📧 ${seller.email}</p>
-            <p>💰 Earnings: ${getCurrencySymbol()}${convertPrice(totalEarnings)}</p>
-            <p>📦 Total Sales: ${seller.totalSales || 0}</p>
-            <button onclick="requestWithdrawal('${seller.id}')" class="btn-primary" style="margin-top:10px;">💸 Request Withdrawal</button>
-            <button onclick="document.getElementById('editProductModal').style.display='block'" class="btn-secondary">➕ Add Product</button>
-        </div>
-        <div class="premium-card">
-            <h3>📦 Your Products (${sellerProducts.length})</h3>
-            ${sellerProducts.length === 0 ? '<p>No products yet. Add your first product!</p>' : 
-            sellerProducts.map(p => `
-                <div class="order-card">
-                    <strong>${p.name}</strong> - ${getCurrencySymbol()}${convertPrice(p.publicPrice || p.price || 0)}
-                    <br>Stock: ${p.stock}
-                    <br><button onclick="editProduct('${p.id}')" style="background:#3b82f6;color:white;border:none;padding:4px 12px;border-radius:20px;">✏️ Edit</button>
-                    <button onclick="deleteProduct('${p.id}')" style="background:#dc2626;color:white;border:none;padding:4px 12px;border-radius:20px;">🗑️ Delete</button>
-                </div>
-            `).join('')}
-        </div>
-        <div class="premium-card">
-            <h3>📋 Your Orders (${sellerOrders.length})</h3>
-            ${sellerOrders.length === 0 ? '<p>No orders yet.</p>' :
-            sellerOrders.map(o => `
-                <div class="order-card">
-                    <strong>${o.productName}</strong> x${o.qty}
-                    <br>💰 ${getCurrencySymbol()}${convertPrice(o.amount)}
-                    <br>Status: ${o.status}
-                    ${o.status === 'Processing' ? `<button onclick="markOrderShipped('${o.id}','GB${Date.now()}')" style="background:#3b82f6;color:white;border:none;padding:4px 12px;border-radius:20px;">🚚 Mark Shipped</button>` : ''}
-                </div>
-            `).join('')}
-        </div>
-    `;
-    document.getElementById('sellerDashboard').innerHTML = html;
-}
-
-function editProduct(id) {
-    const p = products.find(x => x.id == id);
-    if (!p) return;
-    document.getElementById('editProdId').value = p.id;
-    document.getElementById('editProdName').value = p.name;
-    document.getElementById('editProdPrice').value = p.basePrice || p.price || 0;
-    document.getElementById('editProdCat').value = p.category || 'Electronics';
-    document.getElementById('editProdStock').value = p.stock || 0;
-    document.getElementById('editProdDesc').value = p.description || '';
-    document.getElementById('editProductModal').style.display = 'block';
-}
-
-function deleteProduct(id) {
-    if (confirm("Delete this product?")) {
-        db.collection('products').doc(id).delete();
-        showToast("Product deleted", false);
-    }
-}
-
-function renderBuyerOrders() {
-    const user = auth.currentUser;
-    if (!user) return;
-    const myOrders = orders.filter(o => o.buyerEmail === user.email);
-    if (myOrders.length === 0) {
-        document.getElementById('buyerOrdersList').innerHTML = '<div class="premium-card"><p>No orders yet. Start shopping!</p></div>';
-    } else {
-        let ordersHtml = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty}<br>${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: ${o.status}<br>${renderTrackingMap(o)}${o.trackingInfo ? `<br>📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}` : ''}<br>${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981;">✅ Received</button>` : ''}${o.status === "Processing" ? `<button class="cancelOrderBtn" data-id="${o.id}" style="background:#dc2626;">❌ Cancel Order</button>` : ''}</div>`).join('');
-        document.getElementById('buyerOrdersList').innerHTML = ordersHtml;
-        document.querySelectorAll('.confirmReceivedBtn').forEach(btn => btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id))));
-        document.querySelectorAll('.cancelOrderBtn').forEach(btn => btn.addEventListener('click', () => cancelOrder(parseFloat(btn.dataset.id))));
-    }
-}
-
-function renderBuyerWishlist() {
-    if (wishlist.length === 0) {
-        document.getElementById('buyerWishlistList').innerHTML = '<div class="premium-card"><p>Your wishlist is empty.</p></div>';
-        return;
-    }
-    let html = wishlist.map(id => {
-        const p = products.find(x => x.id == id);
-        if (!p) return '';
-        return `<div class="order-card">${p.name} - ${getCurrencySymbol()}${convertPrice(p.publicPrice || p.price || 0)}<button onclick="toggleWish('${p.id}')" style="background:#dc2626;color:white;border:none;padding:4px 12px;border-radius:20px;margin-left:10px;">Remove</button></div>`;
-    }).join('');
-    document.getElementById('buyerWishlistList').innerHTML = html;
-}
-
-function loadSavedAddresses() {
-    // Already handled in checkout
-}
-
-// Update product save to include price calculation
-document.getElementById('updateProductBtn')?.addEventListener('click', async () => {
-    const id = document.getElementById('editProdId').value;
-    const name = document.getElementById('editProdName').value;
-    const basePrice = parseFloat(document.getElementById('editProdPrice').value);
-    const category = document.getElementById('editProdCat').value;
-    const stock = parseInt(document.getElementById('editProdStock').value);
-    const description = document.getElementById('editProdDesc').value;
-    
-    if (!name || !basePrice || !category || stock < 0) {
-        showToast("Please fill all fields correctly", true);
-        return;
-    }
-    
-    const calc = calculateProductPrice(basePrice);
-    
-    const productData = {
-        name: name,
-        basePrice: basePrice,
-        price: calc.publicPrice,
-        publicPrice: calc.publicPrice,
-        gatewayFee: calc.gatewayFee,
-        handlingFee: calc.handlingFee,
-        commission: calc.commission,
-        sellerEarning: calc.sellerEarning,
-        platformRevenue: calc.platformRevenue,
-        category: category,
-        stock: stock,
-        description: description,
-        sellerId: currentSeller.sellerId,
-        sellerName: currentSeller.shopName,
-        sellerCountry: currentSeller.country || 'SA',
-        updatedAt: new Date().toISOString()
-    };
-    
-    try {
-        if (id) {
-            await db.collection('products').doc(id).update(productData);
-            showToast("✅ Product updated!", false);
-        } else {
-            productData.mainImage = "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400";
-            productData.images = ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400"];
-            productData.weight = 0.5;
-            productData.size = { length: 10, width: 10, height: 10 };
-            productData.createdAt = new Date().toISOString();
-            await db.collection('products').add(productData);
-            showToast("✅ Product added!", false);
-        }
-        document.getElementById('editProductModal').style.display = 'none';
-        renderSellerDashboard();
-    } catch (error) {
-        console.error("Save product error:", error);
-        showToast("Failed to save product: " + error.message, true);
-    }
-});
-
-// Live price preview on edit product
-document.getElementById('editProdPrice')?.addEventListener('input', function() {
-    const basePrice = parseFloat(this.value) || 0;
-    if (basePrice > 0) {
-        const calc = calculateProductPrice(basePrice);
-        const preview = document.getElementById('editPricePreview');
-        if (preview) {
-            preview.innerHTML = `
-                <div style="background:#f1f5f9;padding:12px;border-radius:12px;margin:10px 0;">
-                    <div>Base: ${getCurrencySymbol()}${convertPrice(basePrice)}</div>
-                    <div>+ Gateway Fee: ${getCurrencySymbol()}${convertPrice(calc.gatewayFee)}</div>
-                    <div>+ Handling Fee: ${getCurrencySymbol()}${convertPrice(calc.handlingFee)}</div>
-                    <div style="font-weight:bold;color:#1e3a8a;">= Public Price: ${getCurrencySymbol()}${convertPrice(calc.publicPrice)}</div>
-                </div>
-            `;
-        }
-    }
-});
-
-// Add price preview div to edit modal
-const editModal = document.getElementById('editProductModal');
-if (editModal) {
-    const priceInput = document.getElementById('editProdPrice');
-    const previewDiv = document.createElement('div');
-    previewDiv.id = 'editPricePreview';
-    previewDiv.style.display = 'block';
-    if (priceInput) {
-        priceInput.parentNode.insertBefore(previewDiv, priceInput.nextSibling);
-    }
-}
 
 renderCats(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge(); updateAdminMenuBadges();
 document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | Easyship Shipping Integrated | Mode: " + EASYSHIP_MODE;
