@@ -268,6 +268,11 @@ let lastShippingFetch = 0;
 let verificationCheckInterval = null;
 
 // ============================================================
+// INVENTORY CONFIRMATION VARIABLE
+// ============================================================
+let pendingConfirmationProduct = null;
+
+// ============================================================
 // TELEGRAM NOTIFICATIONS
 // ============================================================
 const TELEGRAM_BOT_TOKEN = "8328824652:AAE-b4o6DaFDa9WPtZfrOfM7SYGU9gUa9HQ";
@@ -1098,7 +1103,7 @@ function loadAdminData() {
 }
 
 // ============================================================
-// RENDER PRODUCTS
+// RENDER PRODUCTS - FIX: Duplicate Rendering
 // ============================================================
 let currentCategory = "All";
 
@@ -1135,10 +1140,14 @@ function renderCats(){
 }
 
 function renderProducts(){
+    // 🔥 FIX 1: Container ko pehle empty karo (Duplicate Rendering Fix)
+    const grid = document.getElementById('productsGrid');
+    grid.innerHTML = '';
+    
     let search = document.getElementById('searchInput')?.value.toLowerCase() || "";
     let filtered = products.filter(p => (currentCategory === "All" || p.category === currentCategory) && p.name.toLowerCase().includes(search) && p.stock > 0);
     if (filtered.length === 0) {
-        document.getElementById('productsGrid').innerHTML = '<div style="text-align:center;padding:40px;grid-column:1/-1;">No products found</div>';
+        grid.innerHTML = '<div style="text-align:center;padding:40px;grid-column:1/-1;">No products found</div>';
         return;
     }
     const firstTwo = filtered.slice(0, 2);
@@ -1156,7 +1165,7 @@ function renderProducts(){
         </div>
     `;
     html += rest.map(p => renderProductCard(p)).join('');
-    document.getElementById('productsGrid').innerHTML = html;
+    grid.innerHTML = html;
     document.querySelectorAll('.addCartBtn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); addToCart(btn.dataset.id); }));
     document.querySelectorAll('.product-card').forEach(card => card.addEventListener('click', () => openProduct(card.dataset.id)));
     renderBuyerOrders(); renderBuyerWishlist();
@@ -1336,7 +1345,7 @@ document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async f
 function loadSavedCards(){ let userCards = savedCards.filter(c => c.userEmail === "guest@globalbazaar.com"); if(userCards.length > 0){ document.getElementById('savedCardsSection').style.display = 'block'; document.getElementById('savedCardsList').innerHTML = userCards.map((card,idx) => `<div class="flex-between"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}">Use</button></div>`).join(''); document.querySelectorAll('.useSavedCardBtn').forEach(btn => btn.addEventListener('click', () => { let card = userCards[parseInt(btn.dataset.idx)]; document.getElementById('cardNumber').value = card.cardNumber; document.getElementById('cardHolderName').value = card.cardHolderName; document.getElementById('expiryDate').value = card.expiryDate; document.getElementById('cvv').value = ''; showToast("Card loaded", false); })); } }
 
 // ============================================================
-// PAYMENT - FIX: Double-Click Protection
+// PAYMENT - FIX: Double-Click Protection + Inventory Confirmation
 // ============================================================
 document.getElementById('payNowBtn')?.addEventListener('click', async function() {
     const btn = this;
@@ -1391,7 +1400,31 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             };
             orders.push(newOrder);
             platformEarnings += final.commission * item.qty + final.gateway * item.qty + HANDLING_FEE * item.qty;
-            if(product){ product.stock -= item.qty; if(product.stock === 0){ addNotification(`Product ${product.name} is now SOLD OUT!`, 'info'); sendTelegramMessage(`⚠️ Product ${product.name} out of stock.`); } }
+            if(product){ 
+                product.stock -= item.qty; 
+                
+                // 🔥 FIX 2: Inventory Confirmation - Check if stock becomes 0
+                if(product.stock <= 0){
+                    product.status = 'pending_confirmation';
+                    await db.collection('products').doc(product.id).update({
+                        stock: 0,
+                        status: 'pending_confirmation',
+                        soldOutAt: new Date().toISOString()
+                    });
+                    
+                    // Show confirmation modal to seller if logged in
+                    if (currentSeller && currentSeller.sellerId === product.sellerId) {
+                        showInventoryConfirmModal(product.id, product.name);
+                    }
+                    
+                    addNotification(`📢 ${product.name} is now SOLD OUT! Waiting for seller confirmation.`, 'info');
+                    sendTelegramMessage(`📢 ${product.name} is SOLD OUT! Waiting for seller confirmation.`);
+                } else {
+                    await db.collection('products').doc(product.id).update({
+                        stock: product.stock
+                    });
+                }
+            }
         }
         saveAllLocal();
         try {
@@ -1916,6 +1949,58 @@ function showTerms() {
         <button class="btn-primary" onclick="closeTermsModal()">Close</button>
     `;
 }
+
+// ============================================================
+// INVENTORY CONFIRMATION MODAL FUNCTIONS
+// ============================================================
+function showInventoryConfirmModal(productId, productName) {
+    pendingConfirmationProduct = productId;
+    document.getElementById('confirmProductName').textContent = productName;
+    document.getElementById('inventoryConfirmModal').style.display = 'flex';
+}
+
+function hideInventoryConfirmModal() {
+    document.getElementById('inventoryConfirmModal').style.display = 'none';
+    pendingConfirmationProduct = null;
+}
+
+// YES Button - Restock product
+document.getElementById('confirmYesBtn')?.addEventListener('click', async function() {
+    if (!pendingConfirmationProduct) return;
+    
+    try {
+        await db.collection('products').doc(pendingConfirmationProduct).update({
+            status: 'available',
+            stock: 1,
+            updatedAt: new Date().toISOString()
+        });
+        showToast('✅ Product restocked successfully!', false);
+        addNotification('Product restocked by seller', 'info');
+        hideInventoryConfirmModal();
+        renderProducts();
+    } catch (error) {
+        console.error('Restock error:', error);
+        showToast('Failed to restock: ' + error.message, true);
+    }
+});
+
+// NO Button - Delete product
+document.getElementById('confirmNoBtn')?.addEventListener('click', async function() {
+    if (!pendingConfirmationProduct) return;
+    
+    if (confirm('⚠️ Are you sure you want to permanently delete this product?')) {
+        try {
+            await db.collection('products').doc(pendingConfirmationProduct).delete();
+            showToast('🗑️ Product deleted successfully!', false);
+            addNotification('Product deleted by seller', 'info');
+            hideInventoryConfirmModal();
+            renderProducts();
+        } catch (error) {
+            console.error('Delete error:', error);
+            showToast('Failed to delete: ' + error.message, true);
+        }
+    }
+});
 
 function showSection(section){ document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.getElementById(section+"Section").classList.add('active'); }
 document.getElementById('drawerBuyer')?.addEventListener('click', () => { showMyOrdersPage(); closeDrawer(); });
