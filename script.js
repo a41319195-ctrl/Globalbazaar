@@ -212,12 +212,79 @@ async function uploadCompressedImage(file, type = 'image') {
 }
 
 // ============================================================
-// DEFAULT PRODUCTS - SIRF 3 PRODUCTS
+// DEFAULT PRODUCTS - 5 CATEGORIES (TESTING ONLY)
 // ============================================================
 const defaultProducts = [
-    { sellerId: 0, sellerName: "GlobalBazaar", name: "Wireless Headphones", price: 89.99, category: "Electronics", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400"], description: "Premium wireless headphones with noise cancellation", stock: 10, weight: 0.5, size: { length: 15, width: 10, height: 5 } },
-    { sellerId: 0, sellerName: "GlobalBazaar", name: "Cotton T-Shirt", price: 24.99, category: "Textile", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", images: ["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400"], description: "100% combed cotton t-shirt", stock: 25, weight: 0.3, size: { length: 25, width: 20, height: 5 } },
-    { sellerId: 0, sellerName: "GlobalBazaar", name: "Smart Watch", price: 49.99, category: "Electronics", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", images: ["https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400"], description: "Latest smart watch with health tracking", stock: 8, weight: 0.4, size: { length: 12, width: 8, height: 3 } }
+    { 
+        sellerId: 0, 
+        sellerName: "GlobalBazaar", 
+        name: "Matte Lipstick Set", 
+        price: 29.99, 
+        category: "Cosmetics", 
+        sellerCountry: "SA", 
+        mainImage: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400", 
+        images: ["https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400", "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=400"], 
+        description: "Long-lasting matte lipstick set with 6 vibrant colors", 
+        stock: 10, 
+        weight: 0.2, 
+        size: { length: 10, width: 8, height: 4 } 
+    },
+    { 
+        sellerId: 0, 
+        sellerName: "GlobalBazaar", 
+        name: "Wireless Headphones", 
+        price: 89.99, 
+        category: "Electronics", 
+        sellerCountry: "SA", 
+        mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", 
+        images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400"], 
+        description: "Premium wireless headphones with noise cancellation", 
+        stock: 10, 
+        weight: 0.5, 
+        size: { length: 15, width: 10, height: 5 } 
+    },
+    { 
+        sellerId: 0, 
+        sellerName: "GlobalBazaar", 
+        name: "Premium Cotton T-Shirt", 
+        price: 24.99, 
+        category: "Fashion", 
+        sellerCountry: "SA", 
+        mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", 
+        images: ["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400"], 
+        description: "100% combed cotton premium t-shirt", 
+        stock: 10, 
+        weight: 0.3, 
+        size: { length: 25, width: 20, height: 5 } 
+    },
+    { 
+        sellerId: 0, 
+        sellerName: "GlobalBazaar", 
+        name: "Silk Scarf", 
+        price: 19.99, 
+        category: "Textile", 
+        sellerCountry: "SA", 
+        mainImage: "https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=400", 
+        images: ["https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=400", "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400"], 
+        description: "Luxury silk scarf with elegant design", 
+        stock: 10, 
+        weight: 0.15, 
+        size: { length: 20, width: 20, height: 2 } 
+    },
+    { 
+        sellerId: 0, 
+        sellerName: "GlobalBazaar", 
+        name: "Vitamin C Serum", 
+        price: 34.99, 
+        category: "Beauty", 
+        sellerCountry: "SA", 
+        mainImage: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=400", 
+        images: ["https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=400", "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=400"], 
+        description: "20% Vitamin C brightening serum with hyaluronic acid", 
+        stock: 10, 
+        weight: 0.1, 
+        size: { length: 8, width: 4, height: 4 } 
+    }
 ];
 
 async function seedProductsIfEmpty() {
@@ -238,7 +305,7 @@ async function seedProductsIfEmpty() {
                     createdAt: new Date().toISOString()
                 });
             }
-            console.log("Seeded 3 default products");
+            console.log("Seeded 5 default products");
         }
     } catch (e) { console.error('Seed error:', e); }
 }
@@ -2063,4 +2130,4 @@ document.getElementById('loginModal')?.addEventListener('click', (e) => {
 });
 
 renderCats(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge(); updateAdminMenuBadges();
-document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 3 Products | Easyship Shipping | Mode: " + EASYSHIP_MODE;
+document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 5 Products | Easyship Shipping | Mode: " + EASYSHIP_MODE;
