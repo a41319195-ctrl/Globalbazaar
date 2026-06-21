@@ -356,7 +356,6 @@ function calculateDynamicPrice(basePrice, shippingCost = 0) {
         maintenanceFee: maintenanceFee,
         shippingCost: shippingCost,
         grandTotal: grandTotal,
-        // Breakdown for display
         breakdown: {
             'Product Price': basePrice,
             '+ Gateway Fee (3%)': gatewayFee,
@@ -367,7 +366,6 @@ function calculateDynamicPrice(basePrice, shippingCost = 0) {
     };
 }
 
-// Display price without shipping
 function calculateDisplayPrice(basePrice) {
     let gatewayFee = basePrice * GATEWAY_PERCENT;
     let total = basePrice + gatewayFee + MAINTENANCE_FEE;
@@ -379,7 +377,6 @@ function calculateDisplayPrice(basePrice) {
     };
 }
 
-// Final price with shipping and commission
 function calculateFinalPrice(basePrice, sellerCountry, buyerCountry, shippingCost = 0) {
     let gatewayFee = basePrice * GATEWAY_PERCENT;
     let commission = basePrice * PLATFORM_COMMISSION;
@@ -557,7 +554,7 @@ document.getElementById('currencySelect').value=selectedCurrency;
 document.getElementById('currencySelect').addEventListener('change',(e)=>{ selectedCurrency=e.target.value; localStorage.setItem('selectedCurrency',selectedCurrency); renderProducts(); updateCartUI(); renderCartPage(); if(currentSeller) renderSellerDashboard(); showToast(`Currency: ${selectedCurrency}`,false); });
 
 // ============================================================
-// EASYSHIP DYNAMIC SHIPPING - FIX 2: NO FIXED $10
+// FIX 5: SHIPPING FALLBACK - NaN Handle, Payment Button Disabled
 // ============================================================
 async function fetchAndDisplayShippingRates() {
     if (Date.now() - lastShippingFetch < 3000) return;
@@ -565,27 +562,40 @@ async function fetchAndDisplayShippingRates() {
     
     const shippingContainer = document.getElementById('shippingCostContainer');
     const shippingDisplay = document.getElementById('shippingCostDisplay');
+    const payBtn = document.getElementById('payNowBtn');
+    
     shippingContainer.style.display = 'flex';
     shippingDisplay.textContent = 'Calculating...';
     shippingDisplay.className = 'cost shipping-loading';
     
+    if (payBtn) {
+        payBtn.disabled = true;
+        payBtn.textContent = '⏳ Calculating Shipping...';
+    }
+    
     try {
         const firstCartItem = cart[0];
         if (!firstCartItem) { 
-            shippingDisplay.textContent = 'No items in cart'; 
-            return; 
+            shippingDisplay.textContent = 'No items in cart';
+            shippingDisplay.className = 'cost error';
+            if (payBtn) { payBtn.disabled = true; payBtn.textContent = '⏳ Waiting for items...'; }
+            return;
         }
         
         const product = products.find(p => p.id === firstCartItem.id);
         if (!product) { 
-            shippingDisplay.textContent = 'Product not found'; 
-            return; 
+            shippingDisplay.textContent = 'Product not found';
+            shippingDisplay.className = 'cost error';
+            if (payBtn) { payBtn.disabled = true; payBtn.textContent = '⏳ Product not found'; }
+            return;
         }
         
         const seller = sellers.find(s => s.id === product.sellerId);
         if (!seller) { 
-            shippingDisplay.textContent = 'Seller info missing'; 
-            return; 
+            shippingDisplay.textContent = 'Seller info missing';
+            shippingDisplay.className = 'cost error';
+            if (payBtn) { payBtn.disabled = true; payBtn.textContent = '⏳ Seller info missing'; }
+            return;
         }
         
         const buyerAddress = {
@@ -598,6 +608,8 @@ async function fetchAndDisplayShippingRates() {
         
         if (!buyerAddress.country || buyerAddress.country === '') {
             shippingDisplay.textContent = 'Select country first';
+            shippingDisplay.className = 'cost error';
+            if (payBtn) { payBtn.disabled = true; payBtn.textContent = '⏳ Select country'; }
             return;
         }
         
@@ -616,34 +628,55 @@ async function fetchAndDisplayShippingRates() {
             height: product.size?.height || 10
         };
         
-        // FIX 2: ONLY API CALL - NO FIXED $10
         const rates = await getEasyshipRates(sellerAddress, buyerAddress, parcelDetails);
         
         if (rates && rates.length > 0) {
             const cheapest = rates.reduce((a, b) => a.total_charge < b.total_charge ? a : b);
             currentShippingCost = cheapest.total_charge || 0;
+            
+            if (isNaN(currentShippingCost) || currentShippingCost < 0) {
+                currentShippingCost = 0;
+                shippingDisplay.textContent = 'Shipping Quote Pending';
+                shippingDisplay.className = 'cost pending';
+                showToast('⚠️ Shipping quote pending. Please try again.', true);
+                if (payBtn) { payBtn.disabled = true; payBtn.textContent = '⏳ Shipping Pending'; }
+                return;
+            }
+            
             shippingDisplay.textContent = `${getCurrencySymbol()}${convertPrice(currentShippingCost)}`;
             shippingDisplay.className = 'cost';
             sessionStorage.setItem('selected_rate_id', cheapest.id);
             sessionStorage.setItem('shipping_cost', currentShippingCost);
             sessionStorage.setItem('shipping_rates', JSON.stringify(rates));
             if (cheapest.carrier_name) shippingDisplay.title = `Carrier: ${cheapest.carrier_name}`;
+            
+            if (payBtn) {
+                payBtn.disabled = false;
+                payBtn.textContent = 'Pay with Card (Dummy)';
+            }
             showToast(`Shipping: ${getCurrencySymbol()}${convertPrice(currentShippingCost)}`, false);
         } else {
-            // FIX 2: NO FIXED $10 - Show error if no rates
             currentShippingCost = 0;
-            shippingDisplay.textContent = 'No rates available';
-            shippingDisplay.className = 'cost error';
+            shippingDisplay.textContent = 'Shipping Quote Pending';
+            shippingDisplay.className = 'cost pending';
             sessionStorage.setItem('shipping_cost', 0);
-            showToast('⚠️ No shipping rates available for this address', true);
+            showToast('⚠️ Shipping quote pending. Please try again.', true);
+            if (payBtn) {
+                payBtn.disabled = true;
+                payBtn.textContent = '⏳ Shipping Pending';
+            }
         }
     } catch (error) {
         console.error('Shipping fetch error:', error);
         currentShippingCost = 0;
-        shippingDisplay.textContent = 'Error fetching rates';
-        shippingDisplay.className = 'cost error';
+        shippingDisplay.textContent = 'Shipping Quote Pending';
+        shippingDisplay.className = 'cost pending';
         sessionStorage.setItem('shipping_cost', 0);
-        showToast('Could not fetch shipping rates', true);
+        showToast('⚠️ Could not fetch shipping rates', true);
+        if (payBtn) {
+            payBtn.disabled = true;
+            payBtn.textContent = '⏳ Shipping Pending';
+        }
     }
 }
 
@@ -1199,10 +1232,8 @@ function loadAdminData() {
 // ============================================================
 let currentCategory = "All";
 
-// FIX 1: Display price with dynamic pricing (without shipping)
 function renderProductCard(p) {
     const seller = sellers.find(s => s.id === p.sellerId) || { shopName: "GlobalBazaar", country: "SA" };
-    // FIX 1: Use dynamic display price
     const displayPrice = calculateDisplayPrice(p.price);
     const stockBadge = p.stock < 5 ? `<div class="stock-badge">Only ${p.stock} left</div>` : '';
     const soldOutBadge = p.stock <= 0 ? `<div class="soldout-badge">SOLD OUT</div>` : '';
@@ -1280,7 +1311,6 @@ function openProduct(id){
     let p = products.find(x => x.id == id); if(!p) return;
     currentProduct = p;
     let seller = sellers.find(s => s.id == p.sellerId) || { shopName: "GlobalBazaar", country: "SA" };
-    // FIX 1: Display price breakdown without shipping
     const displayPrice = calculateDisplayPrice(p.price);
     document.getElementById('modalMainImg').src = p.mainImage;
     document.getElementById('modalTitle').innerText = p.name;
@@ -1437,7 +1467,7 @@ document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async f
 function loadSavedCards(){ let userCards = savedCards.filter(c => c.userEmail === "guest@globalbazaar.com"); if(userCards.length > 0){ document.getElementById('savedCardsSection').style.display = 'block'; document.getElementById('savedCardsList').innerHTML = userCards.map((card,idx) => `<div class="flex-between"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}">Use</button></div>`).join(''); document.querySelectorAll('.useSavedCardBtn').forEach(btn => btn.addEventListener('click', () => { let card = userCards[parseInt(btn.dataset.idx)]; document.getElementById('cardNumber').value = card.cardNumber; document.getElementById('cardHolderName').value = card.cardHolderName; document.getElementById('expiryDate').value = card.expiryDate; document.getElementById('cvv').value = ''; showToast("Card loaded", false); })); } }
 
 // ============================================================
-// PAYMENT - FIX 3: Dynamic Order Structure
+// PAYMENT
 // ============================================================
 document.getElementById('payNowBtn')?.addEventListener('click', async function() {
     const btn = this;
@@ -1456,11 +1486,9 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             saveAllLocal();
         }
         
-        // FIX 2: Use dynamic shipping (no fixed $10)
         const shippingCost = parseFloat(sessionStorage.getItem('shipping_cost')) || 0;
         let totalUSD = 0;
         
-        // Calculate totals with dynamic pricing
         for(let item of cart){
             let seller = sellers.find(s => s.id == item.sellerId);
             let final = calculateFinalPrice(item.price, seller?.country || "SA", buyerCountry, shippingCost / cart.length);
@@ -1476,7 +1504,6 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             let product = products.find(p => p.id == item.id);
             let priceCalc = calculateDynamicPrice(item.price, shippingCost / cart.length);
             
-            // FIX 3: Store complete productDetails in order
             let newOrder = { 
                 id: Date.now()+Math.random(), 
                 trackingNumber: tracking, 
@@ -1485,7 +1512,6 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                 buyerEmail: currentDelivery.email, 
                 buyerName: currentDelivery.fullName,
                 
-                // FIX 3: Complete productDetails object
                 productDetails: {
                     id: item.id,
                     name: item.name,
@@ -1504,7 +1530,6 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                 status: "Processing", 
                 qty: item.qty,
                 
-                // FIX 3: Dynamic price breakdown
                 priceBreakdown: {
                     basePrice: item.price,
                     gatewayFee: priceCalc.gatewayFee,
@@ -1523,7 +1548,6 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             orders.push(newOrder);
             platformEarnings += (item.price * PLATFORM_COMMISSION) + priceCalc.gatewayFee + MAINTENANCE_FEE;
             
-            // Stock management
             if(product){ 
                 product.stock -= item.qty; 
                 if(product.stock <= 0){
@@ -1590,7 +1614,6 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         if (currentBuyer) await saveUserCart(currentBuyer.uid);
         let last4 = cardNum.slice(-4);
         
-        // FIX 3: Show detailed breakdown in order summary
         let breakdownHtml = cartCopy.map(i => {
             let calc = calculateDynamicPrice(i.price, shippingCost / cart.length);
             return `
@@ -1640,7 +1663,7 @@ function processWeeklyWithdrawals(){ let last = localStorage.getItem('gb_last_wi
 setInterval(processWeeklyWithdrawals, 3600000); processWeeklyWithdrawals();
 
 // ============================================================
-// SELLER REGISTRATION - FIX: Email Verification + Double-Click Protection
+// SELLER REGISTRATION
 // ============================================================
 document.getElementById('sellerRegForm')?.addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -1734,7 +1757,7 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
 });
 
 // ============================================================
-// MY SHOP LOGIN - With Email Verification Check
+// MY SHOP LOGIN
 // ============================================================
 async function showMyShopLogin(){
     const user = auth.currentUser;
@@ -1823,7 +1846,37 @@ document.getElementById('drawerMyShop')?.addEventListener('click', function() {
 });
 
 // ============================================================
-// SELLER DASHBOARD - FIX 3: Orders with productDetails
+// FIX 4: NOTIFICATION BADGE ON 'MY SHOP' BUTTON
+// ============================================================
+function updateMyShopBadge() {
+    const btn = document.getElementById('drawerMyShop');
+    if (!btn) return;
+    
+    let badge = btn.querySelector('.badge');
+    if (!badge) {
+        const span = document.createElement('span');
+        span.className = 'badge';
+        span.style.cssText = 'background:#ef4444; color:white; border-radius:50%; padding:2px 8px; font-size:11px; margin-left:8px; display:none;';
+        btn.appendChild(span);
+        badge = span;
+    }
+    
+    if (currentSeller?.sellerId) {
+        const pendingOrders = orders.filter(o => o.sellerId === currentSeller.sellerId && o.status === 'Processing');
+        if (pendingOrders.length > 0) {
+            badge.textContent = pendingOrders.length;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
+        }
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+// ============================================================
+// FIX 1, 2, 3: SELLER DASHBOARD - Unified UI
+// No Extra Pop-ups, Embedded Actions, Net Revenue
 // ============================================================
 function renderSellerDashboard(){
     if(!currentSeller?.sellerId) return;
@@ -1839,20 +1892,22 @@ function renderSellerDashboard(){
                 <br>📧 support@globalbazaar.com</p>
             </div>
         `;
+        updateMyShopBadge();
         return;
     }
     
     let myProducts = products.filter(p => p.sellerId == seller.id);
     let myOrders = orders.filter(o => o.sellerId == seller.id);
     let totalSales = 0, totalOrders = myOrders.length;
+    let pendingOrders = myOrders.filter(o => o.status === 'Processing');
     let monthlyRevenue = {};
     myOrders.forEach(o => { 
         if(o.status === "Completed"){ 
-            let earning = (o.basePrice - o.commission - MAINTENANCE_FEE) * o.qty; 
-            totalSales += earning; 
+            let netRevenue = (o.basePrice - (o.basePrice * PLATFORM_COMMISSION) - MAINTENANCE_FEE) * o.qty;
+            totalSales += netRevenue; 
             let date = new Date(o.date); 
             let my = `${date.getMonth()+1}/${date.getFullYear()}`; 
-            monthlyRevenue[my] = (monthlyRevenue[my]||0) + earning; 
+            monthlyRevenue[my] = (monthlyRevenue[my]||0) + netRevenue; 
         } 
     });
     
@@ -1867,46 +1922,73 @@ function renderSellerDashboard(){
     
     let prodListHtml = myProducts.map(p => `<div class="flex-between"><span><img src="${p.mainImage}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;"> ${p.name} - ${getCurrencySymbol()}${convertPrice(p.price)} (Stock: ${p.stock})</span><button class="editProdBtn" data-id="${p.id}" style="background:#3b82f6;border:none;padding:4px 12px;border-radius:20px;">✏️ Edit</button><button class="delProd" data-id="${p.id}" style="background:#dc2626;border:none;padding:4px 12px;border-radius:20px;">Delete</button></div>`).join('');
     
-    // FIX 3: Orders with productDetails
-    let ordersHtml = myOrders.map(o => `
-        <div class="order-card" onclick="showOrderDetails('${o.id}')" style="cursor:pointer;">
-            <strong>🔖 ${o.trackingNumber}</strong>
-            <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
-                ${o.productDetails?.image ? `<img src="${o.productDetails.image}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;">` : ''}
-                <div>
-                    <strong>${o.productDetails?.name || o.productName}</strong>
-                    <br>${getCurrencySymbol()}${convertPrice(o.amount)} x${o.qty}
+    let ordersHtml = '';
+    if (pendingOrders.length > 0) {
+        ordersHtml += `<h4 style="margin:10px 0; color:#dc2626;">🔴 Pending Approval (${pendingOrders.length})</h4>`;
+        ordersHtml += pendingOrders.map(o => `
+            <div class="order-card" style="border-left-color:#dc2626;">
+                <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+                    ${o.productDetails?.image ? `<img src="${o.productDetails.image}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">` : ''}
+                    <div style="flex:1;">
+                        <strong>${o.productDetails?.name || o.productName}</strong>
+                        <br><span style="font-size:12px; color:#64748b;">Qty: ${o.qty}</span>
+                        <br><span style="font-size:12px; color:#64748b;">Buyer: ${o.buyerName}</span>
+                        <br><span style="font-size:13px; font-weight:bold; color:#10b981;">Net Revenue: ${getCurrencySymbol()}${convertPrice((o.basePrice - (o.basePrice * PLATFORM_COMMISSION) - MAINTENANCE_FEE) * o.qty)}</span>
+                    </div>
                 </div>
+                <div style="display:flex; gap:8px; margin-top:8px;">
+                    <button class="confirmStockBtn" data-id="${o.id}" style="background:#10b981; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
+                        ✅ YES (Confirm Stock)
+                    </button>
+                    <button class="rejectOrderBtn" data-id="${o.id}" style="background:#dc2626; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
+                        ❌ NO (Reject/Remove)
+                    </button>
+                </div>
+                <div style="font-size:10px; color:#94a3b8; margin-top:4px;">${o.date}</div>
             </div>
-            <div style="font-size:12px; color:#64748b;">
-                Price Breakdown:
-                Base: ${getCurrencySymbol()}${convertPrice(o.priceBreakdown?.basePrice || o.basePrice)}
-                + Gateway (3%): ${getCurrencySymbol()}${convertPrice(o.priceBreakdown?.gatewayFee || 0)}
-                + Maintenance: ${getCurrencySymbol()}${convertPrice(o.priceBreakdown?.maintenanceFee || 0)}
-                + Shipping: ${getCurrencySymbol()}${convertPrice(o.priceBreakdown?.shippingCost || 0)}
-                <br><strong>Grand Total: ${getCurrencySymbol()}${convertPrice(o.priceBreakdown?.grandTotal || o.amount)}</strong>
+        `).join('');
+    }
+    
+    let completedOrders = myOrders.filter(o => o.status !== 'Processing');
+    if (completedOrders.length > 0) {
+        ordersHtml += `<h4 style="margin:15px 0; color:#10b981;">✅ Completed Orders (${completedOrders.length})</h4>`;
+        ordersHtml += completedOrders.map(o => `
+            <div class="order-card" style="border-left-color:#10b981;">
+                <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+                    ${o.productDetails?.image ? `<img src="${o.productDetails.image}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">` : ''}
+                    <div style="flex:1;">
+                        <strong>${o.productDetails?.name || o.productName}</strong>
+                        <br><span style="font-size:12px; color:#64748b;">Qty: ${o.qty} | Status: ${o.status}</span>
+                        <br><span style="font-size:13px; font-weight:bold; color:#10b981;">Net Revenue: ${getCurrencySymbol()}${convertPrice((o.basePrice - (o.basePrice * PLATFORM_COMMISSION) - MAINTENANCE_FEE) * o.qty)}</span>
+                    </div>
+                </div>
+                ${o.trackingInfo ? `<div style="font-size:12px; color:#64748b;">📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}</div>` : ''}
+                <div style="font-size:10px; color:#94a3b8; margin-top:4px;">${o.date}</div>
             </div>
-            <div>Status: ${o.status}</div>
-            <div>Buyer: ${o.buyerName}</div>
-            ${o.trackingInfo ? `<div>📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}</div>` : ''}
-            ${o.status === "Processing" ? `<button class="shipBtn" data-id="${o.id}" style="background:#3b82f6;margin-top:6px;">📦 Mark Shipped</button>` : ''}
-            <div style="font-size:10px; color:#94a3b8; margin-top:4px;">${o.date}</div>
-        </div>
-    `).join('');
+        `).join('');
+    }
+    
+    if (myOrders.length === 0) {
+        ordersHtml = '<p style="text-align:center;padding:20px;color:#64748b;">No orders yet.</p>';
+    }
     
     let sellerDashboardHtml = `
 <div class="premium-card"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📧 ${seller.email}<br>📍 ${seller.city}, ${seller.country}</p></div><div><span class="kyc-status ${kycClass}">${kycText}</span></div>
-<div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:12px;">
+<div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin-top:12px;">
     <div style="background:#f1f5f9; padding:12px; border-radius:12px; text-align:center;">
         <div style="font-size:24px; font-weight:800; color:#1e3a8a;">${totalOrders}</div>
         <div style="font-size:12px; color:#64748b;">📦 Total Orders</div>
     </div>
     <div style="background:#f1f5f9; padding:12px; border-radius:12px; text-align:center;">
         <div style="font-size:24px; font-weight:800; color:#10b981;">${getCurrencySymbol()}${convertPrice(totalSales)}</div>
-        <div style="font-size:12px; color:#64748b;">💰 Total Revenue</div>
+        <div style="font-size:12px; color:#64748b;">💰 Net Revenue</div>
+    </div>
+    <div style="background:#fef3c7; padding:12px; border-radius:12px; text-align:center;">
+        <div style="font-size:24px; font-weight:800; color:#d97706;">${pendingOrders.length}</div>
+        <div style="font-size:12px; color:#64748b;">⏳ Pending</div>
     </div>
 </div>
-<div style="margin-top:12px;">🏦 Bank: Payout via DEED (to be added)<br>💰 Balance: ${getCurrencySymbol()}${convertPrice(seller.earnings)}</div><button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Withdraw</button></div>
+<div style="margin-top:12px;">🏦 Balance: ${getCurrencySymbol()}${convertPrice(seller.earnings)}</div><button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Withdraw</button></div>
 <div class="chart-container"><h3>📊 Revenue</h3><canvas id="revenueChart"></canvas></div>
 <div class="premium-card"><h3>📈 Top Products</h3>${topList.map(p=>`${p[0]}: ${p[1]} sold`).join('<br>') || 'No sales'}</div>
 <div class="premium-card"><h3>➕ Add Product</h3>
@@ -1935,7 +2017,7 @@ function renderSellerDashboard(){
     <button id="publishBtn" class="btn-primary">📢 Publish</button>
 </div>
 <div class="premium-card"><h3>📋 My Products (${myProducts.length})</h3><div id="myProductsList">${prodListHtml}</div></div>
-<div class="premium-card"><h3>📦 Orders (${totalOrders})</h3><div id="ordersList">${ordersHtml}</div></div>
+<div class="premium-card"><h3>📦 Orders</h3><div id="ordersList">${ordersHtml}</div></div>
 `;
     document.getElementById('sellerDashboard').innerHTML = sellerDashboardHtml;
     let ctx = document.getElementById('revenueChart')?.getContext('2d'); if(ctx){ if(sellerRevenueChart) sellerRevenueChart.destroy(); sellerRevenueChart = new Chart(ctx, { type: 'bar', data: { labels: chartLabels, datasets: [{ label: 'Revenue', data: chartData.map(v => parseFloat(convertPrice(v))), backgroundColor: '#3b82f6' }] } }); }
@@ -1947,42 +2029,88 @@ function renderSellerDashboard(){
             snapshot.forEach(doc => { realTimeOrders.push({ id: doc.id, ...doc.data() }); });
             const ordersContainer = document.getElementById('ordersList');
             if (ordersContainer) {
-                if (realTimeOrders.length === 0) {
-                    ordersContainer.innerHTML = '<p>No orders yet.</p>';
-                } else {
-                    ordersContainer.innerHTML = realTimeOrders.map(o => `
-                        <div class="order-card" onclick="showOrderDetails('${o.id}')" style="cursor:pointer;">
-                            <strong>🔖 ${o.trackingNumber}</strong>
+                let pending = realTimeOrders.filter(o => o.status === 'Processing');
+                let completed = realTimeOrders.filter(o => o.status !== 'Processing');
+                let html = '';
+                
+                if (pending.length > 0) {
+                    html += `<h4 style="margin:10px 0; color:#dc2626;">🔴 Pending Approval (${pending.length})</h4>`;
+                    html += pending.map(o => `
+                        <div class="order-card" style="border-left-color:#dc2626;">
                             <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
-                                ${o.productDetails?.image ? `<img src="${o.productDetails.image}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;">` : ''}
-                                <div>
+                                ${o.productDetails?.image ? `<img src="${o.productDetails.image}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">` : ''}
+                                <div style="flex:1;">
                                     <strong>${o.productDetails?.name || o.productName}</strong>
-                                    <br>${getCurrencySymbol()}${convertPrice(o.amount)} x${o.qty}
+                                    <br><span style="font-size:12px; color:#64748b;">Qty: ${o.qty}</span>
+                                    <br><span style="font-size:12px; color:#64748b;">Buyer: ${o.buyerName}</span>
+                                    <br><span style="font-size:13px; font-weight:bold; color:#10b981;">Net Revenue: ${getCurrencySymbol()}${convertPrice((o.basePrice - (o.basePrice * PLATFORM_COMMISSION) - MAINTENANCE_FEE) * o.qty)}</span>
                                 </div>
                             </div>
-                            <div style="font-size:12px; color:#64748b;">
-                                Base: ${getCurrencySymbol()}${convertPrice(o.priceBreakdown?.basePrice || o.basePrice)}
-                                + Gateway (3%): ${getCurrencySymbol()}${convertPrice(o.priceBreakdown?.gatewayFee || 0)}
-                                + Maintenance: ${getCurrencySymbol()}${convertPrice(o.priceBreakdown?.maintenanceFee || 0)}
-                                + Shipping: ${getCurrencySymbol()}${convertPrice(o.priceBreakdown?.shippingCost || 0)}
-                                <br><strong>Grand Total: ${getCurrencySymbol()}${convertPrice(o.priceBreakdown?.grandTotal || o.amount)}</strong>
+                            <div style="display:flex; gap:8px; margin-top:8px;">
+                                <button class="confirmStockBtn" data-id="${o.id}" style="background:#10b981; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
+                                    ✅ YES (Confirm Stock)
+                                </button>
+                                <button class="rejectOrderBtn" data-id="${o.id}" style="background:#dc2626; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
+                                    ❌ NO (Reject/Remove)
+                                </button>
                             </div>
-                            <div>Status: ${o.status}</div>
-                            <div>Buyer: ${o.buyerName}</div>
-                            ${o.trackingInfo ? `<div>📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}</div>` : ''}
-                            ${o.status === "Processing" ? `<button class="shipBtn" data-id="${o.id}" style="background:#3b82f6;margin-top:6px;">📦 Mark Shipped</button>` : ''}
+                            <div style="font-size:10px; color:#94a3b8; margin-top:4px;">${o.date}</div>
                         </div>
                     `).join('');
-                    document.querySelectorAll('.shipBtn').forEach(btn => btn.addEventListener('click', () => { 
-                        let track = prompt("Enter tracking number:"); 
-                        if(track) markOrderShipped(parseFloat(btn.dataset.id), track); 
-                    }));
                 }
+                
+                if (completed.length > 0) {
+                    html += `<h4 style="margin:15px 0; color:#10b981;">✅ Completed Orders (${completed.length})</h4>`;
+                    html += completed.map(o => `
+                        <div class="order-card" style="border-left-color:#10b981;">
+                            <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+                                ${o.productDetails?.image ? `<img src="${o.productDetails.image}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">` : ''}
+                                <div style="flex:1;">
+                                    <strong>${o.productDetails?.name || o.productName}</strong>
+                                    <br><span style="font-size:12px; color:#64748b;">Qty: ${o.qty} | Status: ${o.status}</span>
+                                    <br><span style="font-size:13px; font-weight:bold; color:#10b981;">Net Revenue: ${getCurrencySymbol()}${convertPrice((o.basePrice - (o.basePrice * PLATFORM_COMMISSION) - MAINTENANCE_FEE) * o.qty)}</span>
+                                </div>
+                            </div>
+                            ${o.trackingInfo ? `<div style="font-size:12px; color:#64748b;">📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}</div>` : ''}
+                            <div style="font-size:10px; color:#94a3b8; margin-top:4px;">${o.date}</div>
+                        </div>
+                    `).join('');
+                }
+                
+                if (realTimeOrders.length === 0) {
+                    html = '<p style="text-align:center;padding:20px;color:#64748b;">No orders yet.</p>';
+                }
+                
+                ordersContainer.innerHTML = html;
+                
+                document.querySelectorAll('.confirmStockBtn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        confirmOrderStock(this.dataset.id);
+                    });
+                });
+                document.querySelectorAll('.rejectOrderBtn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        rejectOrder(this.dataset.id);
+                    });
+                });
+                
+                updateMyShopBadge();
             }
         }, error => {
             console.error('Real-time orders error:', error);
         });
     }
+    
+    document.querySelectorAll('.confirmStockBtn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            confirmOrderStock(this.dataset.id);
+        });
+    });
+    document.querySelectorAll('.rejectOrderBtn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            rejectOrder(this.dataset.id);
+        });
+    });
     
     // Publish Button
     document.getElementById('publishBtn')?.addEventListener('click', async function() {
@@ -2086,50 +2214,84 @@ function renderSellerDashboard(){
             btn.textContent = '💾 Update Product';
         }
     });
-    document.querySelectorAll('.shipBtn').forEach(btn => btn.addEventListener('click', () => { let track = prompt("Enter tracking number:"); if(track) markOrderShipped(parseFloat(btn.dataset.id), track); }));
     document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
+    
+    updateMyShopBadge();
 }
 
 // ============================================================
-// ORDER DETAILS FUNCTION - FIX 3
+// FIX 2: Embedded Actions - YES/NO Functions
 // ============================================================
-function showOrderDetails(orderId) {
+
+async function confirmOrderStock(orderId) {
     let order = orders.find(o => o.id == orderId);
-    if (!order) return;
+    if (!order) {
+        showToast("Order not found!", true);
+        return;
+    }
     
-    let breakdown = order.priceBreakdown || {};
-    let productDetails = order.productDetails || {};
+    try {
+        order.status = "Completed";
+        order.confirmedAt = new Date().toISOString();
+        
+        let netRevenue = (order.basePrice - (order.basePrice * PLATFORM_COMMISSION) - MAINTENANCE_FEE) * order.qty;
+        let seller = sellers.find(s => s.id === order.sellerId);
+        if (seller) {
+            seller.earnings = (seller.earnings || 0) + netRevenue;
+            await db.collection("sellers").doc(seller.id).update({
+                earnings: seller.earnings,
+                totalSales: (seller.totalSales || 0) + order.qty
+            });
+        }
+        
+        saveAllLocal();
+        showToast(`✅ Order ${order.trackingNumber} confirmed! Net Revenue: ${getCurrencySymbol()}${convertPrice(netRevenue)}`, false);
+        addNotification(`Order ${order.trackingNumber} confirmed by seller`, 'order');
+        sendTelegramMessage(`✅ Order ${order.trackingNumber} confirmed by seller. Net Revenue: $${netRevenue.toFixed(2)}`);
+        
+        renderSellerDashboard();
+        renderBuyerOrders();
+        updateMyShopBadge();
+    } catch (error) {
+        console.error('Confirm order error:', error);
+        showToast('Failed to confirm order: ' + error.message, true);
+    }
+}
+
+async function rejectOrder(orderId) {
+    if (!confirm('⚠️ Are you sure you want to reject this order?')) return;
     
-    let details = `
-        📦 ORDER DETAILS
-        =================
-        Order ID: ${order.trackingNumber}
-        Date: ${order.date}
-        Status: ${order.status}
-        
-        🛍️ PRODUCT:
-        Name: ${productDetails.name || order.productName}
-        Category: ${productDetails.category || 'N/A'}
-        Quantity: ${order.qty}
-        
-        💰 PRICE BREAKDOWN:
-        Base Price: $${(breakdown.basePrice || order.basePrice).toFixed(2)}
-        + Gateway Fee (3%): $${(breakdown.gatewayFee || 0).toFixed(2)}
-        + Maintenance Fee: $${(breakdown.maintenanceFee || 0).toFixed(2)}
-        + Shipping Cost: $${(breakdown.shippingCost || 0).toFixed(2)}
-        =================
-        GRAND TOTAL: $${(breakdown.grandTotal || order.amount).toFixed(2)}
-        
-        👤 BUYER:
-        Name: ${order.buyerName}
-        Email: ${order.buyerEmail}
-        Address: ${order.address}
-        
-        📮 TRACKING:
-        ${order.trackingInfo ? `Tracking #: ${order.trackingInfo.trackingNumber || order.trackingInfo}\nCarrier: ${order.trackingInfo.carrierName || 'N/A'}` : 'Not shipped yet'}
-    `;
+    let order = orders.find(o => o.id == orderId);
+    if (!order) {
+        showToast("Order not found!", true);
+        return;
+    }
     
-    alert(details);
+    try {
+        order.status = "Rejected";
+        order.rejectedAt = new Date().toISOString();
+        
+        let product = products.find(p => p.id === order.productDetails?.id || p.name === order.productName);
+        if (product) {
+            product.stock += order.qty;
+            await db.collection("products").doc(product.id).update({
+                stock: product.stock
+            });
+        }
+        
+        saveAllLocal();
+        showToast(`❌ Order ${order.trackingNumber} rejected!`, false);
+        addNotification(`Order ${order.trackingNumber} rejected by seller`, 'order');
+        sendTelegramMessage(`❌ Order ${order.trackingNumber} rejected by seller.`);
+        
+        renderSellerDashboard();
+        renderBuyerOrders();
+        renderProducts();
+        updateMyShopBadge();
+    } catch (error) {
+        console.error('Reject order error:', error);
+        showToast('Failed to reject order: ' + error.message, true);
+    }
 }
 
 function renderBuyerOrders(){
@@ -2140,6 +2302,7 @@ function renderBuyerOrders(){
     document.querySelectorAll('.confirmReceivedBtn').forEach(btn => btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id))));
     document.querySelectorAll('.cancelOrderBtn').forEach(btn => btn.addEventListener('click', () => cancelOrder(parseFloat(btn.dataset.id))));
 }
+
 function renderBuyerWishlist(){ let w = products.filter(p => wishlist.includes(p.id)); document.getElementById('buyerWishlistList').innerHTML = w.map(p => `<div class="order-card"><strong>${p.name}</strong><br>Price: ${getCurrencySymbol()}${convertPrice(p.price)}<br><button class="removeWishlistBtn" data-id="${p.id}" style="background:#dc2626;">Remove</button></div>`).join(''); document.querySelectorAll('.removeWishlistBtn').forEach(btn => btn.addEventListener('click', () => { wishlist = wishlist.filter(id => id != btn.dataset.id); saveAllLocal(); renderProducts(); renderBuyerWishlist(); showToast("Removed", false); })); }
 
 document.getElementById('refreshAdminBtn')?.addEventListener('click', loadAdminData);
@@ -2238,7 +2401,6 @@ function hideInventoryConfirmModal() {
     pendingConfirmationProduct = null;
 }
 
-// YES Button - Restock product
 document.getElementById('confirmYesBtn')?.addEventListener('click', async function() {
     if (!pendingConfirmationProduct) return;
     
@@ -2253,13 +2415,13 @@ document.getElementById('confirmYesBtn')?.addEventListener('click', async functi
         hideInventoryConfirmModal();
         renderProducts();
         renderSellerDashboard();
+        updateMyShopBadge();
     } catch (error) {
         console.error('Restock error:', error);
         showToast('Failed to restock: ' + error.message, true);
     }
 });
 
-// NO Button - Delete product
 document.getElementById('confirmNoBtn')?.addEventListener('click', async function() {
     if (!pendingConfirmationProduct) return;
     
@@ -2271,6 +2433,7 @@ document.getElementById('confirmNoBtn')?.addEventListener('click', async functio
             hideInventoryConfirmModal();
             renderProducts();
             renderSellerDashboard();
+            updateMyShopBadge();
         } catch (error) {
             console.error('Delete error:', error);
             showToast('Failed to delete: ' + error.message, true);
@@ -2338,5 +2501,9 @@ document.getElementById('loginModal')?.addEventListener('click', (e) => {
     }
 });
 
+// Update My Shop badge every 5 seconds
+setInterval(updateMyShopBadge, 5000);
+
 renderCats(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge(); updateAdminMenuBadges();
+updateMyShopBadge();
 document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | Dynamic Pricing | Easyship Shipping | Mode: " + EASYSHIP_MODE;
