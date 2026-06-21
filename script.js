@@ -1422,8 +1422,8 @@ document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async f
 function loadSavedCards(){ let userCards = savedCards.filter(c => c.userEmail === "guest@globalbazaar.com"); if(userCards.length > 0){ document.getElementById('savedCardsSection').style.display = 'block'; document.getElementById('savedCardsList').innerHTML = userCards.map((card,idx) => `<div class="flex-between"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}">Use</button></div>`).join(''); document.querySelectorAll('.useSavedCardBtn').forEach(btn => btn.addEventListener('click', () => { let card = userCards[parseInt(btn.dataset.idx)]; document.getElementById('cardNumber').value = card.cardNumber; document.getElementById('cardHolderName').value = card.cardHolderName; document.getElementById('expiryDate').value = card.expiryDate; document.getElementById('cvv').value = ''; showToast("Card loaded", false); })); } }
 
 // ============================================================
-// FIX 3: ORDER DELETION HATAYA
-// FIX 4: STOCK MANAGEMENT - stock -1, sold out status
+// FIX 3: ORDER DELETION HATAYA (Sirf NO button par delete)
+// FIX 4: STOCK MANAGEMENT - stock -1, pending_approval status
 // ============================================================
 document.getElementById('payNowBtn')?.addEventListener('click', async function() {
     const btn = this;
@@ -1483,16 +1483,16 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             if(product){ 
                 product.stock -= item.qty; 
                 
-                // FIX 4: If stock becomes 0, mark as sold out
+                // FIX 4: If stock becomes 0, mark as pending_approval (NOT delete)
                 if(product.stock <= 0){
-                    product.status = 'sold_out';
+                    product.status = 'pending_approval';
                     await db.collection('products').doc(product.id).update({
                         stock: 0,
-                        status: 'sold_out',
+                        status: 'pending_approval',
                         soldOutAt: new Date().toISOString()
                     });
-                    addNotification(`📢 ${product.name} is now SOLD OUT!`, 'info');
-                    sendTelegramMessage(`📢 ${product.name} is SOLD OUT!`);
+                    addNotification(`📢 ${product.name} is now SOLD OUT! Waiting for seller approval.`, 'info');
+                    sendTelegramMessage(`📢 ${product.name} is SOLD OUT! Waiting for seller approval.`);
                     
                     // FIX 7: Show restock popup to seller
                     if (currentSeller && currentSeller.sellerId === product.sellerId) {
@@ -2094,6 +2094,7 @@ function showTerms() {
 
 // ============================================================
 // FIX 7: RESTOCK POPUP - YES/NO Modal Functions
+// NO button par DELETE ho (FIX 3)
 // ============================================================
 function showInventoryConfirmModal(productId, productName) {
     pendingConfirmationProduct = productId;
@@ -2127,7 +2128,7 @@ document.getElementById('confirmYesBtn')?.addEventListener('click', async functi
     }
 });
 
-// NO Button - Delete product
+// NO Button - Delete product (FIX 3: Sirf NO par delete)
 document.getElementById('confirmNoBtn')?.addEventListener('click', async function() {
     if (!pendingConfirmationProduct) return;
     
