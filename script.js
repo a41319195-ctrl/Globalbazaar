@@ -1,4 +1,56 @@
 // ============================================================
+// FIX 1: DATABASE & RECOVERY
+// ============================================================
+async function initializeDatabase() {
+    try {
+        console.log('🔍 Initializing database...');
+        
+        // Check if products collection exists
+        const productsSnapshot = await db.collection('products').limit(1).get();
+        if (productsSnapshot.empty) {
+            console.log('📦 Products collection empty. Seeding default products...');
+            await seedProductsIfEmpty();
+        }
+        
+        // Check if sellers collection exists
+        const sellersSnapshot = await db.collection('sellers').limit(1).get();
+        if (sellersSnapshot.empty) {
+            console.log('👤 Sellers collection empty. Creating...');
+            // Collection will be created when first seller registers
+        }
+        
+        // Check if orders collection exists
+        const ordersSnapshot = await db.collection('orders').limit(1).get();
+        if (ordersSnapshot.empty) {
+            console.log('📦 Orders collection empty. Creating...');
+            // Collection will be created when first order placed
+        }
+        
+        console.log('✅ Database initialized successfully!');
+        return true;
+    } catch (error) {
+        console.error('❌ Database initialization error:', error);
+        showToast('⚠️ Database initialization failed. Please refresh.', true);
+        return false;
+    }
+}
+
+// ============================================================
+// FIX 2: 5 FIXED CATEGORIES
+// ============================================================
+const FIXED_CATEGORIES = ['Fashion', 'Textiles', 'Cosmetics', 'Electronics', 'Home Decor'];
+
+// Update category select in seller dashboard
+function updateCategorySelect() {
+    const select = document.getElementById('prodCat');
+    if (select) {
+        select.innerHTML = FIXED_CATEGORIES.map(cat => 
+            `<option value="${cat}">${cat}</option>`
+        ).join('');
+    }
+}
+
+// ============================================================
 // GLOBAL ERROR HANDLING
 // ============================================================
 window.onerror = function(message, source, lineno, colno, error) {
@@ -212,7 +264,7 @@ async function uploadCompressedImage(file, type = 'image') {
 }
 
 // ============================================================
-// DEFAULT PRODUCTS - 5 CATEGORIES (TESTING ONLY)
+// FIX 1: DEFAULT PRODUCTS - 5 CATEGORIES
 // ============================================================
 const defaultProducts = [
     { 
@@ -262,7 +314,7 @@ const defaultProducts = [
         sellerName: "GlobalBazaar", 
         name: "Silk Scarf", 
         price: 19.99, 
-        category: "Textile", 
+        category: "Textiles", 
         sellerCountry: "SA", 
         mainImage: "https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=400", 
         images: ["https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=400", "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400"], 
@@ -274,16 +326,16 @@ const defaultProducts = [
     { 
         sellerId: 0, 
         sellerName: "GlobalBazaar", 
-        name: "Vitamin C Serum", 
-        price: 34.99, 
-        category: "Beauty", 
+        name: "Home Decor Vase", 
+        price: 39.99, 
+        category: "Home Decor", 
         sellerCountry: "SA", 
-        mainImage: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=400", 
-        images: ["https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=400", "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=400"], 
-        description: "20% Vitamin C brightening serum with hyaluronic acid", 
+        mainImage: "https://images.unsplash.com/photo-1581783898377-1c85bf937427?w=400", 
+        images: ["https://images.unsplash.com/photo-1581783898377-1c85bf937427?w=400", "https://images.unsplash.com/photo-1618220179428-22790b461013?w=400"], 
+        description: "Elegant ceramic vase for modern home decor", 
         stock: 10, 
-        weight: 0.1, 
-        size: { length: 8, width: 4, height: 4 } 
+        weight: 0.8, 
+        size: { length: 20, width: 20, height: 30 } 
     }
 ];
 
@@ -309,7 +361,6 @@ async function seedProductsIfEmpty() {
         }
     } catch (e) { console.error('Seed error:', e); }
 }
-seedProductsIfEmpty();
 
 // ============================================================
 // GLOBAL VARIABLES
@@ -554,7 +605,7 @@ document.getElementById('currencySelect').value=selectedCurrency;
 document.getElementById('currencySelect').addEventListener('change',(e)=>{ selectedCurrency=e.target.value; localStorage.setItem('selectedCurrency',selectedCurrency); renderProducts(); updateCartUI(); renderCartPage(); if(currentSeller) renderSellerDashboard(); showToast(`Currency: ${selectedCurrency}`,false); });
 
 // ============================================================
-// FIX 5: SHIPPING FALLBACK - NaN Handle, Payment Button Disabled
+// FIX 3: SHIPPING FALLBACK - NaN Handle, Payment Button Disabled
 // ============================================================
 async function fetchAndDisplayShippingRates() {
     if (Date.now() - lastShippingFetch < 3000) return;
@@ -1846,7 +1897,7 @@ document.getElementById('drawerMyShop')?.addEventListener('click', function() {
 });
 
 // ============================================================
-// FIX 4: NOTIFICATION BADGE ON 'MY SHOP' BUTTON
+// FIX 5: NOTIFICATION BADGE ON 'MY SHOP' BUTTON
 // ============================================================
 function updateMyShopBadge() {
     const btn = document.getElementById('drawerMyShop');
@@ -1875,7 +1926,7 @@ function updateMyShopBadge() {
 }
 
 // ============================================================
-// FIX 1, 2, 3: SELLER DASHBOARD - Unified UI
+// FIX 4: SELLER DASHBOARD - Unified UI
 // No Extra Pop-ups, Embedded Actions, Net Revenue
 // ============================================================
 function renderSellerDashboard(){
@@ -1972,6 +2023,9 @@ function renderSellerDashboard(){
         ordersHtml = '<p style="text-align:center;padding:20px;color:#64748b;">No orders yet.</p>';
     }
     
+    // FIX 2: Category select with fixed categories
+    const categoryOptions = FIXED_CATEGORIES.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+    
     let sellerDashboardHtml = `
 <div class="premium-card"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📧 ${seller.email}<br>📍 ${seller.city}, ${seller.country}</p></div><div><span class="kyc-status ${kycClass}">${kycText}</span></div>
 <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin-top:12px;">
@@ -1994,7 +2048,10 @@ function renderSellerDashboard(){
 <div class="premium-card"><h3>➕ Add Product</h3>
     <input type="text" id="prodName" placeholder="Product Name" class="input" required>
     <input type="number" id="prodPrice" placeholder="Price (USD)" class="input" required>
-    <select id="prodCat" class="input" required><option>Electronics</option><option>Fashion</option><option>Home</option><option>Textile</option><option>Cosmetic</option></select>
+    <select id="prodCat" class="input" required>
+        <option value="">Select Category</option>
+        ${categoryOptions}
+    </select>
     <input type="number" id="prodStock" placeholder="Stock Quantity" class="input" required>
     <div style="background:#f8fafc; padding:16px; border-radius:16px; margin-top:12px; border:1px solid #e2e8f0;">
         <h4 style="margin-bottom:10px;">📦 Shipping Details (Required)</h4>
@@ -2127,6 +2184,8 @@ function renderSellerDashboard(){
             if (!name) { showToast("Product name required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
             if (!price || price <= 0) { showToast("Valid price required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
             if (!stock || stock <= 0) { showToast("Valid stock required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+            if (!cat) { showToast("Please select a category", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+            if (!FIXED_CATEGORIES.includes(cat)) { showToast("Invalid category selected", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
             const mainFile = document.getElementById('prodMainImg').files[0];
             if (!mainFile) { showToast("Main image required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
             const weight = parseFloat(document.getElementById('prodWeight').value);
@@ -2220,7 +2279,7 @@ function renderSellerDashboard(){
 }
 
 // ============================================================
-// FIX 2: Embedded Actions - YES/NO Functions
+// FIX 4: Embedded Actions - YES/NO Functions
 // ============================================================
 
 async function confirmOrderStock(orderId) {
@@ -2501,9 +2560,17 @@ document.getElementById('loginModal')?.addEventListener('click', (e) => {
     }
 });
 
+// FIX 1: Initialize database on load
+initializeDatabase().then(() => {
+    console.log('Database ready');
+}).catch(err => {
+    console.error('Init error:', err);
+});
+
 // Update My Shop badge every 5 seconds
 setInterval(updateMyShopBadge, 5000);
 
 renderCats(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge(); updateAdminMenuBadges();
 updateMyShopBadge();
+updateCategorySelect();
 document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | Dynamic Pricing | Easyship Shipping | Mode: " + EASYSHIP_MODE;
