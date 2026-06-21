@@ -292,16 +292,16 @@ async function seedProductsIfEmpty() {
         const snapshot = await db.collection("products").get();
         if (snapshot.empty) {
             for (let p of defaultProducts) {
-                const calc = calculateProductPrice(p.price);
+                const calc = calculateDisplayPrice(p.price);
                 await db.collection("products").add({
                     ...p,
-                    price: calc.publicPrice,
-                    publicPrice: calc.publicPrice,
-                    gatewayFee: calc.gatewayFee,
-                    handlingFee: calc.handlingFee,
-                    commission: calc.commission,
-                    sellerEarning: calc.sellerEarning,
-                    platformRevenue: calc.platformRevenue,
+                    price: p.price,
+                    publicPrice: calc.total,
+                    gatewayFee: calc.gateway,
+                    handlingFee: calc.handling,
+                    commission: p.price * 0.10,
+                    sellerEarning: p.price - (p.price * 0.10) - 1.50,
+                    platformRevenue: calc.gateway + (p.price * 0.10) + 1.50,
                     createdAt: new Date().toISOString()
                 });
             }
@@ -334,6 +334,66 @@ let currentShippingCost = 0;
 let lastShippingFetch = 0;
 let verificationCheckInterval = null;
 let pendingConfirmationProduct = null;
+
+// ============================================================
+// FIX 1: UNIVERSAL DYNAMIC PRICING
+// Gateway Fee = Base Price * 0.03 (3%)
+// Maintenance Fee = 1.50 (Fixed)
+// Grand Total = Base + Maintenance + Gateway + Dynamic Shipping
+// ============================================================
+const MAINTENANCE_FEE = 1.50;
+const GATEWAY_PERCENT = 0.03; // 3%
+const PLATFORM_COMMISSION = 0.10; // 10%
+
+function calculateDynamicPrice(basePrice, shippingCost = 0) {
+    let gatewayFee = basePrice * GATEWAY_PERCENT;
+    let maintenanceFee = MAINTENANCE_FEE;
+    let grandTotal = basePrice + maintenanceFee + gatewayFee + shippingCost;
+    
+    return {
+        basePrice: basePrice,
+        gatewayFee: gatewayFee,
+        maintenanceFee: maintenanceFee,
+        shippingCost: shippingCost,
+        grandTotal: grandTotal,
+        // Breakdown for display
+        breakdown: {
+            'Product Price': basePrice,
+            '+ Gateway Fee (3%)': gatewayFee,
+            '+ Maintenance Fee': maintenanceFee,
+            '+ Shipping Cost': shippingCost,
+            '= Grand Total': grandTotal
+        }
+    };
+}
+
+// Display price without shipping
+function calculateDisplayPrice(basePrice) {
+    let gatewayFee = basePrice * GATEWAY_PERCENT;
+    let total = basePrice + gatewayFee + MAINTENANCE_FEE;
+    return { 
+        total: total, 
+        basePrice: basePrice, 
+        gateway: gatewayFee,
+        handling: MAINTENANCE_FEE
+    };
+}
+
+// Final price with shipping and commission
+function calculateFinalPrice(basePrice, sellerCountry, buyerCountry, shippingCost = 0) {
+    let gatewayFee = basePrice * GATEWAY_PERCENT;
+    let commission = basePrice * PLATFORM_COMMISSION;
+    let total = basePrice + gatewayFee + MAINTENANCE_FEE + shippingCost + commission;
+    return { 
+        total: total, 
+        basePrice: basePrice, 
+        shipping: shippingCost, 
+        commission: commission, 
+        gateway: gatewayFee,
+        handling: MAINTENANCE_FEE,
+        sellerEarning: basePrice - commission - MAINTENANCE_FEE
+    };
+}
 
 // ============================================================
 // TELEGRAM NOTIFICATIONS
@@ -497,53 +557,7 @@ document.getElementById('currencySelect').value=selectedCurrency;
 document.getElementById('currencySelect').addEventListener('change',(e)=>{ selectedCurrency=e.target.value; localStorage.setItem('selectedCurrency',selectedCurrency); renderProducts(); updateCartUI(); renderCartPage(); if(currentSeller) renderSellerDashboard(); showToast(`Currency: ${selectedCurrency}`,false); });
 
 // ============================================================
-// FIX 2: PRICING - Sirf Base + $1.5 + Gateway (Shipping checkout mein)
-// ============================================================
-const PLATFORM_COMMISSION = 0.10;
-const GATEWAY_FEE_PERCENT = 0.0299;
-const GATEWAY_FEE_FIXED = 0.49;
-const HANDLING_FEE = 1.50;
-
-function calculateProductPrice(basePrice) {
-    let gatewayFee = (basePrice * GATEWAY_FEE_PERCENT) + GATEWAY_FEE_FIXED;
-    let handlingFee = HANDLING_FEE;
-    let publicPrice = basePrice + gatewayFee + handlingFee;
-    let commission = basePrice * PLATFORM_COMMISSION;
-    let sellerEarning = basePrice - commission - handlingFee;
-    let platformRevenue = gatewayFee + commission + handlingFee;
-    return { basePrice, gatewayFee, handlingFee, publicPrice, commission, sellerEarning, platformRevenue };
-}
-
-// FIX 2: Display price mein shipping nahi, sirf base + gateway + handling
-function calculateDisplayPrice(basePrice) {
-    let gatewayFee = (basePrice * GATEWAY_FEE_PERCENT) + GATEWAY_FEE_FIXED;
-    let total = basePrice + gatewayFee + HANDLING_FEE;
-    return { 
-        total: total, 
-        basePrice: basePrice, 
-        gateway: gatewayFee,
-        handling: HANDLING_FEE
-    };
-}
-
-// Checkout ke liye shipping ke saath final price
-function calculateFinalPrice(basePrice, sellerCountry, buyerCountry, shippingCost = 0) {
-    let gatewayFee = (basePrice * GATEWAY_FEE_PERCENT) + GATEWAY_FEE_FIXED;
-    let commission = basePrice * PLATFORM_COMMISSION;
-    let total = basePrice + gatewayFee + commission + shippingCost + HANDLING_FEE;
-    return { 
-        total: total, 
-        basePrice: basePrice, 
-        shipping: shippingCost, 
-        commission: commission, 
-        gateway: gatewayFee,
-        handling: HANDLING_FEE,
-        sellerEarning: basePrice - commission - HANDLING_FEE
-    };
-}
-
-// ============================================================
-// EASYSHIP DYNAMIC SHIPPING
+// EASYSHIP DYNAMIC SHIPPING - FIX 2: NO FIXED $10
 // ============================================================
 async function fetchAndDisplayShippingRates() {
     if (Date.now() - lastShippingFetch < 3000) return;
@@ -602,6 +616,7 @@ async function fetchAndDisplayShippingRates() {
             height: product.size?.height || 10
         };
         
+        // FIX 2: ONLY API CALL - NO FIXED $10
         const rates = await getEasyshipRates(sellerAddress, buyerAddress, parcelDetails);
         
         if (rates && rates.length > 0) {
@@ -615,18 +630,19 @@ async function fetchAndDisplayShippingRates() {
             if (cheapest.carrier_name) shippingDisplay.title = `Carrier: ${cheapest.carrier_name}`;
             showToast(`Shipping: ${getCurrencySymbol()}${convertPrice(currentShippingCost)}`, false);
         } else {
-            currentShippingCost = 10;
-            shippingDisplay.textContent = `${getCurrencySymbol()}${convertPrice(currentShippingCost)}`;
-            shippingDisplay.className = 'cost';
-            sessionStorage.setItem('shipping_cost', currentShippingCost);
-            showToast('Using default shipping rate', true);
+            // FIX 2: NO FIXED $10 - Show error if no rates
+            currentShippingCost = 0;
+            shippingDisplay.textContent = 'No rates available';
+            shippingDisplay.className = 'cost error';
+            sessionStorage.setItem('shipping_cost', 0);
+            showToast('⚠️ No shipping rates available for this address', true);
         }
     } catch (error) {
         console.error('Shipping fetch error:', error);
-        currentShippingCost = 10;
+        currentShippingCost = 0;
         shippingDisplay.textContent = 'Error fetching rates';
-        shippingDisplay.className = 'cost';
-        sessionStorage.setItem('shipping_cost', currentShippingCost);
+        shippingDisplay.className = 'cost error';
+        sessionStorage.setItem('shipping_cost', 0);
         showToast('Could not fetch shipping rates', true);
     }
 }
@@ -1179,14 +1195,14 @@ function loadAdminData() {
 }
 
 // ============================================================
-// RENDER PRODUCTS - FIX 1: Duplicate Rendering
+// RENDER PRODUCTS - FIX: Duplicate Rendering
 // ============================================================
 let currentCategory = "All";
 
-// FIX 2: Display price mein sirf Base + Gateway + Handling (NO SHIPPING)
+// FIX 1: Display price with dynamic pricing (without shipping)
 function renderProductCard(p) {
     const seller = sellers.find(s => s.id === p.sellerId) || { shopName: "GlobalBazaar", country: "SA" };
-    // FIX 2: Display price - shipping nahi, sirf base + gateway + handling
+    // FIX 1: Use dynamic display price
     const displayPrice = calculateDisplayPrice(p.price);
     const stockBadge = p.stock < 5 ? `<div class="stock-badge">Only ${p.stock} left</div>` : '';
     const soldOutBadge = p.stock <= 0 ? `<div class="soldout-badge">SOLD OUT</div>` : '';
@@ -1218,7 +1234,6 @@ function renderCats(){
     document.querySelectorAll('.cat-pill').forEach(el => el.addEventListener('click', (e) => { currentCategory = e.target.dataset.cat; renderCats(); renderProducts(); }));
 }
 
-// FIX 1: renderProducts - Container empty karo
 function renderProducts(){
     const grid = document.getElementById('productsGrid');
     grid.innerHTML = '';
@@ -1265,15 +1280,15 @@ function openProduct(id){
     let p = products.find(x => x.id == id); if(!p) return;
     currentProduct = p;
     let seller = sellers.find(s => s.id == p.sellerId) || { shopName: "GlobalBazaar", country: "SA" };
-    // FIX 2: Display price without shipping
+    // FIX 1: Display price breakdown without shipping
     const displayPrice = calculateDisplayPrice(p.price);
     document.getElementById('modalMainImg').src = p.mainImage;
     document.getElementById('modalTitle').innerText = p.name;
     document.getElementById('modalDesc').innerText = p.description;
     document.getElementById('modalPriceBreakdown').innerHTML = `
         Base: ${getCurrencySymbol()}${convertPrice(p.price)}<br>
-        + Gateway Fee (2.99% + $0.49): ${getCurrencySymbol()}${convertPrice(displayPrice.gateway)}<br>
-        + Handling Fee: ${getCurrencySymbol()}${convertPrice(HANDLING_FEE)}
+        + Gateway Fee (3%): ${getCurrencySymbol()}${convertPrice(displayPrice.gateway)}<br>
+        + Maintenance Fee: ${getCurrencySymbol()}${convertPrice(displayPrice.handling)}
     `;
     document.getElementById('modalPrice').innerHTML = `<strong>Total: ${getCurrencySymbol()}${convertPrice(displayPrice.total)}</strong>`;
     let thumb = document.getElementById('modalThumbnails'); if(thumb && p.images && p.images.length) thumb.innerHTML = p.images.map(img => `<img src="${img}" onclick="changeProductImage('${p.id}','${img}')">`).join('');
@@ -1305,7 +1320,7 @@ function toggleWish(id){
 function renderCartPage(){
     if(cart.length === 0){ document.getElementById('cartItemsList').innerHTML = '<p style="text-align:center;padding:40px;">Cart empty</p>'; document.getElementById('cartTotalAmount').innerHTML = `${getCurrencySymbol()}0.00`; return; }
     let totalUSD = 0;
-    const shipping = currentShippingCost > 0 ? currentShippingCost : 10;
+    const shipping = currentShippingCost > 0 ? currentShippingCost : 0;
     let html = cart.map((item, idx) => {
         let seller = sellers.find(s => s.id == item.sellerId) || { country: "SA" };
         let final = calculateFinalPrice(item.price, seller.country, buyerCountry, shipping / cart.length);
@@ -1422,8 +1437,7 @@ document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async f
 function loadSavedCards(){ let userCards = savedCards.filter(c => c.userEmail === "guest@globalbazaar.com"); if(userCards.length > 0){ document.getElementById('savedCardsSection').style.display = 'block'; document.getElementById('savedCardsList').innerHTML = userCards.map((card,idx) => `<div class="flex-between"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}">Use</button></div>`).join(''); document.querySelectorAll('.useSavedCardBtn').forEach(btn => btn.addEventListener('click', () => { let card = userCards[parseInt(btn.dataset.idx)]; document.getElementById('cardNumber').value = card.cardNumber; document.getElementById('cardHolderName').value = card.cardHolderName; document.getElementById('expiryDate').value = card.expiryDate; document.getElementById('cvv').value = ''; showToast("Card loaded", false); })); } }
 
 // ============================================================
-// FIX 3: ORDER DELETION HATAYA (Sirf NO button par delete)
-// FIX 4: STOCK MANAGEMENT - stock -1, pending_approval status
+// PAYMENT - FIX 3: Dynamic Order Structure
 // ============================================================
 document.getElementById('payNowBtn')?.addEventListener('click', async function() {
     const btn = this;
@@ -1441,49 +1455,77 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             if(existing >= 0) savedCards[existing] = cardData; else savedCards.push(cardData);
             saveAllLocal();
         }
-        const shippingCost = parseFloat(sessionStorage.getItem('shipping_cost')) || 10;
+        
+        // FIX 2: Use dynamic shipping (no fixed $10)
+        const shippingCost = parseFloat(sessionStorage.getItem('shipping_cost')) || 0;
         let totalUSD = 0;
+        
+        // Calculate totals with dynamic pricing
         for(let item of cart){
             let seller = sellers.find(s => s.id == item.sellerId);
             let final = calculateFinalPrice(item.price, seller?.country || "SA", buyerCountry, shippingCost / cart.length);
             totalUSD += final.total * item.qty;
         }
+        
         let tracking = "GB" + Date.now();
         let cartCopy = [...cart];
         const totalWithShipping = totalUSD;
+        
         for(let item of cart){
             let seller = sellers.find(s => s.id == item.sellerId);
-            let final = calculateFinalPrice(item.price, seller?.country || "SA", buyerCountry, shippingCost / cart.length);
             let product = products.find(p => p.id == item.id);
+            let priceCalc = calculateDynamicPrice(item.price, shippingCost / cart.length);
+            
+            // FIX 3: Store complete productDetails in order
             let newOrder = { 
                 id: Date.now()+Math.random(), 
                 trackingNumber: tracking, 
                 sellerId: item.sellerId, 
                 sellerName: seller?.shopName || "GlobalBazaar", 
                 buyerEmail: currentDelivery.email, 
-                buyerName: currentDelivery.fullName, 
-                productName: item.name, 
-                amount: final.total, 
-                basePrice: item.price, 
+                buyerName: currentDelivery.fullName,
+                
+                // FIX 3: Complete productDetails object
+                productDetails: {
+                    id: item.id,
+                    name: item.name,
+                    price: item.price,
+                    image: item.image,
+                    category: product?.category || '',
+                    sellerId: item.sellerId,
+                    sellerName: seller?.shopName || "GlobalBazaar"
+                },
+                
+                productName: item.name,
+                amount: totalWithShipping / cart.length,
+                basePrice: item.price,
                 address: currentDelivery.fullAddress, 
                 date: new Date().toLocaleString(), 
                 status: "Processing", 
-                qty: item.qty, 
-                shippingCost: final.shipping, 
-                commission: final.commission, 
-                gatewayFee: final.gateway,
-                handlingFee: HANDLING_FEE,
+                qty: item.qty,
+                
+                // FIX 3: Dynamic price breakdown
+                priceBreakdown: {
+                    basePrice: item.price,
+                    gatewayFee: priceCalc.gatewayFee,
+                    maintenanceFee: priceCalc.maintenanceFee,
+                    shippingCost: priceCalc.shippingCost,
+                    grandTotal: priceCalc.grandTotal
+                },
+                
+                shippingCost: priceCalc.shippingCost,
+                commission: item.price * PLATFORM_COMMISSION,
+                gatewayFee: priceCalc.gatewayFee,
+                handlingFee: MAINTENANCE_FEE,
                 trackingInfo: null,
                 shippingCharge: shippingCost / cart.length
             };
             orders.push(newOrder);
-            platformEarnings += final.commission * item.qty + final.gateway * item.qty + HANDLING_FEE * item.qty;
+            platformEarnings += (item.price * PLATFORM_COMMISSION) + priceCalc.gatewayFee + MAINTENANCE_FEE;
             
-            // FIX 4: STOCK MANAGEMENT - stock -1
+            // Stock management
             if(product){ 
                 product.stock -= item.qty; 
-                
-                // FIX 4: If stock becomes 0, mark as pending_approval (NOT delete)
                 if(product.stock <= 0){
                     product.status = 'pending_approval';
                     await db.collection('products').doc(product.id).update({
@@ -1493,8 +1535,6 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                     });
                     addNotification(`📢 ${product.name} is now SOLD OUT! Waiting for seller approval.`, 'info');
                     sendTelegramMessage(`📢 ${product.name} is SOLD OUT! Waiting for seller approval.`);
-                    
-                    // FIX 7: Show restock popup to seller
                     if (currentSeller && currentSeller.sellerId === product.sellerId) {
                         showInventoryConfirmModal(product.id, product.name);
                     }
@@ -1506,6 +1546,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             }
         }
         saveAllLocal();
+        
         try {
             const firstItem = cart[0];
             const product = products.find(p => p.id === firstItem?.id);
@@ -1542,16 +1583,34 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         } catch (e) {
             console.error('Shipment creation failed:', e);
         }
+        
         await sendTelegramMessage(`🛍️ NEW ORDER!\nOrder: ${tracking}\nCustomer: ${currentDelivery.fullName}\nAmount: ${getCurrencySymbol()}${convertPrice(totalWithShipping)}`);
         addNotification(`Order placed! #${tracking}`, 'order');
         cart = []; saveAllLocal(); updateCartUI();
         if (currentBuyer) await saveUserCart(currentBuyer.uid);
         let last4 = cardNum.slice(-4);
-        let itemsHtml = cartCopy.map(i => `<li>${i.name} x${i.qty} = ${getCurrencySymbol()}${convertPrice(i.price * i.qty)}</li>`).join('');
+        
+        // FIX 3: Show detailed breakdown in order summary
+        let breakdownHtml = cartCopy.map(i => {
+            let calc = calculateDynamicPrice(i.price, shippingCost / cart.length);
+            return `
+                <div style="background:#f8fafc; padding:12px; border-radius:12px; margin-bottom:10px;">
+                    <strong>${i.name}</strong> x${i.qty}
+                    <div style="font-size:12px; color:#64748b; margin-top:5px;">
+                        Base: ${getCurrencySymbol()}${convertPrice(i.price)}<br>
+                        + Gateway (3%): ${getCurrencySymbol()}${convertPrice(calc.gatewayFee)}<br>
+                        + Maintenance: ${getCurrencySymbol()}${convertPrice(calc.maintenanceFee)}<br>
+                        + Shipping: ${getCurrencySymbol()}${convertPrice(calc.shippingCost)}<br>
+                        <strong>= ${getCurrencySymbol()}${convertPrice(calc.grandTotal)}</strong>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
         document.getElementById('orderSummaryContent').innerHTML = `
             <p><strong>Order ID:</strong> ${tracking}</p>
             <h3>📦 Items</h3>
-            <ul>${itemsHtml}</ul>
+            ${breakdownHtml}
             <h3>💰 Total Paid: ${getCurrencySymbol()}${convertPrice(totalWithShipping)}</h3>
             <h3>📦 Shipping Cost: ${getCurrencySymbol()}${convertPrice(shippingCost)}</h3>
             <h3>👤 Delivery Details</h3>
@@ -1573,7 +1632,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
     }
 });
 
-function confirmOrderReceived(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Shipped"){ order.status = "Delivered"; saveAllLocal(); showToast("Order marked Delivered", false); renderBuyerOrders(); addNotification(`Order ${order.trackingNumber} delivered`,'order'); setTimeout(()=>{ let ord = orders.find(o => o.id === orderId); if(ord && ord.status === "Delivered"){ ord.status = "Completed"; let seller = sellers.find(s => s.id == ord.sellerId); if(seller){ let sellerEarning = ord.basePrice - ord.commission - HANDLING_FEE; seller.earnings = (seller.earnings||0) + (sellerEarning * ord.qty); saveAllLocal(); showToast(`Payment released to seller`,false); if(currentSeller) renderSellerDashboard(); } } },5000); } else showToast("Order not shipped yet",true); }
+function confirmOrderReceived(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Shipped"){ order.status = "Delivered"; saveAllLocal(); showToast("Order marked Delivered", false); renderBuyerOrders(); addNotification(`Order ${order.trackingNumber} delivered`,'order'); setTimeout(()=>{ let ord = orders.find(o => o.id === orderId); if(ord && ord.status === "Delivered"){ ord.status = "Completed"; let seller = sellers.find(s => s.id == ord.sellerId); if(seller){ let sellerEarning = ord.basePrice - ord.commission - MAINTENANCE_FEE; seller.earnings = (seller.earnings||0) + (sellerEarning * ord.qty); saveAllLocal(); showToast(`Payment released to seller`,false); if(currentSeller) renderSellerDashboard(); } } },5000); } else showToast("Order not shipped yet",true); }
 function cancelOrder(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Processing"){ let prod = products.find(p => p.name === order.productName && p.sellerId === order.sellerId); if(prod){ prod.stock += order.qty; saveAllLocal(); } order.status = "Cancelled"; saveAllLocal(); showToast("Order cancelled successfully",false); renderBuyerOrders(); renderProducts(); addNotification(`Order ${order.trackingNumber} cancelled`,'order'); if(currentSeller) renderSellerDashboard(); } else { showToast("Only orders in 'Processing' status can be cancelled",true); } }
 function markOrderShipped(orderId, trackingNum){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Processing"){ order.status = "Shipped"; order.trackingInfo = { trackingNumber: trackingNum }; saveAllLocal(); showToast(`Order Shipped! Tracking: ${trackingNum}`,false); renderSellerDashboard(); renderBuyerOrders(); addNotification(`Your order ${order.trackingNumber} shipped`,'order'); } }
 function requestWithdrawal(sellerId){ let seller = sellers.find(s => s.id == sellerId); if(seller && seller.earnings > 0){ let newWithdrawal = { id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, amount: seller.earnings, date: new Date().toLocaleString(), status: "Pending" }; pendingWithdrawals.push(newWithdrawal); seller.earnings = 0; saveAllLocal(); showToast("Withdrawal request submitted",false); renderSellerDashboard(); sendTelegramMessage(`💰 Withdrawal Request: ${seller.shopName} - ${getCurrencySymbol()}${convertPrice(newWithdrawal.amount)}`); addNotification(`Withdrawal request for ${getCurrencySymbol()}${convertPrice(newWithdrawal.amount)}`,'payment'); } else showToast("No balance",true); }
@@ -1685,7 +1744,6 @@ async function showMyShopLogin(){
         return;
     }
     
-    // Check if email is verified
     if (!user.emailVerified) {
         showVerifyModal();
         return;
@@ -1765,7 +1823,7 @@ document.getElementById('drawerMyShop')?.addEventListener('click', function() {
 });
 
 // ============================================================
-// FIX 5 & 6: SELLER DASHBOARD - Analytics + Real-Time Orders
+// SELLER DASHBOARD - FIX 3: Orders with productDetails
 // ============================================================
 function renderSellerDashboard(){
     if(!currentSeller?.sellerId) return;
@@ -1790,7 +1848,7 @@ function renderSellerDashboard(){
     let monthlyRevenue = {};
     myOrders.forEach(o => { 
         if(o.status === "Completed"){ 
-            let earning = (o.basePrice - o.commission - HANDLING_FEE) * o.qty; 
+            let earning = (o.basePrice - o.commission - MAINTENANCE_FEE) * o.qty; 
             totalSales += earning; 
             let date = new Date(o.date); 
             let my = `${date.getMonth()+1}/${date.getFullYear()}`; 
@@ -1798,7 +1856,6 @@ function renderSellerDashboard(){
         } 
     });
     
-    // FIX 5: Analytics Section
     let chartLabels = Object.keys(monthlyRevenue), chartData = Object.values(monthlyRevenue); 
     if(chartLabels.length === 0){ chartLabels = ["No Data"]; chartData = [0]; }
     
@@ -1810,11 +1867,35 @@ function renderSellerDashboard(){
     
     let prodListHtml = myProducts.map(p => `<div class="flex-between"><span><img src="${p.mainImage}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;"> ${p.name} - ${getCurrencySymbol()}${convertPrice(p.price)} (Stock: ${p.stock})</span><button class="editProdBtn" data-id="${p.id}" style="background:#3b82f6;border:none;padding:4px 12px;border-radius:20px;">✏️ Edit</button><button class="delProd" data-id="${p.id}" style="background:#dc2626;border:none;padding:4px 12px;border-radius:20px;">Delete</button></div>`).join('');
     
-    let ordersHtml = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty}<br>${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: ${o.status}<br>Buyer: ${o.buyerName}<br>${o.trackingInfo ? `<br>📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}` : ''}${o.status === "Processing" ? `<br><button class="shipBtn" data-id="${o.id}" style="background:#3b82f6;margin-top:6px;">📦 Mark Shipped</button>` : ''}</div>`).join('');
+    // FIX 3: Orders with productDetails
+    let ordersHtml = myOrders.map(o => `
+        <div class="order-card" onclick="showOrderDetails('${o.id}')" style="cursor:pointer;">
+            <strong>🔖 ${o.trackingNumber}</strong>
+            <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+                ${o.productDetails?.image ? `<img src="${o.productDetails.image}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;">` : ''}
+                <div>
+                    <strong>${o.productDetails?.name || o.productName}</strong>
+                    <br>${getCurrencySymbol()}${convertPrice(o.amount)} x${o.qty}
+                </div>
+            </div>
+            <div style="font-size:12px; color:#64748b;">
+                Price Breakdown:
+                Base: ${getCurrencySymbol()}${convertPrice(o.priceBreakdown?.basePrice || o.basePrice)}
+                + Gateway (3%): ${getCurrencySymbol()}${convertPrice(o.priceBreakdown?.gatewayFee || 0)}
+                + Maintenance: ${getCurrencySymbol()}${convertPrice(o.priceBreakdown?.maintenanceFee || 0)}
+                + Shipping: ${getCurrencySymbol()}${convertPrice(o.priceBreakdown?.shippingCost || 0)}
+                <br><strong>Grand Total: ${getCurrencySymbol()}${convertPrice(o.priceBreakdown?.grandTotal || o.amount)}</strong>
+            </div>
+            <div>Status: ${o.status}</div>
+            <div>Buyer: ${o.buyerName}</div>
+            ${o.trackingInfo ? `<div>📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}</div>` : ''}
+            ${o.status === "Processing" ? `<button class="shipBtn" data-id="${o.id}" style="background:#3b82f6;margin-top:6px;">📦 Mark Shipped</button>` : ''}
+            <div style="font-size:10px; color:#94a3b8; margin-top:4px;">${o.date}</div>
+        </div>
+    `).join('');
     
     let sellerDashboardHtml = `
 <div class="premium-card"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📧 ${seller.email}<br>📍 ${seller.city}, ${seller.country}</p></div><div><span class="kyc-status ${kycClass}">${kycText}</span></div>
-<!-- FIX 5: Analytics Section -->
 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:12px;">
     <div style="background:#f1f5f9; padding:12px; border-radius:12px; text-align:center;">
         <div style="font-size:24px; font-weight:800; color:#1e3a8a;">${totalOrders}</div>
@@ -1854,35 +1935,44 @@ function renderSellerDashboard(){
     <button id="publishBtn" class="btn-primary">📢 Publish</button>
 </div>
 <div class="premium-card"><h3>📋 My Products (${myProducts.length})</h3><div id="myProductsList">${prodListHtml}</div></div>
-<!-- FIX 6: Real-Time Orders Section -->
 <div class="premium-card"><h3>📦 Orders (${totalOrders})</h3><div id="ordersList">${ordersHtml}</div></div>
 `;
     document.getElementById('sellerDashboard').innerHTML = sellerDashboardHtml;
     let ctx = document.getElementById('revenueChart')?.getContext('2d'); if(ctx){ if(sellerRevenueChart) sellerRevenueChart.destroy(); sellerRevenueChart = new Chart(ctx, { type: 'bar', data: { labels: chartLabels, datasets: [{ label: 'Revenue', data: chartData.map(v => parseFloat(convertPrice(v))), backgroundColor: '#3b82f6' }] } }); }
     
-    // FIX 6: Real-Time Orders Listener for current seller
+    // Real-Time Orders Listener
     if (currentSeller?.sellerId) {
         db.collection("orders").where("sellerId", "==", currentSeller.sellerId).onSnapshot(snapshot => {
             let realTimeOrders = [];
             snapshot.forEach(doc => { realTimeOrders.push({ id: doc.id, ...doc.data() }); });
-            // Update orders list without full page reload
             const ordersContainer = document.getElementById('ordersList');
             if (ordersContainer) {
                 if (realTimeOrders.length === 0) {
                     ordersContainer.innerHTML = '<p>No orders yet.</p>';
                 } else {
                     ordersContainer.innerHTML = realTimeOrders.map(o => `
-                        <div class="order-card">
-                            <strong>🔖 ${o.trackingNumber}</strong><br>
-                            ${o.productName} x${o.qty}<br>
-                            ${getCurrencySymbol()}${convertPrice(o.amount)}<br>
-                            Status: ${o.status}<br>
-                            Buyer: ${o.buyerName}<br>
-                            ${o.trackingInfo ? `<br>📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}` : ''}
-                            ${o.status === "Processing" ? `<br><button class="shipBtn" data-id="${o.id}" style="background:#3b82f6;margin-top:6px;">📦 Mark Shipped</button>` : ''}
+                        <div class="order-card" onclick="showOrderDetails('${o.id}')" style="cursor:pointer;">
+                            <strong>🔖 ${o.trackingNumber}</strong>
+                            <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+                                ${o.productDetails?.image ? `<img src="${o.productDetails.image}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;">` : ''}
+                                <div>
+                                    <strong>${o.productDetails?.name || o.productName}</strong>
+                                    <br>${getCurrencySymbol()}${convertPrice(o.amount)} x${o.qty}
+                                </div>
+                            </div>
+                            <div style="font-size:12px; color:#64748b;">
+                                Base: ${getCurrencySymbol()}${convertPrice(o.priceBreakdown?.basePrice || o.basePrice)}
+                                + Gateway (3%): ${getCurrencySymbol()}${convertPrice(o.priceBreakdown?.gatewayFee || 0)}
+                                + Maintenance: ${getCurrencySymbol()}${convertPrice(o.priceBreakdown?.maintenanceFee || 0)}
+                                + Shipping: ${getCurrencySymbol()}${convertPrice(o.priceBreakdown?.shippingCost || 0)}
+                                <br><strong>Grand Total: ${getCurrencySymbol()}${convertPrice(o.priceBreakdown?.grandTotal || o.amount)}</strong>
+                            </div>
+                            <div>Status: ${o.status}</div>
+                            <div>Buyer: ${o.buyerName}</div>
+                            ${o.trackingInfo ? `<div>📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}</div>` : ''}
+                            ${o.status === "Processing" ? `<button class="shipBtn" data-id="${o.id}" style="background:#3b82f6;margin-top:6px;">📦 Mark Shipped</button>` : ''}
                         </div>
                     `).join('');
-                    // Re-bind ship buttons
                     document.querySelectorAll('.shipBtn').forEach(btn => btn.addEventListener('click', () => { 
                         let track = prompt("Enter tracking number:"); 
                         if(track) markOrderShipped(parseFloat(btn.dataset.id), track); 
@@ -1894,7 +1984,7 @@ function renderSellerDashboard(){
         });
     }
     
-    // FIX: Double-Click Protection on Publish Button
+    // Publish Button
     document.getElementById('publishBtn')?.addEventListener('click', async function() {
         const btn = this;
         btn.disabled = true;
@@ -2000,6 +2090,48 @@ function renderSellerDashboard(){
     document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
 }
 
+// ============================================================
+// ORDER DETAILS FUNCTION - FIX 3
+// ============================================================
+function showOrderDetails(orderId) {
+    let order = orders.find(o => o.id == orderId);
+    if (!order) return;
+    
+    let breakdown = order.priceBreakdown || {};
+    let productDetails = order.productDetails || {};
+    
+    let details = `
+        📦 ORDER DETAILS
+        =================
+        Order ID: ${order.trackingNumber}
+        Date: ${order.date}
+        Status: ${order.status}
+        
+        🛍️ PRODUCT:
+        Name: ${productDetails.name || order.productName}
+        Category: ${productDetails.category || 'N/A'}
+        Quantity: ${order.qty}
+        
+        💰 PRICE BREAKDOWN:
+        Base Price: $${(breakdown.basePrice || order.basePrice).toFixed(2)}
+        + Gateway Fee (3%): $${(breakdown.gatewayFee || 0).toFixed(2)}
+        + Maintenance Fee: $${(breakdown.maintenanceFee || 0).toFixed(2)}
+        + Shipping Cost: $${(breakdown.shippingCost || 0).toFixed(2)}
+        =================
+        GRAND TOTAL: $${(breakdown.grandTotal || order.amount).toFixed(2)}
+        
+        👤 BUYER:
+        Name: ${order.buyerName}
+        Email: ${order.buyerEmail}
+        Address: ${order.address}
+        
+        📮 TRACKING:
+        ${order.trackingInfo ? `Tracking #: ${order.trackingInfo.trackingNumber || order.trackingInfo}\nCarrier: ${order.trackingInfo.carrierName || 'N/A'}` : 'Not shipped yet'}
+    `;
+    
+    alert(details);
+}
+
 function renderBuyerOrders(){
     const user = auth.currentUser;
     if (!user) return;
@@ -2093,8 +2225,7 @@ function showTerms() {
 }
 
 // ============================================================
-// FIX 7: RESTOCK POPUP - YES/NO Modal Functions
-// NO button par DELETE ho (FIX 3)
+// RESTOCK POPUP - YES/NO Modal Functions
 // ============================================================
 function showInventoryConfirmModal(productId, productName) {
     pendingConfirmationProduct = productId;
@@ -2128,7 +2259,7 @@ document.getElementById('confirmYesBtn')?.addEventListener('click', async functi
     }
 });
 
-// NO Button - Delete product (FIX 3: Sirf NO par delete)
+// NO Button - Delete product
 document.getElementById('confirmNoBtn')?.addEventListener('click', async function() {
     if (!pendingConfirmationProduct) return;
     
@@ -2208,4 +2339,4 @@ document.getElementById('loginModal')?.addEventListener('click', (e) => {
 });
 
 renderCats(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge(); updateAdminMenuBadges();
-document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 5 Products | Easyship Shipping | Mode: " + EASYSHIP_MODE;
+document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | Dynamic Pricing | Easyship Shipping | Mode: " + EASYSHIP_MODE;
