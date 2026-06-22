@@ -1,5 +1,5 @@
 // ============================================================
-// GLOBAL BAZAAR - COMPLETE SHIPPING ENGINE (DATABASE DRIVEN)
+// GLOBAL BAZAAR - COMPLETE FIXED CODE (4 PROBLEMS SOLVED)
 // ============================================================
 
 // ============================================================
@@ -8,26 +8,19 @@
 async function initializeDatabase() {
     try {
         console.log('🔍 Initializing database...');
-        
-        // Check if products collection exists
         const productsSnapshot = await db.collection('products').limit(1).get();
         if (productsSnapshot.empty) {
             console.log('📦 Products collection empty. Seeding default products...');
             await seedProductsIfEmpty();
         }
-        
-        // Check if sellers collection exists
         const sellersSnapshot = await db.collection('sellers').limit(1).get();
         if (sellersSnapshot.empty) {
             console.log('👤 Sellers collection empty. Creating...');
         }
-        
-        // Check if orders collection exists
         const ordersSnapshot = await db.collection('orders').limit(1).get();
         if (ordersSnapshot.empty) {
             console.log('📦 Orders collection empty. Creating...');
         }
-        
         console.log('✅ Database initialized successfully!');
         return true;
     } catch (error) {
@@ -42,7 +35,6 @@ async function initializeDatabase() {
 // ============================================================
 const FIXED_CATEGORIES = ['Fashion', 'Textiles', 'Cosmetics', 'Electronics', 'Home Decor'];
 
-// Update category select in seller dashboard
 function updateCategorySelect() {
     const select = document.getElementById('prodCat');
     if (select) {
@@ -58,7 +50,6 @@ function updateCategorySelect() {
 window.onerror = function(message, source, lineno, colno, error) {
     console.error('Global Error:', message, source, lineno, colno, error);
     showToast('⚠️ Something went wrong. Please try again.', true);
-    // FIX: Check if debugMsg exists before setting
     const debugMsg = document.getElementById('debugMsg');
     if (debugMsg) {
         debugMsg.innerText = 'Error: ' + message;
@@ -90,6 +81,53 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 
 // ============================================================
+// FIX: COUNTRY CODE MAPPING FOR SHIPPING
+// ============================================================
+function getCountryCode(countryName) {
+    const countryMap = {
+        'Saudi Arabia': 'SA',
+        'saudi arabia': 'SA',
+        'SA': 'SA',
+        'sa': 'SA',
+        'UAE': 'GCC',
+        'uae': 'GCC',
+        'United Arab Emirates': 'GCC',
+        'Qatar': 'GCC',
+        'qatar': 'GCC',
+        'Oman': 'GCC',
+        'oman': 'GCC',
+        'Kuwait': 'GCC',
+        'kuwait': 'GCC',
+        'Bahrain': 'GCC',
+        'bahrain': 'GCC',
+        'India': 'International',
+        'Pakistan': 'International',
+        'USA': 'International',
+        'UK': 'International',
+        'US': 'International',
+        'United States': 'International',
+        'United Kingdom': 'International'
+    };
+    
+    // FIX: Return mapped code or 'International' as fallback
+    const mapped = countryMap[countryName];
+    if (mapped) return mapped;
+    
+    // Check if it's a GCC country (not explicitly mapped)
+    const gccCountries = ['qatar', 'oman', 'kuwait', 'bahrain', 'uae', 'united arab emirates'];
+    if (gccCountries.some(g => countryName.toLowerCase().includes(g))) {
+        return 'GCC';
+    }
+    
+    // Check if it's SA
+    if (countryName.toLowerCase().includes('saudi') || countryName.toLowerCase().includes('sa')) {
+        return 'SA';
+    }
+    
+    return 'International';
+}
+
+// ============================================================
 // DATABASE-DRIVEN SHIPPING RATES
 // ============================================================
 async function getShippingRateFromDB(productId, buyerCountry) {
@@ -109,18 +147,22 @@ async function getShippingRateFromDB(productId, buyerCountry) {
         let shippingRate = 0;
         let shippingType = 'unknown';
         
+        // FIX: Convert country name to code
+        const countryCode = getCountryCode(buyerCountry);
+        console.log('🔍 Buyer Country:', buyerCountry, '→ Code:', countryCode);
+        
         if (product.shippingRates) {
-            if (buyerCountry === 'SA' && product.shippingRates.SA !== undefined) {
+            if (countryCode === 'SA' && product.shippingRates.SA !== undefined && product.shippingRates.SA > 0) {
                 shippingRate = product.shippingRates.SA;
                 shippingType = 'SA';
-            } else if (buyerCountry === 'GCC' && product.shippingRates.GCC !== undefined) {
+            } else if (countryCode === 'GCC' && product.shippingRates.GCC !== undefined && product.shippingRates.GCC > 0) {
                 shippingRate = product.shippingRates.GCC;
                 shippingType = 'GCC';
-            } else if (product.shippingRates.International !== undefined) {
+            } else if (product.shippingRates.International !== undefined && product.shippingRates.International > 0) {
                 shippingRate = product.shippingRates.International;
                 shippingType = 'International';
             } else {
-                console.warn('No shipping rate found for country:', buyerCountry);
+                console.warn('No valid shipping rate found for country:', buyerCountry, '→', countryCode);
                 return null;
             }
         } else {
@@ -130,13 +172,13 @@ async function getShippingRateFromDB(productId, buyerCountry) {
                 if (sellerDoc.exists) {
                     const seller = sellerDoc.data();
                     if (seller.shippingRates) {
-                        if (buyerCountry === 'SA' && seller.shippingRates.SA !== undefined) {
+                        if (countryCode === 'SA' && seller.shippingRates.SA !== undefined && seller.shippingRates.SA > 0) {
                             shippingRate = seller.shippingRates.SA;
                             shippingType = 'SA';
-                        } else if (buyerCountry === 'GCC' && seller.shippingRates.GCC !== undefined) {
+                        } else if (countryCode === 'GCC' && seller.shippingRates.GCC !== undefined && seller.shippingRates.GCC > 0) {
                             shippingRate = seller.shippingRates.GCC;
                             shippingType = 'GCC';
-                        } else if (seller.shippingRates.International !== undefined) {
+                        } else if (seller.shippingRates.International !== undefined && seller.shippingRates.International > 0) {
                             shippingRate = seller.shippingRates.International;
                             shippingType = 'International';
                         } else {
@@ -162,6 +204,8 @@ async function getShippingRateFromDB(productId, buyerCountry) {
             return null;
         }
         
+        console.log('✅ Shipping rate found:', shippingRate, 'Type:', shippingType);
+        
         return {
             rate: shippingRate,
             type: shippingType,
@@ -176,6 +220,9 @@ async function getShippingRateFromDB(productId, buyerCountry) {
 // ============================================================
 // FETCH SHIPPING FROM DATABASE
 // ============================================================
+let lastShippingFetch = 0;
+let currentShippingCost = 0;
+
 async function fetchAndDisplayShippingRates() {
     if (Date.now() - lastShippingFetch < 3000) return;
     lastShippingFetch = Date.now();
@@ -225,7 +272,10 @@ async function fetchAndDisplayShippingRates() {
         }
         
         const buyerCountrySelect = document.getElementById('deliveryCountry');
-        const buyerCountry = buyerCountrySelect ? buyerCountrySelect.value : 'SA';
+        // FIX: Get the text value (country name) not just value
+        const buyerCountry = buyerCountrySelect ? 
+            buyerCountrySelect.options[buyerCountrySelect.selectedIndex]?.text || buyerCountrySelect.value : 
+            'Saudi Arabia';
         
         if (!buyerCountry || buyerCountry === '') {
             if (shippingDisplay) {
@@ -241,21 +291,8 @@ async function fetchAndDisplayShippingRates() {
         
         const shippingInfo = await getShippingRateFromDB(product.id, buyerCountry);
         
-        if (shippingInfo && shippingInfo.rate !== null) {
+        if (shippingInfo && shippingInfo.rate !== null && shippingInfo.rate > 0) {
             currentShippingCost = shippingInfo.rate;
-            
-            if (isNaN(currentShippingCost) || currentShippingCost < 0) {
-                currentShippingCost = 0;
-                if (shippingDisplay) {
-                    shippingDisplay.textContent = 'Shipping rate unavailable';
-                    shippingDisplay.className = 'cost error';
-                }
-                if (payBtn) { 
-                    payBtn.disabled = true; 
-                    payBtn.textContent = '⏳ Shipping unavailable'; 
-                }
-                return;
-            }
             
             if (shippingDisplay) {
                 shippingDisplay.textContent = `${getCurrencySymbol()}${convertPrice(currentShippingCost)}`;
@@ -310,7 +347,6 @@ async function fetchAndDisplayShippingRates() {
 async function createShipmentAfterOrder(orderData) {
     try {
         const trackingNumber = 'GB' + Date.now() + Math.random().toString(36).substr(2, 6);
-        
         const shippingInfo = {
             orderId: orderData.orderId,
             trackingNumber: trackingNumber,
@@ -320,9 +356,7 @@ async function createShipmentAfterOrder(orderData) {
             buyerCountry: orderData.buyerCountry || 'SA',
             shippingType: sessionStorage.getItem('shipping_type') || 'Standard'
         };
-        
         await db.collection('shipments').doc(orderData.orderId).set(shippingInfo);
-        
         return {
             trackingNumber: trackingNumber,
             labelUrl: null,
@@ -538,8 +572,6 @@ let buyerCountry = localStorage.getItem('buyerCountry') || 'SA';
 let sellerRevenueChart = null;
 let currentBuyer = null;
 let isAdminLoggedIn = false;
-let currentShippingCost = 0;
-let lastShippingFetch = 0;
 let verificationCheckInterval = null;
 let pendingConfirmationProduct = null;
 
@@ -1049,7 +1081,6 @@ db.collection("products").onSnapshot(snapshot => {
     products = [];
     snapshot.forEach(doc => { products.push({ id: doc.id, ...doc.data() }); });
     renderProducts(); renderCats();
-    // FIX: Check if debugMsg exists
     const debugMsg = document.getElementById('debugMsg');
     if (debugMsg) {
         debugMsg.innerText = `Products: ${products.length}`;
@@ -1317,14 +1348,25 @@ let currentCategory = "All";
 function renderProductCard(p) {
     const seller = sellers.find(s => s.id === p.sellerId) || { shopName: "GlobalBazaar", country: "SA" };
     const displayPrice = calculateDisplayPrice(p.price);
-    const stockBadge = p.stock < 5 ? `<div class="stock-badge">Only ${p.stock} left</div>` : '';
-    const soldOutBadge = p.stock <= 0 ? `<div class="soldout-badge">SOLD OUT</div>` : '';
+    
+    // FIX: Show SOLD OUT but don't delete from dashboard
+    const soldOutBadge = p.stock <= 0 || p.status === 'pending_approval' ? 
+        `<div class="soldout-badge">SOLD OUT</div>` : '';
+    
+    // Only show stock badge if stock is low AND not sold out
+    const stockBadge = (p.stock < 5 && p.stock > 0) ? 
+        `<div class="stock-badge">Only ${p.stock} left</div>` : '';
+    
     let thumbnailsHtml = '';
     if (p.images && p.images.length > 1) {
         thumbnailsHtml = p.images.slice(0,4).map(img => 
             `<img src="${img}" onclick="event.stopPropagation(); changeProductImage('${p.id}','${img}')">`
         ).join('');
     }
+    
+    // FIX: Disable buy button if sold out
+    const isSoldOut = p.stock <= 0 || p.status === 'pending_approval';
+    
     return `<div class="product-card" data-id="${p.id}">
         ${soldOutBadge}
         ${stockBadge}
@@ -1336,7 +1378,9 @@ function renderProductCard(p) {
         <h4 style="font-size:13px; margin:2px 0;">${p.name}</h4>
         <div class="prod-price">${getCurrencySymbol()}${convertPrice(displayPrice.total)}</div>
         <div class="card-actions">
-            <button class="btn-sm btn-buy addCartBtn" data-id="${p.id}" ${p.stock <= 0 ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>🛒 Buy</button>
+            <button class="btn-sm btn-buy addCartBtn" data-id="${p.id}" ${isSoldOut ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>
+                ${isSoldOut ? '🚫 Sold Out' : '🛒 Buy'}
+            </button>
         </div>
     </div>`;
 }
@@ -1352,7 +1396,14 @@ function renderProducts(){
     grid.innerHTML = '';
     
     let search = document.getElementById('searchInput')?.value.toLowerCase() || "";
-    let filtered = products.filter(p => (currentCategory === "All" || p.category === currentCategory) && p.name.toLowerCase().includes(search) && p.stock > 0);
+    // FIX: Show products with stock > 0 AND not pending_approval
+    let filtered = products.filter(p => 
+        (currentCategory === "All" || p.category === currentCategory) && 
+        p.name.toLowerCase().includes(search) && 
+        p.stock > 0 && 
+        p.status !== 'pending_approval'
+    );
+    
     if (filtered.length === 0) {
         grid.innerHTML = '<div style="text-align:center;padding:40px;grid-column:1/-1;">No products found</div>';
         return;
@@ -1416,7 +1467,11 @@ function openProduct(id){
 
 function addToCart(id){
     let p = products.find(x => x.id == id); if(!p) return;
-    if(p.stock <= 0){ showToast("Out of stock!",true); return; }
+    // FIX: Prevent adding sold out products
+    if(p.stock <= 0 || p.status === 'pending_approval'){ 
+        showToast("This product is sold out!",true); 
+        return; 
+    }
     let existing = cart.find(i => i.id == id);
     if(existing){ if(existing.qty < p.stock) existing.qty++; else { showToast(`Only ${p.stock} in stock`,true); return; } }
     else { cart.push({ id: p.id, name: p.name, price: p.price, sellerId: p.sellerId, sellerCountry: p.sellerCountry || "SA", qty: 1, image: p.mainImage }); }
@@ -1581,10 +1636,20 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             return; 
         }
         
-        // Check if shipping is available
+        // FIX: Check if shipping is available before payment
         const shippingCost = parseFloat(sessionStorage.getItem('shipping_cost')) || 0;
+        console.log('💰 Shipping Cost:', shippingCost);
+        
         if (shippingCost === 0 && cart.length > 0) {
             showToast('⚠️ Shipping not available for this region', true);
+            btn.disabled = false;
+            btn.textContent = 'Pay with Card (Dummy)';
+            return;
+        }
+        
+        // FIX: Check if currentDelivery exists
+        if (!currentDelivery || !currentDelivery.email) {
+            showToast('⚠️ Delivery details missing. Please go back and fill delivery info.', true);
             btn.disabled = false;
             btn.textContent = 'Pay with Card (Dummy)';
             return;
@@ -1662,14 +1727,17 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             if(product){ 
                 product.stock -= item.qty; 
                 if(product.stock <= 0){
+                    // FIX: Don't delete product, just mark as pending_approval
                     product.status = 'pending_approval';
                     await db.collection('products').doc(product.id).update({
                         stock: 0,
                         status: 'pending_approval',
                         soldOutAt: new Date().toISOString()
                     });
-                    addNotification(`📢 ${product.name} is now SOLD OUT! Waiting for seller approval.`, 'info');
-                    sendTelegramMessage(`📢 ${product.name} is SOLD OUT! Waiting for seller approval.`);
+                    addNotification(`📢 ${product.name} is SOLD OUT! Waiting for seller.`, 'info');
+                    sendTelegramMessage(`📢 ${product.name} is SOLD OUT! Waiting for seller.`);
+                    
+                    // FIX: Show YES/NO modal to seller if they're logged in
                     if (currentSeller && currentSeller.sellerId === product.sellerId) {
                         showInventoryConfirmModal(product.id, product.name);
                     }
@@ -1805,7 +1873,6 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
         const password = document.getElementById('sellerPassword').value;
 
         showToast("Creating account...", false);
-        // FIX: Check if debugMsg exists
         const debugMsg = document.getElementById('debugMsg');
         if (debugMsg) {
             debugMsg.innerText = "Creating account...";
@@ -1863,7 +1930,6 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
             modal.style.display = 'block';
             modal.querySelector('p').innerHTML = '📧 <strong>Please check your email!</strong><br><br>We have sent a verification link to your email address.<br><br>Click the link to verify your email and activate your seller account.<br><br>⏳ Waiting for email verification...';
         }
-        // FIX: Check if debugMsg exists
         if (debugMsg) {
             debugMsg.innerText = "Registration successful - Email verification sent";
         }
@@ -1879,7 +1945,6 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
     } catch(err) {
         console.error(err);
         showToast("Registration failed: " + err.message, true);
-        // FIX: Check if debugMsg exists
         const debugMsg = document.getElementById('debugMsg');
         if (debugMsg) {
             debugMsg.innerText = "Error: " + err.message;
@@ -1979,7 +2044,7 @@ document.getElementById('drawerMyShop')?.addEventListener('click', function() {
 });
 
 // ============================================================
-// NOTIFICATION BADGE ON 'MY SHOP' BUTTON
+// FIX: NOTIFICATION BADGE ON 'MY SHOP' BUTTON
 // ============================================================
 function updateMyShopBadge() {
     const btn = document.getElementById('drawerMyShop');
@@ -1995,10 +2060,15 @@ function updateMyShopBadge() {
     }
     
     if (currentSeller?.sellerId) {
-        const pendingOrders = orders.filter(o => o.sellerId === currentSeller.sellerId && o.status === 'Processing');
-        if (pendingOrders.length > 0) {
-            badge.textContent = pendingOrders.length;
+        // FIX: Count both processing orders AND pending approval products
+        const pendingOrders = orders.filter(o => o.sellerId === currentSeller.sellerId && o.status === 'Processing').length;
+        const pendingProducts = products.filter(p => p.sellerId === currentSeller.sellerId && p.status === 'pending_approval').length;
+        const totalPending = pendingOrders + pendingProducts;
+        
+        if (totalPending > 0) {
+            badge.textContent = totalPending;
             badge.style.display = 'inline-block';
+            badge.style.background = '#ef4444';
         } else {
             badge.style.display = 'none';
         }
@@ -2008,7 +2078,7 @@ function updateMyShopBadge() {
 }
 
 // ============================================================
-// SELLER DASHBOARD
+// FIX: SELLER DASHBOARD WITH YES/NO BUTTONS
 // ============================================================
 function renderSellerDashboard(){
     if(!currentSeller?.sellerId) return;
@@ -2032,6 +2102,7 @@ function renderSellerDashboard(){
     let myOrders = orders.filter(o => o.sellerId == seller.id);
     let totalSales = 0, totalOrders = myOrders.length;
     let pendingOrders = myOrders.filter(o => o.status === 'Processing');
+    let pendingApprovalProducts = myProducts.filter(p => p.status === 'pending_approval');
     let monthlyRevenue = {};
     myOrders.forEach(o => { 
         if(o.status === "Completed"){ 
@@ -2052,13 +2123,41 @@ function renderSellerDashboard(){
     myOrders.forEach(o => { topProducts[o.productName] = (topProducts[o.productName]||0) + o.qty; }); 
     let topList = Object.entries(topProducts).sort((a,b)=>b[1]-a[1]).slice(0,5);
     
-    let prodListHtml = myProducts.map(p => `<div class="flex-between"><span><img src="${p.mainImage}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;"> ${p.name} - ${getCurrencySymbol()}${convertPrice(p.price)} (Stock: ${p.stock})</span><button class="editProdBtn" data-id="${p.id}" style="background:#3b82f6;border:none;padding:4px 12px;border-radius:20px;">✏️ Edit</button><button class="delProd" data-id="${p.id}" style="background:#dc2626;border:none;padding:4px 12px;border-radius:20px;">Delete</button></div>`).join('');
+    let prodListHtml = myProducts.map(p => `<div class="flex-between"><span><img src="${p.mainImage}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;"> ${p.name} - ${getCurrencySymbol()}${convertPrice(p.price)} (Stock: ${p.stock}) ${p.status === 'pending_approval' ? '🔴 SOLD OUT - Pending' : ''}</span><button class="editProdBtn" data-id="${p.id}" style="background:#3b82f6;border:none;padding:4px 12px;border-radius:20px;">✏️ Edit</button><button class="delProd" data-id="${p.id}" style="background:#dc2626;border:none;padding:4px 12px;border-radius:20px;">Delete</button></div>`).join('');
     
     let ordersHtml = '';
-    if (pendingOrders.length > 0) {
-        ordersHtml += `<h4 style="margin:10px 0; color:#dc2626;">🔴 Pending Approval (${pendingOrders.length})</h4>`;
-        ordersHtml += pendingOrders.map(o => `
+    
+    // FIX: Show pending approval products with YES/NO buttons
+    if (pendingApprovalProducts.length > 0) {
+        ordersHtml += `<h4 style="margin:10px 0; color:#dc2626;">🔴 SOLD OUT - Need Action (${pendingApprovalProducts.length})</h4>`;
+        ordersHtml += pendingApprovalProducts.map(p => `
             <div class="order-card" style="border-left-color:#dc2626;">
+                <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+                    <img src="${p.mainImage}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">
+                    <div style="flex:1;">
+                        <strong>${p.name}</strong>
+                        <br><span style="font-size:12px; color:#64748b;">Category: ${p.category}</span>
+                        <br><span style="font-size:12px; color:#dc2626;">🔴 SOLD OUT - Waiting for your decision</span>
+                    </div>
+                </div>
+                <div style="display:flex; gap:8px; margin-top:8px;">
+                    <button class="restockYesBtn" data-id="${p.id}" style="background:#10b981; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
+                        ✅ YES (Restock)
+                    </button>
+                    <button class="restockNoBtn" data-id="${p.id}" style="background:#dc2626; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
+                        ❌ NO (Delete)
+                    </button>
+                </div>
+                <div style="font-size:10px; color:#94a3b8; margin-top:4px;">Sold out at: ${p.soldOutAt ? new Date(p.soldOutAt).toLocaleString() : 'Recently'}</div>
+            </div>
+        `).join('');
+    }
+    
+    // Show regular pending orders
+    if (pendingOrders.length > 0) {
+        ordersHtml += `<h4 style="margin:10px 0; color:#f59e0b;">🟡 Pending Orders (${pendingOrders.length})</h4>`;
+        ordersHtml += pendingOrders.map(o => `
+            <div class="order-card" style="border-left-color:#f59e0b;">
                 <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
                     ${o.productDetails?.image ? `<img src="${o.productDetails.image}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">` : ''}
                     <div style="flex:1;">
@@ -2070,10 +2169,10 @@ function renderSellerDashboard(){
                 </div>
                 <div style="display:flex; gap:8px; margin-top:8px;">
                     <button class="confirmStockBtn" data-id="${o.id}" style="background:#10b981; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
-                        ✅ YES (Confirm Stock)
+                        ✅ Confirm
                     </button>
                     <button class="rejectOrderBtn" data-id="${o.id}" style="background:#dc2626; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
-                        ❌ NO (Reject/Remove)
+                        ❌ Reject
                     </button>
                 </div>
                 <div style="font-size:10px; color:#94a3b8; margin-top:4px;">${o.date}</div>
@@ -2081,7 +2180,7 @@ function renderSellerDashboard(){
         `).join('');
     }
     
-    let completedOrders = myOrders.filter(o => o.status !== 'Processing');
+    let completedOrders = myOrders.filter(o => o.status === 'Completed' || o.status === 'Delivered' || o.status === 'Shipped');
     if (completedOrders.length > 0) {
         ordersHtml += `<h4 style="margin:15px 0; color:#10b981;">✅ Completed Orders (${completedOrders.length})</h4>`;
         ordersHtml += completedOrders.map(o => `
@@ -2100,8 +2199,8 @@ function renderSellerDashboard(){
         `).join('');
     }
     
-    if (myOrders.length === 0) {
-        ordersHtml = '<p style="text-align:center;padding:20px;color:#64748b;">No orders yet.</p>';
+    if (myOrders.length === 0 && pendingApprovalProducts.length === 0) {
+        ordersHtml = '<p style="text-align:center;padding:20px;color:#64748b;">No orders or pending actions.</p>';
     }
     
     const categoryOptions = FIXED_CATEGORIES.map(cat => `<option value="${cat}">${cat}</option>`).join('');
@@ -2118,7 +2217,7 @@ function renderSellerDashboard(){
         <div style="font-size:12px; color:#64748b;">💰 Net Revenue</div>
     </div>
     <div style="background:#fef3c7; padding:12px; border-radius:12px; text-align:center;">
-        <div style="font-size:24px; font-weight:800; color:#d97706;">${pendingOrders.length}</div>
+        <div style="font-size:24px; font-weight:800; color:#d97706;">${pendingOrders.length + pendingApprovalProducts.length}</div>
         <div style="font-size:12px; color:#64748b;">⏳ Pending</div>
     </div>
 </div>
@@ -2163,10 +2262,56 @@ function renderSellerDashboard(){
     <button id="publishBtn" class="btn-primary">📢 Publish</button>
 </div>
 <div class="premium-card"><h3>📋 My Products (${myProducts.length})</h3><div id="myProductsList">${prodListHtml}</div></div>
-<div class="premium-card"><h3>📦 Orders</h3><div id="ordersList">${ordersHtml}</div></div>
+<div class="premium-card"><h3>📦 Orders & Actions</h3><div id="ordersList">${ordersHtml}</div></div>
 `;
     document.getElementById('sellerDashboard').innerHTML = sellerDashboardHtml;
     let ctx = document.getElementById('revenueChart')?.getContext('2d'); if(ctx){ if(sellerRevenueChart) sellerRevenueChart.destroy(); sellerRevenueChart = new Chart(ctx, { type: 'bar', data: { labels: chartLabels, datasets: [{ label: 'Revenue', data: chartData.map(v => parseFloat(convertPrice(v))), backgroundColor: '#3b82f6' }] } }); }
+    
+    // FIX: Add event listeners for restock buttons
+    document.querySelectorAll('.restockYesBtn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const productId = this.dataset.id;
+            if (!productId) return;
+            
+            try {
+                // Restock product - set stock to 1 and status to available
+                await db.collection('products').doc(productId).update({
+                    stock: 1,
+                    status: 'available',
+                    updatedAt: new Date().toISOString()
+                });
+                showToast('✅ Product restocked successfully!', false);
+                addNotification('Product restocked by seller', 'info');
+                renderSellerDashboard();
+                renderProducts();
+                updateMyShopBadge();
+            } catch (error) {
+                console.error('Restock error:', error);
+                showToast('Failed to restock: ' + error.message, true);
+            }
+        });
+    });
+    
+    document.querySelectorAll('.restockNoBtn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const productId = this.dataset.id;
+            if (!productId) return;
+            
+            if (confirm('⚠️ Are you sure you want to permanently delete this product?')) {
+                try {
+                    await db.collection('products').doc(productId).delete();
+                    showToast('🗑️ Product deleted successfully!', false);
+                    addNotification('Product deleted by seller', 'info');
+                    renderSellerDashboard();
+                    renderProducts();
+                    updateMyShopBadge();
+                } catch (error) {
+                    console.error('Delete error:', error);
+                    showToast('Failed to delete: ' + error.message, true);
+                }
+            }
+        });
+    });
     
     // Real-Time Orders Listener
     if (currentSeller?.sellerId) {
@@ -2180,9 +2325,9 @@ function renderSellerDashboard(){
                 let html = '';
                 
                 if (pending.length > 0) {
-                    html += `<h4 style="margin:10px 0; color:#dc2626;">🔴 Pending Approval (${pending.length})</h4>`;
+                    html += `<h4 style="margin:10px 0; color:#f59e0b;">🟡 Pending Orders (${pending.length})</h4>`;
                     html += pending.map(o => `
-                        <div class="order-card" style="border-left-color:#dc2626;">
+                        <div class="order-card" style="border-left-color:#f59e0b;">
                             <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
                                 ${o.productDetails?.image ? `<img src="${o.productDetails.image}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">` : ''}
                                 <div style="flex:1;">
@@ -2194,10 +2339,10 @@ function renderSellerDashboard(){
                             </div>
                             <div style="display:flex; gap:8px; margin-top:8px;">
                                 <button class="confirmStockBtn" data-id="${o.id}" style="background:#10b981; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
-                                    ✅ YES (Confirm Stock)
+                                    ✅ Confirm
                                 </button>
                                 <button class="rejectOrderBtn" data-id="${o.id}" style="background:#dc2626; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
-                                    ❌ NO (Reject/Remove)
+                                    ❌ Reject
                                 </button>
                             </div>
                             <div style="font-size:10px; color:#94a3b8; margin-top:4px;">${o.date}</div>
@@ -2320,6 +2465,7 @@ function renderSellerDashboard(){
                     GCC: shippingGCC,
                     International: shippingInt
                 },
+                status: 'available',
                 createdAt: new Date().toISOString()
             };
             await db.collection("products").add(newProduct);
@@ -2352,49 +2498,141 @@ function renderSellerDashboard(){
     });
     
     document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', async () => { let id = btn.dataset.id; await db.collection("products").doc(id).delete(); renderSellerDashboard(); renderProducts(); showToast("Product deleted", false); }));
-    document.querySelectorAll('.editProdBtn').forEach(btn => btn.addEventListener('click', () => { let prod = products.find(p => p.id == btn.dataset.id); if(prod){ document.getElementById('editProdId').value = prod.id; document.getElementById('editProdName').value = prod.name; document.getElementById('editProdPrice').value = prod.price; document.getElementById('editProdCat').value = prod.category; document.getElementById('editProdStock').value = prod.stock; document.getElementById('editProdDesc').value = prod.description || ''; 
-        if (prod.shippingRates) {
-            document.getElementById('editShippingSA').value = prod.shippingRates.SA || 0;
-            document.getElementById('editShippingGCC').value = prod.shippingRates.GCC || 0;
-            document.getElementById('editShippingInt').value = prod.shippingRates.International || 0;
-        }
-        let currImgHtml = prod.images.map(img => `<div><img src="${img}" width="50" style="border-radius:8px; margin:4px;"> <a href="${img}" target="_blank">View</a></div>`).join(''); 
-        document.getElementById('editCurrentImages').innerHTML = `<strong>Current Images:</strong>${currImgHtml}`; 
-        document.getElementById('editProductModal').style.display = 'block'; 
-    } }));
+    
+    // FIX: Edit Product Button - Properly populate modal
+    document.querySelectorAll('.editProdBtn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productId = this.dataset.id;
+            const prod = products.find(p => p.id == productId);
+            if (!prod) {
+                showToast('Product not found!', true);
+                return;
+            }
+            
+            // Populate edit form fields
+            document.getElementById('editProdId').value = prod.id;
+            document.getElementById('editProdName').value = prod.name || '';
+            document.getElementById('editProdPrice').value = prod.price || '';
+            document.getElementById('editProdCat').value = prod.category || '';
+            document.getElementById('editProdStock').value = prod.stock || '';
+            document.getElementById('editProdDesc').value = prod.description || '';
+            
+            // Populate shipping rates
+            if (prod.shippingRates) {
+                document.getElementById('editShippingSA').value = prod.shippingRates.SA || 0;
+                document.getElementById('editShippingGCC').value = prod.shippingRates.GCC || 0;
+                document.getElementById('editShippingInt').value = prod.shippingRates.International || 0;
+            }
+            
+            // Show current images
+            let currImgHtml = prod.images && prod.images.length > 0 ? 
+                prod.images.map(img => `<div style="display:inline-block; margin:5px;"><img src="${img}" width="50" style="border-radius:8px; border:2px solid #e2e8f0;"></div>`).join('') : 
+                'No images';
+            document.getElementById('editCurrentImages').innerHTML = `<strong>Current Images:</strong><br>${currImgHtml}`;
+            
+            // Show the modal
+            document.getElementById('editProductModal').style.display = 'block';
+        });
+    });
+    
+    // FIX: Update Product Button
     document.getElementById('updateProductBtn')?.addEventListener('click', async function() {
         const btn = this;
         btn.disabled = true;
         btn.textContent = '⏳ Updating...';
         try {
             let pid = document.getElementById('editProdId').value;
+            if (!pid) {
+                showToast('Product ID missing!', true);
+                btn.disabled = false;
+                btn.textContent = '💾 Update Product';
+                return;
+            }
+            
             let prodRef = db.collection("products").doc(pid);
             let updates = { 
-                name: document.getElementById('editProdName').value, 
-                price: parseFloat(document.getElementById('editProdPrice').value), 
-                category: document.getElementById('editProdCat').value, 
-                stock: parseInt(document.getElementById('editProdStock').value), 
-                description: document.getElementById('editProdDesc').value,
+                name: document.getElementById('editProdName').value.trim(),
+                price: parseFloat(document.getElementById('editProdPrice').value),
+                category: document.getElementById('editProdCat').value,
+                stock: parseInt(document.getElementById('editProdStock').value),
+                description: document.getElementById('editProdDesc').value.trim(),
                 shippingRates: {
                     SA: parseFloat(document.getElementById('editShippingSA').value) || 0,
                     GCC: parseFloat(document.getElementById('editShippingGCC').value) || 0,
                     International: parseFloat(document.getElementById('editShippingInt').value) || 0
-                }
+                },
+                updatedAt: new Date().toISOString()
             };
+            
+            // Validate
+            if (!updates.name || updates.name === '') {
+                showToast("Product name required", true);
+                btn.disabled = false;
+                btn.textContent = '💾 Update Product';
+                return;
+            }
+            if (!updates.price || updates.price <= 0) {
+                showToast("Valid price required", true);
+                btn.disabled = false;
+                btn.textContent = '💾 Update Product';
+                return;
+            }
+            if (!updates.stock || updates.stock < 0) {
+                showToast("Valid stock required", true);
+                btn.disabled = false;
+                btn.textContent = '💾 Update Product';
+                return;
+            }
+            
+            // Handle new main image
             let newMain = document.getElementById('editMainImg').files[0];
-            if(newMain){ let mainUrl = await uploadCompressedImage(newMain); if(mainUrl){ updates.mainImage = mainUrl; updates.images = [mainUrl, ...(updates.images || [])]; } }
+            if (newMain) {
+                let mainUrl = await uploadCompressedImage(newMain);
+                if (mainUrl) {
+                    updates.mainImage = mainUrl;
+                    // Keep existing images and add new main at beginning
+                    const currentProd = await prodRef.get();
+                    const existingImages = currentProd.data().images || [];
+                    updates.images = [mainUrl, ...existingImages.filter(img => img !== currentProd.data().mainImage)];
+                }
+            }
+            
+            // Handle new extra images
             let newExtra = document.getElementById('editExtraImgs').files;
-            if(newExtra.length > 0){ let extraUrls = []; for(let i=0;i<Math.min(newExtra.length,4);i++){ let url = await uploadCompressedImage(newExtra[i]); if(url) extraUrls.push(url); } if(extraUrls.length) updates.images = [updates.mainImage || (await prodRef.get()).data().mainImage, ...extraUrls]; }
+            if (newExtra.length > 0) {
+                let extraUrls = [];
+                for (let i = 0; i < Math.min(newExtra.length, 4); i++) {
+                    let url = await uploadCompressedImage(newExtra[i]);
+                    if (url) extraUrls.push(url);
+                }
+                if (extraUrls.length) {
+                    const currentProd = await prodRef.get();
+                    const existingImages = currentProd.data().images || [];
+                    const mainImage = updates.mainImage || currentProd.data().mainImage;
+                    updates.images = [mainImage, ...extraUrls, ...existingImages.filter(img => img !== mainImage && !extraUrls.includes(img))];
+                }
+            }
+            
             await prodRef.update(updates);
-            renderSellerDashboard(); renderProducts(); showToast("Product updated", false); document.getElementById('editProductModal').style.display = 'none';
+            showToast("✅ Product updated successfully!", false);
+            document.getElementById('editProductModal').style.display = 'none';
+            
+            // Reset form
+            document.getElementById('editMainImg').value = '';
+            document.getElementById('editExtraImgs').value = '';
+            
+            renderSellerDashboard();
+            renderProducts();
             btn.disabled = false;
             btn.textContent = '💾 Update Product';
         } catch (error) {
+            console.error("Update error:", error);
             showToast("Update failed: " + error.message, true);
             btn.disabled = false;
             btn.textContent = '💾 Update Product';
         }
     });
+    
     document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
     
     updateMyShopBadge();
@@ -2423,6 +2661,18 @@ async function confirmOrderStock(orderId) {
                 earnings: seller.earnings,
                 totalSales: (seller.totalSales || 0) + order.qty
             });
+        }
+        
+        // FIX: Update product stock if it was pending approval
+        if (order.productDetails && order.productDetails.id) {
+            const product = products.find(p => p.id === order.productDetails.id);
+            if (product && product.status === 'pending_approval') {
+                await db.collection('products').doc(product.id).update({
+                    status: 'available',
+                    stock: 1,
+                    updatedAt: new Date().toISOString()
+                });
+            }
         }
         
         saveAllLocal();
@@ -2455,9 +2705,18 @@ async function rejectOrder(orderId) {
         let product = products.find(p => p.id === order.productDetails?.id || p.name === order.productName);
         if (product) {
             product.stock += order.qty;
-            await db.collection("products").doc(product.id).update({
-                stock: product.stock
-            });
+            // If product was pending approval, make it available again
+            if (product.status === 'pending_approval') {
+                await db.collection('products').doc(product.id).update({
+                    stock: product.stock,
+                    status: 'available',
+                    updatedAt: new Date().toISOString()
+                });
+            } else {
+                await db.collection('products').doc(product.id).update({
+                    stock: product.stock
+                });
+            }
         }
         
         saveAllLocal();
@@ -2569,7 +2828,7 @@ function showTerms() {
 }
 
 // ============================================================
-// RESTOCK POPUP - YES/NO Modal Functions
+// RESTOCK POPUP - YES/NO Modal Functions (Legacy - Now using inline buttons)
 // ============================================================
 function showInventoryConfirmModal(productId, productName) {
     pendingConfirmationProduct = productId;
@@ -2698,12 +2957,11 @@ renderCats(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge();
 updateMyShopBadge();
 updateCategorySelect();
 
-// FIX: Check if debugMsg exists before setting
 const debugMsg = document.getElementById('debugMsg');
 if (debugMsg) {
-    debugMsg.innerHTML = "GlobalBazaar Ready | Dynamic Pricing | Database-Driven Shipping (No API)";
+    debugMsg.innerHTML = "GlobalBazaar Ready | All 4 Problems Fixed!";
 }
 
 // ============================================================
-// END OF FILE - ALL CHANGES COMPLETED
+// END OF FILE - ALL 4 PROBLEMS SOLVED!
 // ============================================================
