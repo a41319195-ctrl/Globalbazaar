@@ -5,24 +5,154 @@ const EASYSHIP_API_KEY = 'prod_FCky2t1qk8dLSqRk6O8a62kUklUmcQuxmzLDmq+mhCI=';
 const EASYSHIP_BASE_URL = 'https://api.easyship.com/2024-09';
 const IS_TESTING = true; // 🔥 इसे 'false' कर देना जब तुम असली ऑर्डर्स लेने लगो
 
-// 1. GET RATES (INTERNATIONAL & DYNAMIC)
+// ============================================================
+// COUNTRY NAME TO ISO ALPHA-2 CODE CONVERTER
+// ============================================================
+const countryNameToCodeMap = {
+    // Middle East
+    'saudi arabia': 'SA', 'uae': 'AE', 'united arab emirates': 'AE', 
+    'qatar': 'QA', 'oman': 'OM', 'kuwait': 'KW', 'bahrain': 'BH',
+    'yemen': 'YE', 'jordan': 'JO', 'lebanon': 'LB', 'iraq': 'IQ',
+    'syria': 'SY', 'israel': 'IL', 'palestine': 'PS',
+    
+    // South Asia
+    'india': 'IN', 'pakistan': 'PK', 'bangladesh': 'BD', 'nepal': 'NP',
+    'sri lanka': 'LK', 'bhutan': 'BT', 'maldives': 'MV',
+    'afghanistan': 'AF', 'myanmar': 'MM',
+    
+    // Southeast Asia
+    'malaysia': 'MY', 'indonesia': 'ID', 'philippines': 'PH',
+    'thailand': 'TH', 'vietnam': 'VN', 'singapore': 'SG',
+    'cambodia': 'KH', 'laos': 'LA', 'brunei': 'BN',
+    'timor-leste': 'TL', 'east timor': 'TL',
+    
+    // East Asia
+    'china': 'CN', 'japan': 'JP', 'south korea': 'KR', 'korea': 'KR',
+    'taiwan': 'TW', 'hong kong': 'HK', 'macau': 'MO',
+    'mongolia': 'MN', 'north korea': 'KP',
+    
+    // North America
+    'usa': 'US', 'united states': 'US', 'united states of america': 'US',
+    'canada': 'CA', 'mexico': 'MX',
+    
+    // Europe
+    'uk': 'GB', 'united kingdom': 'GB', 'england': 'GB', 'britain': 'GB',
+    'germany': 'DE', 'france': 'FR', 'italy': 'IT', 'spain': 'ES',
+    'portugal': 'PT', 'netherlands': 'NL', 'belgium': 'BE',
+    'switzerland': 'CH', 'austria': 'AT', 'sweden': 'SE',
+    'norway': 'NO', 'denmark': 'DK', 'finland': 'FI',
+    'ireland': 'IE', 'poland': 'PL', 'czech republic': 'CZ',
+    'hungary': 'HU', 'romania': 'RO', 'bulgaria': 'BG',
+    'greece': 'GR', 'turkey': 'TR', 'russia': 'RU',
+    'ukraine': 'UA', 'slovakia': 'SK', 'slovenia': 'SI',
+    'croatia': 'HR', 'serbia': 'RS', 'montenegro': 'ME',
+    'bosnia': 'BA', 'albania': 'AL', 'macedonia': 'MK',
+    'estonia': 'EE', 'latvia': 'LV', 'lithuania': 'LT',
+    'iceland': 'IS', 'luxembourg': 'LU', 'malta': 'MT',
+    'cyprus': 'CY', 'georgia': 'GE', 'armenia': 'AM',
+    'azerbaijan': 'AZ', 'kazakhstan': 'KZ',
+    
+    // South America
+    'brazil': 'BR', 'argentina': 'AR', 'colombia': 'CO',
+    'chile': 'CL', 'peru': 'PE', 'venezuela': 'VE',
+    'ecuador': 'EC', 'bolivia': 'BO', 'paraguay': 'PY',
+    'uruguay': 'UY', 'guyana': 'GY', 'suriname': 'SR',
+    
+    // Central America & Caribbean
+    'costa rica': 'CR', 'panama': 'PA', 'guatemala': 'GT',
+    'honduras': 'HN', 'nicaragua': 'NI', 'el salvador': 'SV',
+    'belize': 'BZ', 'cuba': 'CU', 'jamaica': 'JM',
+    'dominican republic': 'DO', 'haiti': 'HT', 'bahamas': 'BS',
+    'barbados': 'BB', 'trinidad': 'TT',
+    
+    // Oceania
+    'australia': 'AU', 'new zealand': 'NZ', 'fiji': 'FJ',
+    'papua new guinea': 'PG', 'samoa': 'WS', 'tonga': 'TO',
+    'vanuatu': 'VU', 'solomon islands': 'SB',
+    
+    // Africa
+    'south africa': 'ZA', 'egypt': 'EG', 'nigeria': 'NG',
+    'kenya': 'KE', 'ghana': 'GH', 'morocco': 'MA',
+    'algeria': 'DZ', 'tunisia': 'TN', 'libya': 'LY',
+    'sudan': 'SD', 'ethiopia': 'ET', 'eritrea': 'ER',
+    'somalia': 'SO', 'uganda': 'UG', 'tanzania': 'TZ',
+    'rwanda': 'RW', 'burundi': 'BI', 'congo': 'CD',
+    'zambia': 'ZM', 'zimbabwe': 'ZW', 'malawi': 'MW',
+    'mozambique': 'MZ', 'angola': 'AO', 'botswana': 'BW',
+    'namibia': 'NA', 'mauritius': 'MU', 'seychelles': 'SC',
+    'madagascar': 'MG'
+};
+
+function getCountryCode(countryName) {
+    if (!countryName) return 'SA'; // Default fallback
+    
+    // Clean the input: trim, lowercase, remove extra spaces
+    let cleaned = countryName.toString().trim().toLowerCase();
+    
+    // Remove any leading/trailing punctuation
+    cleaned = cleaned.replace(/^[^a-zA-Z]+/, '').replace(/[^a-zA-Z]+$/, '');
+    
+    // Check if it's already a valid ISO code (2 letters)
+    if (cleaned.length === 2 && /^[a-z]{2}$/.test(cleaned)) {
+        return cleaned.toUpperCase();
+    }
+    
+    // Try direct lookup
+    if (countryNameToCodeMap[cleaned]) {
+        return countryNameToCodeMap[cleaned];
+    }
+    
+    // Try partial match (for "United States of America" -> "united states")
+    for (const [key, code] of Object.entries(countryNameToCodeMap)) {
+        if (cleaned.includes(key) || key.includes(cleaned)) {
+            return code;
+        }
+    }
+    
+    // Try matching by first few words
+    const words = cleaned.split(' ');
+    for (const [key, code] of Object.entries(countryNameToCodeMap)) {
+        const keyWords = key.split(' ');
+        // Check if any significant word matches
+        for (const word of words) {
+            if (word.length > 2 && keyWords.some(kw => kw.includes(word) || word.includes(kw))) {
+                return code;
+            }
+        }
+    }
+    
+    // Default fallback
+    console.warn(`⚠️ No ISO code found for country: "${countryName}". Using default: SA`);
+    return 'SA';
+}
+
+// 1. GET RATES (INTERNATIONAL & DYNAMIC) - SMART VERSION
 async function getEasyshipRates(sellerAddress, buyerAddress, parcelDetails) {
     try {
         // Validation: सेलर का देश होना जरूरी है
         if (!sellerAddress.country) throw new Error("Seller location (Country) is missing!");
 
+        // 🎯 SMART CONVERSION: Convert country names to ISO codes
+        const originCode = getCountryCode(sellerAddress.country);
+        const destCode = getCountryCode(buyerAddress.country || 'SA');
+
+        console.log(`📍 Origin: ${sellerAddress.country} → ${originCode}`);
+        console.log(`📍 Destination: ${buyerAddress.country || 'SA'} → ${destCode}`);
+
         const payload = {
             origin_address: {
-                country_alpha2: sellerAddress.country, // डायनामिक: जो सेलर का देश होगा, वही जाएगा
+                country_alpha2: originCode, // Converted to ISO code
                 postal_code: sellerAddress.postal_code || '00000',
                 city: sellerAddress.city || 'N/A',
-                line1: sellerAddress.line1 || 'N/A'
+                line1: sellerAddress.line1 || 'N/A',
+                state: sellerAddress.state || ''
             },
             destination_address: {
-                country_alpha2: buyerAddress.country || 'SA',
+                country_alpha2: destCode, // Converted to ISO code
                 postal_code: buyerAddress.postal_code || '00000',
                 city: buyerAddress.city || 'Riyadh',
-                line1: buyerAddress.line1 || 'N/A'
+                line1: buyerAddress.line1 || 'N/A',
+                state: buyerAddress.state || ''
             },
             parcels: [{
                 weight: parcelDetails.weight || 1,
@@ -37,6 +167,8 @@ async function getEasyshipRates(sellerAddress, buyerAddress, parcelDetails) {
             currency: 'USD'
         };
 
+        console.log('📦 Shipping Payload:', JSON.stringify(payload, null, 2));
+
         const response = await fetch(`${EASYSHIP_BASE_URL}/rates`, {
             method: 'POST',
             headers: {
@@ -48,10 +180,12 @@ async function getEasyshipRates(sellerAddress, buyerAddress, parcelDetails) {
 
         if (!response.ok) {
             const errData = await response.json();
+            console.error('API Error Response:', errData);
             throw new Error(errData.message || `API Error: ${response.status}`);
         }
 
         const data = await response.json();
+        console.log(`✅ Found ${data.rates?.length || 0} shipping rates`);
         return data.rates || [];
     } catch (error) {
         console.error('Easyship Rates Error:', error);
@@ -67,6 +201,10 @@ async function createEasyshipShipment(orderData, sellerAddress, buyerAddress, pa
     }
 
     try {
+        // 🎯 SMART CONVERSION: Convert country names to ISO codes
+        const originCode = getCountryCode(sellerAddress.country || 'SA');
+        const destCode = getCountryCode(buyerAddress.country || 'SA');
+
         const response = await fetch(`${EASYSHIP_BASE_URL}/shipments`, {
             method: 'POST',
             headers: {
@@ -75,14 +213,37 @@ async function createEasyshipShipment(orderData, sellerAddress, buyerAddress, pa
             },
             body: JSON.stringify({
                 shipment: {
-                    origin_address: sellerAddress,
-                    destination_address: buyerAddress,
-                    parcels: [{ weight: parcelDetails.weight }],
+                    origin_address: {
+                        country_alpha2: originCode,
+                        postal_code: sellerAddress.postal_code || '00000',
+                        city: sellerAddress.city || 'N/A',
+                        line1: sellerAddress.line1 || 'N/A',
+                        state: sellerAddress.state || ''
+                    },
+                    destination_address: {
+                        country_alpha2: destCode,
+                        postal_code: buyerAddress.postal_code || '00000',
+                        city: buyerAddress.city || 'Riyadh',
+                        line1: buyerAddress.line1 || 'N/A',
+                        state: buyerAddress.state || ''
+                    },
+                    parcels: [{ 
+                        weight: parcelDetails.weight || 1,
+                        length: parcelDetails.length || 10,
+                        width: parcelDetails.width || 10,
+                        height: parcelDetails.height || 10
+                    }],
                     selected_rate_id: orderData.selected_rate_id,
                     order_data: { order_id: orderData.order_id }
                 }
             })
         });
+        
+        if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.message || `API Error: ${response.status}`);
+        }
+        
         return await response.json();
     } catch (error) {
         console.error('Shipment Creation Error:', error);
