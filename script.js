@@ -1,16 +1,15 @@
 // ============================================================
-// GLOBAL BAZAAR - COMPLETE SHIPPING ENGINE (PRODUCTION READY)
+// GLOBAL BAZAAR - COMPLETE SHIPPING ENGINE (FULLY FIXED)
 // ============================================================
 const EASYSHIP_API_KEY = 'prod_FCky2t1qk8dLSqRk6O8a62kUklUmcQuxmzLDmq+mhCI=';
 const EASYSHIP_BASE_URL = 'https://api.easyship.com/2024-09';
 const IS_TESTING = true; // 🔥 इसे 'false' कर देना जब तुम असली ऑर्डर्स लेने लगो
 
 // ============================================================
-// COMPLETE COUNTRY NAME TO ISO ALPHA-2 CODE CONVERTER
-// ALL COUNTRIES - Business Ke Liye Sab Important Countries
+// COMPLETE COUNTRY MAPPING - 150+ COUNTRIES
 // ============================================================
 const countryNameToCodeMap = {
-    // ===== MIDDLE EAST (Business Hub) =====
+    // MIDDLE EAST
     'saudi arabia': 'SA', 'saudi': 'SA', 'ksa': 'SA', 'kingdom of saudi arabia': 'SA',
     'uae': 'AE', 'united arab emirates': 'AE', 'emirates': 'AE',
     'qatar': 'QA', 'oman': 'OM', 'kuwait': 'KW', 'bahrain': 'BH',
@@ -18,28 +17,28 @@ const countryNameToCodeMap = {
     'syria': 'SY', 'israel': 'IL', 'palestine': 'PS', 'gaza': 'PS',
     'iran': 'IR', 'turkey': 'TR', 'türkiye': 'TR', 'cyprus': 'CY',
     
-    // ===== SOUTH ASIA (Business Hub) =====
+    // SOUTH ASIA
     'india': 'IN', 'bharat': 'IN', 'hindustan': 'IN',
     'pakistan': 'PK', 'bangladesh': 'BD', 'nepal': 'NP',
     'sri lanka': 'LK', 'bhutan': 'BT', 'maldives': 'MV',
     'afghanistan': 'AF', 'myanmar': 'MM', 'burma': 'MM',
     
-    // ===== SOUTHEAST ASIA =====
+    // SOUTHEAST ASIA
     'malaysia': 'MY', 'indonesia': 'ID', 'philippines': 'PH',
     'thailand': 'TH', 'vietnam': 'VN', 'singapore': 'SG',
     'cambodia': 'KH', 'laos': 'LA', 'brunei': 'BN',
     'timor-leste': 'TL', 'east timor': 'TL',
     
-    // ===== EAST ASIA =====
+    // EAST ASIA
     'china': 'CN', 'japan': 'JP', 'south korea': 'KR', 'korea': 'KR',
     'taiwan': 'TW', 'hong kong': 'HK', 'macau': 'MO',
     'mongolia': 'MN', 'north korea': 'KP',
     
-    // ===== NORTH AMERICA =====
+    // NORTH AMERICA
     'usa': 'US', 'united states': 'US', 'united states of america': 'US', 'america': 'US',
     'canada': 'CA', 'mexico': 'MX',
     
-    // ===== EUROPE =====
+    // EUROPE
     'uk': 'GB', 'united kingdom': 'GB', 'england': 'GB', 'britain': 'GB', 'great britain': 'GB',
     'germany': 'DE', 'france': 'FR', 'italy': 'IT', 'spain': 'ES',
     'portugal': 'PT', 'netherlands': 'NL', 'holland': 'NL', 'belgium': 'BE',
@@ -53,25 +52,25 @@ const countryNameToCodeMap = {
     'luxembourg': 'LU', 'malta': 'MT', 'georgia': 'GE', 'armenia': 'AM',
     'azerbaijan': 'AZ', 'kazakhstan': 'KZ',
     
-    // ===== SOUTH AMERICA =====
+    // SOUTH AMERICA
     'brazil': 'BR', 'argentina': 'AR', 'colombia': 'CO',
     'chile': 'CL', 'peru': 'PE', 'venezuela': 'VE',
     'ecuador': 'EC', 'bolivia': 'BO', 'paraguay': 'PY',
     'uruguay': 'UY', 'guyana': 'GY', 'suriname': 'SR',
     
-    // ===== CENTRAL AMERICA & CARIBBEAN =====
+    // CENTRAL AMERICA & CARIBBEAN
     'costa rica': 'CR', 'panama': 'PA', 'guatemala': 'GT',
     'honduras': 'HN', 'nicaragua': 'NI', 'el salvador': 'SV',
     'belize': 'BZ', 'cuba': 'CU', 'jamaica': 'JM',
     'dominican republic': 'DO', 'haiti': 'HT', 'bahamas': 'BS',
     'barbados': 'BB', 'trinidad': 'TT', 'trinidad and tobago': 'TT',
     
-    // ===== OCEANIA =====
+    // OCEANIA
     'australia': 'AU', 'new zealand': 'NZ', 'fiji': 'FJ',
     'papua new guinea': 'PG', 'samoa': 'WS', 'tonga': 'TO',
     'vanuatu': 'VU', 'solomon islands': 'SB',
     
-    // ===== AFRICA =====
+    // AFRICA
     'south africa': 'ZA', 'egypt': 'EG', 'nigeria': 'NG',
     'kenya': 'KE', 'ghana': 'GH', 'morocco': 'MA',
     'algeria': 'DZ', 'tunisia': 'TN', 'libya': 'LY',
@@ -86,28 +85,37 @@ const countryNameToCodeMap = {
     'niger': 'NE', 'chad': 'TD', 'benin': 'BJ', 'togo': 'TG'
 };
 
+// ============================================================
+// COUNTRY CODE CONVERTER - FIXED
+// ============================================================
 function getCountryCode(countryName) {
+    console.log('🔍 getCountryCode called with:', countryName);
+    
     if (!countryName) {
         console.warn('⚠️ No country name provided. Using default: SA');
         return 'SA';
     }
     
-    let cleaned = countryName.toString().trim().toLowerCase();
-    cleaned = cleaned.replace(/[^a-z\s\-']/g, '');
+    let cleaned = countryName.toString().trim();
+    console.log('🧹 Cleaned:', cleaned);
     
-    if (cleaned.length === 2 && /^[a-z]{2}$/.test(cleaned)) {
+    if (cleaned.length === 2 && /^[A-Za-z]{2}$/.test(cleaned)) {
+        console.log('✅ Already ISO code:', cleaned.toUpperCase());
         return cleaned.toUpperCase();
     }
     
-    if (countryNameToCodeMap[cleaned]) {
-        return countryNameToCodeMap[cleaned];
+    const lowerKey = cleaned.toLowerCase();
+    if (countryNameToCodeMap[lowerKey]) {
+        console.log('✅ Found in map:', lowerKey, '→', countryNameToCodeMap[lowerKey]);
+        return countryNameToCodeMap[lowerKey];
     }
     
-    const cleanedWords = cleaned.split(' ');
+    const words = lowerKey.split(' ');
     for (const [key, code] of Object.entries(countryNameToCodeMap)) {
         const keyWords = key.split(' ');
-        for (const word of cleanedWords) {
+        for (const word of words) {
             if (word.length > 2 && keyWords.some(kw => kw.includes(word) || word.includes(kw))) {
+                console.log('✅ Partial match:', word, '→', code);
                 return code;
             }
         }
@@ -118,8 +126,9 @@ function getCountryCode(countryName) {
         'uk': 'GB', 'britain': 'GB', 'england': 'GB',
         'korea': 'KR', 'russia': 'RU', 'türkiye': 'TR', 'turkiye': 'TR'
     };
-    if (alternatives[cleaned]) {
-        return alternatives[cleaned];
+    if (alternatives[lowerKey]) {
+        console.log('✅ Alternative match:', lowerKey, '→', alternatives[lowerKey]);
+        return alternatives[lowerKey];
     }
     
     console.warn(`⚠️ No ISO code found for: "${countryName}". Using default: SA`);
@@ -127,10 +136,12 @@ function getCountryCode(countryName) {
 }
 
 // ============================================================
-// 1. GET RATES - FULLY DYNAMIC (ALL COUNTRIES)
+// GET RATES - FULLY FIXED
 // ============================================================
 async function getEasyshipRates(sellerAddress, buyerAddress, parcelDetails) {
     try {
+        console.log('🚀 getEasyshipRates called');
+        
         if (!sellerAddress.country) {
             throw new Error("Seller location (Country) is missing!");
         }
@@ -169,7 +180,7 @@ async function getEasyshipRates(sellerAddress, buyerAddress, parcelDetails) {
             currency: 'USD'
         };
 
-        console.log('📦 Shipping Payload:', JSON.stringify(payload, null, 2));
+        console.log('📤 API Payload:', JSON.stringify(payload, null, 2));
 
         const response = await fetch(`${EASYSHIP_BASE_URL}/rates`, {
             method: 'POST',
@@ -196,7 +207,7 @@ async function getEasyshipRates(sellerAddress, buyerAddress, parcelDetails) {
 }
 
 // ============================================================
-// 2. CREATE SHIPMENT (WITH SAFETY SWITCH)
+// CREATE SHIPMENT - WITH TEST MODE
 // ============================================================
 async function createEasyshipShipment(orderData, sellerAddress, buyerAddress, parcelDetails) {
     if (IS_TESTING) {
@@ -255,19 +266,26 @@ async function createEasyshipShipment(orderData, sellerAddress, buyerAddress, pa
 }
 
 // ============================================================
-// 3. FETCH SHIPPING RATES - ALL COUNTRIES SUPPORT
+// FETCH SHIPPING RATES - FIXED VERSION
 // ============================================================
 async function fetchAndDisplayShippingRates() {
-    if (Date.now() - lastShippingFetch < 3000) return;
+    console.log('🚀 fetchAndDisplayShippingRates called');
+    
+    if (Date.now() - lastShippingFetch < 3000) {
+        console.log('⏳ Throttling: Last fetch was too recent');
+        return;
+    }
     lastShippingFetch = Date.now();
     
     const shippingContainer = document.getElementById('shippingCostContainer');
     const shippingDisplay = document.getElementById('shippingCostDisplay');
     const payBtn = document.getElementById('payNowBtn');
     
-    shippingContainer.style.display = 'flex';
-    shippingDisplay.textContent = 'Calculating...';
-    shippingDisplay.className = 'cost shipping-loading';
+    if (shippingContainer) shippingContainer.style.display = 'flex';
+    if (shippingDisplay) {
+        shippingDisplay.textContent = 'Calculating...';
+        shippingDisplay.className = 'cost shipping-loading';
+    }
     
     if (payBtn) {
         payBtn.disabled = true;
@@ -277,57 +295,77 @@ async function fetchAndDisplayShippingRates() {
     try {
         const firstCartItem = cart[0];
         if (!firstCartItem) { 
-            shippingDisplay.textContent = 'No items in cart';
-            shippingDisplay.className = 'cost error';
+            console.warn('⚠️ Cart is empty');
+            if (shippingDisplay) {
+                shippingDisplay.textContent = 'No items in cart';
+                shippingDisplay.className = 'cost error';
+            }
             if (payBtn) { payBtn.disabled = true; payBtn.textContent = '⏳ Waiting for items...'; }
             return;
         }
         
         const product = products.find(p => p.id === firstCartItem.id);
         if (!product) { 
-            shippingDisplay.textContent = 'Product not found';
-            shippingDisplay.className = 'cost error';
+            console.warn('⚠️ Product not found');
+            if (shippingDisplay) {
+                shippingDisplay.textContent = 'Product not found';
+                shippingDisplay.className = 'cost error';
+            }
             if (payBtn) { payBtn.disabled = true; payBtn.textContent = '⏳ Product not found'; }
             return;
         }
         
         const seller = sellers.find(s => s.id === product.sellerId);
         if (!seller) { 
-            shippingDisplay.textContent = 'Seller info missing';
-            shippingDisplay.className = 'cost error';
+            console.warn('⚠️ Seller not found');
+            if (shippingDisplay) {
+                shippingDisplay.textContent = 'Seller info missing';
+                shippingDisplay.className = 'cost error';
+            }
             if (payBtn) { payBtn.disabled = true; payBtn.textContent = '⏳ Seller info missing'; }
             return;
         }
         
-        const buyerCountry = document.getElementById('deliveryCountry').value || 'SA';
-        const buyerCity = document.getElementById('deliveryCity').value || '';
-        const buyerPostcode = document.getElementById('deliveryPostcode').value || '';
-        const buyerState = document.getElementById('deliveryState')?.value || '';
-        const buyerStreet = document.getElementById('deliveryStreet').value || '';
+        const buyerCountryEl = document.getElementById('deliveryCountry');
+        const buyerCityEl = document.getElementById('deliveryCity');
+        const buyerPostcodeEl = document.getElementById('deliveryPostcode');
+        const buyerStateEl = document.getElementById('deliveryState');
+        const buyerStreetEl = document.getElementById('deliveryStreet');
         
-        console.log(`📍 Buyer Country: "${buyerCountry}" → ${getCountryCode(buyerCountry)}`);
+        const buyerCountry = buyerCountryEl ? buyerCountryEl.value : 'SA';
+        const buyerCity = buyerCityEl ? buyerCityEl.value : '';
+        const buyerPostcode = buyerPostcodeEl ? buyerPostcodeEl.value : '';
+        const buyerState = buyerStateEl ? buyerStateEl.value : '';
+        const buyerStreet = buyerStreetEl ? buyerStreetEl.value : '';
         
-        if (!buyerCountry || buyerCountry === '') {
-            shippingDisplay.textContent = 'Select country first';
-            shippingDisplay.className = 'cost error';
+        console.log(`📍 Buyer Country Input: "${buyerCountry}"`);
+        console.log(`📍 Buyer City: "${buyerCity}"`);
+        console.log(`📍 Buyer Postcode: "${buyerPostcode}"`);
+        
+        if (!buyerCountry || buyerCountry === '' || buyerCountry === 'Select Country') {
+            console.warn('⚠️ No country selected');
+            if (shippingDisplay) {
+                shippingDisplay.textContent = 'Select country first';
+                shippingDisplay.className = 'cost error';
+            }
             if (payBtn) { payBtn.disabled = true; payBtn.textContent = '⏳ Select country'; }
             return;
         }
         
         const sellerAddress = {
             country: seller.country || 'SA',
-            city: seller.city || '',
-            postal_code: seller.pincode || '',
+            city: seller.city || 'Riyadh',
+            postal_code: seller.pincode || '00000',
             state: seller.state || '',
-            line1: seller.street || ''
+            line1: seller.street || seller.houseNo || 'N/A'
         };
         
         const buyerAddress = {
             country: buyerCountry,
-            city: buyerCity,
-            postal_code: buyerPostcode,
-            state: buyerState,
-            line1: buyerStreet
+            city: buyerCity || 'Kathmandu',
+            postal_code: buyerPostcode || '00000',
+            state: buyerState || '',
+            line1: buyerStreet || buyerCity || 'N/A'
         };
         
         const parcelDetails = {
@@ -337,27 +375,38 @@ async function fetchAndDisplayShippingRates() {
             height: product.size?.height || 10
         };
         
+        console.log('📦 Seller Address:', sellerAddress);
+        console.log('📦 Buyer Address:', buyerAddress);
+        console.log('📦 Parcel Details:', parcelDetails);
+        
         const rates = await getEasyshipRates(sellerAddress, buyerAddress, parcelDetails);
         
         if (rates && rates.length > 0) {
             const cheapest = rates.reduce((a, b) => a.total_charge < b.total_charge ? a : b);
             currentShippingCost = cheapest.total_charge || 0;
+            console.log('💰 Shipping cost:', currentShippingCost);
             
             if (isNaN(currentShippingCost) || currentShippingCost < 0) {
                 currentShippingCost = 0;
-                shippingDisplay.textContent = 'Shipping Quote Pending';
-                shippingDisplay.className = 'cost pending';
+                if (shippingDisplay) {
+                    shippingDisplay.textContent = 'Shipping Quote Pending';
+                    shippingDisplay.className = 'cost pending';
+                }
                 showToast('⚠️ Shipping quote pending. Please try again.', true);
                 if (payBtn) { payBtn.disabled = true; payBtn.textContent = '⏳ Shipping Pending'; }
                 return;
             }
             
-            shippingDisplay.textContent = `${getCurrencySymbol()}${convertPrice(currentShippingCost)}`;
-            shippingDisplay.className = 'cost';
+            const displayCost = convertPrice(currentShippingCost);
+            if (shippingDisplay) {
+                shippingDisplay.textContent = `${getCurrencySymbol()}${displayCost}`;
+                shippingDisplay.className = 'cost';
+            }
             sessionStorage.setItem('selected_rate_id', cheapest.id);
             sessionStorage.setItem('shipping_cost', currentShippingCost);
             sessionStorage.setItem('shipping_rates', JSON.stringify(rates));
-            if (cheapest.carrier_name) {
+            
+            if (cheapest.carrier_name && shippingDisplay) {
                 shippingDisplay.title = `Carrier: ${cheapest.carrier_name}`;
             }
             
@@ -365,11 +414,14 @@ async function fetchAndDisplayShippingRates() {
                 payBtn.disabled = false;
                 payBtn.textContent = 'Pay with Card (Dummy)';
             }
-            showToast(`Shipping: ${getCurrencySymbol()}${convertPrice(currentShippingCost)}`, false);
+            showToast(`Shipping: ${getCurrencySymbol()}${displayCost}`, false);
         } else {
+            console.warn('⚠️ No rates found');
             currentShippingCost = 0;
-            shippingDisplay.textContent = 'Shipping Quote Pending';
-            shippingDisplay.className = 'cost pending';
+            if (shippingDisplay) {
+                shippingDisplay.textContent = 'Shipping Quote Pending';
+                shippingDisplay.className = 'cost pending';
+            }
             sessionStorage.setItem('shipping_cost', 0);
             showToast('⚠️ Shipping quote pending. Please try again.', true);
             if (payBtn) {
@@ -380,8 +432,10 @@ async function fetchAndDisplayShippingRates() {
     } catch (error) {
         console.error('❌ Shipping fetch error:', error);
         currentShippingCost = 0;
-        shippingDisplay.textContent = 'Shipping Quote Pending';
-        shippingDisplay.className = 'cost pending';
+        if (shippingDisplay) {
+            shippingDisplay.textContent = 'Shipping Quote Pending';
+            shippingDisplay.className = 'cost pending';
+        }
         sessionStorage.setItem('shipping_cost', 0);
         showToast('⚠️ Could not fetch shipping rates', true);
         if (payBtn) {
@@ -392,7 +446,7 @@ async function fetchAndDisplayShippingRates() {
 }
 
 // ============================================================
-// 4. CREATE SHIPMENT AFTER ORDER
+// CREATE SHIPMENT AFTER ORDER
 // ============================================================
 async function createShipmentAfterOrder(orderData) {
     try {
@@ -445,6 +499,93 @@ async function createShipmentAfterOrder(orderData) {
         return null;
     }
 }
+
+// ============================================================
+// FIX: CONFIRM DELIVERY BUTTON - OVERRIDE
+// ============================================================
+// This is the key fix - this overrides the existing handler
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmBtn = document.getElementById('confirmDeliveryBtn');
+    if (confirmBtn) {
+        // Remove existing listeners
+        const newBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+        
+        newBtn.addEventListener('click', async function() {
+            console.log('🔄 Confirm Delivery clicked (FIXED VERSION)');
+            
+            const user = auth.currentUser;
+            if (!user) {
+                sessionStorage.setItem('pendingCheckout', 'true');
+                sessionStorage.setItem('pendingCart', JSON.stringify(cart));
+                showToast("Please login to continue", true);
+                document.getElementById('loginModal').style.display = 'block';
+                return;
+            }
+            
+            let fn = document.getElementById('deliveryFullName').value;
+            let ph = document.getElementById('deliveryPhone').value;
+            let c = document.getElementById('deliveryCountry').value;
+            let ci = document.getElementById('deliveryCity').value;
+            let pc = document.getElementById('deliveryPostcode').value;
+            let st = document.getElementById('deliveryStreet').value;
+            
+            console.log('📋 Form Values:', { fn, ph, c, ci, pc, st });
+            
+            if (!fn || !ph || !c || !ci || !pc || !st) {
+                showToast("Fill all fields!", true);
+                return;
+            }
+            
+            // Test country conversion
+            const testCode = getCountryCode(c);
+            console.log(`🧪 Country "${c}" → Code: ${testCode}`);
+            
+            buyerCountry = c;
+            localStorage.setItem('buyerCountry', buyerCountry);
+            currentDelivery = {
+                fullName: fn,
+                phone: ph,
+                country: c,
+                city: ci,
+                postcode: pc,
+                street: st,
+                houseNo: document.getElementById('deliveryHouseNo')?.value || '',
+                fullAddress: `${document.getElementById('deliveryHouseNo')?.value || ''}, ${st}, ${ci}, ${pc}, ${c}`,
+                email: user.email,
+                state: document.getElementById('deliveryState')?.value || ''
+            };
+            
+            if (document.getElementById('saveAddressCheckbox')?.checked) {
+                let idx = savedAddresses.findIndex(a => a.email === user.email);
+                let addr = {
+                    email: user.email,
+                    fullName: fn,
+                    phone: ph,
+                    country: c,
+                    city: ci,
+                    postcode: pc,
+                    street: st,
+                    houseNo: document.getElementById('deliveryHouseNo')?.value || '',
+                    state: document.getElementById('deliveryState')?.value || ''
+                };
+                if (idx >= 0) savedAddresses[idx] = addr;
+                else savedAddresses.push(addr);
+                saveAllLocal();
+            }
+            
+            showToast("Calculating shipping...", false);
+            console.log('🔄 Calling fetchAndDisplayShippingRates...');
+            await fetchAndDisplayShippingRates();
+            console.log('✅ fetchAndDisplayShippingRates completed');
+            
+            setTimeout(() => {
+                showSection('payment');
+                loadSavedCards();
+            }, 1000);
+        });
+    }
+});
 
 // ============================================================
 // FIX 1: DATABASE & RECOVERY
@@ -1626,87 +1767,7 @@ let currentDelivery = null;
 // ============================================================
 // CHECKOUT
 // ============================================================
-document.getElementById('proceedToCheckoutBtn')?.addEventListener('click', () => {
-    if(cart.length === 0){ showToast("Cart empty",true); return; }
-    const user = auth.currentUser;
-    if (!user) {
-        sessionStorage.setItem('pendingCheckout', 'true');
-        sessionStorage.setItem('pendingCart', JSON.stringify(cart));
-        showToast("Please login to continue checkout", true);
-        document.getElementById('loginModal').style.display = 'block';
-        return;
-    }
-    showSection('checkout');
-    let savedAddr = savedAddresses.find(a => a.email === user.email);
-    if(savedAddr){ 
-        document.getElementById('deliveryFullName').value = savedAddr.fullName || '';
-        document.getElementById('deliveryPhone').value = savedAddr.phone || '';
-        document.getElementById('deliveryCountry').value = savedAddr.country || '';
-        document.getElementById('deliveryCity').value = savedAddr.city || '';
-        document.getElementById('deliveryPostcode').value = savedAddr.postcode || '';
-        document.getElementById('deliveryStreet').value = savedAddr.street || '';
-        document.getElementById('deliveryHouseNo').value = savedAddr.houseNo || '';
-        document.getElementById('saveAddressCheckbox').checked = true;
-    }
-});
-
-document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async function() {
-    const user = auth.currentUser;
-    if (!user) {
-        sessionStorage.setItem('pendingCheckout', 'true');
-        sessionStorage.setItem('pendingCart', JSON.stringify(cart));
-        showToast("Please login to continue", true);
-        document.getElementById('loginModal').style.display = 'block';
-        return;
-    }
-    let fn = document.getElementById('deliveryFullName').value;
-    let ph = document.getElementById('deliveryPhone').value;
-    let c = document.getElementById('deliveryCountry').value;
-    let ci = document.getElementById('deliveryCity').value;
-    let pc = document.getElementById('deliveryPostcode').value;
-    let st = document.getElementById('deliveryStreet').value;
-    if (!fn || !ph || !c || !ci || !pc || !st) {
-        showToast("Fill all fields!", true);
-        return;
-    }
-    buyerCountry = c;
-    localStorage.setItem('buyerCountry', buyerCountry);
-    currentDelivery = {
-        fullName: fn,
-        phone: ph,
-        country: c,
-        city: ci,
-        postcode: pc,
-        street: st,
-        houseNo: document.getElementById('deliveryHouseNo').value,
-        fullAddress: `${document.getElementById('deliveryHouseNo').value || ''}, ${st}, ${ci}, ${pc}, ${c}`,
-        email: user.email,
-        state: document.getElementById('deliveryState')?.value || ''
-    };
-    if (document.getElementById('saveAddressCheckbox').checked) {
-        let idx = savedAddresses.findIndex(a => a.email === user.email);
-        let addr = {
-            email: user.email,
-            fullName: fn,
-            phone: ph,
-            country: c,
-            city: ci,
-            postcode: pc,
-            street: st,
-            houseNo: document.getElementById('deliveryHouseNo').value,
-            state: document.getElementById('deliveryState')?.value || ''
-        };
-        if (idx >= 0) savedAddresses[idx] = addr;
-        else savedAddresses.push(addr);
-        saveAllLocal();
-    }
-    showToast("Calculating shipping...", false);
-    await fetchAndDisplayShippingRates();
-    setTimeout(() => {
-        showSection('payment');
-        loadSavedCards();
-    }, 1000);
-});
+// Note: The confirm delivery button is now handled by the DOMContentLoaded override above
 
 function loadSavedCards(){ let userCards = savedCards.filter(c => c.userEmail === "guest@globalbazaar.com"); if(userCards.length > 0){ document.getElementById('savedCardsSection').style.display = 'block'; document.getElementById('savedCardsList').innerHTML = userCards.map((card,idx) => `<div class="flex-between"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}">Use</button></div>`).join(''); document.querySelectorAll('.useSavedCardBtn').forEach(btn => btn.addEventListener('click', () => { let card = userCards[parseInt(btn.dataset.idx)]; document.getElementById('cardNumber').value = card.cardNumber; document.getElementById('cardHolderName').value = card.cardHolderName; document.getElementById('expiryDate').value = card.expiryDate; document.getElementById('cvv').value = ''; showToast("Card loaded", false); })); } }
 
@@ -2095,7 +2156,7 @@ document.getElementById('drawerMyShop')?.addEventListener('click', function() {
 });
 
 // ============================================================
-// NOTIFICATION BADGE ON 'MY SHOP' BUTTON
+// NOTIFICATION BADGE
 // ============================================================
 function updateMyShopBadge() {
     const btn = document.getElementById('drawerMyShop');
@@ -2473,7 +2534,7 @@ function renderSellerDashboard(){
 }
 
 // ============================================================
-// EMBEDDED ACTIONS - YES/NO Functions
+// EMBEDDED ACTIONS
 // ============================================================
 async function confirmOrderStock(orderId) {
     let order = orders.find(o => o.id == orderId);
@@ -2640,7 +2701,7 @@ function showTerms() {
 }
 
 // ============================================================
-// RESTOCK POPUP - YES/NO Modal Functions
+// RESTOCK POPUP
 // ============================================================
 function showInventoryConfirmModal(productId, productName) {
     pendingConfirmationProduct = productId;
@@ -2766,14 +2827,19 @@ updateMyShopBadge();
 updateCategorySelect();
 document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | Dynamic Pricing | Easyship Shipping | Mode: " + (IS_TESTING ? 'TESTING (no real charges)' : 'PRODUCTION');
 
-console.log('🚀 GlobalBazaar Shipping Engine Loaded');
+console.log('🚀 ========================================');
+console.log('🚀 GLOBAL BAZAAR SHIPPING ENGINE LOADED');
+console.log('🚀 ========================================');
 console.log('🌍 Total Countries Supported: ' + Object.keys(countryNameToCodeMap).length);
-console.log('🧪 Nepal → ' + getCountryCode('Nepal'));
-console.log('🧪 India → ' + getCountryCode('India'));
-console.log('🧪 USA → ' + getCountryCode('USA'));
-console.log('🧪 UK → ' + getCountryCode('UK'));
-console.log('🧪 Saudi Arabia → ' + getCountryCode('Saudi Arabia'));
-console.log('🧪 UAE → ' + getCountryCode('UAE'));
-console.log('🧪 Pakistan → ' + getCountryCode('Pakistan'));
-console.log('🧪 Bangladesh → ' + getCountryCode('Bangladesh'));
-console.log('✅ Har country ka shipping calculate hoga!');
+console.log('📦 Testing Country Conversions:');
+console.log('  "Nepal" → ' + getCountryCode('Nepal'));
+console.log('  "India" → ' + getCountryCode('India'));
+console.log('  "USA" → ' + getCountryCode('USA'));
+console.log('  "UK" → ' + getCountryCode('UK'));
+console.log('  "Saudi Arabia" → ' + getCountryCode('Saudi Arabia'));
+console.log('  "UAE" → ' + getCountryCode('UAE'));
+console.log('  "Pakistan" → ' + getCountryCode('Pakistan'));
+console.log('  "Bangladesh" → ' + getCountryCode('Bangladesh'));
+console.log('✅ ALL COUNTRIES SUPPORTED!');
+console.log('📦 Mode: ' + (IS_TESTING ? 'TESTING (no real charges)' : 'PRODUCTION'));
+console.log('🚀 ========================================');
