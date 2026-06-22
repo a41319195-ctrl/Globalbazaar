@@ -20,14 +20,12 @@ async function initializeDatabase() {
         const sellersSnapshot = await db.collection('sellers').limit(1).get();
         if (sellersSnapshot.empty) {
             console.log('👤 Sellers collection empty. Creating...');
-            // Collection will be created when first seller registers
         }
         
         // Check if orders collection exists
         const ordersSnapshot = await db.collection('orders').limit(1).get();
         if (ordersSnapshot.empty) {
             console.log('📦 Orders collection empty. Creating...');
-            // Collection will be created when first order placed
         }
         
         console.log('✅ Database initialized successfully!');
@@ -60,7 +58,11 @@ function updateCategorySelect() {
 window.onerror = function(message, source, lineno, colno, error) {
     console.error('Global Error:', message, source, lineno, colno, error);
     showToast('⚠️ Something went wrong. Please try again.', true);
-    document.getElementById('debugMsg').innerText = 'Error: ' + message;
+    // FIX: Check if debugMsg exists before setting
+    const debugMsg = document.getElementById('debugMsg');
+    if (debugMsg) {
+        debugMsg.innerText = 'Error: ' + message;
+    }
     return true;
 };
 
@@ -88,12 +90,7 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 
 // ============================================================
-// REMOVED: EASYSHIP API (getEasyshipRates, createEasyshipShipment, buyEasyshipLabel)
-// Now using DATABASE-DRIVEN SHIPPING from Firebase
-// ============================================================
-
-// ============================================================
-// NEW: DATABASE-DRIVEN SHIPPING RATES
+// DATABASE-DRIVEN SHIPPING RATES
 // ============================================================
 async function getShippingRateFromDB(productId, buyerCountry) {
     try {
@@ -102,7 +99,6 @@ async function getShippingRateFromDB(productId, buyerCountry) {
             return null;
         }
         
-        // Get product from database
         const productDoc = await db.collection('products').doc(productId).get();
         if (!productDoc.exists) {
             console.warn('Product not found:', productId);
@@ -110,14 +106,10 @@ async function getShippingRateFromDB(productId, buyerCountry) {
         }
         
         const product = productDoc.data();
-        
-        // Determine shipping rate based on buyer's country
         let shippingRate = 0;
         let shippingType = 'unknown';
         
-        // Check if product has shipping rates defined
         if (product.shippingRates) {
-            // If product has custom shipping rates
             if (buyerCountry === 'SA' && product.shippingRates.SA !== undefined) {
                 shippingRate = product.shippingRates.SA;
                 shippingType = 'SA';
@@ -132,7 +124,6 @@ async function getShippingRateFromDB(productId, buyerCountry) {
                 return null;
             }
         } else {
-            // Fallback to seller's default shipping rates
             const sellerId = product.sellerId;
             if (sellerId) {
                 const sellerDoc = await db.collection('sellers').doc(sellerId).get();
@@ -166,7 +157,6 @@ async function getShippingRateFromDB(productId, buyerCountry) {
             }
         }
         
-        // Validate shipping rate
         if (typeof shippingRate !== 'number' || shippingRate < 0) {
             console.warn('Invalid shipping rate:', shippingRate);
             return null;
@@ -184,7 +174,7 @@ async function getShippingRateFromDB(productId, buyerCountry) {
 }
 
 // ============================================================
-// NEW: FETCH SHIPPING FROM DATABASE (Replaces Easyship API)
+// FETCH SHIPPING FROM DATABASE
 // ============================================================
 async function fetchAndDisplayShippingRates() {
     if (Date.now() - lastShippingFetch < 3000) return;
@@ -234,7 +224,6 @@ async function fetchAndDisplayShippingRates() {
             return;
         }
         
-        // Get buyer's selected country
         const buyerCountrySelect = document.getElementById('deliveryCountry');
         const buyerCountry = buyerCountrySelect ? buyerCountrySelect.value : 'SA';
         
@@ -250,7 +239,6 @@ async function fetchAndDisplayShippingRates() {
             return;
         }
         
-        // Get shipping rate from database
         const shippingInfo = await getShippingRateFromDB(product.id, buyerCountry);
         
         if (shippingInfo && shippingInfo.rate !== null) {
@@ -285,7 +273,6 @@ async function fetchAndDisplayShippingRates() {
             
             showToast(`Shipping: ${getCurrencySymbol()}${convertPrice(currentShippingCost)} (${shippingInfo.type})`, false);
         } else {
-            // No shipping rate found for this region
             currentShippingCost = 0;
             if (shippingDisplay) {
                 shippingDisplay.textContent = 'Shipping not available for this region';
@@ -318,19 +305,12 @@ async function fetchAndDisplayShippingRates() {
 }
 
 // ============================================================
-// REMOVED: createEasyshipShipment, buyEasyshipLabel
-// Now using database-driven shipping only
-// ============================================================
-
-// ============================================================
-// UPDATED: SHIPMENT CREATION (NO API - Database Only)
+// SHIPMENT CREATION (NO API - Database Only)
 // ============================================================
 async function createShipmentAfterOrder(orderData) {
     try {
-        // No API call - just store shipping info in database
         const trackingNumber = 'GB' + Date.now() + Math.random().toString(36).substr(2, 6);
         
-        // Store shipping info in database
         const shippingInfo = {
             orderId: orderData.orderId,
             trackingNumber: trackingNumber,
@@ -341,7 +321,6 @@ async function createShipmentAfterOrder(orderData) {
             shippingType: sessionStorage.getItem('shipping_type') || 'Standard'
         };
         
-        // Save to Firebase
         await db.collection('shipments').doc(orderData.orderId).set(shippingInfo);
         
         return {
@@ -356,7 +335,7 @@ async function createShipmentAfterOrder(orderData) {
 }
 
 // ============================================================
-// IMAGE COMPRESSION - DO NOT CHANGE
+// IMAGE COMPRESSION
 // ============================================================
 function compressImage(file, maxSizeMB = 0.5, maxWidth = 1024, maxHeight = 1024) {
     return new Promise((resolve, reject) => {
@@ -417,7 +396,7 @@ async function uploadCompressedImage(file, type = 'image') {
 }
 
 // ============================================================
-// FIX 1: DEFAULT PRODUCTS - 5 CATEGORIES
+// DEFAULT PRODUCTS - 5 CATEGORIES
 // ============================================================
 const defaultProducts = [
     { 
@@ -565,14 +544,11 @@ let verificationCheckInterval = null;
 let pendingConfirmationProduct = null;
 
 // ============================================================
-// FIX 1: UNIVERSAL DYNAMIC PRICING
-// Gateway Fee = Base Price * 0.03 (3%)
-// Maintenance Fee = 1.50 (Fixed)
-// Grand Total = Base + Maintenance + Gateway + Dynamic Shipping
+// UNIVERSAL DYNAMIC PRICING
 // ============================================================
 const MAINTENANCE_FEE = 1.50;
-const GATEWAY_PERCENT = 0.03; // 3%
-const PLATFORM_COMMISSION = 0.10; // 10%
+const GATEWAY_PERCENT = 0.03;
+const PLATFORM_COMMISSION = 0.10;
 
 function calculateDynamicPrice(basePrice, shippingCost = 0) {
     let gatewayFee = basePrice * GATEWAY_PERCENT;
@@ -1073,7 +1049,11 @@ db.collection("products").onSnapshot(snapshot => {
     products = [];
     snapshot.forEach(doc => { products.push({ id: doc.id, ...doc.data() }); });
     renderProducts(); renderCats();
-    document.getElementById('debugMsg').innerText = `Products: ${products.length}`;
+    // FIX: Check if debugMsg exists
+    const debugMsg = document.getElementById('debugMsg');
+    if (debugMsg) {
+        debugMsg.innerText = `Products: ${products.length}`;
+    }
 });
 
 db.collection("sellers").onSnapshot(snapshot => {
@@ -1330,7 +1310,7 @@ function loadAdminData() {
 }
 
 // ============================================================
-// RENDER PRODUCTS - FIX: Duplicate Rendering
+// RENDER PRODUCTS
 // ============================================================
 let currentCategory = "All";
 
@@ -1569,7 +1549,7 @@ document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async f
 function loadSavedCards(){ let userCards = savedCards.filter(c => c.userEmail === "guest@globalbazaar.com"); if(userCards.length > 0){ document.getElementById('savedCardsSection').style.display = 'block'; document.getElementById('savedCardsList').innerHTML = userCards.map((card,idx) => `<div class="flex-between"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}">Use</button></div>`).join(''); document.querySelectorAll('.useSavedCardBtn').forEach(btn => btn.addEventListener('click', () => { let card = userCards[parseInt(btn.dataset.idx)]; document.getElementById('cardNumber').value = card.cardNumber; document.getElementById('cardHolderName').value = card.cardHolderName; document.getElementById('expiryDate').value = card.expiryDate; document.getElementById('cvv').value = ''; showToast("Card loaded", false); })); } }
 
 // ============================================================
-// PAYMENT
+// PAYMENT - FIXED
 // ============================================================
 document.getElementById('payNowBtn')?.addEventListener('click', async function() {
     const btn = this;
@@ -1577,18 +1557,47 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
     btn.textContent = '⏳ Processing...';
     
     try {
-        let cardNum = document.getElementById('cardNumber').value.replace(/\s/g,''), cardName = document.getElementById('cardHolderName').value, expiry = document.getElementById('expiryDate').value, cvv = document.getElementById('cvv').value;
-        if(!cardNum || !cardName || !expiry || !cvv){ showToast("Fill card details",true); btn.disabled = false; btn.textContent = 'Pay with Card (Dummy)'; return; }
-        if(cardNum.length < 15){ showToast("Invalid card",true); btn.disabled = false; btn.textContent = 'Pay with Card (Dummy)'; return; }
-        if(cvv.length < 3){ showToast("Invalid CVV",true); btn.disabled = false; btn.textContent = 'Pay with Card (Dummy)'; return; }
+        let cardNum = document.getElementById('cardNumber').value.replace(/\s/g,'');
+        let cardName = document.getElementById('cardHolderName').value;
+        let expiry = document.getElementById('expiryDate').value;
+        let cvv = document.getElementById('cvv').value;
+        
+        if(!cardNum || !cardName || !expiry || !cvv){ 
+            showToast("Fill card details",true); 
+            btn.disabled = false; 
+            btn.textContent = 'Pay with Card (Dummy)'; 
+            return; 
+        }
+        if(cardNum.length < 15){ 
+            showToast("Invalid card",true); 
+            btn.disabled = false; 
+            btn.textContent = 'Pay with Card (Dummy)'; 
+            return; 
+        }
+        if(cvv.length < 3){ 
+            showToast("Invalid CVV",true); 
+            btn.disabled = false; 
+            btn.textContent = 'Pay with Card (Dummy)'; 
+            return; 
+        }
+        
+        // Check if shipping is available
+        const shippingCost = parseFloat(sessionStorage.getItem('shipping_cost')) || 0;
+        if (shippingCost === 0 && cart.length > 0) {
+            showToast('⚠️ Shipping not available for this region', true);
+            btn.disabled = false;
+            btn.textContent = 'Pay with Card (Dummy)';
+            return;
+        }
+        
         if(document.getElementById('saveCardCheckbox').checked){
             let existing = savedCards.findIndex(c => c.userEmail === "guest@globalbazaar.com" && c.cardNumber === cardNum);
             let cardData = { userEmail: "guest@globalbazaar.com", cardNumber: cardNum, cardHolderName: cardName, expiryDate: expiry };
-            if(existing >= 0) savedCards[existing] = cardData; else savedCards.push(cardData);
+            if(existing >= 0) savedCards[existing] = cardData; 
+            else savedCards.push(cardData);
             saveAllLocal();
         }
         
-        const shippingCost = parseFloat(sessionStorage.getItem('shipping_cost')) || 0;
         let totalUSD = 0;
         
         for(let item of cart){
@@ -1673,7 +1682,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         }
         saveAllLocal();
         
-        // Create shipment using database-driven shipping (No API)
+        // Create shipment using database-driven shipping
         try {
             const firstItem = cart[0];
             const product = products.find(p => p.id === firstItem?.id);
@@ -1713,7 +1722,9 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         
         await sendTelegramMessage(`🛍️ NEW ORDER!\nOrder: ${tracking}\nCustomer: ${currentDelivery.fullName}\nAmount: ${getCurrencySymbol()}${convertPrice(totalWithShipping)}`);
         addNotification(`Order placed! #${tracking}`, 'order');
-        cart = []; saveAllLocal(); updateCartUI();
+        cart = []; 
+        saveAllLocal(); 
+        updateCartUI();
         if (currentBuyer) await saveUserCart(currentBuyer.uid);
         let last4 = cardNum.slice(-4);
         
@@ -1746,7 +1757,10 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             <p>🔮 We'll notify you when your order ships.</p>
         `;
         document.getElementById('orderSummaryModal').style.display = 'block';
-        document.getElementById('cardNumber').value=''; document.getElementById('cardHolderName').value=''; document.getElementById('expiryDate').value=''; document.getElementById('cvv').value='';
+        document.getElementById('cardNumber').value=''; 
+        document.getElementById('cardHolderName').value=''; 
+        document.getElementById('expiryDate').value=''; 
+        document.getElementById('cvv').value='';
         renderProducts();
         btn.disabled = false;
         btn.textContent = 'Pay with Card (Dummy)';
@@ -1791,7 +1805,11 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
         const password = document.getElementById('sellerPassword').value;
 
         showToast("Creating account...", false);
-        document.getElementById('debugMsg').innerText = "Creating account...";
+        // FIX: Check if debugMsg exists
+        const debugMsg = document.getElementById('debugMsg');
+        if (debugMsg) {
+            debugMsg.innerText = "Creating account...";
+        }
 
         const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
         const user = userCredential.user;
@@ -1830,7 +1848,6 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
             avatar: avatarUrl,
             emailVerified: false,
             uid: user.uid,
-            // Default shipping rates for seller
             shippingRates: {
                 SA: 10.00,
                 GCC: 15.00,
@@ -1846,7 +1863,10 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
             modal.style.display = 'block';
             modal.querySelector('p').innerHTML = '📧 <strong>Please check your email!</strong><br><br>We have sent a verification link to your email address.<br><br>Click the link to verify your email and activate your seller account.<br><br>⏳ Waiting for email verification...';
         }
-        document.getElementById('debugMsg').innerText = "Registration successful - Email verification sent";
+        // FIX: Check if debugMsg exists
+        if (debugMsg) {
+            debugMsg.innerText = "Registration successful - Email verification sent";
+        }
         const snapshot = await db.collection("sellers").get();
         sellers = [];
         snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
@@ -1859,7 +1879,11 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
     } catch(err) {
         console.error(err);
         showToast("Registration failed: " + err.message, true);
-        document.getElementById('debugMsg').innerText = "Error: " + err.message;
+        // FIX: Check if debugMsg exists
+        const debugMsg = document.getElementById('debugMsg');
+        if (debugMsg) {
+            debugMsg.innerText = "Error: " + err.message;
+        }
         btn.disabled = false;
         btn.textContent = '✅ Register Shop';
     }
@@ -1955,7 +1979,7 @@ document.getElementById('drawerMyShop')?.addEventListener('click', function() {
 });
 
 // ============================================================
-// FIX 5: NOTIFICATION BADGE ON 'MY SHOP' BUTTON
+// NOTIFICATION BADGE ON 'MY SHOP' BUTTON
 // ============================================================
 function updateMyShopBadge() {
     const btn = document.getElementById('drawerMyShop');
@@ -1984,8 +2008,7 @@ function updateMyShopBadge() {
 }
 
 // ============================================================
-// FIX 4: SELLER DASHBOARD - Unified UI
-// No Extra Pop-ups, Embedded Actions, Net Revenue
+// SELLER DASHBOARD
 // ============================================================
 function renderSellerDashboard(){
     if(!currentSeller?.sellerId) return;
@@ -2081,7 +2104,6 @@ function renderSellerDashboard(){
         ordersHtml = '<p style="text-align:center;padding:20px;color:#64748b;">No orders yet.</p>';
     }
     
-    // FIX 2: Category select with fixed categories
     const categoryOptions = FIXED_CATEGORIES.map(cat => `<option value="${cat}">${cat}</option>`).join('');
     
     let sellerDashboardHtml = `
@@ -2264,7 +2286,6 @@ function renderSellerDashboard(){
                 showToast("Valid dimensions required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return;
             }
             
-            // Get shipping rates from form
             const shippingSA = parseFloat(document.getElementById('prodShippingSA').value) || 0;
             const shippingGCC = parseFloat(document.getElementById('prodShippingGCC').value) || 0;
             const shippingInt = parseFloat(document.getElementById('prodShippingInt').value) || 0;
@@ -2332,7 +2353,6 @@ function renderSellerDashboard(){
     
     document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', async () => { let id = btn.dataset.id; await db.collection("products").doc(id).delete(); renderSellerDashboard(); renderProducts(); showToast("Product deleted", false); }));
     document.querySelectorAll('.editProdBtn').forEach(btn => btn.addEventListener('click', () => { let prod = products.find(p => p.id == btn.dataset.id); if(prod){ document.getElementById('editProdId').value = prod.id; document.getElementById('editProdName').value = prod.name; document.getElementById('editProdPrice').value = prod.price; document.getElementById('editProdCat').value = prod.category; document.getElementById('editProdStock').value = prod.stock; document.getElementById('editProdDesc').value = prod.description || ''; 
-        // Load shipping rates
         if (prod.shippingRates) {
             document.getElementById('editShippingSA').value = prod.shippingRates.SA || 0;
             document.getElementById('editShippingGCC').value = prod.shippingRates.GCC || 0;
@@ -2381,7 +2401,7 @@ function renderSellerDashboard(){
 }
 
 // ============================================================
-// FIX 4: Embedded Actions - YES/NO Functions
+// EMBEDDED ACTIONS - YES/NO Functions
 // ============================================================
 
 async function confirmOrderStock(orderId) {
@@ -2662,7 +2682,9 @@ document.getElementById('loginModal')?.addEventListener('click', (e) => {
     }
 });
 
-// FIX 1: Initialize database on load
+// ============================================================
+// INITIALIZE DATABASE ON LOAD
+// ============================================================
 initializeDatabase().then(() => {
     console.log('Database ready');
 }).catch(err => {
@@ -2675,7 +2697,12 @@ setInterval(updateMyShopBadge, 5000);
 renderCats(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge(); updateAdminMenuBadges();
 updateMyShopBadge();
 updateCategorySelect();
-document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | Dynamic Pricing | Database-Driven Shipping (No API)";
+
+// FIX: Check if debugMsg exists before setting
+const debugMsg = document.getElementById('debugMsg');
+if (debugMsg) {
+    debugMsg.innerHTML = "GlobalBazaar Ready | Dynamic Pricing | Database-Driven Shipping (No API)";
+}
 
 // ============================================================
 // END OF FILE - ALL CHANGES COMPLETED
