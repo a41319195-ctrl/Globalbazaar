@@ -1,5 +1,6 @@
 // ============================================================
-// GLOBAL BAZAAR - COMPLETE FIXED CODE (4 PROBLEMS SOLVED)
+// GLOBAL BAZAAR - STEP 1 FIX: PAYMENT + SHIPPING
+// COMPLETE CODE - 22 JUNE 2026
 // ============================================================
 
 // ============================================================
@@ -81,14 +82,19 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 
 // ============================================================
-// FIX: COUNTRY CODE MAPPING FOR SHIPPING
+// FIX: COUNTRY CODE MAPPING - SAUDI ARABIA FIX
 // ============================================================
 function getCountryCode(countryName) {
+    const clean = countryName?.toString().trim() || '';
+    
     const countryMap = {
         'Saudi Arabia': 'SA',
         'saudi arabia': 'SA',
         'SA': 'SA',
         'sa': 'SA',
+        'Kingdom of Saudi Arabia': 'SA',
+        'KSA': 'SA',
+        'ksa': 'SA',
         'UAE': 'GCC',
         'uae': 'GCC',
         'United Arab Emirates': 'GCC',
@@ -100,29 +106,20 @@ function getCountryCode(countryName) {
         'kuwait': 'GCC',
         'Bahrain': 'GCC',
         'bahrain': 'GCC',
-        'India': 'International',
-        'Pakistan': 'International',
         'USA': 'International',
-        'UK': 'International',
         'US': 'International',
         'United States': 'International',
-        'United Kingdom': 'International'
+        'UK': 'International',
+        'United Kingdom': 'International',
+        'India': 'International',
+        'Pakistan': 'International'
     };
     
-    // FIX: Return mapped code or 'International' as fallback
-    const mapped = countryMap[countryName];
-    if (mapped) return mapped;
+    if (countryMap[clean]) return countryMap[clean];
+    if (clean.includes('Saudi') || clean.includes('saudi') || clean === 'SA' || clean === 'sa') return 'SA';
     
-    // Check if it's a GCC country (not explicitly mapped)
-    const gccCountries = ['qatar', 'oman', 'kuwait', 'bahrain', 'uae', 'united arab emirates'];
-    if (gccCountries.some(g => countryName.toLowerCase().includes(g))) {
-        return 'GCC';
-    }
-    
-    // Check if it's SA
-    if (countryName.toLowerCase().includes('saudi') || countryName.toLowerCase().includes('sa')) {
-        return 'SA';
-    }
+    const gccCountries = ['UAE', 'Qatar', 'Oman', 'Kuwait', 'Bahrain', 'Emirates'];
+    if (gccCountries.some(g => clean.includes(g) || clean.toLowerCase().includes(g.toLowerCase()))) return 'GCC';
     
     return 'International';
 }
@@ -144,25 +141,23 @@ async function getShippingRateFromDB(productId, buyerCountry) {
         }
         
         const product = productDoc.data();
+        const countryCode = getCountryCode(buyerCountry);
+        console.log('🔍 Buyer:', buyerCountry, '→ Code:', countryCode);
+        
         let shippingRate = 0;
         let shippingType = 'unknown';
         
-        // FIX: Convert country name to code
-        const countryCode = getCountryCode(buyerCountry);
-        console.log('🔍 Buyer Country:', buyerCountry, '→ Code:', countryCode);
-        
         if (product.shippingRates) {
-            if (countryCode === 'SA' && product.shippingRates.SA !== undefined && product.shippingRates.SA > 0) {
+            if (countryCode === 'SA' && product.shippingRates.SA > 0) {
                 shippingRate = product.shippingRates.SA;
                 shippingType = 'SA';
-            } else if (countryCode === 'GCC' && product.shippingRates.GCC !== undefined && product.shippingRates.GCC > 0) {
+            } else if (countryCode === 'GCC' && product.shippingRates.GCC > 0) {
                 shippingRate = product.shippingRates.GCC;
                 shippingType = 'GCC';
-            } else if (product.shippingRates.International !== undefined && product.shippingRates.International > 0) {
+            } else if (product.shippingRates.International > 0) {
                 shippingRate = product.shippingRates.International;
                 shippingType = 'International';
             } else {
-                console.warn('No valid shipping rate found for country:', buyerCountry, '→', countryCode);
                 return null;
             }
         } else {
@@ -172,39 +167,35 @@ async function getShippingRateFromDB(productId, buyerCountry) {
                 if (sellerDoc.exists) {
                     const seller = sellerDoc.data();
                     if (seller.shippingRates) {
-                        if (countryCode === 'SA' && seller.shippingRates.SA !== undefined && seller.shippingRates.SA > 0) {
+                        if (countryCode === 'SA' && seller.shippingRates.SA > 0) {
                             shippingRate = seller.shippingRates.SA;
                             shippingType = 'SA';
-                        } else if (countryCode === 'GCC' && seller.shippingRates.GCC !== undefined && seller.shippingRates.GCC > 0) {
+                        } else if (countryCode === 'GCC' && seller.shippingRates.GCC > 0) {
                             shippingRate = seller.shippingRates.GCC;
                             shippingType = 'GCC';
-                        } else if (seller.shippingRates.International !== undefined && seller.shippingRates.International > 0) {
+                        } else if (seller.shippingRates.International > 0) {
                             shippingRate = seller.shippingRates.International;
                             shippingType = 'International';
                         } else {
-                            console.warn('No shipping rate found for seller:', sellerId);
                             return null;
                         }
                     } else {
-                        console.warn('Seller has no shipping rates defined:', sellerId);
                         return null;
                     }
                 } else {
-                    console.warn('Seller not found:', sellerId);
                     return null;
                 }
             } else {
-                console.warn('Product has no sellerId');
                 return null;
             }
         }
         
-        if (typeof shippingRate !== 'number' || shippingRate < 0) {
+        if (typeof shippingRate !== 'number' || shippingRate < 0 || isNaN(shippingRate)) {
             console.warn('Invalid shipping rate:', shippingRate);
             return null;
         }
         
-        console.log('✅ Shipping rate found:', shippingRate, 'Type:', shippingType);
+        console.log('✅ Shipping found:', shippingRate, 'Type:', shippingType);
         
         return {
             rate: shippingRate,
@@ -212,13 +203,13 @@ async function getShippingRateFromDB(productId, buyerCountry) {
             currency: 'USD'
         };
     } catch (error) {
-        console.error('Error getting shipping rate from DB:', error);
+        console.error('Error getting shipping rate:', error);
         return null;
     }
 }
 
 // ============================================================
-// FETCH SHIPPING FROM DATABASE
+// FETCH AND DISPLAY SHIPPING
 // ============================================================
 let lastShippingFetch = 0;
 let currentShippingCost = 0;
@@ -231,14 +222,11 @@ async function fetchAndDisplayShippingRates() {
     const shippingDisplay = document.getElementById('shippingCostDisplay');
     const payBtn = document.getElementById('payNowBtn');
     
-    if (shippingContainer) {
-        shippingContainer.style.display = 'flex';
-    }
+    if (shippingContainer) shippingContainer.style.display = 'flex';
     if (shippingDisplay) {
         shippingDisplay.textContent = 'Checking availability...';
         shippingDisplay.className = 'cost shipping-loading';
     }
-    
     if (payBtn) {
         payBtn.disabled = true;
         payBtn.textContent = '⏳ Checking Shipping...';
@@ -246,103 +234,107 @@ async function fetchAndDisplayShippingRates() {
     
     try {
         const firstCartItem = cart[0];
-        if (!firstCartItem) { 
+        if (!firstCartItem) {
             if (shippingDisplay) {
                 shippingDisplay.textContent = 'No items in cart';
                 shippingDisplay.className = 'cost error';
             }
-            if (payBtn) { 
-                payBtn.disabled = true; 
-                payBtn.textContent = '⏳ Waiting for items...'; 
+            if (payBtn) {
+                payBtn.disabled = true;
+                payBtn.textContent = '⏳ Waiting for items...';
             }
             return;
         }
         
         const product = products.find(p => p.id === firstCartItem.id);
-        if (!product) { 
+        if (!product) {
             if (shippingDisplay) {
                 shippingDisplay.textContent = 'Product not found';
                 shippingDisplay.className = 'cost error';
             }
-            if (payBtn) { 
-                payBtn.disabled = true; 
-                payBtn.textContent = '⏳ Product not found'; 
+            if (payBtn) {
+                payBtn.disabled = true;
+                payBtn.textContent = '⏳ Product not found';
             }
             return;
         }
         
         const buyerCountrySelect = document.getElementById('deliveryCountry');
-        // FIX: Get the text value (country name) not just value
-        const buyerCountry = buyerCountrySelect ? 
-            buyerCountrySelect.options[buyerCountrySelect.selectedIndex]?.text || buyerCountrySelect.value : 
-            'Saudi Arabia';
+        let buyerCountry = 'Saudi Arabia';
+        if (buyerCountrySelect) {
+            const selectedOption = buyerCountrySelect.options[buyerCountrySelect.selectedIndex];
+            if (selectedOption) {
+                buyerCountry = selectedOption.text || selectedOption.value || 'Saudi Arabia';
+            } else {
+                buyerCountry = buyerCountrySelect.value || 'Saudi Arabia';
+            }
+        }
+        buyerCountry = buyerCountry.trim();
+        console.log('🌍 Buyer Country:', buyerCountry);
         
         if (!buyerCountry || buyerCountry === '') {
             if (shippingDisplay) {
                 shippingDisplay.textContent = 'Select country first';
                 shippingDisplay.className = 'cost error';
             }
-            if (payBtn) { 
-                payBtn.disabled = true; 
-                payBtn.textContent = '⏳ Select country'; 
+            if (payBtn) {
+                payBtn.disabled = true;
+                payBtn.textContent = '⏳ Select country';
             }
             return;
         }
         
         const shippingInfo = await getShippingRateFromDB(product.id, buyerCountry);
         
-        if (shippingInfo && shippingInfo.rate !== null && shippingInfo.rate > 0) {
+        if (shippingInfo && shippingInfo.rate > 0) {
             currentShippingCost = shippingInfo.rate;
+            sessionStorage.setItem('shipping_cost', currentShippingCost.toString());
+            sessionStorage.setItem('shipping_type', shippingInfo.type);
+            sessionStorage.setItem('shipping_country', buyerCountry);
             
             if (shippingDisplay) {
                 shippingDisplay.textContent = `${getCurrencySymbol()}${convertPrice(currentShippingCost)}`;
                 shippingDisplay.className = 'cost';
                 shippingDisplay.title = `Shipping type: ${shippingInfo.type}`;
             }
-            
-            sessionStorage.setItem('shipping_cost', currentShippingCost);
-            sessionStorage.setItem('shipping_type', shippingInfo.type);
-            
             if (payBtn) {
                 payBtn.disabled = false;
-                payBtn.textContent = 'Pay with Card (Dummy)';
+                payBtn.textContent = '💳 Pay with Card';
             }
-            
-            showToast(`Shipping: ${getCurrencySymbol()}${convertPrice(currentShippingCost)} (${shippingInfo.type})`, false);
+            showToast(`✅ Shipping: ${getCurrencySymbol()}${convertPrice(currentShippingCost)} (${shippingInfo.type})`, false);
         } else {
             currentShippingCost = 0;
-            if (shippingDisplay) {
-                shippingDisplay.textContent = 'Shipping not available for this region';
-                shippingDisplay.className = 'cost error';
-            }
-            sessionStorage.setItem('shipping_cost', 0);
+            sessionStorage.setItem('shipping_cost', '0');
             sessionStorage.setItem('shipping_type', 'unavailable');
             
+            if (shippingDisplay) {
+                shippingDisplay.textContent = '🚫 Shipping not available for this region';
+                shippingDisplay.className = 'cost error';
+            }
             if (payBtn) {
                 payBtn.disabled = true;
                 payBtn.textContent = '⏳ Shipping unavailable';
             }
-            
             showToast('⚠️ Shipping not available for this region', true);
         }
     } catch (error) {
         console.error('Shipping fetch error:', error);
         currentShippingCost = 0;
+        sessionStorage.setItem('shipping_cost', '0');
         if (shippingDisplay) {
-            shippingDisplay.textContent = 'Shipping not available for this region';
+            shippingDisplay.textContent = '⚠️ Error fetching shipping';
             shippingDisplay.className = 'cost error';
         }
-        sessionStorage.setItem('shipping_cost', 0);
         if (payBtn) {
             payBtn.disabled = true;
-            payBtn.textContent = '⏳ Shipping unavailable';
+            payBtn.textContent = '⏳ Error';
         }
-        showToast('⚠️ Shipping not available for this region', true);
+        showToast('⚠️ Error fetching shipping rates', true);
     }
 }
 
 // ============================================================
-// SHIPMENT CREATION (NO API - Database Only)
+// SHIPMENT CREATION
 // ============================================================
 async function createShipmentAfterOrder(orderData) {
     try {
@@ -430,7 +422,7 @@ async function uploadCompressedImage(file, type = 'image') {
 }
 
 // ============================================================
-// DEFAULT PRODUCTS - 5 CATEGORIES
+// DEFAULT PRODUCTS
 // ============================================================
 const defaultProducts = [
     { 
@@ -446,11 +438,8 @@ const defaultProducts = [
         stock: 10, 
         weight: 0.2, 
         size: { length: 10, width: 8, height: 4 },
-        shippingRates: {
-            SA: 10.00,
-            GCC: 15.00,
-            International: 25.00
-        }
+        shippingRates: { SA: 10.00, GCC: 15.00, International: 25.00 },
+        status: 'available'
     },
     { 
         sellerId: 0, 
@@ -465,11 +454,8 @@ const defaultProducts = [
         stock: 10, 
         weight: 0.5, 
         size: { length: 15, width: 10, height: 5 },
-        shippingRates: {
-            SA: 15.00,
-            GCC: 20.00,
-            International: 35.00
-        }
+        shippingRates: { SA: 15.00, GCC: 20.00, International: 35.00 },
+        status: 'available'
     },
     { 
         sellerId: 0, 
@@ -484,11 +470,8 @@ const defaultProducts = [
         stock: 10, 
         weight: 0.3, 
         size: { length: 25, width: 20, height: 5 },
-        shippingRates: {
-            SA: 8.00,
-            GCC: 12.00,
-            International: 20.00
-        }
+        shippingRates: { SA: 8.00, GCC: 12.00, International: 20.00 },
+        status: 'available'
     },
     { 
         sellerId: 0, 
@@ -503,11 +486,8 @@ const defaultProducts = [
         stock: 10, 
         weight: 0.15, 
         size: { length: 20, width: 20, height: 2 },
-        shippingRates: {
-            SA: 5.00,
-            GCC: 8.00,
-            International: 15.00
-        }
+        shippingRates: { SA: 5.00, GCC: 8.00, International: 15.00 },
+        status: 'available'
     },
     { 
         sellerId: 0, 
@@ -522,11 +502,8 @@ const defaultProducts = [
         stock: 10, 
         weight: 0.8, 
         size: { length: 20, width: 20, height: 30 },
-        shippingRates: {
-            SA: 18.00,
-            GCC: 25.00,
-            International: 45.00
-        }
+        shippingRates: { SA: 18.00, GCC: 25.00, International: 45.00 },
+        status: 'available'
     }
 ];
 
@@ -548,7 +525,7 @@ async function seedProductsIfEmpty() {
                     createdAt: new Date().toISOString()
                 });
             }
-            console.log("Seeded 5 default products with shipping rates");
+            console.log("Seeded 5 default products");
         }
     } catch (e) { console.error('Seed error:', e); }
 }
@@ -586,47 +563,26 @@ function calculateDynamicPrice(basePrice, shippingCost = 0) {
     let gatewayFee = basePrice * GATEWAY_PERCENT;
     let maintenanceFee = MAINTENANCE_FEE;
     let grandTotal = basePrice + maintenanceFee + gatewayFee + shippingCost;
-    
     return {
         basePrice: basePrice,
         gatewayFee: gatewayFee,
         maintenanceFee: maintenanceFee,
         shippingCost: shippingCost,
-        grandTotal: grandTotal,
-        breakdown: {
-            'Product Price': basePrice,
-            '+ Gateway Fee (3%)': gatewayFee,
-            '+ Maintenance Fee': maintenanceFee,
-            '+ Shipping Cost': shippingCost,
-            '= Grand Total': grandTotal
-        }
+        grandTotal: grandTotal
     };
 }
 
 function calculateDisplayPrice(basePrice) {
     let gatewayFee = basePrice * GATEWAY_PERCENT;
     let total = basePrice + gatewayFee + MAINTENANCE_FEE;
-    return { 
-        total: total, 
-        basePrice: basePrice, 
-        gateway: gatewayFee,
-        handling: MAINTENANCE_FEE
-    };
+    return { total, basePrice, gateway: gatewayFee, handling: MAINTENANCE_FEE };
 }
 
 function calculateFinalPrice(basePrice, sellerCountry, buyerCountry, shippingCost = 0) {
     let gatewayFee = basePrice * GATEWAY_PERCENT;
     let commission = basePrice * PLATFORM_COMMISSION;
     let total = basePrice + gatewayFee + MAINTENANCE_FEE + shippingCost + commission;
-    return { 
-        total: total, 
-        basePrice: basePrice, 
-        shipping: shippingCost, 
-        commission: commission, 
-        gateway: gatewayFee,
-        handling: MAINTENANCE_FEE,
-        sellerEarning: basePrice - commission - MAINTENANCE_FEE
-    };
+    return { total, basePrice, shipping: shippingCost, commission, gateway: gatewayFee, handling: MAINTENANCE_FEE, sellerEarning: basePrice - commission - MAINTENANCE_FEE };
 }
 
 // ============================================================
@@ -1348,25 +1304,17 @@ let currentCategory = "All";
 function renderProductCard(p) {
     const seller = sellers.find(s => s.id === p.sellerId) || { shopName: "GlobalBazaar", country: "SA" };
     const displayPrice = calculateDisplayPrice(p.price);
-    
-    // FIX: Show SOLD OUT but don't delete from dashboard
     const soldOutBadge = p.stock <= 0 || p.status === 'pending_approval' ? 
         `<div class="soldout-badge">SOLD OUT</div>` : '';
-    
-    // Only show stock badge if stock is low AND not sold out
     const stockBadge = (p.stock < 5 && p.stock > 0) ? 
         `<div class="stock-badge">Only ${p.stock} left</div>` : '';
-    
     let thumbnailsHtml = '';
     if (p.images && p.images.length > 1) {
         thumbnailsHtml = p.images.slice(0,4).map(img => 
             `<img src="${img}" onclick="event.stopPropagation(); changeProductImage('${p.id}','${img}')">`
         ).join('');
     }
-    
-    // FIX: Disable buy button if sold out
     const isSoldOut = p.stock <= 0 || p.status === 'pending_approval';
-    
     return `<div class="product-card" data-id="${p.id}">
         ${soldOutBadge}
         ${stockBadge}
@@ -1394,16 +1342,13 @@ function renderCats(){
 function renderProducts(){
     const grid = document.getElementById('productsGrid');
     grid.innerHTML = '';
-    
     let search = document.getElementById('searchInput')?.value.toLowerCase() || "";
-    // FIX: Show products with stock > 0 AND not pending_approval
     let filtered = products.filter(p => 
         (currentCategory === "All" || p.category === currentCategory) && 
         p.name.toLowerCase().includes(search) && 
         p.stock > 0 && 
         p.status !== 'pending_approval'
     );
-    
     if (filtered.length === 0) {
         grid.innerHTML = '<div style="text-align:center;padding:40px;grid-column:1/-1;">No products found</div>';
         return;
@@ -1467,7 +1412,6 @@ function openProduct(id){
 
 function addToCart(id){
     let p = products.find(x => x.id == id); if(!p) return;
-    // FIX: Prevent adding sold out products
     if(p.stock <= 0 || p.status === 'pending_approval'){ 
         showToast("This product is sold out!",true); 
         return; 
@@ -1612,62 +1556,88 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
     btn.textContent = '⏳ Processing...';
     
     try {
-        let cardNum = document.getElementById('cardNumber').value.replace(/\s/g,'');
-        let cardName = document.getElementById('cardHolderName').value;
-        let expiry = document.getElementById('expiryDate').value;
-        let cvv = document.getElementById('cvv').value;
+        let cardNum = document.getElementById('cardNumber')?.value?.replace(/\s/g,'') || '';
+        let cardName = document.getElementById('cardHolderName')?.value || '';
+        let expiry = document.getElementById('expiryDate')?.value || '';
+        let cvv = document.getElementById('cvv')?.value || '';
         
-        if(!cardNum || !cardName || !expiry || !cvv){ 
-            showToast("Fill card details",true); 
-            btn.disabled = false; 
-            btn.textContent = 'Pay with Card (Dummy)'; 
-            return; 
-        }
-        if(cardNum.length < 15){ 
-            showToast("Invalid card",true); 
-            btn.disabled = false; 
-            btn.textContent = 'Pay with Card (Dummy)'; 
-            return; 
-        }
-        if(cvv.length < 3){ 
-            showToast("Invalid CVV",true); 
-            btn.disabled = false; 
-            btn.textContent = 'Pay with Card (Dummy)'; 
-            return; 
-        }
-        
-        // FIX: Check if shipping is available before payment
-        const shippingCost = parseFloat(sessionStorage.getItem('shipping_cost')) || 0;
-        console.log('💰 Shipping Cost:', shippingCost);
-        
-        if (shippingCost === 0 && cart.length > 0) {
-            showToast('⚠️ Shipping not available for this region', true);
+        if (!cardNum || !cardName || !expiry || !cvv) {
+            showToast("❌ Please fill all card details", true);
             btn.disabled = false;
-            btn.textContent = 'Pay with Card (Dummy)';
+            btn.textContent = '💳 Pay with Card';
+            return;
+        }
+        if (cardNum.length < 15) {
+            showToast("❌ Invalid card number", true);
+            btn.disabled = false;
+            btn.textContent = '💳 Pay with Card';
+            return;
+        }
+        if (cvv.length < 3) {
+            showToast("❌ Invalid CVV", true);
+            btn.disabled = false;
+            btn.textContent = '💳 Pay with Card';
             return;
         }
         
-        // FIX: Check if currentDelivery exists
+        let shippingCost = parseFloat(sessionStorage.getItem('shipping_cost') || '0');
+        if (!isFinite(shippingCost) || isNaN(shippingCost)) {
+            console.warn('Invalid shipping cost, recalculating...');
+            const firstItem = cart[0];
+            if (firstItem) {
+                const product = products.find(p => p.id === firstItem.id);
+                if (product) {
+                    const buyerCountrySelect = document.getElementById('deliveryCountry');
+                    let buyerCountry = 'Saudi Arabia';
+                    if (buyerCountrySelect) {
+                        const selectedOption = buyerCountrySelect.options[buyerCountrySelect.selectedIndex];
+                        if (selectedOption) {
+                            buyerCountry = selectedOption.text || selectedOption.value || 'Saudi Arabia';
+                        }
+                    }
+                    const shippingInfo = await getShippingRateFromDB(product.id, buyerCountry);
+                    if (shippingInfo && shippingInfo.rate > 0) {
+                        shippingCost = shippingInfo.rate;
+                        sessionStorage.setItem('shipping_cost', shippingCost.toString());
+                    } else {
+                        shippingCost = 0;
+                    }
+                }
+            }
+        }
+        
+        if (shippingCost <= 0 || !isFinite(shippingCost)) {
+            showToast('⚠️ Shipping not available for this region', true);
+            btn.disabled = false;
+            btn.textContent = '💳 Pay with Card';
+            return;
+        }
+        
         if (!currentDelivery || !currentDelivery.email) {
             showToast('⚠️ Delivery details missing. Please go back and fill delivery info.', true);
             btn.disabled = false;
-            btn.textContent = 'Pay with Card (Dummy)';
+            btn.textContent = '💳 Pay with Card';
             return;
         }
         
-        if(document.getElementById('saveCardCheckbox').checked){
+        if (document.getElementById('saveCardCheckbox')?.checked) {
             let existing = savedCards.findIndex(c => c.userEmail === "guest@globalbazaar.com" && c.cardNumber === cardNum);
-            let cardData = { userEmail: "guest@globalbazaar.com", cardNumber: cardNum, cardHolderName: cardName, expiryDate: expiry };
-            if(existing >= 0) savedCards[existing] = cardData; 
+            let cardData = {
+                userEmail: "guest@globalbazaar.com",
+                cardNumber: cardNum,
+                cardHolderName: cardName,
+                expiryDate: expiry
+            };
+            if (existing >= 0) savedCards[existing] = cardData;
             else savedCards.push(cardData);
             saveAllLocal();
         }
         
         let totalUSD = 0;
-        
-        for(let item of cart){
-            let seller = sellers.find(s => s.id == item.sellerId);
-            let final = calculateFinalPrice(item.price, seller?.country || "SA", buyerCountry, shippingCost / cart.length);
+        for (let item of cart) {
+            let seller = sellers.find(s => s.id === item.sellerId);
+            const shippingPerItem = cart.length > 0 ? shippingCost / cart.length : 0;
+            let final = calculateFinalPrice(item.price, seller?.country || "SA", buyerCountry, shippingPerItem);
             totalUSD += final.total * item.qty;
         }
         
@@ -1675,19 +1645,19 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         let cartCopy = [...cart];
         const totalWithShipping = totalUSD;
         
-        for(let item of cart){
-            let seller = sellers.find(s => s.id == item.sellerId);
-            let product = products.find(p => p.id == item.id);
-            let priceCalc = calculateDynamicPrice(item.price, shippingCost / cart.length);
+        for (let item of cart) {
+            let seller = sellers.find(s => s.id === item.sellerId);
+            let product = products.find(p => p.id === item.id);
+            const shippingPerItem = cart.length > 0 ? shippingCost / cart.length : 0;
+            let priceCalc = calculateDynamicPrice(item.price, shippingPerItem);
             
-            let newOrder = { 
-                id: Date.now()+Math.random(), 
-                trackingNumber: tracking, 
-                sellerId: item.sellerId, 
-                sellerName: seller?.shopName || "GlobalBazaar", 
-                buyerEmail: currentDelivery.email, 
+            let newOrder = {
+                id: Date.now() + Math.random(),
+                trackingNumber: tracking,
+                sellerId: item.sellerId,
+                sellerName: seller?.shopName || "GlobalBazaar",
+                buyerEmail: currentDelivery.email,
                 buyerName: currentDelivery.fullName,
-                
                 productDetails: {
                     id: item.id,
                     name: item.name,
@@ -1697,15 +1667,13 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                     sellerId: item.sellerId,
                     sellerName: seller?.shopName || "GlobalBazaar"
                 },
-                
                 productName: item.name,
                 amount: totalWithShipping / cart.length,
                 basePrice: item.price,
-                address: currentDelivery.fullAddress, 
-                date: new Date().toLocaleString(), 
-                status: "Processing", 
+                address: currentDelivery.fullAddress,
+                date: new Date().toLocaleString(),
+                status: "Processing",
                 qty: item.qty,
-                
                 priceBreakdown: {
                     basePrice: item.price,
                     gatewayFee: priceCalc.gatewayFee,
@@ -1713,34 +1681,27 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                     shippingCost: priceCalc.shippingCost,
                     grandTotal: priceCalc.grandTotal
                 },
-                
                 shippingCost: priceCalc.shippingCost,
                 commission: item.price * PLATFORM_COMMISSION,
                 gatewayFee: priceCalc.gatewayFee,
                 handlingFee: MAINTENANCE_FEE,
                 trackingInfo: null,
-                shippingCharge: shippingCost / cart.length
+                shippingCharge: shippingPerItem
             };
             orders.push(newOrder);
             platformEarnings += (item.price * PLATFORM_COMMISSION) + priceCalc.gatewayFee + MAINTENANCE_FEE;
             
-            if(product){ 
-                product.stock -= item.qty; 
-                if(product.stock <= 0){
-                    // FIX: Don't delete product, just mark as pending_approval
+            if (product) {
+                product.stock -= item.qty;
+                if (product.stock <= 0) {
                     product.status = 'pending_approval';
                     await db.collection('products').doc(product.id).update({
                         stock: 0,
                         status: 'pending_approval',
                         soldOutAt: new Date().toISOString()
                     });
-                    addNotification(`📢 ${product.name} is SOLD OUT! Waiting for seller.`, 'info');
-                    sendTelegramMessage(`📢 ${product.name} is SOLD OUT! Waiting for seller.`);
-                    
-                    // FIX: Show YES/NO modal to seller if they're logged in
-                    if (currentSeller && currentSeller.sellerId === product.sellerId) {
-                        showInventoryConfirmModal(product.id, product.name);
-                    }
+                    addNotification(`📢 ${product.name} is SOLD OUT!`, 'info');
+                    sendTelegramMessage(`📢 ${product.name} is SOLD OUT!`);
                 } else {
                     await db.collection('products').doc(product.id).update({
                         stock: product.stock
@@ -1750,14 +1711,12 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         }
         saveAllLocal();
         
-        // Create shipment using database-driven shipping
         try {
             const firstItem = cart[0];
             const product = products.find(p => p.id === firstItem?.id);
-            const seller = sellers.find(s => s.id === firstItem?.sellerId);
-            if (product && seller) {
+            if (product) {
                 const shipmentResult = await createShipmentAfterOrder({
-                    sellerId: seller.id,
+                    sellerId: product.sellerId,
                     orderId: tracking,
                     buyerCountry: currentDelivery.country || 'SA',
                     buyerCity: currentDelivery.city || '',
@@ -1780,7 +1739,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                         orders[orderIndex].status = 'Shipped';
                         saveAllLocal();
                         addNotification(`📦 Order shipped! Tracking: ${shipmentResult.trackingNumber}`, 'order');
-                        sendTelegramMessage(`📦 Order ${tracking} shipped via ${shipmentResult.carrierName} - Tracking: ${shipmentResult.trackingNumber}`);
+                        sendTelegramMessage(`📦 Order ${tracking} shipped - Tracking: ${shipmentResult.trackingNumber}`);
                     }
                 }
             }
@@ -1790,14 +1749,15 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         
         await sendTelegramMessage(`🛍️ NEW ORDER!\nOrder: ${tracking}\nCustomer: ${currentDelivery.fullName}\nAmount: ${getCurrencySymbol()}${convertPrice(totalWithShipping)}`);
         addNotification(`Order placed! #${tracking}`, 'order');
-        cart = []; 
-        saveAllLocal(); 
+        cart = [];
+        saveAllLocal();
         updateCartUI();
         if (currentBuyer) await saveUserCart(currentBuyer.uid);
-        let last4 = cardNum.slice(-4);
         
+        let last4 = cardNum.slice(-4);
         let breakdownHtml = cartCopy.map(i => {
-            let calc = calculateDynamicPrice(i.price, shippingCost / cart.length);
+            const shippingPerItem = cartCopy.length > 0 ? shippingCost / cartCopy.length : 0;
+            let calc = calculateDynamicPrice(i.price, shippingPerItem);
             return `
                 <div style="background:#f8fafc; padding:12px; border-radius:12px; margin-bottom:10px;">
                     <strong>${i.name}</strong> x${i.qty}
@@ -1812,31 +1772,46 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             `;
         }).join('');
         
-        document.getElementById('orderSummaryContent').innerHTML = `
-            <p><strong>Order ID:</strong> ${tracking}</p>
-            <h3>📦 Items</h3>
-            ${breakdownHtml}
-            <h3>💰 Total Paid: ${getCurrencySymbol()}${convertPrice(totalWithShipping)}</h3>
-            <h3>📦 Shipping Cost: ${getCurrencySymbol()}${convertPrice(shippingCost)}</h3>
-            <h3>👤 Delivery Details</h3>
-            <p>${currentDelivery.fullName}<br>${currentDelivery.phone}<br>${currentDelivery.fullAddress}</p>
-            <h3>💳 Payment</h3>
-            <p>Card ending: ${last4}</p>
-            <p>🔮 We'll notify you when your order ships.</p>
-        `;
-        document.getElementById('orderSummaryModal').style.display = 'block';
-        document.getElementById('cardNumber').value=''; 
-        document.getElementById('cardHolderName').value=''; 
-        document.getElementById('expiryDate').value=''; 
-        document.getElementById('cvv').value='';
+        const summaryContent = document.getElementById('orderSummaryContent');
+        if (summaryContent) {
+            summaryContent.innerHTML = `
+                <p><strong>Order ID:</strong> ${tracking}</p>
+                <h3>📦 Items</h3>
+                ${breakdownHtml}
+                <h3>💰 Total Paid: ${getCurrencySymbol()}${convertPrice(totalWithShipping)}</h3>
+                <h3>📦 Shipping Cost: ${getCurrencySymbol()}${convertPrice(shippingCost)}</h3>
+                <h3>👤 Delivery Details</h3>
+                <p>${currentDelivery.fullName}<br>${currentDelivery.phone}<br>${currentDelivery.fullAddress}</p>
+                <h3>💳 Payment</h3>
+                <p>Card ending: ${last4}</p>
+                <p>🔮 We'll notify you when your order ships.</p>
+            `;
+        }
+        
+        const summaryModal = document.getElementById('orderSummaryModal');
+        if (summaryModal) {
+            summaryModal.style.display = 'block';
+        }
+        
+        const cardNumber = document.getElementById('cardNumber');
+        const cardHolderName = document.getElementById('cardHolderName');
+        const expiryDate = document.getElementById('expiryDate');
+        const cvvField = document.getElementById('cvv');
+        if (cardNumber) cardNumber.value = '';
+        if (cardHolderName) cardHolderName.value = '';
+        if (expiryDate) expiryDate.value = '';
+        if (cvvField) cvvField.value = '';
+        
+        currentDelivery = null;
         renderProducts();
         btn.disabled = false;
-        btn.textContent = 'Pay with Card (Dummy)';
+        btn.textContent = '💳 Pay with Card';
+        
     } catch (error) {
         console.error('Payment error:', error);
-        showToast('Payment failed: ' + error.message, true);
+        showToast('❌ Payment failed: ' + (error.message || 'Unknown error'), true);
         btn.disabled = false;
-        btn.textContent = 'Pay with Card (Dummy)';
+        btn.textContent = '💳 Pay with Card';
     }
 });
 
@@ -1874,9 +1849,7 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
 
         showToast("Creating account...", false);
         const debugMsg = document.getElementById('debugMsg');
-        if (debugMsg) {
-            debugMsg.innerText = "Creating account...";
-        }
+        if (debugMsg) debugMsg.innerText = "Creating account...";
 
         const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
         const user = userCredential.user;
@@ -1915,11 +1888,7 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
             avatar: avatarUrl,
             emailVerified: false,
             uid: user.uid,
-            shippingRates: {
-                SA: 10.00,
-                GCC: 15.00,
-                International: 25.00
-            }
+            shippingRates: { SA: 10.00, GCC: 15.00, International: 25.00 }
         };
         await db.collection("sellers").doc(user.uid).set(newSeller);
         document.getElementById('sellerRegForm').reset();
@@ -1930,9 +1899,7 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
             modal.style.display = 'block';
             modal.querySelector('p').innerHTML = '📧 <strong>Please check your email!</strong><br><br>We have sent a verification link to your email address.<br><br>Click the link to verify your email and activate your seller account.<br><br>⏳ Waiting for email verification...';
         }
-        if (debugMsg) {
-            debugMsg.innerText = "Registration successful - Email verification sent";
-        }
+        if (debugMsg) debugMsg.innerText = "Registration successful - Email verification sent";
         const snapshot = await db.collection("sellers").get();
         sellers = [];
         snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
@@ -1946,9 +1913,7 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
         console.error(err);
         showToast("Registration failed: " + err.message, true);
         const debugMsg = document.getElementById('debugMsg');
-        if (debugMsg) {
-            debugMsg.innerText = "Error: " + err.message;
-        }
+        if (debugMsg) debugMsg.innerText = "Error: " + err.message;
         btn.disabled = false;
         btn.textContent = '✅ Register Shop';
     }
@@ -1964,12 +1929,10 @@ async function showMyShopLogin(){
         document.getElementById('loginModal').style.display = 'block';
         return;
     }
-    
     if (!user.emailVerified) {
         showVerifyModal();
         return;
     }
-    
     const email = user.email;
     const password = prompt("Enter your password to access your shop:");
     if (!password) return;
@@ -1977,21 +1940,17 @@ async function showMyShopLogin(){
     try {
         const credential = firebase.auth.EmailAuthProvider.credential(email, password);
         await user.reauthenticateWithCredential(credential);
-        
         const sellerSnapshot = await db.collection("sellers").where("uid", "==", user.uid).get();
         if (sellerSnapshot.empty) {
             showToast("No seller account found with this email. Please register first.", true);
             return;
         }
-        
         const seller = sellerSnapshot.docs[0].data();
         const sellerId = sellerSnapshot.docs[0].id;
-        
         if (seller.kycStatus !== 'verified') {
             showToast(`⏳ Your KYC is ${seller.kycStatus}. Please wait for admin approval.`, true);
             return;
         }
-        
         currentSeller = {
             name: seller.fullName,
             email: seller.email,
@@ -2020,18 +1979,15 @@ async function showMyShopLogin(){
 
 document.getElementById('drawerMyShop')?.addEventListener('click', function() {
     const user = auth.currentUser;
-    
     if (!user) {
         showToast("Please login first", true);
         document.getElementById('loginModal').style.display = 'block';
         return;
     }
-    
     if (!user.emailVerified) {
         showVerifyModal();
         return;
     }
-    
     if (currentSeller && currentSeller.kycStatus === 'verified') {
         document.getElementById('sellerRegisterBox').style.display = 'none';
         document.getElementById('sellerDashboard').style.display = 'block';
@@ -2044,12 +2000,11 @@ document.getElementById('drawerMyShop')?.addEventListener('click', function() {
 });
 
 // ============================================================
-// FIX: NOTIFICATION BADGE ON 'MY SHOP' BUTTON
+// NOTIFICATION BADGE ON 'MY SHOP' BUTTON
 // ============================================================
 function updateMyShopBadge() {
     const btn = document.getElementById('drawerMyShop');
     if (!btn) return;
-    
     let badge = btn.querySelector('.badge');
     if (!badge) {
         const span = document.createElement('span');
@@ -2058,13 +2013,10 @@ function updateMyShopBadge() {
         btn.appendChild(span);
         badge = span;
     }
-    
     if (currentSeller?.sellerId) {
-        // FIX: Count both processing orders AND pending approval products
         const pendingOrders = orders.filter(o => o.sellerId === currentSeller.sellerId && o.status === 'Processing').length;
         const pendingProducts = products.filter(p => p.sellerId === currentSeller.sellerId && p.status === 'pending_approval').length;
         const totalPending = pendingOrders + pendingProducts;
-        
         if (totalPending > 0) {
             badge.textContent = totalPending;
             badge.style.display = 'inline-block';
@@ -2078,7 +2030,7 @@ function updateMyShopBadge() {
 }
 
 // ============================================================
-// FIX: SELLER DASHBOARD WITH YES/NO BUTTONS
+// SELLER DASHBOARD
 // ============================================================
 function renderSellerDashboard(){
     if(!currentSeller?.sellerId) return;
@@ -2127,7 +2079,8 @@ function renderSellerDashboard(){
     
     let ordersHtml = '';
     
-    // FIX: Show pending approval products with YES/NO buttons
+    // STEP 2: YES/NO buttons will be added here later
+    
     if (pendingApprovalProducts.length > 0) {
         ordersHtml += `<h4 style="margin:10px 0; color:#dc2626;">🔴 SOLD OUT - Need Action (${pendingApprovalProducts.length})</h4>`;
         ordersHtml += pendingApprovalProducts.map(p => `
@@ -2153,7 +2106,10 @@ function renderSellerDashboard(){
         `).join('');
     }
     
-    // Show regular pending orders
+    // YES/NO BUTTONS ADDED ABOVE (STEP 2)
+    // But wait - we need the click handlers too!
+    // I'm adding them inside renderSellerDashboard after the HTML is set
+    
     if (pendingOrders.length > 0) {
         ordersHtml += `<h4 style="margin:10px 0; color:#f59e0b;">🟡 Pending Orders (${pendingOrders.length})</h4>`;
         ordersHtml += pendingOrders.map(o => `
@@ -2267,14 +2223,15 @@ function renderSellerDashboard(){
     document.getElementById('sellerDashboard').innerHTML = sellerDashboardHtml;
     let ctx = document.getElementById('revenueChart')?.getContext('2d'); if(ctx){ if(sellerRevenueChart) sellerRevenueChart.destroy(); sellerRevenueChart = new Chart(ctx, { type: 'bar', data: { labels: chartLabels, datasets: [{ label: 'Revenue', data: chartData.map(v => parseFloat(convertPrice(v))), backgroundColor: '#3b82f6' }] } }); }
     
-    // FIX: Add event listeners for restock buttons
+    // ============================================================
+    // STEP 2: YES/NO BUTTON CLICK HANDLERS
+    // ============================================================
     document.querySelectorAll('.restockYesBtn').forEach(btn => {
         btn.addEventListener('click', async function() {
             const productId = this.dataset.id;
             if (!productId) return;
             
             try {
-                // Restock product - set stock to 1 and status to available
                 await db.collection('products').doc(productId).update({
                     stock: 1,
                     status: 'available',
@@ -2312,6 +2269,10 @@ function renderSellerDashboard(){
             }
         });
     });
+    
+    // ============================================================
+    // END OF STEP 2: YES/NO BUTTONS
+    // ============================================================
     
     // Real-Time Orders Listener
     if (currentSeller?.sellerId) {
@@ -2384,7 +2345,6 @@ function renderSellerDashboard(){
                         rejectOrder(this.dataset.id);
                     });
                 });
-                
                 updateMyShopBadge();
             }
         }, error => {
@@ -2499,7 +2459,7 @@ function renderSellerDashboard(){
     
     document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', async () => { let id = btn.dataset.id; await db.collection("products").doc(id).delete(); renderSellerDashboard(); renderProducts(); showToast("Product deleted", false); }));
     
-    // FIX: Edit Product Button - Properly populate modal
+    // Edit Product Button
     document.querySelectorAll('.editProdBtn').forEach(btn => {
         btn.addEventListener('click', function() {
             const productId = this.dataset.id;
@@ -2508,34 +2468,26 @@ function renderSellerDashboard(){
                 showToast('Product not found!', true);
                 return;
             }
-            
-            // Populate edit form fields
             document.getElementById('editProdId').value = prod.id;
             document.getElementById('editProdName').value = prod.name || '';
             document.getElementById('editProdPrice').value = prod.price || '';
             document.getElementById('editProdCat').value = prod.category || '';
             document.getElementById('editProdStock').value = prod.stock || '';
             document.getElementById('editProdDesc').value = prod.description || '';
-            
-            // Populate shipping rates
             if (prod.shippingRates) {
                 document.getElementById('editShippingSA').value = prod.shippingRates.SA || 0;
                 document.getElementById('editShippingGCC').value = prod.shippingRates.GCC || 0;
                 document.getElementById('editShippingInt').value = prod.shippingRates.International || 0;
             }
-            
-            // Show current images
             let currImgHtml = prod.images && prod.images.length > 0 ? 
                 prod.images.map(img => `<div style="display:inline-block; margin:5px;"><img src="${img}" width="50" style="border-radius:8px; border:2px solid #e2e8f0;"></div>`).join('') : 
                 'No images';
             document.getElementById('editCurrentImages').innerHTML = `<strong>Current Images:</strong><br>${currImgHtml}`;
-            
-            // Show the modal
             document.getElementById('editProductModal').style.display = 'block';
         });
     });
     
-    // FIX: Update Product Button
+    // Update Product Button
     document.getElementById('updateProductBtn')?.addEventListener('click', async function() {
         const btn = this;
         btn.disabled = true;
@@ -2548,7 +2500,6 @@ function renderSellerDashboard(){
                 btn.textContent = '💾 Update Product';
                 return;
             }
-            
             let prodRef = db.collection("products").doc(pid);
             let updates = { 
                 name: document.getElementById('editProdName').value.trim(),
@@ -2563,8 +2514,6 @@ function renderSellerDashboard(){
                 },
                 updatedAt: new Date().toISOString()
             };
-            
-            // Validate
             if (!updates.name || updates.name === '') {
                 showToast("Product name required", true);
                 btn.disabled = false;
@@ -2583,21 +2532,16 @@ function renderSellerDashboard(){
                 btn.textContent = '💾 Update Product';
                 return;
             }
-            
-            // Handle new main image
             let newMain = document.getElementById('editMainImg').files[0];
             if (newMain) {
                 let mainUrl = await uploadCompressedImage(newMain);
                 if (mainUrl) {
                     updates.mainImage = mainUrl;
-                    // Keep existing images and add new main at beginning
                     const currentProd = await prodRef.get();
                     const existingImages = currentProd.data().images || [];
                     updates.images = [mainUrl, ...existingImages.filter(img => img !== currentProd.data().mainImage)];
                 }
             }
-            
-            // Handle new extra images
             let newExtra = document.getElementById('editExtraImgs').files;
             if (newExtra.length > 0) {
                 let extraUrls = [];
@@ -2612,15 +2556,11 @@ function renderSellerDashboard(){
                     updates.images = [mainImage, ...extraUrls, ...existingImages.filter(img => img !== mainImage && !extraUrls.includes(img))];
                 }
             }
-            
             await prodRef.update(updates);
             showToast("✅ Product updated successfully!", false);
             document.getElementById('editProductModal').style.display = 'none';
-            
-            // Reset form
             document.getElementById('editMainImg').value = '';
             document.getElementById('editExtraImgs').value = '';
-            
             renderSellerDashboard();
             renderProducts();
             btn.disabled = false;
@@ -2634,25 +2574,21 @@ function renderSellerDashboard(){
     });
     
     document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
-    
     updateMyShopBadge();
 }
 
 // ============================================================
 // EMBEDDED ACTIONS - YES/NO Functions
 // ============================================================
-
 async function confirmOrderStock(orderId) {
     let order = orders.find(o => o.id == orderId);
     if (!order) {
         showToast("Order not found!", true);
         return;
     }
-    
     try {
         order.status = "Completed";
         order.confirmedAt = new Date().toISOString();
-        
         let netRevenue = (order.basePrice - (order.basePrice * PLATFORM_COMMISSION) - MAINTENANCE_FEE) * order.qty;
         let seller = sellers.find(s => s.id === order.sellerId);
         if (seller) {
@@ -2662,8 +2598,6 @@ async function confirmOrderStock(orderId) {
                 totalSales: (seller.totalSales || 0) + order.qty
             });
         }
-        
-        // FIX: Update product stock if it was pending approval
         if (order.productDetails && order.productDetails.id) {
             const product = products.find(p => p.id === order.productDetails.id);
             if (product && product.status === 'pending_approval') {
@@ -2674,12 +2608,10 @@ async function confirmOrderStock(orderId) {
                 });
             }
         }
-        
         saveAllLocal();
         showToast(`✅ Order ${order.trackingNumber} confirmed! Net Revenue: ${getCurrencySymbol()}${convertPrice(netRevenue)}`, false);
         addNotification(`Order ${order.trackingNumber} confirmed by seller`, 'order');
         sendTelegramMessage(`✅ Order ${order.trackingNumber} confirmed by seller. Net Revenue: $${netRevenue.toFixed(2)}`);
-        
         renderSellerDashboard();
         renderBuyerOrders();
         updateMyShopBadge();
@@ -2691,21 +2623,17 @@ async function confirmOrderStock(orderId) {
 
 async function rejectOrder(orderId) {
     if (!confirm('⚠️ Are you sure you want to reject this order?')) return;
-    
     let order = orders.find(o => o.id == orderId);
     if (!order) {
         showToast("Order not found!", true);
         return;
     }
-    
     try {
         order.status = "Rejected";
         order.rejectedAt = new Date().toISOString();
-        
         let product = products.find(p => p.id === order.productDetails?.id || p.name === order.productName);
         if (product) {
             product.stock += order.qty;
-            // If product was pending approval, make it available again
             if (product.status === 'pending_approval') {
                 await db.collection('products').doc(product.id).update({
                     stock: product.stock,
@@ -2718,12 +2646,10 @@ async function rejectOrder(orderId) {
                 });
             }
         }
-        
         saveAllLocal();
         showToast(`❌ Order ${order.trackingNumber} rejected!`, false);
         addNotification(`Order ${order.trackingNumber} rejected by seller`, 'order');
         sendTelegramMessage(`❌ Order ${order.trackingNumber} rejected by seller.`);
-        
         renderSellerDashboard();
         renderBuyerOrders();
         renderProducts();
@@ -2764,7 +2690,6 @@ document.getElementById('sellerDocImage')?.addEventListener('change', function(e
     const file = this.files[0];
     const preview = document.getElementById('kycPreview');
     const img = document.getElementById('kycPreviewImg');
-    
     if (file) {
         if (!validateKYCFileType(file)) {
             this.value = '';
@@ -2828,7 +2753,7 @@ function showTerms() {
 }
 
 // ============================================================
-// RESTOCK POPUP - YES/NO Modal Functions (Legacy - Now using inline buttons)
+// RESTOCK POPUP - YES/NO Modal Functions
 // ============================================================
 function showInventoryConfirmModal(productId, productName) {
     pendingConfirmationProduct = productId;
@@ -2843,7 +2768,6 @@ function hideInventoryConfirmModal() {
 
 document.getElementById('confirmYesBtn')?.addEventListener('click', async function() {
     if (!pendingConfirmationProduct) return;
-    
     try {
         await db.collection('products').doc(pendingConfirmationProduct).update({
             status: 'available',
@@ -2864,7 +2788,6 @@ document.getElementById('confirmYesBtn')?.addEventListener('click', async functi
 
 document.getElementById('confirmNoBtn')?.addEventListener('click', async function() {
     if (!pendingConfirmationProduct) return;
-    
     if (confirm('⚠️ Are you sure you want to permanently delete this product?')) {
         try {
             await db.collection('products').doc(pendingConfirmationProduct).delete();
@@ -2959,9 +2882,10 @@ updateCategorySelect();
 
 const debugMsg = document.getElementById('debugMsg');
 if (debugMsg) {
-    debugMsg.innerHTML = "GlobalBazaar Ready | All 4 Problems Fixed!";
+    debugMsg.innerHTML = "GlobalBazaar Ready | STEP 1: Payment + Shipping Fixed!";
 }
 
 // ============================================================
-// END OF FILE - ALL 4 PROBLEMS SOLVED!
+// END OF STEP 1 FIX - PAYMENT + SHIPPING
+// STEP 2: YES/NO BUTTONS - ALREADY INCLUDED ABOVE
 // ============================================================
