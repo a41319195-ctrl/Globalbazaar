@@ -1,4 +1,96 @@
 // ============================================================
+// GLOBAL BAZAAR - COMPLETE SHIPPING ENGINE (PRODUCTION READY)
+// ============================================================
+const EASYSHIP_API_KEY = 'prod_FCky2t1qk8dLSqRk6O8a62kUklUmcQuxmzLDmq+mhCI=';
+const EASYSHIP_BASE_URL = 'https://api.easyship.com/2024-09';
+const IS_TESTING = true; // 🔥 इसे 'false' कर देना जब तुम असली ऑर्डर्स लेने लगो
+
+// 1. GET RATES (INTERNATIONAL & DYNAMIC)
+async function getEasyshipRates(sellerAddress, buyerAddress, parcelDetails) {
+    try {
+        // Validation: सेलर का देश होना जरूरी है
+        if (!sellerAddress.country) throw new Error("Seller location (Country) is missing!");
+
+        const payload = {
+            origin_address: {
+                country_alpha2: sellerAddress.country, // डायनामिक: जो सेलर का देश होगा, वही जाएगा
+                postal_code: sellerAddress.postal_code || '00000',
+                city: sellerAddress.city || 'N/A',
+                line1: sellerAddress.line1 || 'N/A'
+            },
+            destination_address: {
+                country_alpha2: buyerAddress.country || 'SA',
+                postal_code: buyerAddress.postal_code || '00000',
+                city: buyerAddress.city || 'Riyadh',
+                line1: buyerAddress.line1 || 'N/A'
+            },
+            parcels: [{
+                weight: parcelDetails.weight || 1,
+                distance_unit: 'cm',
+                mass_unit: 'kg',
+                dimensions: {
+                    length: parcelDetails.length || 10,
+                    width: parcelDetails.width || 10,
+                    height: parcelDetails.height || 10
+                }
+            }],
+            currency: 'USD'
+        };
+
+        const response = await fetch(`${EASYSHIP_BASE_URL}/rates`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${EASYSHIP_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.message || `API Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data.rates || [];
+    } catch (error) {
+        console.error('Easyship Rates Error:', error);
+        return [];
+    }
+}
+
+// 2. CREATE SHIPMENT (WITH SAFETY SWITCH)
+async function createEasyshipShipment(orderData, sellerAddress, buyerAddress, parcelDetails) {
+    if (IS_TESTING) {
+        console.warn("⚠️ [Test Mode] Shipment creation simulated. No money deducted.");
+        return { shipment: { id: "TEST_SHIP_ID_" + Date.now() } };
+    }
+
+    try {
+        const response = await fetch(`${EASYSHIP_BASE_URL}/shipments`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${EASYSHIP_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                shipment: {
+                    origin_address: sellerAddress,
+                    destination_address: buyerAddress,
+                    parcels: [{ weight: parcelDetails.weight }],
+                    selected_rate_id: orderData.selected_rate_id,
+                    order_data: { order_id: orderData.order_id }
+                }
+            })
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Shipment Creation Error:', error);
+        return null;
+    }
+}
+
+// ============================================================
 // FIX 1: DATABASE & RECOVERY
 // ============================================================
 async function initializeDatabase() {
@@ -82,125 +174,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
-
-// ============================================================
-// EASYSHIP API
-// ============================================================
-const EASYSHIP_API_KEY = 'prod_FCky2t1qk8dLSqRk6O8a62kUklUmcQuxmzLDmq+mhCI=';
-const EASYSHIP_MODE = 'sandbox';
-const EASYSHIP_BASE_URL = EASYSHIP_MODE === 'sandbox' 
-    ? 'https://api.sandbox.easyship.com/2024-09' 
-    : 'https://api.easyship.com/2024-09';
-
-async function getEasyshipRates(sellerAddress, buyerAddress, parcelDetails) {
-    try {
-        const response = await fetch(`${EASYSHIP_BASE_URL}/rates`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${EASYSHIP_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                origin_address: {
-                    country_alpha2: sellerAddress.country || 'SA',
-                    postal_code: sellerAddress.postal_code || '',
-                    city: sellerAddress.city || '',
-                    state: sellerAddress.state || '',
-                    line1: sellerAddress.line1 || ''
-                },
-                destination_address: {
-                    country_alpha2: buyerAddress.country || 'US',
-                    postal_code: buyerAddress.postal_code || '',
-                    city: buyerAddress.city || '',
-                    state: buyerAddress.state || '',
-                    line1: buyerAddress.line1 || ''
-                },
-                parcels: [{
-                    weight: parcelDetails.weight || 1,
-                    dimensions: {
-                        length: parcelDetails.length || 10,
-                        width: parcelDetails.width || 10,
-                        height: parcelDetails.height || 10
-                    }
-                }],
-                currency: 'USD'
-            })
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-        return data.rates || [];
-    } catch (error) {
-        console.error('Easyship rates error:', error);
-        return [];
-    }
-}
-
-async function createEasyshipShipment(orderData, sellerAddress, buyerAddress, parcelDetails) {
-    try {
-        const response = await fetch(`${EASYSHIP_BASE_URL}/shipments`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${EASYSHIP_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                shipment: {
-                    origin_address: {
-                        country_alpha2: sellerAddress.country || 'SA',
-                        postal_code: sellerAddress.postal_code || '',
-                        city: sellerAddress.city || '',
-                        state: sellerAddress.state || '',
-                        line1: sellerAddress.line1 || ''
-                    },
-                    destination_address: {
-                        country_alpha2: buyerAddress.country || 'US',
-                        postal_code: buyerAddress.postal_code || '',
-                        city: buyerAddress.city || '',
-                        state: buyerAddress.state || '',
-                        line1: buyerAddress.line1 || ''
-                    },
-                    parcels: [{
-                        weight: parcelDetails.weight || 1,
-                        dimensions: {
-                            length: parcelDetails.length || 10,
-                            width: parcelDetails.width || 10,
-                            height: parcelDetails.height || 10
-                        }
-                    }],
-                    selected_rate_id: orderData.selected_rate_id || null,
-                    order_data: {
-                        order_id: orderData.order_id || 'GB_' + Date.now()
-                    }
-                }
-            })
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Easyship shipment error:', error);
-        return null;
-    }
-}
-
-async function buyEasyshipLabel(shipmentId, rateId) {
-    try {
-        const response = await fetch(`${EASYSHIP_BASE_URL}/shipments/${shipmentId}/buy-label`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${EASYSHIP_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ selected_rate_id: rateId })
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Easyship label buy error:', error);
-        return null;
-    }
-}
 
 // ============================================================
 // IMAGE COMPRESSION - DO NOT CHANGE
@@ -728,6 +701,62 @@ async function fetchAndDisplayShippingRates() {
             payBtn.disabled = true;
             payBtn.textContent = '⏳ Shipping Pending';
         }
+    }
+}
+
+// ============================================================
+// CREATE SHIPMENT AFTER ORDER (Helper function using new engine)
+// ============================================================
+async function createShipmentAfterOrder(orderData) {
+    try {
+        // Use the new createEasyshipShipment function with test mode
+        const result = await createEasyshipShipment(
+            {
+                order_id: orderData.orderId,
+                selected_rate_id: sessionStorage.getItem('selected_rate_id') || null
+            },
+            {
+                country: orderData.sellerCountry || 'SA',
+                postal_code: orderData.sellerPostcode || '',
+                city: orderData.sellerCity || '',
+                state: orderData.sellerState || '',
+                line1: orderData.sellerStreet || ''
+            },
+            {
+                country: orderData.buyerCountry || 'SA',
+                postal_code: orderData.buyerPostcode || '',
+                city: orderData.buyerCity || '',
+                state: orderData.buyerState || '',
+                line1: orderData.buyerStreet || ''
+            },
+            {
+                weight: orderData.weight || 1,
+                length: orderData.length || 10,
+                width: orderData.width || 10,
+                height: orderData.height || 10
+            }
+        );
+        
+        if (IS_TESTING) {
+            return {
+                trackingNumber: 'TEST_TRACK_' + Date.now(),
+                labelUrl: 'https://example.com/test-label.pdf',
+                carrierName: 'Test Carrier'
+            };
+        }
+        
+        if (result && result.shipment) {
+            return {
+                trackingNumber: result.shipment.tracking_number || 'TRACK_' + Date.now(),
+                labelUrl: result.shipment.label_url || null,
+                carrierName: result.shipment.carrier_name || 'Unknown'
+            };
+        }
+        
+        return null;
+    } catch (error) {
+        console.error('Shipment creation failed:', error);
+        return null;
     }
 }
 
@@ -1361,7 +1390,7 @@ let currentProduct = null, currentRatingHandler = { currentRating: 0 };
 function openProduct(id){
     let p = products.find(x => x.id == id); if(!p) return;
     currentProduct = p;
-    let seller = sellers.find(s => s.id == p.sellerId) || { shopName: "GlobalBazaar", country: "SA" };
+    let seller = sellers.find(s => s.id === p.sellerId) || { shopName: "GlobalBazaar", country: "SA" };
     const displayPrice = calculateDisplayPrice(p.price);
     document.getElementById('modalMainImg').src = p.mainImage;
     document.getElementById('modalTitle').innerText = p.name;
@@ -1629,6 +1658,11 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             if (product && seller) {
                 const shipmentResult = await createShipmentAfterOrder({
                     sellerId: seller.id,
+                    sellerCountry: seller.country || 'SA',
+                    sellerCity: seller.city || '',
+                    sellerPostcode: seller.pincode || '',
+                    sellerState: seller.state || '',
+                    sellerStreet: seller.street || '',
                     orderId: tracking,
                     buyerCountry: currentDelivery.country || 'SA',
                     buyerCity: currentDelivery.city || '',
@@ -2573,4 +2607,4 @@ setInterval(updateMyShopBadge, 5000);
 renderCats(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge(); updateAdminMenuBadges();
 updateMyShopBadge();
 updateCategorySelect();
-document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | Dynamic Pricing | Easyship Shipping | Mode: " + EASYSHIP_MODE;
+document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | Dynamic Pricing | Easyship Shipping | Mode: " + (IS_TESTING ? 'TESTING (no real charges)' : 'PRODUCTION');
