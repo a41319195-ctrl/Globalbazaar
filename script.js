@@ -1,6 +1,5 @@
 // ============================================================
-// GLOBAL BAZAAR - STEP 1 FIX: PAYMENT + SHIPPING
-// COMPLETE CODE - 22 JUNE 2026
+// GLOBAL BAZAAR - COMPLETE CODE (ALL FIXES INCLUDED)
 // ============================================================
 
 // ============================================================
@@ -82,12 +81,12 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 
 // ============================================================
-// FIX: COUNTRY CODE MAPPING - SAUDI ARABIA FIX
+// COUNTRY CODE MAPPING - SAUDI ARABIA FIX
 // ============================================================
 function getCountryCode(countryName) {
     const clean = countryName?.toString().trim() || '';
     
-    const countryMap = {
+    const exactMatches = {
         'Saudi Arabia': 'SA',
         'saudi arabia': 'SA',
         'SA': 'SA',
@@ -105,21 +104,16 @@ function getCountryCode(countryName) {
         'Kuwait': 'GCC',
         'kuwait': 'GCC',
         'Bahrain': 'GCC',
-        'bahrain': 'GCC',
-        'USA': 'International',
-        'US': 'International',
-        'United States': 'International',
-        'UK': 'International',
-        'United Kingdom': 'International',
-        'India': 'International',
-        'Pakistan': 'International'
+        'bahrain': 'GCC'
     };
     
-    if (countryMap[clean]) return countryMap[clean];
+    if (exactMatches[clean]) return exactMatches[clean];
     if (clean.includes('Saudi') || clean.includes('saudi') || clean === 'SA' || clean === 'sa') return 'SA';
     
-    const gccCountries = ['UAE', 'Qatar', 'Oman', 'Kuwait', 'Bahrain', 'Emirates'];
-    if (gccCountries.some(g => clean.includes(g) || clean.toLowerCase().includes(g.toLowerCase()))) return 'GCC';
+    const gccKeywords = ['UAE', 'Qatar', 'Oman', 'Kuwait', 'Bahrain', 'Emirates', 'arab emirates'];
+    for (let keyword of gccKeywords) {
+        if (clean.includes(keyword) || clean.toLowerCase().includes(keyword.toLowerCase())) return 'GCC';
+    }
     
     return 'International';
 }
@@ -130,19 +124,19 @@ function getCountryCode(countryName) {
 async function getShippingRateFromDB(productId, buyerCountry) {
     try {
         if (!productId) {
-            console.warn('No product ID provided');
+            console.warn('❌ No product ID');
             return null;
         }
         
         const productDoc = await db.collection('products').doc(productId).get();
         if (!productDoc.exists) {
-            console.warn('Product not found:', productId);
+            console.warn('❌ Product not found:', productId);
             return null;
         }
         
         const product = productDoc.data();
         const countryCode = getCountryCode(buyerCountry);
-        console.log('🔍 Buyer:', buyerCountry, '→ Code:', countryCode);
+        console.log('🌍 Buyer:', buyerCountry, '→ Code:', countryCode);
         
         let shippingRate = 0;
         let shippingType = 'unknown';
@@ -190,20 +184,15 @@ async function getShippingRateFromDB(productId, buyerCountry) {
             }
         }
         
-        if (typeof shippingRate !== 'number' || shippingRate < 0 || isNaN(shippingRate)) {
-            console.warn('Invalid shipping rate:', shippingRate);
+        if (typeof shippingRate !== 'number' || isNaN(shippingRate) || shippingRate < 0 || !isFinite(shippingRate)) {
+            console.warn('❌ Invalid shipping rate:', shippingRate);
             return null;
         }
         
         console.log('✅ Shipping found:', shippingRate, 'Type:', shippingType);
-        
-        return {
-            rate: shippingRate,
-            type: shippingType,
-            currency: 'USD'
-        };
+        return { rate: shippingRate, type: shippingType, currency: 'USD' };
     } catch (error) {
-        console.error('Error getting shipping rate:', error);
+        console.error('❌ Error getting shipping rate:', error);
         return null;
     }
 }
@@ -286,7 +275,7 @@ async function fetchAndDisplayShippingRates() {
         
         const shippingInfo = await getShippingRateFromDB(product.id, buyerCountry);
         
-        if (shippingInfo && shippingInfo.rate > 0) {
+        if (shippingInfo && shippingInfo.rate > 0 && isFinite(shippingInfo.rate)) {
             currentShippingCost = shippingInfo.rate;
             sessionStorage.setItem('shipping_cost', currentShippingCost.toString());
             sessionStorage.setItem('shipping_type', shippingInfo.type);
@@ -1304,17 +1293,24 @@ let currentCategory = "All";
 function renderProductCard(p) {
     const seller = sellers.find(s => s.id === p.sellerId) || { shopName: "GlobalBazaar", country: "SA" };
     const displayPrice = calculateDisplayPrice(p.price);
+    
+    // FIX: SOLD OUT label - jab stock 0 ho ya pending_approval
     const soldOutBadge = p.stock <= 0 || p.status === 'pending_approval' ? 
-        `<div class="soldout-badge">SOLD OUT</div>` : '';
+        `<div class="soldout-badge">🔴 SOLD OUT</div>` : '';
+    
     const stockBadge = (p.stock < 5 && p.stock > 0) ? 
         `<div class="stock-badge">Only ${p.stock} left</div>` : '';
+    
     let thumbnailsHtml = '';
     if (p.images && p.images.length > 1) {
         thumbnailsHtml = p.images.slice(0,4).map(img => 
             `<img src="${img}" onclick="event.stopPropagation(); changeProductImage('${p.id}','${img}')">`
         ).join('');
     }
+    
+    // FIX: Buy button disable karo agar sold out hai
     const isSoldOut = p.stock <= 0 || p.status === 'pending_approval';
+    
     return `<div class="product-card" data-id="${p.id}">
         ${soldOutBadge}
         ${stockBadge}
@@ -1343,12 +1339,15 @@ function renderProducts(){
     const grid = document.getElementById('productsGrid');
     grid.innerHTML = '';
     let search = document.getElementById('searchInput')?.value.toLowerCase() || "";
+    
+    // FIX: Sirf available products dikhao (stock > 0 aur status 'available')
     let filtered = products.filter(p => 
         (currentCategory === "All" || p.category === currentCategory) && 
         p.name.toLowerCase().includes(search) && 
         p.stock > 0 && 
         p.status !== 'pending_approval'
     );
+    
     if (filtered.length === 0) {
         grid.innerHTML = '<div style="text-align:center;padding:40px;grid-column:1/-1;">No products found</div>';
         return;
@@ -1412,6 +1411,7 @@ function openProduct(id){
 
 function addToCart(id){
     let p = products.find(x => x.id == id); if(!p) return;
+    // FIX: Sold out product add nahi kar sakte
     if(p.stock <= 0 || p.status === 'pending_approval'){ 
         showToast("This product is sold out!",true); 
         return; 
@@ -1581,8 +1581,8 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         }
         
         let shippingCost = parseFloat(sessionStorage.getItem('shipping_cost') || '0');
-        if (!isFinite(shippingCost) || isNaN(shippingCost)) {
-            console.warn('Invalid shipping cost, recalculating...');
+        if (isNaN(shippingCost) || !isFinite(shippingCost) || shippingCost <= 0) {
+            console.warn('⚠️ Invalid shipping cost, recalculating...');
             const firstItem = cart[0];
             if (firstItem) {
                 const product = products.find(p => p.id === firstItem.id);
@@ -1596,7 +1596,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                         }
                     }
                     const shippingInfo = await getShippingRateFromDB(product.id, buyerCountry);
-                    if (shippingInfo && shippingInfo.rate > 0) {
+                    if (shippingInfo && shippingInfo.rate > 0 && isFinite(shippingInfo.rate)) {
                         shippingCost = shippingInfo.rate;
                         sessionStorage.setItem('shipping_cost', shippingCost.toString());
                     } else {
@@ -1634,9 +1634,10 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         }
         
         let totalUSD = 0;
+        const cartLength = cart.length;
         for (let item of cart) {
             let seller = sellers.find(s => s.id === item.sellerId);
-            const shippingPerItem = cart.length > 0 ? shippingCost / cart.length : 0;
+            const shippingPerItem = cartLength > 0 ? shippingCost / cartLength : 0;
             let final = calculateFinalPrice(item.price, seller?.country || "SA", buyerCountry, shippingPerItem);
             totalUSD += final.total * item.qty;
         }
@@ -1648,7 +1649,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         for (let item of cart) {
             let seller = sellers.find(s => s.id === item.sellerId);
             let product = products.find(p => p.id === item.id);
-            const shippingPerItem = cart.length > 0 ? shippingCost / cart.length : 0;
+            const shippingPerItem = cartLength > 0 ? shippingCost / cartLength : 0;
             let priceCalc = calculateDynamicPrice(item.price, shippingPerItem);
             
             let newOrder = {
@@ -1668,7 +1669,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                     sellerName: seller?.shopName || "GlobalBazaar"
                 },
                 productName: item.name,
-                amount: totalWithShipping / cart.length,
+                amount: totalWithShipping / cartLength,
                 basePrice: item.price,
                 address: currentDelivery.fullAddress,
                 date: new Date().toLocaleString(),
@@ -1700,8 +1701,8 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                         status: 'pending_approval',
                         soldOutAt: new Date().toISOString()
                     });
-                    addNotification(`📢 ${product.name} is SOLD OUT!`, 'info');
-                    sendTelegramMessage(`📢 ${product.name} is SOLD OUT!`);
+                    addNotification(`📢 ${product.name} is SOLD OUT! Waiting for seller.`, 'info');
+                    sendTelegramMessage(`📢 ${product.name} is SOLD OUT! Waiting for seller.`);
                 } else {
                     await db.collection('products').doc(product.id).update({
                         stock: product.stock
@@ -2005,6 +2006,7 @@ document.getElementById('drawerMyShop')?.addEventListener('click', function() {
 function updateMyShopBadge() {
     const btn = document.getElementById('drawerMyShop');
     if (!btn) return;
+    
     let badge = btn.querySelector('.badge');
     if (!badge) {
         const span = document.createElement('span');
@@ -2013,10 +2015,13 @@ function updateMyShopBadge() {
         btn.appendChild(span);
         badge = span;
     }
+    
     if (currentSeller?.sellerId) {
+        // Count pending orders + pending approval products
         const pendingOrders = orders.filter(o => o.sellerId === currentSeller.sellerId && o.status === 'Processing').length;
         const pendingProducts = products.filter(p => p.sellerId === currentSeller.sellerId && p.status === 'pending_approval').length;
         const totalPending = pendingOrders + pendingProducts;
+        
         if (totalPending > 0) {
             badge.textContent = totalPending;
             badge.style.display = 'inline-block';
@@ -2030,7 +2035,7 @@ function updateMyShopBadge() {
 }
 
 // ============================================================
-// SELLER DASHBOARD
+// SELLER DASHBOARD - COMPLETE WITH YES/NO BUTTONS
 // ============================================================
 function renderSellerDashboard(){
     if(!currentSeller?.sellerId) return;
@@ -2079,37 +2084,75 @@ function renderSellerDashboard(){
     
     let ordersHtml = '';
     
-    // STEP 2: YES/NO buttons will be added here later
-    
+    // ============================================================
+    // SOLD OUT PRODUCTS WITH YES/NO BUTTONS + DETAILS
+    // ============================================================
     if (pendingApprovalProducts.length > 0) {
         ordersHtml += `<h4 style="margin:10px 0; color:#dc2626;">🔴 SOLD OUT - Need Action (${pendingApprovalProducts.length})</h4>`;
-        ordersHtml += pendingApprovalProducts.map(p => `
-            <div class="order-card" style="border-left-color:#dc2626;">
-                <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
-                    <img src="${p.mainImage}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">
-                    <div style="flex:1;">
-                        <strong>${p.name}</strong>
-                        <br><span style="font-size:12px; color:#64748b;">Category: ${p.category}</span>
-                        <br><span style="font-size:12px; color:#dc2626;">🔴 SOLD OUT - Waiting for your decision</span>
+        
+        pendingApprovalProducts.forEach(p => {
+            // Find order for this product
+            const productOrder = orders.find(o => o.productDetails?.id === p.id || o.productName === p.name);
+            
+            ordersHtml += `
+                <div class="order-card" style="border-left-color:#dc2626; margin-bottom:15px;">
+                    <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+                        <img src="${p.mainImage}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;">
+                        <div style="flex:1;">
+                            <strong>📦 ${p.name}</strong>
+                            <br><span style="font-size:12px; color:#64748b;">💰 Price: ${getCurrencySymbol()}${convertPrice(p.price)}</span>
+                            <br><span style="font-size:12px; color:#64748b;">📂 Category: ${p.category}</span>
+                            <br><span style="font-size:12px; color:#dc2626;">🔴 Stock: 0 (SOLD OUT)</span>
+                        </div>
+                    </div>
+                    
+                    ${productOrder ? `
+                        <div style="background:#f8fafc; padding:12px; border-radius:8px; margin:8px 0;">
+                            <h4 style="margin:0 0 8px 0; font-size:14px;">👤 Buyer Details</h4>
+                            <div style="font-size:13px; color:#334155;">
+                                <div>👤 Name: ${productOrder.buyerName || 'N/A'}</div>
+                                <div>📞 Phone: ${productOrder.buyerPhone || 'N/A'}</div>
+                                <div>📍 Address: ${productOrder.address || 'N/A'}</div>
+                                <div>📦 Order ID: ${productOrder.trackingNumber || 'N/A'}</div>
+                                <div>📅 Date: ${productOrder.date || 'N/A'}</div>
+                                <div>🔢 Quantity: ${productOrder.qty || 1}</div>
+                                <div>💰 Total: ${getCurrencySymbol()}${convertPrice(productOrder.amount || p.price)}</div>
+                            </div>
+                        </div>
+                    ` : `
+                        <div style="background:#fef3c7; padding:10px; border-radius:8px; margin:8px 0; font-size:13px; color:#92400e;">
+                            ⚠️ No order found for this product. It may have been deleted.
+                        </div>
+                    `}
+                    
+                    <div style="background:#fef2f2; padding:12px; border-radius:8px; margin:8px 0; border:1px solid #fecaca;">
+                        <span style="font-weight:600; color:#dc2626;">⚠️ Your product stock is 0</span>
+                        <br><span style="font-size:13px; color:#64748b;">Do you have stock available?</span>
+                    </div>
+                    
+                    <div style="display:flex; gap:10px; margin-top:10px;">
+                        <button class="restockYesBtn" data-id="${p.id}" style="background:#10b981; color:white; border:none; padding:8px 20px; border-radius:20px; cursor:pointer; font-weight:600;">
+                            ✅ YES (Restock)
+                        </button>
+                        <button class="restockNoBtn" data-id="${p.id}" style="background:#dc2626; color:white; border:none; padding:8px 20px; border-radius:20px; cursor:pointer; font-weight:600;">
+                            ❌ NO (Delete)
+                        </button>
+                    </div>
+                    
+                    <div style="font-size:11px; color:#94a3b8; margin-top:8px;">
+                        ⏳ Auto-delete in: <span id="timer_${p.id}">24h 00m</span> remaining
                     </div>
                 </div>
-                <div style="display:flex; gap:8px; margin-top:8px;">
-                    <button class="restockYesBtn" data-id="${p.id}" style="background:#10b981; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
-                        ✅ YES (Restock)
-                    </button>
-                    <button class="restockNoBtn" data-id="${p.id}" style="background:#dc2626; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
-                        ❌ NO (Delete)
-                    </button>
-                </div>
-                <div style="font-size:10px; color:#94a3b8; margin-top:4px;">Sold out at: ${p.soldOutAt ? new Date(p.soldOutAt).toLocaleString() : 'Recently'}</div>
-            </div>
-        `).join('');
+            `;
+            
+            // Start timer for this product
+            startAutoDeleteTimer(p.id, p.soldOutAt);
+        });
     }
     
-    // YES/NO BUTTONS ADDED ABOVE (STEP 2)
-    // But wait - we need the click handlers too!
-    // I'm adding them inside renderSellerDashboard after the HTML is set
-    
+    // ============================================================
+    // PENDING ORDERS
+    // ============================================================
     if (pendingOrders.length > 0) {
         ordersHtml += `<h4 style="margin:10px 0; color:#f59e0b;">🟡 Pending Orders (${pendingOrders.length})</h4>`;
         ordersHtml += pendingOrders.map(o => `
@@ -2136,6 +2179,9 @@ function renderSellerDashboard(){
         `).join('');
     }
     
+    // ============================================================
+    // COMPLETED ORDERS
+    // ============================================================
     let completedOrders = myOrders.filter(o => o.status === 'Completed' || o.status === 'Delivered' || o.status === 'Shipped');
     if (completedOrders.length > 0) {
         ordersHtml += `<h4 style="margin:15px 0; color:#10b981;">✅ Completed Orders (${completedOrders.length})</h4>`;
@@ -2224,7 +2270,7 @@ function renderSellerDashboard(){
     let ctx = document.getElementById('revenueChart')?.getContext('2d'); if(ctx){ if(sellerRevenueChart) sellerRevenueChart.destroy(); sellerRevenueChart = new Chart(ctx, { type: 'bar', data: { labels: chartLabels, datasets: [{ label: 'Revenue', data: chartData.map(v => parseFloat(convertPrice(v))), backgroundColor: '#3b82f6' }] } }); }
     
     // ============================================================
-    // STEP 2: YES/NO BUTTON CLICK HANDLERS
+    // YES/NO BUTTON CLICK HANDLERS
     // ============================================================
     document.querySelectorAll('.restockYesBtn').forEach(btn => {
         btn.addEventListener('click', async function() {
@@ -2271,10 +2317,49 @@ function renderSellerDashboard(){
     });
     
     // ============================================================
-    // END OF STEP 2: YES/NO BUTTONS
+    // AUTO-DELETE TIMER FUNCTION
     // ============================================================
+    function startAutoDeleteTimer(productId, soldOutAt) {
+        const timerElement = document.getElementById(`timer_${productId}`);
+        if (!timerElement) return;
+        
+        const soldOutTime = soldOutAt ? new Date(soldOutAt).getTime() : Date.now();
+        const expiryTime = soldOutTime + (24 * 60 * 60 * 1000); // 24 hours
+        
+        function updateTimer() {
+            const now = Date.now();
+            const remaining = expiryTime - now;
+            
+            if (remaining <= 0) {
+                // Auto-delete product
+                db.collection('products').doc(productId).delete()
+                    .then(() => {
+                        console.log(`⏰ Product ${productId} auto-deleted after 24 hours`);
+                        addNotification(`Product auto-deleted after 24 hours`, 'info');
+                        renderSellerDashboard();
+                        renderProducts();
+                        updateMyShopBadge();
+                    })
+                    .catch(err => console.error('Auto-delete error:', err));
+                return;
+            }
+            
+            const hours = Math.floor(remaining / (60 * 60 * 1000));
+            const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+            timerElement.textContent = `${hours}h ${minutes}m`;
+        }
+        
+        updateTimer();
+        const timerInterval = setInterval(updateTimer, 60000); // Update every minute
+        
+        // Store interval so it can be cleared if needed
+        if (!window.timerIntervals) window.timerIntervals = {};
+        window.timerIntervals[productId] = timerInterval;
+    }
     
-    // Real-Time Orders Listener
+    // ============================================================
+    // REAL-TIME ORDERS LISTENER
+    // ============================================================
     if (currentSeller?.sellerId) {
         db.collection("orders").where("sellerId", "==", currentSeller.sellerId).onSnapshot(snapshot => {
             let realTimeOrders = [];
@@ -2363,7 +2448,9 @@ function renderSellerDashboard(){
         });
     });
     
-    // Publish Button
+    // ============================================================
+    // PUBLISH BUTTON
+    // ============================================================
     document.getElementById('publishBtn')?.addEventListener('click', async function() {
         const btn = this;
         btn.disabled = true;
@@ -2459,7 +2546,9 @@ function renderSellerDashboard(){
     
     document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', async () => { let id = btn.dataset.id; await db.collection("products").doc(id).delete(); renderSellerDashboard(); renderProducts(); showToast("Product deleted", false); }));
     
-    // Edit Product Button
+    // ============================================================
+    // EDIT PRODUCT BUTTON
+    // ============================================================
     document.querySelectorAll('.editProdBtn').forEach(btn => {
         btn.addEventListener('click', function() {
             const productId = this.dataset.id;
@@ -2487,7 +2576,9 @@ function renderSellerDashboard(){
         });
     });
     
-    // Update Product Button
+    // ============================================================
+    // UPDATE PRODUCT BUTTON
+    // ============================================================
     document.getElementById('updateProductBtn')?.addEventListener('click', async function() {
         const btn = this;
         btn.disabled = true;
@@ -2578,7 +2669,7 @@ function renderSellerDashboard(){
 }
 
 // ============================================================
-// EMBEDDED ACTIONS - YES/NO Functions
+// CONFIRM ORDER STOCK
 // ============================================================
 async function confirmOrderStock(orderId) {
     let order = orders.find(o => o.id == orderId);
@@ -2621,6 +2712,9 @@ async function confirmOrderStock(orderId) {
     }
 }
 
+// ============================================================
+// REJECT ORDER
+// ============================================================
 async function rejectOrder(orderId) {
     if (!confirm('⚠️ Are you sure you want to reject this order?')) return;
     let order = orders.find(o => o.id == orderId);
@@ -2882,10 +2976,9 @@ updateCategorySelect();
 
 const debugMsg = document.getElementById('debugMsg');
 if (debugMsg) {
-    debugMsg.innerHTML = "GlobalBazaar Ready | STEP 1: Payment + Shipping Fixed!";
+    debugMsg.innerHTML = "GlobalBazaar Ready | ALL FIXES INCLUDED!";
 }
 
 // ============================================================
-// END OF STEP 1 FIX - PAYMENT + SHIPPING
-// STEP 2: YES/NO BUTTONS - ALREADY INCLUDED ABOVE
+// END OF FILE - ALL FIXES COMPLETE
 // ============================================================
