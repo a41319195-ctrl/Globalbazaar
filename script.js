@@ -1,7 +1,6 @@
 // ============================================================
 // GLOBAL BAZAAR - COMPLETE FIXED CODE
-// 3 KAAM: ACTION BUTTON + EDITING + SHIPPING
-// SAB DYNAMIC - HAR SELLER KE LIYE KAAM KAREGA
+// SIMPLE SYSTEM: EDIT BUTTON RESTOCK + 12-HOUR AUTO-DELETE
 // ============================================================
 
 // ============================================================
@@ -1297,7 +1296,7 @@ function renderProductCard(p) {
     const seller = sellers.find(s => s.id === p.sellerId) || { shopName: "GlobalBazaar", country: "SA" };
     const displayPrice = calculateDisplayPrice(p.price);
     
-    // SOLD OUT label - jab stock 0 ho
+    // ✅ FIX: SOLD OUT label - jab stock 0 ho
     const isSoldOut = p.stock <= 0;
     
     const soldOutBadge = isSoldOut ? 
@@ -1342,7 +1341,7 @@ function renderProducts(){
     grid.innerHTML = '';
     let search = document.getElementById('searchInput')?.value.toLowerCase() || "";
     
-    // Sirf available products dikhao (stock > 0)
+    // ✅ Sirf available products dikhao (stock > 0)
     let filtered = products.filter(p => 
         (currentCategory === "All" || p.category === currentCategory) && 
         p.name.toLowerCase().includes(search) && 
@@ -1693,17 +1692,19 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             orders.push(newOrder);
             platformEarnings += (item.price * PLATFORM_COMMISSION) + priceCalc.gatewayFee + MAINTENANCE_FEE;
             
-            // UPDATE PRODUCT STOCK AND STATUS
+            // ✅ FIX: UPDATE PRODUCT STOCK AND STATUS
             if (product) {
                 product.stock -= item.qty;
                 if (product.stock <= 0) {
+                    product.status = 'pending_approval';
                     await db.collection('products').doc(product.id).update({
                         stock: 0,
+                        status: 'pending_approval',
                         soldOutAt: new Date().toISOString()
                     });
-                    console.log('✅ Product sold out:', product.name);
-                    addNotification(`📢 ${product.name} is SOLD OUT!`, 'info');
-                    sendTelegramMessage(`📢 ${product.name} is SOLD OUT!`);
+                    console.log('✅ Product status set to pending_approval:', product.name);
+                    addNotification(`📢 ${product.name} is SOLD OUT! Waiting for seller.`, 'info');
+                    sendTelegramMessage(`📢 ${product.name} is SOLD OUT! Waiting for seller.`);
                 } else {
                     await db.collection('products').doc(product.id).update({
                         stock: product.stock
@@ -2006,7 +2007,7 @@ document.getElementById('drawerMyShop')?.addEventListener('click', function() {
 });
 
 // ============================================================
-// NOTIFICATION BADGE ON 'MY SHOP' BUTTON
+// FIX: NOTIFICATION BADGE ON 'MY SHOP' BUTTON
 // ============================================================
 function updateMyShopBadge() {
     const btn = document.getElementById('drawerMyShop');
@@ -2021,13 +2022,14 @@ function updateMyShopBadge() {
         badge = span;
     }
     
-    // Sirf pending orders count (Processing status)
+    // ✅ Sirf pending orders count (Processing status)
     if (currentSeller?.sellerId) {
         const pendingOrders = orders.filter(o => 
             o.sellerId === currentSeller.sellerId && 
             o.status === 'Processing'
         ).length;
         
+        // ✅ Sirf pending orders count, sold out products nahi
         if (pendingOrders > 0) {
             badge.textContent = pendingOrders;
             badge.style.display = 'inline-block';
@@ -2041,7 +2043,7 @@ function updateMyShopBadge() {
 }
 
 // ============================================================
-// FIX: SELLER DASHBOARD - 3 KAAM FIXED
+// FIX: SELLER DASHBOARD - SIMPLE VERSION WITH EDIT RESTOCK
 // ============================================================
 function renderSellerDashboard(){
     if(!currentSeller?.sellerId) return;
@@ -2067,7 +2069,7 @@ function renderSellerDashboard(){
     let pendingOrders = myOrders.filter(o => o.status === 'Processing');
     let soldOutProducts = myProducts.filter(p => p.stock <= 0);
     
-    // Revenue calculation
+    // ✅ Revenue calculation
     let monthlyRevenue = {};
     myOrders.forEach(o => { 
         if(o.status === "Completed"){ 
@@ -2084,8 +2086,9 @@ function renderSellerDashboard(){
     
     let kycClass = seller.kycStatus === "pending" ? "kyc-pending" : (seller.kycStatus === "verified" ? "kyc-verified" : "kyc-rejected");
     let kycText = seller.kycStatus === "pending" ? "⏳ KYC Pending - Wait for Admin" : (seller.kycStatus === "verified" ? "✅ KYC Verified" : "❌ KYC Rejected");
-    
-    // ❌ KAAM 1: TOP PRODUCTS HATAYA    // Top products section remove kar diya
+    let topProducts = {}; 
+    myOrders.forEach(o => { topProducts[o.productName] = (topProducts[o.productName]||0) + o.qty; }); 
+    let topList = Object.entries(topProducts).sort((a,b)=>b[1]-a[1]).slice(0,5);
     
     let prodListHtml = myProducts.map(p => {
         const isSoldOut = p.stock <= 0;
@@ -2102,14 +2105,13 @@ function renderSellerDashboard(){
         </div>`;
     }).join('');
     
-    // ✅ KAAM 1 & 2: SOLD OUT Products - Clean + View Orders Button (Edit Button Hat Gaya)
+    // ✅ SOLD OUT Products with Buyer Details
     let soldOutHtml = '';
     if (soldOutProducts.length > 0) {
         soldOutHtml = `<h4 style="margin:10px 0; color:#dc2626;">🔴 SOLD OUT Products (${soldOutProducts.length})</h4>`;
         soldOutHtml += soldOutProducts.map(p => {
-            // Count orders for this product
-            const productOrders = orders.filter(o => o.productDetails?.id === p.id || o.productName === p.name);
-            const orderCount = productOrders.length;
+            // ✅ Find order for this product
+            const productOrder = orders.find(o => o.productDetails?.id === p.id || o.productName === p.name);
             
             return `
                 <div class="order-card" style="border-left-color:#dc2626; margin-bottom:15px;">
@@ -2120,31 +2122,39 @@ function renderSellerDashboard(){
                             <br><span style="font-size:12px; color:#64748b;">💰 Price: ${getCurrencySymbol()}${convertPrice(p.price)}</span>
                             <br><span style="font-size:12px; color:#dc2626;">🔴 Stock: 0 (SOLD OUT)</span>
                             ${p.soldOutAt ? `<br><span style="font-size:11px; color:#94a3b8;">⏳ Auto-delete in: ${getTimeRemaining(p.soldOutAt)}</span>` : ''}
-                            <br><span style="font-size:13px; font-weight:bold; color:#3b82f6;">📦 Orders: ${orderCount}</span>
                         </div>
                     </div>
                     
-                    <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
-                        ${orderCount > 0 ? `<button class="viewOrdersBtn" data-productid="${p.id}" style="background:#3b82f6; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer;">
-                            👁️ View Orders (${orderCount})
-                        </button>` : ''}
-                        ${p.shippingStatus === 'shipped' ? `<button class="shipOrderBtn" data-productid="${p.id}" style="background:#10b981; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer;">
-                            🚚 Shipped
-                        </button>` : `<button class="shipOrderBtn" data-productid="${p.id}" style="background:#f59e0b; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer;">
-                            🚚 Ship Order
-                        </button>`}
-                    </div>
+                    ${productOrder ? `
+                        <div style="background:#f8fafc; padding:12px; border-radius:8px; margin:8px 0;">
+                            <h4 style="margin:0 0 8px 0; font-size:14px;">👤 Buyer Details</h4>
+                            <div style="font-size:13px; color:#334155;">
+                                <div>👤 Name: ${productOrder.buyerName || 'N/A'}</div>
+                                <div>📞 Phone: ${productOrder.buyerPhone || 'N/A'}</div>
+                                <div>📍 Address: ${productOrder.address || 'N/A'}</div>
+                                <div>📦 Order ID: ${productOrder.trackingNumber || 'N/A'}</div>
+                                <div>📅 Date: ${productOrder.date || 'N/A'}</div>
+                                <div>🔢 Quantity: ${productOrder.qty || 1}</div>
+                                <div>💰 Total: ${getCurrencySymbol()}${convertPrice(productOrder.amount || p.price)}</div>
+                            </div>
+                        </div>
+                    ` : `
+                        <div style="background:#fef3c7; padding:10px; border-radius:8px; margin:8px 0; font-size:13px; color:#92400e;">
+                            ⚠️ No order found for this product.
+                        </div>
+                    `}
                     
-                    <!-- ✅ KAAM 3: Shipping Status -->
-                    <div style="font-size:11px; color:#94a3b8; margin-top:6px;">
-                        💡 Go to "My Products" to edit & restock
+                    <div style="margin-top:10px;">
+                        <button class="editProdBtn" data-id="${p.id}" style="background:#10b981; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
+                            ✏️ Edit & Restock
+                        </button>
                     </div>
                 </div>
             `;
         }).join('');
     }
     
-    // Pending Orders
+    // ✅ Pending Orders
     let ordersHtml = '';
     if (pendingOrders.length > 0) {
         ordersHtml += `<h4 style="margin:10px 0; color:#f59e0b;">🟡 Pending Orders (${pendingOrders.length})</h4>`;
@@ -2198,7 +2208,6 @@ function renderSellerDashboard(){
     
     const categoryOptions = FIXED_CATEGORIES.map(cat => `<option value="${cat}">${cat}</option>`).join('');
     
-    // ❌ KAAM 1: TOP PRODUCTS HATAYA - Ab "Top Products" section nahi dikhega
     let sellerDashboardHtml = `
 <div class="premium-card"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📧 ${seller.email}<br>📍 ${seller.city}, ${seller.country}</p></div><div><span class="kyc-status ${kycClass}">${kycText}</span></div>
 <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin-top:12px;">
@@ -2217,6 +2226,7 @@ function renderSellerDashboard(){
 </div>
 <div style="margin-top:12px;">🏦 Balance: ${getCurrencySymbol()}${convertPrice(seller.earnings)}</div><button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Withdraw</button></div>
 <div class="chart-container"><h3>📊 Revenue</h3><canvas id="revenueChart"></canvas></div>
+<div class="premium-card"><h3>📈 Top Products</h3>${topList.map(p=>`${p[0]}: ${p[1]} sold`).join('<br>') || 'No sales'}</div>
 <div class="premium-card"><h3>➕ Add Product</h3>
     <input type="text" id="prodName" placeholder="Product Name" class="input" required>
     <input type="number" id="prodPrice" placeholder="Price (USD)" class="input" required>
@@ -2263,7 +2273,7 @@ function renderSellerDashboard(){
     document.getElementById('sellerDashboard').innerHTML = sellerDashboardHtml;
     let ctx = document.getElementById('revenueChart')?.getContext('2d'); if(ctx){ if(sellerRevenueChart) sellerRevenueChart.destroy(); sellerRevenueChart = new Chart(ctx, { type: 'bar', data: { labels: chartLabels, datasets: [{ label: 'Revenue', data: chartData.map(v => parseFloat(convertPrice(v))), backgroundColor: '#3b82f6' }] } }); }
     
-    // Helper function for time remaining
+    // ✅ Helper function for time remaining
     function getTimeRemaining(soldOutAt) {
         if (!soldOutAt) return 'N/A';
         const soldTime = new Date(soldOutAt).getTime();
@@ -2277,151 +2287,7 @@ function renderSellerDashboard(){
         return `${hours}h ${minutes}m`;
     }
     
-    // ✅ KAAM 3: SHIPPING FUNCTION - View Orders Modal
-    document.querySelectorAll('.viewOrdersBtn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const productId = this.dataset.productid;
-            const product = products.find(p => p.id == productId);
-            if (!product) return;
-            
-            const productOrders = orders.filter(o => o.productDetails?.id === productId || o.productName === product.name);
-            
-            let modalHtml = `
-                <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;">
-                    <div style="background:white;border-radius:16px;padding:24px;max-width:600px;width:100%;max-height:80vh;overflow-y:auto;position:relative;">
-                        <button onclick="this.parentElement.parentElement.remove()" style="position:absolute;top:10px;right:15px;background:none;border:none;font-size:24px;cursor:pointer;">✕</button>
-                        <h3 style="margin-top:0;">📋 All Orders for "${product.name}"</h3>
-            `;
-            
-            if (productOrders.length === 0) {
-                modalHtml += `<p>No orders found for this product.</p>`;
-            } else {
-                productOrders.forEach((o, index) => {
-                    modalHtml += `
-                        <div style="border-bottom:1px solid #e2e8f0;padding:12px 0;">
-                            <div style="font-weight:bold;">─── Order #${index + 1} ───</div>
-                            <div>👤 Buyer: ${o.buyerName || 'N/A'}</div>
-                            <div>📞 Phone: ${o.buyerPhone || 'N/A'}</div>
-                            <div>📍 Address: ${o.address || 'N/A'}</div>
-                            <div>📦 Order ID: ${o.trackingNumber || 'N/A'}</div>
-                            <div>📅 Date: ${o.date || 'N/A'}</div>
-                            <div>🔢 Quantity: ${o.qty || 1}</div>
-                            <div>💰 Total: ${getCurrencySymbol()}${convertPrice(o.amount || 0)}</div>
-                            <div>📦 Status: ${o.status || 'Processing'}</div>
-                        </div>
-                    `;
-                });
-                
-                const totalRevenue = productOrders.reduce((sum, o) => sum + (o.amount || 0), 0);
-                modalHtml += `
-                    <div style="background:#f1f5f9;padding:12px;border-radius:8px;margin-top:12px;">
-                        <strong>📊 Summary:</strong><br>
-                        Total Orders: ${productOrders.length}<br>
-                        Total Revenue: ${getCurrencySymbol()}${convertPrice(totalRevenue)}
-                    </div>
-                `;
-            }
-            
-            modalHtml += `
-                        <button onclick="this.parentElement.parentElement.remove()" style="background:#3b82f6;color:white;border:none;padding:8px 20px;border-radius:20px;margin-top:12px;cursor:pointer;">Close</button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-        });
-    });
-    
-    // ✅ KAAM 3: SHIPPING FUNCTION - Ship Order Button
-    document.querySelectorAll('.shipOrderBtn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const productId = this.dataset.productid;
-            const product = products.find(p => p.id == productId);
-            if (!product) return;
-            
-            // Get pending orders for this product
-            const pendingOrdersForProduct = orders.filter(o => 
-                (o.productDetails?.id === productId || o.productName === product.name) && 
-                o.status === 'Processing'
-            );
-            
-            if (pendingOrdersForProduct.length === 0) {
-                showToast('No pending orders to ship!', true);
-                return;
-            }
-            
-            // Show shipping modal
-            let modalHtml = `
-                <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;">
-                    <div style="background:white;border-radius:16px;padding:24px;max-width:500px;width:100%;max-height:80vh;overflow-y:auto;position:relative;">
-                        <button onclick="this.parentElement.parentElement.remove()" style="position:absolute;top:10px;right:15px;background:none;border:none;font-size:24px;cursor:pointer;">✕</button>
-                        <h3 style="margin-top:0;">🚚 Ship Order</h3>
-                        <p><strong>Product:</strong> ${product.name}</p>
-                        <p><strong>Pending Orders:</strong> ${pendingOrdersForProduct.length}</p>
-                        <div style="background:#fef3c7;padding:12px;border-radius:8px;margin:12px 0;border-left:4px solid #f59e0b;">
-                            <strong>📦 Shipping Status:</strong>
-                            <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">
-                                <span style="background:#10b981;color:white;padding:2px 10px;border-radius:12px;font-size:12px;">✅ Processing</span>
-                                <span>→</span>
-                                <span style="background:#f59e0b;color:white;padding:2px 10px;border-radius:12px;font-size:12px;">⬜ Shipped</span>
-                                <span>→</span>
-                                <span style="background:#94a3b8;color:white;padding:2px 10px;border-radius:12px;font-size:12px;">⬜ Delivered</span>
-                            </div>
-                        </div>
-                        <button class="markShippedBtn" data-productid="${productId}" style="background:#10b981;color:white;border:none;padding:10px 20px;border-radius:20px;cursor:pointer;font-weight:600;width:100%;margin-top:10px;">
-                            ✅ Mark as Shipped
-                        </button>
-                        <button onclick="this.parentElement.parentElement.remove()" style="background:#94a3b8;color:white;border:none;padding:8px 20px;border-radius:20px;margin-top:8px;cursor:pointer;width:100%;">Close</button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-            
-            // Mark Shipped button handler
-            document.querySelector('.markShippedBtn')?.addEventListener('click', async function() {
-                const pid = this.dataset.productid;
-                const productOrders = orders.filter(o => 
-                    (o.productDetails?.id === pid || o.productName === products.find(p => p.id == pid)?.name) && 
-                    o.status === 'Processing'
-                );
-                
-                for (const order of productOrders) {
-                    order.status = 'Shipped';
-                    order.trackingInfo = {
-                        trackingNumber: order.trackingNumber || 'GB' + Date.now(),
-                        shippedAt: new Date().toISOString()
-                    };
-                    
-                    // Update in Firebase
-                    try {
-                        const orderRef = db.collection('orders').doc(order.id);
-                        await orderRef.update({
-                            status: 'Shipped',
-                            trackingInfo: order.trackingInfo
-                        });
-                    } catch (e) {
-                        console.error('Error updating order:', e);
-                    }
-                }
-                
-                saveAllLocal();
-                showToast(`✅ ${productOrders.length} order(s) marked as shipped!`, false);
-                addNotification(`📦 ${productOrders.length} order(s) shipped for ${products.find(p => p.id == pid)?.name}`, 'order');
-                sendTelegramMessage(`📦 ${productOrders.length} order(s) shipped for ${products.find(p => p.id == pid)?.name}`);
-                
-                // Close modal
-                this.parentElement.parentElement.remove();
-                
-                // Refresh dashboard
-                renderSellerDashboard();
-                renderProducts();
-                updateMyShopBadge();
-            });
-        });
-    });
-    
-    // Auto-delete check every minute
+    // ✅ Auto-delete check every minute
     if (window.autoDeleteInterval) clearInterval(window.autoDeleteInterval);
     window.autoDeleteInterval = setInterval(async function() {
         const now = Date.now();
@@ -2441,7 +2307,7 @@ function renderSellerDashboard(){
         updateMyShopBadge();
     }, 60000);
     
-    // ✅ KAAM 2: EDIT BUTTON - My Products mein hi rahega (Orders & Actions se hat gaya)
+    // ✅ Edit button click handler
     document.querySelectorAll('.editProdBtn').forEach(btn => {
         btn.addEventListener('click', function() {
             const productId = this.dataset.id;
@@ -2465,7 +2331,7 @@ function renderSellerDashboard(){
         });
     });
     
-    // Update Product Button - Restock on save
+    // ✅ Update Product Button - Restock on save
     document.getElementById('updateProductBtn')?.addEventListener('click', async function() {
         const btn = this;
         btn.disabled = true;
@@ -2493,8 +2359,9 @@ function renderSellerDashboard(){
                 updatedAt: new Date().toISOString()
             };
             
-            // If stock > 0, remove sold out status
+            // ✅ If stock > 0, remove sold out status
             if (updates.stock > 0) {
+                updates.status = 'available';
                 updates.soldOutAt = null;
             }
             
@@ -2559,7 +2426,7 @@ function renderSellerDashboard(){
         }
     });
     
-    // Confirm Order
+    // ✅ Confirm Order
     document.querySelectorAll('.confirmStockBtn').forEach(btn => {
         btn.addEventListener('click', function() {
             confirmOrderStock(this.dataset.id);
@@ -2582,7 +2449,7 @@ function renderSellerDashboard(){
     
     document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
     
-    // Dashboard open karne par badge count reset
+    // ✅ Dashboard open karne par badge count reset
     updateMyShopBadge();
 }
 
@@ -2611,6 +2478,7 @@ async function confirmOrderStock(orderId) {
             const product = products.find(p => p.id === order.productDetails.id);
             if (product && product.stock <= 0) {
                 await db.collection('products').doc(product.id).update({
+                    status: 'available',
                     stock: 1,
                     updatedAt: new Date().toISOString()
                 });
@@ -2645,10 +2513,19 @@ async function rejectOrder(orderId) {
         let product = products.find(p => p.id === order.productDetails?.id || p.name === order.productName);
         if (product) {
             product.stock += order.qty;
-            await db.collection('products').doc(product.id).update({
-                stock: product.stock,
-                soldOutAt: product.stock > 0 ? null : new Date().toISOString()
-            });
+            if (product.stock <= 0) {
+                await db.collection('products').doc(product.id).update({
+                    stock: product.stock,
+                    status: 'pending_approval',
+                    soldOutAt: new Date().toISOString()
+                });
+            } else {
+                await db.collection('products').doc(product.id).update({
+                    stock: product.stock,
+                    status: 'available',
+                    soldOutAt: null
+                });
+            }
         }
         saveAllLocal();
         showToast(`❌ Order ${order.trackingNumber} rejected!`, false);
@@ -2668,19 +2545,7 @@ function renderBuyerOrders(){
     const user = auth.currentUser;
     if (!user) return;
     let myOrders = orders.filter(o => o.buyerEmail === user.email);
-    document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => {
-        let statusClass = o.status === 'Processing' ? '🟡' : (o.status === 'Shipped' ? '🟢' : (o.status === 'Delivered' ? '✅' : '❌'));
-        return `<div class="order-card">
-            <strong>🔖 ${o.trackingNumber}</strong>
-            <br>${o.productName} x${o.qty}
-            <br>${getCurrencySymbol()}${convertPrice(o.amount)}
-            <br>Status: ${statusClass} ${o.status}
-            <br>${renderTrackingMap(o)}
-            ${o.trackingInfo ? `<br>📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}` : ''}
-            ${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981;">✅ Received</button>` : ''}
-            ${o.status === "Processing" ? `<button class="cancelOrderBtn" data-id="${o.id}" style="background:#dc2626;">❌ Cancel Order</button>` : ''}
-        </div>`;
-    }).join('');
+    document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty}<br>${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: ${o.status}<br>${renderTrackingMap(o)}${o.trackingInfo ? `<br>📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}` : ''}<br>${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981;">✅ Received</button>` : ''}${o.status === "Processing" ? `<button class="cancelOrderBtn" data-id="${o.id}" style="background:#dc2626;">❌ Cancel Order</button>` : ''}</div>`).join('');
     document.querySelectorAll('.confirmReceivedBtn').forEach(btn => btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id))));
     document.querySelectorAll('.cancelOrderBtn').forEach(btn => btn.addEventListener('click', () => cancelOrder(parseFloat(btn.dataset.id))));
 }
@@ -2786,8 +2651,8 @@ document.getElementById('confirmYesBtn')?.addEventListener('click', async functi
     if (!pendingConfirmationProduct) return;
     try {
         await db.collection('products').doc(pendingConfirmationProduct).update({
+            status: 'available',
             stock: 1,
-            soldOutAt: null,
             updatedAt: new Date().toISOString()
         });
         showToast('✅ Product restocked successfully!', false);
@@ -2889,7 +2754,7 @@ initializeDatabase().then(() => {
     console.error('Init error:', err);
 });
 
-// Auto-delete check every minute
+// ✅ Auto-delete interval check (runs every minute)
 setInterval(async function() {
     const now = Date.now();
     for (const p of products) {
@@ -2908,7 +2773,7 @@ setInterval(async function() {
     updateMyShopBadge();
 }, 60000);
 
-// Update My Shop badge every 5 seconds
+// ✅ Update My Shop badge every 5 seconds
 setInterval(updateMyShopBadge, 5000);
 
 renderCats(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge(); updateAdminMenuBadges();
@@ -2917,9 +2782,9 @@ updateCategorySelect();
 
 const debugMsg = document.getElementById('debugMsg');
 if (debugMsg) {
-    debugMsg.innerHTML = "GlobalBazaar Ready | 3 KAAM FIXED!";
+    debugMsg.innerHTML = "GlobalBazaar Ready | SIMPLE FIXED!";
 }
 
 // ============================================================
-// END OF FILE - 3 KAAM FIXED
+// END OF FILE - SIMPLE FIXED CODE
 // ============================================================
