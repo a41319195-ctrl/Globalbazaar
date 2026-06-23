@@ -4,23 +4,31 @@
 // ============================================================
 
 // ============================================================
-// FIX: PREVENT PAGE REFRESH - ONLY THIS ADDED
+// FIX: PREVENT PAGE REFRESH - STRONGER PREVENTION
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
+    // Sabhi forms ko block karo
     document.querySelectorAll('form').forEach(function(form) {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             e.stopPropagation();
+            e.stopImmediatePropagation();
             return false;
         });
     });
+    
+    // Publish button ko force type="button"
     var publishBtn = document.getElementById('publishBtn');
     if (publishBtn) {
         publishBtn.type = 'button';
+        publishBtn.setAttribute('type', 'button');
     }
+    
+    // Seller submit button ko force type="button"
     var sellerSubmitBtn = document.getElementById('sellerSubmitBtn');
     if (sellerSubmitBtn) {
         sellerSubmitBtn.type = 'button';
+        sellerSubmitBtn.setAttribute('type', 'button');
     }
 });
 
@@ -1852,6 +1860,7 @@ document.getElementById('sellerSubmitBtn')?.addEventListener('click', async func
     if (e) {
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
     }
     
     const btn = this;
@@ -2066,13 +2075,14 @@ function updateMyShopBadge() {
 }
 
 // ============================================================
-// PUBLISH BUTTON - NO AUTO-REFRESH
+// PUBLISH BUTTON - COMPLETE FIX WITH REFRESH PREVENTION
 // ============================================================
 document.getElementById('publishBtn')?.addEventListener('click', async function(e) {
-    // ✅ FIX: Prevent page refresh
+    // ✅ STRONGEST PREVENTION
     if (e) {
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
     }
     
     const btn = this;
@@ -2403,7 +2413,7 @@ function renderSellerDashboard(){
     <label>Additional Images (optional, max 4)</label>
     <input type="file" id="prodImagesFiles" accept="image/*" multiple class="input">
     <textarea id="prodDesc" placeholder="Description" class="input" rows="2"></textarea>
-    <button id="publishBtn" class="btn-primary">📢 Publish</button>
+    <button id="publishBtn" type="button" class="btn-primary">📢 Publish</button>
 </div>
 <div class="premium-card"><h3>📋 My Products (${myProducts.length})</h3><div id="myProductsList">${prodListHtml}</div></div>
 <div class="premium-card"><h3>📦 Orders & Actions</h3>
