@@ -1288,7 +1288,7 @@ function loadAdminData() {
 }
 
 // ============================================================
-// RENDER PRODUCTS
+// RENDER PRODUCTS - FIXED: SOLD OUT LABEL + DISABLE BUY
 // ============================================================
 let currentCategory = "All";
 
@@ -1296,10 +1296,14 @@ function renderProductCard(p) {
     const seller = sellers.find(s => s.id === p.sellerId) || { shopName: "GlobalBazaar", country: "SA" };
     const displayPrice = calculateDisplayPrice(p.price);
     
-    const soldOutBadge = p.stock <= 0 || p.status === 'pending_approval' ? 
+    // ✅ FIX: SOLD OUT label - jab stock 0 ho ya pending_approval
+    const isSoldOut = p.stock <= 0 || p.status === 'pending_approval';
+    
+    const soldOutBadge = isSoldOut ? 
         `<div class="soldout-badge">🔴 SOLD OUT</div>` : '';
     
-    const stockBadge = (p.stock < 5 && p.stock > 0) ? 
+    // ✅ FIX: "Only X left" sirf tab dikhao jab stock > 0 aur stock < 5
+    const stockBadge = (!isSoldOut && p.stock < 5 && p.stock > 0) ? 
         `<div class="stock-badge">Only ${p.stock} left</div>` : '';
     
     let thumbnailsHtml = '';
@@ -1308,8 +1312,6 @@ function renderProductCard(p) {
             `<img src="${img}" onclick="event.stopPropagation(); changeProductImage('${p.id}','${img}')">`
         ).join('');
     }
-    
-    const isSoldOut = p.stock <= 0 || p.status === 'pending_approval';
     
     return `<div class="product-card" data-id="${p.id}">
         ${soldOutBadge}
@@ -1340,6 +1342,7 @@ function renderProducts(){
     grid.innerHTML = '';
     let search = document.getElementById('searchInput')?.value.toLowerCase() || "";
     
+    // ✅ FIX: Sirf available products dikhao (stock > 0 aur status 'available')
     let filtered = products.filter(p => 
         (currentCategory === "All" || p.category === currentCategory) && 
         p.name.toLowerCase().includes(search) && 
@@ -2039,7 +2042,7 @@ function updateMyShopBadge() {
 }
 
 // ============================================================
-// SELLER DASHBOARD - COMPLETE
+// SELLER DASHBOARD - COMPLETE WITH YES/NO BUTTONS
 // ============================================================
 function renderSellerDashboard(){
     if(!currentSeller?.sellerId) return;
