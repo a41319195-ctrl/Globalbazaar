@@ -1,36 +1,7 @@
 // ============================================================
 // GLOBAL BAZAAR - COMPLETE FIXED CODE
-// ALL FEATURES WORKING + AUTO-REFRESH FIX
+// SIMPLE SYSTEM: EDIT BUTTON RESTOCK + 12-HOUR AUTO-DELETE
 // ============================================================
-
-// ============================================================
-// FIX: PREVENT PAGE REFRESH - STRONGEST PREVENTION
-// ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-    // Sabhi forms ko block karo
-    document.querySelectorAll('form').forEach(function(form) {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            return false;
-        });
-    });
-    
-    // Publish button ko force type="button"
-    var publishBtn = document.getElementById('publishBtn');
-    if (publishBtn) {
-        publishBtn.type = 'button';
-        publishBtn.setAttribute('type', 'button');
-    }
-    
-    // Seller submit button ko force type="button"
-    var sellerSubmitBtn = document.getElementById('sellerSubmitBtn');
-    if (sellerSubmitBtn) {
-        sellerSubmitBtn.type = 'button';
-        sellerSubmitBtn.setAttribute('type', 'button');
-    }
-});
 
 // ============================================================
 // DATABASE & RECOVERY
@@ -1317,7 +1288,7 @@ function loadAdminData() {
 }
 
 // ============================================================
-// RENDER PRODUCTS
+// RENDER PRODUCTS - FIXED: SOLD OUT LABEL + DISABLE BUY
 // ============================================================
 let currentCategory = "All";
 
@@ -1325,6 +1296,7 @@ function renderProductCard(p) {
     const seller = sellers.find(s => s.id === p.sellerId) || { shopName: "GlobalBazaar", country: "SA" };
     const displayPrice = calculateDisplayPrice(p.price);
     
+    // ✅ FIX: SOLD OUT label - jab stock 0 ho
     const isSoldOut = p.stock <= 0;
     
     const soldOutBadge = isSoldOut ? 
@@ -1369,6 +1341,7 @@ function renderProducts(){
     grid.innerHTML = '';
     let search = document.getElementById('searchInput')?.value.toLowerCase() || "";
     
+    // ✅ Sirf available products dikhao (stock > 0)
     let filtered = products.filter(p => 
         (currentCategory === "All" || p.category === currentCategory) && 
         p.name.toLowerCase().includes(search) && 
@@ -1719,16 +1692,19 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             orders.push(newOrder);
             platformEarnings += (item.price * PLATFORM_COMMISSION) + priceCalc.gatewayFee + MAINTENANCE_FEE;
             
+            // ✅ FIX: UPDATE PRODUCT STOCK AND STATUS
             if (product) {
                 product.stock -= item.qty;
                 if (product.stock <= 0) {
+                    product.status = 'pending_approval';
                     await db.collection('products').doc(product.id).update({
                         stock: 0,
+                        status: 'pending_approval',
                         soldOutAt: new Date().toISOString()
                     });
-                    console.log('✅ Product sold out:', product.name);
-                    addNotification(`📢 ${product.name} is SOLD OUT!`, 'info');
-                    sendTelegramMessage(`📢 ${product.name} is SOLD OUT!`);
+                    console.log('✅ Product status set to pending_approval:', product.name);
+                    addNotification(`📢 ${product.name} is SOLD OUT! Waiting for seller.`, 'info');
+                    sendTelegramMessage(`📢 ${product.name} is SOLD OUT! Waiting for seller.`);
                 } else {
                     await db.collection('products').doc(product.id).update({
                         stock: product.stock
@@ -1852,14 +1828,9 @@ setInterval(processWeeklyWithdrawals, 3600000); processWeeklyWithdrawals();
 // ============================================================
 // SELLER REGISTRATION
 // ============================================================
-document.getElementById('sellerSubmitBtn')?.addEventListener('click', async function(e) {
-    if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-    }
-    
-    const btn = this;
+document.getElementById('sellerRegForm')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('sellerSubmitBtn');
     btn.disabled = true;
     btn.textContent = '⏳ Registering...';
     
@@ -2036,7 +2007,7 @@ document.getElementById('drawerMyShop')?.addEventListener('click', function() {
 });
 
 // ============================================================
-// NOTIFICATION BADGE ON 'MY SHOP' BUTTON
+// FIX: NOTIFICATION BADGE ON 'MY SHOP' BUTTON
 // ============================================================
 function updateMyShopBadge() {
     const btn = document.getElementById('drawerMyShop');
@@ -2051,12 +2022,14 @@ function updateMyShopBadge() {
         badge = span;
     }
     
+    // ✅ Sirf pending orders count (Processing status)
     if (currentSeller?.sellerId) {
         const pendingOrders = orders.filter(o => 
             o.sellerId === currentSeller.sellerId && 
             o.status === 'Processing'
         ).length;
         
+        // ✅ Sirf pending orders count, sold out products nahi
         if (pendingOrders > 0) {
             badge.textContent = pendingOrders;
             badge.style.display = 'inline-block';
@@ -2070,127 +2043,7 @@ function updateMyShopBadge() {
 }
 
 // ============================================================
-// PUBLISH BUTTON - COMPLETE FIX (REFRESH BAND)
-// ============================================================
-document.getElementById('publishBtn')?.addEventListener('click', async function(e) {
-    // ✅ STRONGEST PREVENTION - REFRESH BAND
-    if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-    }
-    
-    console.log('🔴 PUBLISH BUTTON CLICKED!');
-    
-    const btn = this;
-    btn.disabled = true;
-    btn.textContent = '⏳ Publishing...';
-    
-    try {
-        const name = document.getElementById('prodName')?.value?.trim() || '';
-        const price = parseFloat(document.getElementById('prodPrice')?.value || 0);
-        const cat = document.getElementById('prodCat')?.value || '';
-        const stock = parseInt(document.getElementById('prodStock')?.value || 0);
-        const desc = document.getElementById('prodDesc')?.value || '';
-        
-        console.log('📦 Product Data:', { name, price, cat, stock, desc });
-        
-        if (!name) { showToast("❌ Product name required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-        if (!price || price <= 0) { showToast("❌ Valid price required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-        if (!stock || stock <= 0) { showToast("❌ Valid stock required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-        if (!cat) { showToast("❌ Please select a category", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-        if (!FIXED_CATEGORIES.includes(cat)) { showToast("❌ Invalid category selected", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-        
-        const mainFile = document.getElementById('prodMainImg')?.files[0];
-        if (!mainFile) { showToast("❌ Main image required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-        
-        const weight = parseFloat(document.getElementById('prodWeight')?.value || 0);
-        const length = parseFloat(document.getElementById('prodLength')?.value || 0);
-        const width = parseFloat(document.getElementById('prodWidth')?.value || 0);
-        const height = parseFloat(document.getElementById('prodHeight')?.value || 0);
-        
-        if (!weight || weight <= 0) { showToast("❌ Valid weight required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-        if (!length || length <= 0 || !width || width <= 0 || !height || height <= 0) {
-            showToast("❌ Valid dimensions required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return;
-        }
-        
-        const shippingSA = parseFloat(document.getElementById('prodShippingSA')?.value || 0);
-        const shippingGCC = parseFloat(document.getElementById('prodShippingGCC')?.value || 0);
-        const shippingInt = parseFloat(document.getElementById('prodShippingInt')?.value || 0);
-        
-        if (!currentSeller || !currentSeller.sellerId) { showToast("❌ Please login as seller first", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-        const seller = sellers.find(s => s.id === currentSeller.sellerId);
-        if (!seller || seller.kycStatus !== 'verified') { showToast("❌ Your KYC is not verified.", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-        
-        showToast("📤 Uploading image...", false);
-        const mainUrl = await uploadCompressedImage(mainFile);
-        if (!mainUrl) { showToast("❌ Image upload failed. Try again.", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-        
-        const additionalFiles = document.getElementById('prodImagesFiles')?.files || [];
-        const additionalUrls = [];
-        for (let f of additionalFiles) { if (additionalUrls.length >= 4) break; const url = await uploadCompressedImage(f); if (url) additionalUrls.push(url); }
-        const images = [mainUrl, ...additionalUrls];
-        
-        const newProduct = {
-            sellerId: seller.id,
-            sellerName: seller.shopName || "GlobalBazaar",
-            name: name,
-            price: price,
-            category: cat,
-            mainImage: mainUrl,
-            images: images,
-            description: desc || "",
-            sellerCountry: seller.country || "SA",
-            rating: 0,
-            stock: stock,
-            weight: weight,
-            size: { length: length, width: width, height: height },
-            shippingRates: {
-                SA: shippingSA,
-                GCC: shippingGCC,
-                International: shippingInt
-            },
-            createdAt: new Date().toISOString()
-        };
-        
-        console.log('📤 Sending to Firestore:', newProduct);
-        
-        const docRef = await db.collection("products").add(newProduct);
-        console.log('✅ Product saved with ID:', docRef.id);
-        
-        showToast(`✅ Product "${name}" published successfully!`, false);
-        addNotification(`Product "${name}" published`, 'info');
-        await sendTelegramMessage(`📦 New product: ${name} by ${seller.shopName}`);
-        
-        document.getElementById('prodName').value = '';
-        document.getElementById('prodPrice').value = '';
-        document.getElementById('prodStock').value = '';
-        document.getElementById('prodMainImg').value = '';
-        document.getElementById('prodImagesFiles').value = '';
-        document.getElementById('prodDesc').value = '';
-        document.getElementById('prodWeight').value = '';
-        document.getElementById('prodLength').value = '';
-        document.getElementById('prodWidth').value = '';
-        document.getElementById('prodHeight').value = '';
-        document.getElementById('prodShippingSA').value = '';
-        document.getElementById('prodShippingGCC').value = '';
-        document.getElementById('prodShippingInt').value = '';
-        
-        renderSellerDashboard();
-        renderProducts();
-        btn.disabled = false;
-        btn.textContent = '📢 Publish';
-        
-    } catch (error) {
-        console.error("❌ Publish error:", error);
-        showToast("❌ Error: " + (error.message || 'Unknown error'), true);
-        btn.disabled = false;
-        btn.textContent = '📢 Publish';
-    }
-});
-
-// ============================================================
-// SELLER DASHBOARD - COMPLETE
+// FIX: SELLER DASHBOARD - SIMPLE VERSION WITH EDIT RESTOCK
 // ============================================================
 function renderSellerDashboard(){
     if(!currentSeller?.sellerId) return;
@@ -2216,6 +2069,7 @@ function renderSellerDashboard(){
     let pendingOrders = myOrders.filter(o => o.status === 'Processing');
     let soldOutProducts = myProducts.filter(p => p.stock <= 0);
     
+    // ✅ Revenue calculation
     let monthlyRevenue = {};
     myOrders.forEach(o => { 
         if(o.status === "Completed"){ 
@@ -2232,6 +2086,9 @@ function renderSellerDashboard(){
     
     let kycClass = seller.kycStatus === "pending" ? "kyc-pending" : (seller.kycStatus === "verified" ? "kyc-verified" : "kyc-rejected");
     let kycText = seller.kycStatus === "pending" ? "⏳ KYC Pending - Wait for Admin" : (seller.kycStatus === "verified" ? "✅ KYC Verified" : "❌ KYC Rejected");
+    let topProducts = {}; 
+    myOrders.forEach(o => { topProducts[o.productName] = (topProducts[o.productName]||0) + o.qty; }); 
+    let topList = Object.entries(topProducts).sort((a,b)=>b[1]-a[1]).slice(0,5);
     
     let prodListHtml = myProducts.map(p => {
         const isSoldOut = p.stock <= 0;
@@ -2248,12 +2105,13 @@ function renderSellerDashboard(){
         </div>`;
     }).join('');
     
+    // ✅ SOLD OUT Products with Buyer Details
     let soldOutHtml = '';
     if (soldOutProducts.length > 0) {
         soldOutHtml = `<h4 style="margin:10px 0; color:#dc2626;">🔴 SOLD OUT Products (${soldOutProducts.length})</h4>`;
         soldOutHtml += soldOutProducts.map(p => {
+            // ✅ Find order for this product
             const productOrder = orders.find(o => o.productDetails?.id === p.id || o.productName === p.name);
-            const orderCount = orders.filter(o => o.productDetails?.id === p.id || o.productName === p.name).length;
             
             return `
                 <div class="order-card" style="border-left-color:#dc2626; margin-bottom:15px;">
@@ -2264,7 +2122,6 @@ function renderSellerDashboard(){
                             <br><span style="font-size:12px; color:#64748b;">💰 Price: ${getCurrencySymbol()}${convertPrice(p.price)}</span>
                             <br><span style="font-size:12px; color:#dc2626;">🔴 Stock: 0 (SOLD OUT)</span>
                             ${p.soldOutAt ? `<br><span style="font-size:11px; color:#94a3b8;">⏳ Auto-delete in: ${getTimeRemaining(p.soldOutAt)}</span>` : ''}
-                            <br><span style="font-size:13px; font-weight:bold; color:#3b82f6;">📦 Orders: ${orderCount}</span>
                         </div>
                     </div>
                     
@@ -2287,23 +2144,17 @@ function renderSellerDashboard(){
                         </div>
                     `}
                     
-                    <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
-                        ${orderCount > 0 ? `<button class="viewOrdersBtn" data-productid="${p.id}" style="background:#3b82f6; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer;">
-                            👁️ View Orders (${orderCount})
-                        </button>` : ''}
-                        ${orderCount > 0 ? `<button class="shipOrderBtn" data-productid="${p.id}" style="background:#10b981; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
-                            🚚 Ship Order
-                        </button>` : ''}
-                    </div>
-                    
-                    <div style="font-size:11px; color:#94a3b8; margin-top:6px;">
-                        💡 Go to "My Products" to edit & restock
+                    <div style="margin-top:10px;">
+                        <button class="editProdBtn" data-id="${p.id}" style="background:#10b981; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
+                            ✏️ Edit & Restock
+                        </button>
                     </div>
                 </div>
             `;
         }).join('');
     }
     
+    // ✅ Pending Orders
     let ordersHtml = '';
     if (pendingOrders.length > 0) {
         ordersHtml += `<h4 style="margin:10px 0; color:#f59e0b;">🟡 Pending Orders (${pendingOrders.length})</h4>`;
@@ -2317,18 +2168,14 @@ function renderSellerDashboard(){
                         <br><span style="font-size:12px; color:#64748b;">Buyer: ${o.buyerName}</span>
                         <br><span style="font-size:13px; font-weight:bold; color:#10b981;">Net Revenue: ${getCurrencySymbol()}${convertPrice((o.basePrice - (o.basePrice * PLATFORM_COMMISSION) - MAINTENANCE_FEE) * o.qty)}</span>
                         <br><span style="font-size:12px; color:#64748b;">📦 Shipping Address: ${o.address || 'N/A'}</span>
-                        <br><span style="font-size:12px; color:#64748b;">📮 Tracking: ${o.trackingNumber || 'N/A'}</span>
                     </div>
                 </div>
-                <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+                <div style="display:flex; gap:8px; margin-top:8px;">
                     <button class="confirmStockBtn" data-id="${o.id}" style="background:#10b981; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
-                        ✅ Confirm Order
+                        ✅ Confirm
                     </button>
                     <button class="rejectOrderBtn" data-id="${o.id}" style="background:#dc2626; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
-                        ❌ Reject Order
-                    </button>
-                    <button class="shipOrderBtnSeller" data-id="${o.id}" style="background:#3b82f6; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
-                        🚚 Mark as Shipped
+                        ❌ Reject
                     </button>
                 </div>
                 <div style="font-size:10px; color:#94a3b8; margin-top:4px;">${o.date}</div>
@@ -2361,7 +2208,6 @@ function renderSellerDashboard(){
     
     const categoryOptions = FIXED_CATEGORIES.map(cat => `<option value="${cat}">${cat}</option>`).join('');
     
-    // ✅ FIX: button type="button"
     let sellerDashboardHtml = `
 <div class="premium-card"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📧 ${seller.email}<br>📍 ${seller.city}, ${seller.country}</p></div><div><span class="kyc-status ${kycClass}">${kycText}</span></div>
 <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin-top:12px;">
@@ -2380,6 +2226,7 @@ function renderSellerDashboard(){
 </div>
 <div style="margin-top:12px;">🏦 Balance: ${getCurrencySymbol()}${convertPrice(seller.earnings)}</div><button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Withdraw</button></div>
 <div class="chart-container"><h3>📊 Revenue</h3><canvas id="revenueChart"></canvas></div>
+<div class="premium-card"><h3>📈 Top Products</h3>${topList.map(p=>`${p[0]}: ${p[1]} sold`).join('<br>') || 'No sales'}</div>
 <div class="premium-card"><h3>➕ Add Product</h3>
     <input type="text" id="prodName" placeholder="Product Name" class="input" required>
     <input type="number" id="prodPrice" placeholder="Price (USD)" class="input" required>
@@ -2415,7 +2262,7 @@ function renderSellerDashboard(){
     <label>Additional Images (optional, max 4)</label>
     <input type="file" id="prodImagesFiles" accept="image/*" multiple class="input">
     <textarea id="prodDesc" placeholder="Description" class="input" rows="2"></textarea>
-    <button id="publishBtn" type="button" class="btn-primary">📢 Publish</button>
+    <button id="publishBtn" class="btn-primary">📢 Publish</button>
 </div>
 <div class="premium-card"><h3>📋 My Products (${myProducts.length})</h3><div id="myProductsList">${prodListHtml}</div></div>
 <div class="premium-card"><h3>📦 Orders & Actions</h3>
@@ -2424,179 +2271,23 @@ function renderSellerDashboard(){
 </div>
 `;
     document.getElementById('sellerDashboard').innerHTML = sellerDashboardHtml;
+    let ctx = document.getElementById('revenueChart')?.getContext('2d'); if(ctx){ if(sellerRevenueChart) sellerRevenueChart.destroy(); sellerRevenueChart = new Chart(ctx, { type: 'bar', data: { labels: chartLabels, datasets: [{ label: 'Revenue', data: chartData.map(v => parseFloat(convertPrice(v))), backgroundColor: '#3b82f6' }] } }); }
     
-    // Chart
-    let ctx = document.getElementById('revenueChart')?.getContext('2d'); 
-    if(ctx){ if(sellerRevenueChart) sellerRevenueChart.destroy(); sellerRevenueChart = new Chart(ctx, { type: 'bar', data: { labels: chartLabels, datasets: [{ label: 'Revenue', data: chartData.map(v => parseFloat(convertPrice(v))), backgroundColor: '#3b82f6' }] } }); }
-    
+    // ✅ Helper function for time remaining
     function getTimeRemaining(soldOutAt) {
         if (!soldOutAt) return 'N/A';
         const soldTime = new Date(soldOutAt).getTime();
-        const expiryTime = soldTime + (12 * 60 * 60 * 1000);
+        const expiryTime = soldTime + (12 * 60 * 60 * 1000); // 12 hours
         const now = Date.now();
         const remaining = expiryTime - now;
+        
         if (remaining <= 0) return 'Expired';
         const hours = Math.floor(remaining / (60 * 60 * 1000));
         const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
         return `${hours}h ${minutes}m`;
     }
     
-    // View Orders Button
-    document.querySelectorAll('.viewOrdersBtn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const productId = this.dataset.productid;
-            const product = products.find(p => p.id == productId);
-            if (!product) return;
-            
-            const productOrders = orders.filter(o => o.productDetails?.id === productId || o.productName === product.name);
-            
-            let modalHtml = `
-                <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;">
-                    <div style="background:white;border-radius:16px;padding:24px;max-width:600px;width:100%;max-height:80vh;overflow-y:auto;position:relative;">
-                        <button onclick="this.parentElement.parentElement.remove()" style="position:absolute;top:10px;right:15px;background:none;border:none;font-size:24px;cursor:pointer;">✕</button>
-                        <h3 style="margin-top:0;">📋 All Orders for "${product.name}"</h3>
-            `;
-            
-            if (productOrders.length === 0) {
-                modalHtml += `<p>No orders found for this product.</p>`;
-            } else {
-                productOrders.forEach((o, index) => {
-                    modalHtml += `
-                        <div style="border-bottom:1px solid #e2e8f0;padding:12px 0;">
-                            <div style="font-weight:bold;">─── Order #${index + 1} ───</div>
-                            <div>👤 Buyer: ${o.buyerName || 'N/A'}</div>
-                            <div>📞 Phone: ${o.buyerPhone || 'N/A'}</div>
-                            <div>📍 Address: ${o.address || 'N/A'}</div>
-                            <div>📦 Order ID: ${o.trackingNumber || 'N/A'}</div>
-                            <div>📅 Date: ${o.date || 'N/A'}</div>
-                            <div>🔢 Quantity: ${o.qty || 1}</div>
-                            <div>💰 Total: ${getCurrencySymbol()}${convertPrice(o.amount || 0)}</div>
-                            <div>📦 Status: ${o.status || 'Processing'}</div>
-                        </div>
-                    `;
-                });
-                
-                const totalRevenue = productOrders.reduce((sum, o) => sum + (o.amount || 0), 0);
-                modalHtml += `
-                    <div style="background:#f1f5f9;padding:12px;border-radius:8px;margin-top:12px;">
-                        <strong>📊 Summary:</strong><br>
-                        Total Orders: ${productOrders.length}<br>
-                        Total Revenue: ${getCurrencySymbol()}${convertPrice(totalRevenue)}
-                    </div>
-                `;
-            }
-            
-            modalHtml += `
-                        <button onclick="this.parentElement.parentElement.remove()" style="background:#3b82f6;color:white;border:none;padding:8px 20px;border-radius:20px;margin-top:12px;cursor:pointer;">Close</button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-        });
-    });
-    
-    // Ship Order Button - Pending Orders
-    document.querySelectorAll('.shipOrderBtnSeller').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const orderId = this.dataset.id;
-            const order = orders.find(o => o.id == orderId);
-            if (!order) {
-                showToast('Order not found!', true);
-                return;
-            }
-            
-            const trackingNum = order.trackingNumber || 'GB' + Date.now();
-            order.status = 'Shipped';
-            order.trackingInfo = {
-                trackingNumber: trackingNum,
-                shippedAt: new Date().toISOString()
-            };
-            
-            saveAllLocal();
-            showToast(`✅ Order ${trackingNum} marked as Shipped!`, false);
-            addNotification(`📦 Order ${trackingNum} shipped to ${order.buyerName}`, 'order');
-            sendTelegramMessage(`📦 Order ${trackingNum} shipped to ${order.buyerName}`);
-            
-            renderSellerDashboard();
-            renderBuyerOrders();
-            updateMyShopBadge();
-        });
-    });
-    
-    // Ship Order Button - Sold Out Products
-    document.querySelectorAll('.shipOrderBtn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const productId = this.dataset.productid;
-            const product = products.find(p => p.id == productId);
-            if (!product) return;
-            
-            const pendingOrdersForProduct = orders.filter(o => 
-                (o.productDetails?.id === productId || o.productName === product.name) && 
-                o.status === 'Processing'
-            );
-            
-            if (pendingOrdersForProduct.length === 0) {
-                showToast('No pending orders to ship!', true);
-                return;
-            }
-            
-            let modalHtml = `
-                <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;">
-                    <div style="background:white;border-radius:16px;padding:24px;max-width:500px;width:100%;max-height:80vh;overflow-y:auto;position:relative;">
-                        <button onclick="this.parentElement.parentElement.remove()" style="position:absolute;top:10px;right:15px;background:none;border:none;font-size:24px;cursor:pointer;">✕</button>
-                        <h3 style="margin-top:0;">🚚 Ship Order</h3>
-                        <p><strong>Product:</strong> ${product.name}</p>
-                        <p><strong>Pending Orders:</strong> ${pendingOrdersForProduct.length}</p>
-                        <div style="background:#fef3c7;padding:12px;border-radius:8px;margin:12px 0;border-left:4px solid #f59e0b;">
-                            <strong>📦 Shipping Status:</strong>
-                            <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">
-                                <span style="background:#10b981;color:white;padding:2px 10px;border-radius:12px;font-size:12px;">✅ Processing</span>
-                                <span>→</span>
-                                <span style="background:#f59e0b;color:white;padding:2px 10px;border-radius:12px;font-size:12px;">⬜ Shipped</span>
-                                <span>→</span>
-                                <span style="background:#94a3b8;color:white;padding:2px 10px;border-radius:12px;font-size:12px;">⬜ Delivered</span>
-                            </div>
-                        </div>
-                        <button class="markShippedBtn" data-productid="${productId}" style="background:#10b981;color:white;border:none;padding:10px 20px;border-radius:20px;cursor:pointer;font-weight:600;width:100%;margin-top:10px;">
-                            ✅ Mark as Shipped
-                        </button>
-                        <button onclick="this.parentElement.parentElement.remove()" style="background:#94a3b8;color:white;border:none;padding:8px 20px;border-radius:20px;margin-top:8px;cursor:pointer;width:100%;">Close</button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-            
-            document.querySelector('.markShippedBtn')?.addEventListener('click', async function() {
-                const pid = this.dataset.productid;
-                const productOrders = orders.filter(o => 
-                    (o.productDetails?.id === pid || o.productName === products.find(p => p.id == pid)?.name) && 
-                    o.status === 'Processing'
-                );
-                
-                for (const order of productOrders) {
-                    order.status = 'Shipped';
-                    order.trackingInfo = {
-                        trackingNumber: order.trackingNumber || 'GB' + Date.now(),
-                        shippedAt: new Date().toISOString()
-                    };
-                }
-                
-                saveAllLocal();
-                showToast(`✅ ${productOrders.length} order(s) marked as shipped!`, false);
-                addNotification(`📦 ${productOrders.length} order(s) shipped for ${products.find(p => p.id == pid)?.name}`, 'order');
-                sendTelegramMessage(`📦 ${productOrders.length} order(s) shipped for ${products.find(p => p.id == pid)?.name}`);
-                
-                this.parentElement.parentElement.remove();
-                renderSellerDashboard();
-                renderProducts();
-                updateMyShopBadge();
-            });
-        });
-    });
-    
-    // Auto-delete check
+    // ✅ Auto-delete check every minute
     if (window.autoDeleteInterval) clearInterval(window.autoDeleteInterval);
     window.autoDeleteInterval = setInterval(async function() {
         const now = Date.now();
@@ -2616,7 +2307,7 @@ function renderSellerDashboard(){
         updateMyShopBadge();
     }, 60000);
     
-    // Edit Product Button
+    // ✅ Edit button click handler
     document.querySelectorAll('.editProdBtn').forEach(btn => {
         btn.addEventListener('click', function() {
             const productId = this.dataset.id;
@@ -2640,7 +2331,7 @@ function renderSellerDashboard(){
         });
     });
     
-    // Update Product Button
+    // ✅ Update Product Button - Restock on save
     document.getElementById('updateProductBtn')?.addEventListener('click', async function() {
         const btn = this;
         btn.disabled = true;
@@ -2668,7 +2359,9 @@ function renderSellerDashboard(){
                 updatedAt: new Date().toISOString()
             };
             
+            // ✅ If stock > 0, remove sold out status
             if (updates.stock > 0) {
+                updates.status = 'available';
                 updates.soldOutAt = null;
             }
             
@@ -2733,21 +2426,19 @@ function renderSellerDashboard(){
         }
     });
     
-    // Confirm Order
+    // ✅ Confirm Order
     document.querySelectorAll('.confirmStockBtn').forEach(btn => {
         btn.addEventListener('click', function() {
             confirmOrderStock(this.dataset.id);
         });
     });
     
-    // Reject Order
     document.querySelectorAll('.rejectOrderBtn').forEach(btn => {
         btn.addEventListener('click', function() {
             rejectOrder(this.dataset.id);
         });
     });
     
-    // Delete Product
     document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', async () => { 
         let id = btn.dataset.id; 
         await db.collection("products").doc(id).delete(); 
@@ -2756,9 +2447,9 @@ function renderSellerDashboard(){
         showToast("Product deleted", false); 
     }));
     
-    // Withdraw Button
     document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
     
+    // ✅ Dashboard open karne par badge count reset
     updateMyShopBadge();
 }
 
@@ -2787,6 +2478,7 @@ async function confirmOrderStock(orderId) {
             const product = products.find(p => p.id === order.productDetails.id);
             if (product && product.stock <= 0) {
                 await db.collection('products').doc(product.id).update({
+                    status: 'available',
                     stock: 1,
                     updatedAt: new Date().toISOString()
                 });
@@ -2821,10 +2513,19 @@ async function rejectOrder(orderId) {
         let product = products.find(p => p.id === order.productDetails?.id || p.name === order.productName);
         if (product) {
             product.stock += order.qty;
-            await db.collection('products').doc(product.id).update({
-                stock: product.stock,
-                soldOutAt: product.stock > 0 ? null : new Date().toISOString()
-            });
+            if (product.stock <= 0) {
+                await db.collection('products').doc(product.id).update({
+                    stock: product.stock,
+                    status: 'pending_approval',
+                    soldOutAt: new Date().toISOString()
+                });
+            } else {
+                await db.collection('products').doc(product.id).update({
+                    stock: product.stock,
+                    status: 'available',
+                    soldOutAt: null
+                });
+            }
         }
         saveAllLocal();
         showToast(`❌ Order ${order.trackingNumber} rejected!`, false);
@@ -2844,19 +2545,7 @@ function renderBuyerOrders(){
     const user = auth.currentUser;
     if (!user) return;
     let myOrders = orders.filter(o => o.buyerEmail === user.email);
-    document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => {
-        let statusClass = o.status === 'Processing' ? '🟡' : (o.status === 'Shipped' ? '🟢' : (o.status === 'Delivered' ? '✅' : '❌'));
-        return `<div class="order-card">
-            <strong>🔖 ${o.trackingNumber}</strong>
-            <br>${o.productName} x${o.qty}
-            <br>${getCurrencySymbol()}${convertPrice(o.amount)}
-            <br>Status: ${statusClass} ${o.status}
-            <br>${renderTrackingMap(o)}
-            ${o.trackingInfo ? `<br>📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}` : ''}
-            ${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981;">✅ Received</button>` : ''}
-            ${o.status === "Processing" ? `<button class="cancelOrderBtn" data-id="${o.id}" style="background:#dc2626;">❌ Cancel Order</button>` : ''}
-        </div>`;
-    }).join('');
+    document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty}<br>${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: ${o.status}<br>${renderTrackingMap(o)}${o.trackingInfo ? `<br>📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}` : ''}<br>${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981;">✅ Received</button>` : ''}${o.status === "Processing" ? `<button class="cancelOrderBtn" data-id="${o.id}" style="background:#dc2626;">❌ Cancel Order</button>` : ''}</div>`).join('');
     document.querySelectorAll('.confirmReceivedBtn').forEach(btn => btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id))));
     document.querySelectorAll('.cancelOrderBtn').forEach(btn => btn.addEventListener('click', () => cancelOrder(parseFloat(btn.dataset.id))));
 }
@@ -2945,7 +2634,7 @@ function showTerms() {
 }
 
 // ============================================================
-// RESTOCK POPUP
+// RESTOCK POPUP - YES/NO Modal Functions
 // ============================================================
 function showInventoryConfirmModal(productId, productName) {
     pendingConfirmationProduct = productId;
@@ -2962,8 +2651,8 @@ document.getElementById('confirmYesBtn')?.addEventListener('click', async functi
     if (!pendingConfirmationProduct) return;
     try {
         await db.collection('products').doc(pendingConfirmationProduct).update({
+            status: 'available',
             stock: 1,
-            soldOutAt: null,
             updatedAt: new Date().toISOString()
         });
         showToast('✅ Product restocked successfully!', false);
@@ -2996,9 +2685,6 @@ document.getElementById('confirmNoBtn')?.addEventListener('click', async functio
     }
 });
 
-// ============================================================
-// UTILITY FUNCTIONS
-// ============================================================
 function showSection(section){ document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.getElementById(section+"Section").classList.add('active'); }
 document.getElementById('drawerBuyer')?.addEventListener('click', () => { showMyOrdersPage(); closeDrawer(); });
 document.getElementById('drawerSeller')?.addEventListener('click', () => { showSection('seller'); document.getElementById('sellerRegisterBox').style.display='block'; document.getElementById('sellerDashboard').style.display='none'; closeDrawer(); });
@@ -3068,7 +2754,7 @@ initializeDatabase().then(() => {
     console.error('Init error:', err);
 });
 
-// Auto-delete check every minute
+// ✅ Auto-delete interval check (runs every minute)
 setInterval(async function() {
     const now = Date.now();
     for (const p of products) {
@@ -3087,7 +2773,7 @@ setInterval(async function() {
     updateMyShopBadge();
 }, 60000);
 
-// Update My Shop badge every 5 seconds
+// ✅ Update My Shop badge every 5 seconds
 setInterval(updateMyShopBadge, 5000);
 
 renderCats(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge(); updateAdminMenuBadges();
@@ -3096,9 +2782,9 @@ updateCategorySelect();
 
 const debugMsg = document.getElementById('debugMsg');
 if (debugMsg) {
-    debugMsg.innerHTML = "GlobalBazaar Ready | ALL FEATURES WORKING!";
+    debugMsg.innerHTML = "GlobalBazaar Ready | SIMPLE FIXED!";
 }
 
 // ============================================================
-// END OF FILE - ALL FEATURES WORKING
+// END OF FILE - SIMPLE FIXED CODE
 // ============================================================
