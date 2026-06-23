@@ -1,10 +1,10 @@
 // ============================================================
-// GLOBAL BAZAAR - COMPLETE FIXED CODE
-// ALL ISSUES RESOLVED: PAYMENT + SHIPPING + SELLER DASHBOARD + AUTO-REFRESH FIX
+// GLOBAL BAZAAR - COMPLETE CODE
+// ALL FEATURES WORKING + AUTO-REFRESH FIX
 // ============================================================
 
 // ============================================================
-// FIX: PREVENT PAGE REFRESH - ALL FORMS
+// FIX: PREVENT PAGE REFRESH - ONLY THIS ADDED
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('form').forEach(function(form) {
@@ -17,6 +17,10 @@ document.addEventListener('DOMContentLoaded', function() {
     var publishBtn = document.getElementById('publishBtn');
     if (publishBtn) {
         publishBtn.type = 'button';
+    }
+    var sellerSubmitBtn = document.getElementById('sellerSubmitBtn');
+    if (sellerSubmitBtn) {
+        sellerSubmitBtn.type = 'button';
     }
 });
 
@@ -2062,10 +2066,10 @@ function updateMyShopBadge() {
 }
 
 // ============================================================
-// FIX: PUBLISH BUTTON - NO AUTO-REFRESH
+// PUBLISH BUTTON - NO AUTO-REFRESH
 // ============================================================
 document.getElementById('publishBtn')?.addEventListener('click', async function(e) {
-    // ✅ CRITICAL: Page refresh rokna
+    // ✅ FIX: Prevent page refresh
     if (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -2145,7 +2149,6 @@ document.getElementById('publishBtn')?.addEventListener('click', async function(
         addNotification(`Product "${name}" published`, 'info');
         await sendTelegramMessage(`📦 New product: ${name} by ${seller.shopName}`);
         
-        // Clear form
         document.getElementById('prodName').value = '';
         document.getElementById('prodPrice').value = '';
         document.getElementById('prodStock').value = '';
@@ -2174,7 +2177,7 @@ document.getElementById('publishBtn')?.addEventListener('click', async function(
 });
 
 // ============================================================
-// SELLER DASHBOARD - COMPLETE
+// SELLER DASHBOARD - COMPLETE WITH ALL FEATURES
 // ============================================================
 function renderSellerDashboard(){
     if(!currentSeller?.sellerId) return;
@@ -2200,7 +2203,6 @@ function renderSellerDashboard(){
     let pendingOrders = myOrders.filter(o => o.status === 'Processing');
     let soldOutProducts = myProducts.filter(p => p.stock <= 0);
     
-    // Revenue calculation
     let monthlyRevenue = {};
     myOrders.forEach(o => { 
         if(o.status === "Completed"){ 
@@ -2217,8 +2219,9 @@ function renderSellerDashboard(){
     
     let kycClass = seller.kycStatus === "pending" ? "kyc-pending" : (seller.kycStatus === "verified" ? "kyc-verified" : "kyc-rejected");
     let kycText = seller.kycStatus === "pending" ? "⏳ KYC Pending - Wait for Admin" : (seller.kycStatus === "verified" ? "✅ KYC Verified" : "❌ KYC Rejected");
-    
-    // Top Products - REMOVED
+    let topProducts = {}; 
+    myOrders.forEach(o => { topProducts[o.productName] = (topProducts[o.productName]||0) + o.qty; }); 
+    let topList = Object.entries(topProducts).sort((a,b)=>b[1]-a[1]).slice(0,5);
     
     let prodListHtml = myProducts.map(p => {
         const isSoldOut = p.stock <= 0;
@@ -2235,14 +2238,13 @@ function renderSellerDashboard(){
         </div>`;
     }).join('');
     
-    // SOLD OUT Products - Clean View + View Orders Button (No Edit Button)
+    // SOLD OUT Products with Buyer Details
     let soldOutHtml = '';
     if (soldOutProducts.length > 0) {
         soldOutHtml = `<h4 style="margin:10px 0; color:#dc2626;">🔴 SOLD OUT Products (${soldOutProducts.length})</h4>`;
         soldOutHtml += soldOutProducts.map(p => {
-            // Count orders for this product
-            const productOrders = orders.filter(o => o.productDetails?.id === p.id || o.productName === p.name);
-            const orderCount = productOrders.length;
+            const productOrder = orders.find(o => o.productDetails?.id === p.id || o.productName === p.name);
+            const orderCount = orders.filter(o => o.productDetails?.id === p.id || o.productName === p.name).length;
             
             return `
                 <div class="order-card" style="border-left-color:#dc2626; margin-bottom:15px;">
@@ -2257,18 +2259,34 @@ function renderSellerDashboard(){
                         </div>
                     </div>
                     
-                    <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+                    ${productOrder ? `
+                        <div style="background:#f8fafc; padding:12px; border-radius:8px; margin:8px 0;">
+                            <h4 style="margin:0 0 8px 0; font-size:14px;">👤 Buyer Details</h4>
+                            <div style="font-size:13px; color:#334155;">
+                                <div>👤 Name: ${productOrder.buyerName || 'N/A'}</div>
+                                <div>📞 Phone: ${productOrder.buyerPhone || 'N/A'}</div>
+                                <div>📍 Address: ${productOrder.address || 'N/A'}</div>
+                                <div>📦 Order ID: ${productOrder.trackingNumber || 'N/A'}</div>
+                                <div>📅 Date: ${productOrder.date || 'N/A'}</div>
+                                <div>🔢 Quantity: ${productOrder.qty || 1}</div>
+                                <div>💰 Total: ${getCurrencySymbol()}${convertPrice(productOrder.amount || p.price)}</div>
+                            </div>
+                        </div>
+                    ` : `
+                        <div style="background:#fef3c7; padding:10px; border-radius:8px; margin:8px 0; font-size:13px; color:#92400e;">
+                            ⚠️ No order found for this product.
+                        </div>
+                    `}
+                    
+                    <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
                         ${orderCount > 0 ? `<button class="viewOrdersBtn" data-productid="${p.id}" style="background:#3b82f6; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer;">
                             👁️ View Orders (${orderCount})
                         </button>` : ''}
-                        ${p.shippingStatus === 'shipped' ? `<button class="shipOrderBtn" data-productid="${p.id}" style="background:#10b981; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer;">
-                            🚚 Shipped
-                        </button>` : `<button class="shipOrderBtn" data-productid="${p.id}" style="background:#f59e0b; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer;">
+                        ${orderCount > 0 ? `<button class="shipOrderBtn" data-productid="${p.id}" style="background:#f59e0b; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer;">
                             🚚 Ship Order
-                        </button>`}
+                        </button>` : ''}
                     </div>
                     
-                    <!-- Edit button REMOVED from Orders & Actions -->
                     <div style="font-size:11px; color:#94a3b8; margin-top:6px;">
                         💡 Go to "My Products" to edit & restock
                     </div>
@@ -2331,7 +2349,6 @@ function renderSellerDashboard(){
     
     const categoryOptions = FIXED_CATEGORIES.map(cat => `<option value="${cat}">${cat}</option>`).join('');
     
-    // Top Products REMOVED
     let sellerDashboardHtml = `
 <div class="premium-card"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📧 ${seller.email}<br>📍 ${seller.city}, ${seller.country}</p></div><div><span class="kyc-status ${kycClass}">${kycText}</span></div>
 <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin-top:12px;">
@@ -2350,6 +2367,7 @@ function renderSellerDashboard(){
 </div>
 <div style="margin-top:12px;">🏦 Balance: ${getCurrencySymbol()}${convertPrice(seller.earnings)}</div><button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Withdraw</button></div>
 <div class="chart-container"><h3>📊 Revenue</h3><canvas id="revenueChart"></canvas></div>
+<div class="premium-card"><h3>📈 Top Products</h3>${topList.map(p=>`${p[0]}: ${p[1]} sold`).join('<br>') || 'No sales'}</div>
 <div class="premium-card"><h3>➕ Add Product</h3>
     <input type="text" id="prodName" placeholder="Product Name" class="input" required>
     <input type="number" id="prodPrice" placeholder="Price (USD)" class="input" required>
@@ -2567,7 +2585,7 @@ function renderSellerDashboard(){
         updateMyShopBadge();
     }, 60000);
     
-    // EDIT BUTTON - ONLY in My Products (Orders & Actions se REMOVED)
+    // EDIT BUTTON - ONLY in My Products
     document.querySelectorAll('.editProdBtn').forEach(btn => {
         btn.addEventListener('click', function() {
             const productId = this.dataset.id;
@@ -3042,9 +3060,9 @@ updateCategorySelect();
 
 const debugMsg = document.getElementById('debugMsg');
 if (debugMsg) {
-    debugMsg.innerHTML = "GlobalBazaar Ready | AUTO-REFRESH FIXED + ALL FEATURES WORKING!";
+    debugMsg.innerHTML = "GlobalBazaar Ready | ALL FEATURES WORKING!";
 }
 
 // ============================================================
-// END OF FILE - COMPLETE FIXED CODE
+// END OF FILE - ALL FEATURES WORKING
 // ============================================================
