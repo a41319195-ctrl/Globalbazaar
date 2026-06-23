@@ -2456,7 +2456,7 @@ function renderSellerDashboard(){
     });
     
     // ============================================================
-    // PUBLISH BUTTON
+    // PUBLISH BUTTON - FIXED: Product Name Trim
     // ============================================================
     document.getElementById('publishBtn')?.addEventListener('click', async function() {
         const btn = this;
@@ -2464,47 +2464,54 @@ function renderSellerDashboard(){
         btn.textContent = '⏳ Publishing...';
         
         try {
-            const name = document.getElementById('prodName').value;
+            // ✅ FIX: Product name ko trim karo (extra spaces hatane ke liye)
+            const name = document.getElementById('prodName').value.trim();
             const price = parseFloat(document.getElementById('prodPrice').value);
             const cat = document.getElementById('prodCat').value;
             const stock = parseInt(document.getElementById('prodStock').value);
             const desc = document.getElementById('prodDesc').value;
-            if (!name) { showToast("Product name required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-            if (!price || price <= 0) { showToast("Valid price required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-            if (!stock || stock <= 0) { showToast("Valid stock required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-            if (!cat) { showToast("Please select a category", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-            if (!FIXED_CATEGORIES.includes(cat)) { showToast("Invalid category selected", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+            
+            if (!name) { showToast("❌ Product name required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+            if (!price || price <= 0) { showToast("❌ Valid price required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+            if (!stock || stock <= 0) { showToast("❌ Valid stock required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+            if (!cat) { showToast("❌ Please select a category", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+            if (!FIXED_CATEGORIES.includes(cat)) { showToast("❌ Invalid category selected", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+            
             const mainFile = document.getElementById('prodMainImg').files[0];
-            if (!mainFile) { showToast("Main image required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+            if (!mainFile) { showToast("❌ Main image required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+            
             const weight = parseFloat(document.getElementById('prodWeight').value);
             const length = parseFloat(document.getElementById('prodLength').value);
             const width = parseFloat(document.getElementById('prodWidth').value);
             const height = parseFloat(document.getElementById('prodHeight').value);
-            if (!weight || weight <= 0) { showToast("Valid weight required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+            
+            if (!weight || weight <= 0) { showToast("❌ Valid weight required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
             if (!length || length <= 0 || !width || width <= 0 || !height || height <= 0) {
-                showToast("Valid dimensions required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return;
+                showToast("❌ Valid dimensions required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return;
             }
             
             const shippingSA = parseFloat(document.getElementById('prodShippingSA').value) || 0;
             const shippingGCC = parseFloat(document.getElementById('prodShippingGCC').value) || 0;
             const shippingInt = parseFloat(document.getElementById('prodShippingInt').value) || 0;
             
-            if (!currentSeller || !currentSeller.sellerId) { showToast("Please login as seller first", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+            if (!currentSeller || !currentSeller.sellerId) { showToast("❌ Please login as seller first", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
             const seller = sellers.find(s => s.id === currentSeller.sellerId);
-            if (!seller || seller.kycStatus !== 'verified') { showToast("Your KYC is not verified.", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+            if (!seller || seller.kycStatus !== 'verified') { showToast("❌ Your KYC is not verified.", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
             
-            showToast("Uploading image...", false);
+            showToast("📤 Uploading image...", false);
             const mainUrl = await uploadCompressedImage(mainFile);
-            if (!mainUrl) { showToast("Image upload failed. Try again.", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+            if (!mainUrl) { showToast("❌ Image upload failed. Try again.", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+            
             const additionalFiles = document.getElementById('prodImagesFiles').files;
             const additionalUrls = [];
             for (let f of additionalFiles) { if (additionalUrls.length >= 4) break; const url = await uploadCompressedImage(f); if (url) additionalUrls.push(url); }
             const images = [mainUrl, ...additionalUrls];
             
+            // ✅ FIX: Product name trim kar ke save ho raha hai
             const newProduct = {
                 sellerId: seller.id,
                 sellerName: seller.shopName || "GlobalBazaar",
-                name: name,
+                name: name,  // ✅ Trimmed name
                 price: price,
                 category: cat,
                 mainImage: mainUrl,
@@ -2523,10 +2530,13 @@ function renderSellerDashboard(){
                 status: 'available',
                 createdAt: new Date().toISOString()
             };
+            
             await db.collection("products").add(newProduct);
-            showToast("✅ Product published successfully!", false);
+            showToast(`✅ Product "${name}" published successfully!`, false);
             addNotification(`Product "${name}" published`, 'info');
             await sendTelegramMessage(`📦 New product: ${name} by ${seller.shopName}`);
+            
+            // Clear form
             document.getElementById('prodName').value = '';
             document.getElementById('prodPrice').value = '';
             document.getElementById('prodStock').value = '';
@@ -2540,13 +2550,14 @@ function renderSellerDashboard(){
             document.getElementById('prodShippingSA').value = '';
             document.getElementById('prodShippingGCC').value = '';
             document.getElementById('prodShippingInt').value = '';
+            
             renderSellerDashboard();
             renderProducts();
             btn.disabled = false;
             btn.textContent = '📢 Publish';
         } catch (error) {
             console.error("Publish error:", error);
-            showToast("Error: " + error.message, true);
+            showToast("❌ Error: " + error.message, true);
             btn.disabled = false;
             btn.textContent = '📢 Publish';
         }
