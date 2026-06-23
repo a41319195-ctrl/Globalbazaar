@@ -1,12 +1,13 @@
 // ============================================================
-// GLOBAL BAZAAR - COMPLETE CODE
+// GLOBAL BAZAAR - COMPLETE FIXED CODE
 // ALL FEATURES WORKING + AUTO-REFRESH FIX
 // ============================================================
 
 // ============================================================
-// FIX: PREVENT PAGE REFRESH
+// FIX: PREVENT PAGE REFRESH - STRONGEST PREVENTION
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
+    // Sabhi forms ko block karo
     document.querySelectorAll('form').forEach(function(form) {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -15,11 +16,15 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         });
     });
+    
+    // Publish button ko force type="button"
     var publishBtn = document.getElementById('publishBtn');
     if (publishBtn) {
         publishBtn.type = 'button';
         publishBtn.setAttribute('type', 'button');
     }
+    
+    // Seller submit button ko force type="button"
     var sellerSubmitBtn = document.getElementById('sellerSubmitBtn');
     if (sellerSubmitBtn) {
         sellerSubmitBtn.type = 'button';
@@ -2065,10 +2070,10 @@ function updateMyShopBadge() {
 }
 
 // ============================================================
-// PUBLISH BUTTON - COMPLETE FIX
+// PUBLISH BUTTON - COMPLETE FIX (REFRESH BAND)
 // ============================================================
 document.getElementById('publishBtn')?.addEventListener('click', async function(e) {
-    // ✅ STRONGEST PREVENTION - YAHI SE FIX
+    // ✅ STRONGEST PREVENTION - REFRESH BAND
     if (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -2185,7 +2190,7 @@ document.getElementById('publishBtn')?.addEventListener('click', async function(
 });
 
 // ============================================================
-// SELLER DASHBOARD
+// SELLER DASHBOARD - COMPLETE
 // ============================================================
 function renderSellerDashboard(){
     if(!currentSeller?.sellerId) return;
@@ -2356,6 +2361,7 @@ function renderSellerDashboard(){
     
     const categoryOptions = FIXED_CATEGORIES.map(cat => `<option value="${cat}">${cat}</option>`).join('');
     
+    // ✅ FIX: button type="button"
     let sellerDashboardHtml = `
 <div class="premium-card"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📧 ${seller.email}<br>📍 ${seller.city}, ${seller.country}</p></div><div><span class="kyc-status ${kycClass}">${kycText}</span></div>
 <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin-top:12px;">
@@ -2418,7 +2424,10 @@ function renderSellerDashboard(){
 </div>
 `;
     document.getElementById('sellerDashboard').innerHTML = sellerDashboardHtml;
-    let ctx = document.getElementById('revenueChart')?.getContext('2d'); if(ctx){ if(sellerRevenueChart) sellerRevenueChart.destroy(); sellerRevenueChart = new Chart(ctx, { type: 'bar', data: { labels: chartLabels, datasets: [{ label: 'Revenue', data: chartData.map(v => parseFloat(convertPrice(v))), backgroundColor: '#3b82f6' }] } }); }
+    
+    // Chart
+    let ctx = document.getElementById('revenueChart')?.getContext('2d'); 
+    if(ctx){ if(sellerRevenueChart) sellerRevenueChart.destroy(); sellerRevenueChart = new Chart(ctx, { type: 'bar', data: { labels: chartLabels, datasets: [{ label: 'Revenue', data: chartData.map(v => parseFloat(convertPrice(v))), backgroundColor: '#3b82f6' }] } }); }
     
     function getTimeRemaining(soldOutAt) {
         if (!soldOutAt) return 'N/A';
@@ -2426,13 +2435,13 @@ function renderSellerDashboard(){
         const expiryTime = soldTime + (12 * 60 * 60 * 1000);
         const now = Date.now();
         const remaining = expiryTime - now;
-        
         if (remaining <= 0) return 'Expired';
         const hours = Math.floor(remaining / (60 * 60 * 1000));
         const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
         return `${hours}h ${minutes}m`;
     }
     
+    // View Orders Button
     document.querySelectorAll('.viewOrdersBtn').forEach(btn => {
         btn.addEventListener('click', function() {
             const productId = this.dataset.productid;
@@ -2487,6 +2496,7 @@ function renderSellerDashboard(){
         });
     });
     
+    // Ship Order Button - Pending Orders
     document.querySelectorAll('.shipOrderBtnSeller').forEach(btn => {
         btn.addEventListener('click', function() {
             const orderId = this.dataset.id;
@@ -2514,6 +2524,7 @@ function renderSellerDashboard(){
         });
     });
     
+    // Ship Order Button - Sold Out Products
     document.querySelectorAll('.shipOrderBtn').forEach(btn => {
         btn.addEventListener('click', function() {
             const productId = this.dataset.productid;
@@ -2585,6 +2596,7 @@ function renderSellerDashboard(){
         });
     });
     
+    // Auto-delete check
     if (window.autoDeleteInterval) clearInterval(window.autoDeleteInterval);
     window.autoDeleteInterval = setInterval(async function() {
         const now = Date.now();
@@ -2604,6 +2616,7 @@ function renderSellerDashboard(){
         updateMyShopBadge();
     }, 60000);
     
+    // Edit Product Button
     document.querySelectorAll('.editProdBtn').forEach(btn => {
         btn.addEventListener('click', function() {
             const productId = this.dataset.id;
@@ -2627,6 +2640,7 @@ function renderSellerDashboard(){
         });
     });
     
+    // Update Product Button
     document.getElementById('updateProductBtn')?.addEventListener('click', async function() {
         const btn = this;
         btn.disabled = true;
@@ -2719,18 +2733,21 @@ function renderSellerDashboard(){
         }
     });
     
+    // Confirm Order
     document.querySelectorAll('.confirmStockBtn').forEach(btn => {
         btn.addEventListener('click', function() {
             confirmOrderStock(this.dataset.id);
         });
     });
     
+    // Reject Order
     document.querySelectorAll('.rejectOrderBtn').forEach(btn => {
         btn.addEventListener('click', function() {
             rejectOrder(this.dataset.id);
         });
     });
     
+    // Delete Product
     document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', async () => { 
         let id = btn.dataset.id; 
         await db.collection("products").doc(id).delete(); 
@@ -2739,6 +2756,7 @@ function renderSellerDashboard(){
         showToast("Product deleted", false); 
     }));
     
+    // Withdraw Button
     document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
     
     updateMyShopBadge();
@@ -2848,6 +2866,9 @@ function renderBuyerWishlist(){ let w = products.filter(p => wishlist.includes(p
 document.getElementById('refreshAdminBtn')?.addEventListener('click', loadAdminData);
 window.viewSellerDocument = function(docImage, docType, sellerName){ if(docImage && docImage.startsWith('http')){ window.open(docImage, '_blank'); } else { alert(`No image available for ${sellerName}`); } };
 
+// ============================================================
+// KYC DOCUMENT VALIDATION
+// ============================================================
 function validateKYCFileType(file) {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
     if (!allowedTypes.includes(file.type)) {
@@ -2923,6 +2944,9 @@ function showTerms() {
     `;
 }
 
+// ============================================================
+// RESTOCK POPUP
+// ============================================================
 function showInventoryConfirmModal(productId, productName) {
     pendingConfirmationProduct = productId;
     document.getElementById('confirmProductName').textContent = productName;
@@ -2972,6 +2996,9 @@ document.getElementById('confirmNoBtn')?.addEventListener('click', async functio
     }
 });
 
+// ============================================================
+// UTILITY FUNCTIONS
+// ============================================================
 function showSection(section){ document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.getElementById(section+"Section").classList.add('active'); }
 document.getElementById('drawerBuyer')?.addEventListener('click', () => { showMyOrdersPage(); closeDrawer(); });
 document.getElementById('drawerSeller')?.addEventListener('click', () => { showSection('seller'); document.getElementById('sellerRegisterBox').style.display='block'; document.getElementById('sellerDashboard').style.display='none'; closeDrawer(); });
@@ -3041,6 +3068,7 @@ initializeDatabase().then(() => {
     console.error('Init error:', err);
 });
 
+// Auto-delete check every minute
 setInterval(async function() {
     const now = Date.now();
     for (const p of products) {
@@ -3059,6 +3087,7 @@ setInterval(async function() {
     updateMyShopBadge();
 }, 60000);
 
+// Update My Shop badge every 5 seconds
 setInterval(updateMyShopBadge, 5000);
 
 renderCats(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge(); updateAdminMenuBadges();
