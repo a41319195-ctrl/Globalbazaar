@@ -1,6 +1,6 @@
 // ============================================================
 // GLOBAL BAZAAR - COMPLETE FIXED CODE
-// 3 KAAM: ACTION BUTTON + EDITING + SHIPPING
+// 3 KAAM: ACTION BUTTON + EDITING + SHIPPING + AUTO-REFRESH FIX
 // SAB DYNAMIC - HAR SELLER KE LIYE KAAM KAREGA
 // ============================================================
 
@@ -2041,7 +2041,7 @@ function updateMyShopBadge() {
 }
 
 // ============================================================
-// FIX: SELLER DASHBOARD - 3 KAAM FIXED
+// FIX: SELLER DASHBOARD - 3 KAAM FIXED + AUTO-REFRESH FIX
 // ============================================================
 function renderSellerDashboard(){
     if(!currentSeller?.sellerId) return;
@@ -2085,7 +2085,7 @@ function renderSellerDashboard(){
     let kycClass = seller.kycStatus === "pending" ? "kyc-pending" : (seller.kycStatus === "verified" ? "kyc-verified" : "kyc-rejected");
     let kycText = seller.kycStatus === "pending" ? "⏳ KYC Pending - Wait for Admin" : (seller.kycStatus === "verified" ? "✅ KYC Verified" : "❌ KYC Rejected");
     
-    // ❌ KAAM 1: TOP PRODUCTS HATAYA    // Top products section remove kar diya
+    // Top Products - REMOVED
     
     let prodListHtml = myProducts.map(p => {
         const isSoldOut = p.stock <= 0;
@@ -2102,7 +2102,7 @@ function renderSellerDashboard(){
         </div>`;
     }).join('');
     
-    // ✅ KAAM 1 & 2: SOLD OUT Products - Clean + View Orders Button (Edit Button Hat Gaya)
+    // SOLD OUT Products - Clean View + View Orders Button (No Edit Button)
     let soldOutHtml = '';
     if (soldOutProducts.length > 0) {
         soldOutHtml = `<h4 style="margin:10px 0; color:#dc2626;">🔴 SOLD OUT Products (${soldOutProducts.length})</h4>`;
@@ -2135,7 +2135,7 @@ function renderSellerDashboard(){
                         </button>`}
                     </div>
                     
-                    <!-- ✅ KAAM 3: Shipping Status -->
+                    <!-- Edit button REMOVED from Orders & Actions -->
                     <div style="font-size:11px; color:#94a3b8; margin-top:6px;">
                         💡 Go to "My Products" to edit & restock
                     </div>
@@ -2198,7 +2198,7 @@ function renderSellerDashboard(){
     
     const categoryOptions = FIXED_CATEGORIES.map(cat => `<option value="${cat}">${cat}</option>`).join('');
     
-    // ❌ KAAM 1: TOP PRODUCTS HATAYA - Ab "Top Products" section nahi dikhega
+    // Top Products REMOVED
     let sellerDashboardHtml = `
 <div class="premium-card"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📧 ${seller.email}<br>📍 ${seller.city}, ${seller.country}</p></div><div><span class="kyc-status ${kycClass}">${kycText}</span></div>
 <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin-top:12px;">
@@ -2277,7 +2277,7 @@ function renderSellerDashboard(){
         return `${hours}h ${minutes}m`;
     }
     
-    // ✅ KAAM 3: SHIPPING FUNCTION - View Orders Modal
+    // VIEW ORDERS - Modal with all orders
     document.querySelectorAll('.viewOrdersBtn').forEach(btn => {
         btn.addEventListener('click', function() {
             const productId = this.dataset.productid;
@@ -2332,14 +2332,13 @@ function renderSellerDashboard(){
         });
     });
     
-    // ✅ KAAM 3: SHIPPING FUNCTION - Ship Order Button
+    // SHIP ORDER
     document.querySelectorAll('.shipOrderBtn').forEach(btn => {
         btn.addEventListener('click', function() {
             const productId = this.dataset.productid;
             const product = products.find(p => p.id == productId);
             if (!product) return;
             
-            // Get pending orders for this product
             const pendingOrdersForProduct = orders.filter(o => 
                 (o.productDetails?.id === productId || o.productName === product.name) && 
                 o.status === 'Processing'
@@ -2350,7 +2349,6 @@ function renderSellerDashboard(){
                 return;
             }
             
-            // Show shipping modal
             let modalHtml = `
                 <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;">
                     <div style="background:white;border-radius:16px;padding:24px;max-width:500px;width:100%;max-height:80vh;overflow-y:auto;position:relative;">
@@ -2378,7 +2376,6 @@ function renderSellerDashboard(){
             
             document.body.insertAdjacentHTML('beforeend', modalHtml);
             
-            // Mark Shipped button handler
             document.querySelector('.markShippedBtn')?.addEventListener('click', async function() {
                 const pid = this.dataset.productid;
                 const productOrders = orders.filter(o => 
@@ -2393,7 +2390,6 @@ function renderSellerDashboard(){
                         shippedAt: new Date().toISOString()
                     };
                     
-                    // Update in Firebase
                     try {
                         const orderRef = db.collection('orders').doc(order.id);
                         await orderRef.update({
@@ -2410,10 +2406,7 @@ function renderSellerDashboard(){
                 addNotification(`📦 ${productOrders.length} order(s) shipped for ${products.find(p => p.id == pid)?.name}`, 'order');
                 sendTelegramMessage(`📦 ${productOrders.length} order(s) shipped for ${products.find(p => p.id == pid)?.name}`);
                 
-                // Close modal
                 this.parentElement.parentElement.remove();
-                
-                // Refresh dashboard
                 renderSellerDashboard();
                 renderProducts();
                 updateMyShopBadge();
@@ -2441,7 +2434,7 @@ function renderSellerDashboard(){
         updateMyShopBadge();
     }, 60000);
     
-    // ✅ KAAM 2: EDIT BUTTON - My Products mein hi rahega (Orders & Actions se hat gaya)
+    // EDIT BUTTON - ONLY in My Products (Orders & Actions se REMOVED)
     document.querySelectorAll('.editProdBtn').forEach(btn => {
         btn.addEventListener('click', function() {
             const productId = this.dataset.id;
@@ -2465,7 +2458,7 @@ function renderSellerDashboard(){
         });
     });
     
-    // Update Product Button - Restock on save
+    // UPDATE PRODUCT - Restock on save
     document.getElementById('updateProductBtn')?.addEventListener('click', async function() {
         const btn = this;
         btn.disabled = true;
@@ -2493,7 +2486,6 @@ function renderSellerDashboard(){
                 updatedAt: new Date().toISOString()
             };
             
-            // If stock > 0, remove sold out status
             if (updates.stock > 0) {
                 updates.soldOutAt = null;
             }
@@ -2917,9 +2909,9 @@ updateCategorySelect();
 
 const debugMsg = document.getElementById('debugMsg');
 if (debugMsg) {
-    debugMsg.innerHTML = "GlobalBazaar Ready | 3 KAAM FIXED!";
+    debugMsg.innerHTML = "GlobalBazaar Ready | 3 KAAM FIXED + AUTO-REFRESH FIX!";
 }
 
 // ============================================================
-// END OF FILE - 3 KAAM FIXED
+// END OF FILE - 3 KAAM FIXED + AUTO-REFRESH FIX
 // ============================================================
