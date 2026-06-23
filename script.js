@@ -2068,6 +2068,7 @@ function updateMyShopBadge() {
 // PUBLISH BUTTON - COMPLETE FIX
 // ============================================================
 document.getElementById('publishBtn')?.addEventListener('click', async function(e) {
+    // ✅ STRONGEST PREVENTION - YAHI SE FIX
     if (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -2184,7 +2185,7 @@ document.getElementById('publishBtn')?.addEventListener('click', async function(
 });
 
 // ============================================================
-// SELLER DASHBOARD - COMPLETE WITH ALL FEATURES
+// SELLER DASHBOARD
 // ============================================================
 function renderSellerDashboard(){
     if(!currentSeller?.sellerId) return;
@@ -2227,8 +2228,6 @@ function renderSellerDashboard(){
     let kycClass = seller.kycStatus === "pending" ? "kyc-pending" : (seller.kycStatus === "verified" ? "kyc-verified" : "kyc-rejected");
     let kycText = seller.kycStatus === "pending" ? "⏳ KYC Pending - Wait for Admin" : (seller.kycStatus === "verified" ? "✅ KYC Verified" : "❌ KYC Rejected");
     
-    // REMOVED: Top Products section (hata diya)
-    
     let prodListHtml = myProducts.map(p => {
         const isSoldOut = p.stock <= 0;
         return `<div class="flex-between">
@@ -2244,7 +2243,6 @@ function renderSellerDashboard(){
         </div>`;
     }).join('');
     
-    // SOLD OUT Products with Buyer Details and SHIP BUTTON
     let soldOutHtml = '';
     if (soldOutProducts.length > 0) {
         soldOutHtml = `<h4 style="margin:10px 0; color:#dc2626;">🔴 SOLD OUT Products (${soldOutProducts.length})</h4>`;
@@ -2301,7 +2299,6 @@ function renderSellerDashboard(){
         }).join('');
     }
     
-    // Pending Orders with SHIP BUTTON
     let ordersHtml = '';
     if (pendingOrders.length > 0) {
         ordersHtml += `<h4 style="margin:10px 0; color:#f59e0b;">🟡 Pending Orders (${pendingOrders.length})</h4>`;
@@ -2423,7 +2420,6 @@ function renderSellerDashboard(){
     document.getElementById('sellerDashboard').innerHTML = sellerDashboardHtml;
     let ctx = document.getElementById('revenueChart')?.getContext('2d'); if(ctx){ if(sellerRevenueChart) sellerRevenueChart.destroy(); sellerRevenueChart = new Chart(ctx, { type: 'bar', data: { labels: chartLabels, datasets: [{ label: 'Revenue', data: chartData.map(v => parseFloat(convertPrice(v))), backgroundColor: '#3b82f6' }] } }); }
     
-    // Helper function for time remaining
     function getTimeRemaining(soldOutAt) {
         if (!soldOutAt) return 'N/A';
         const soldTime = new Date(soldOutAt).getTime();
@@ -2437,7 +2433,6 @@ function renderSellerDashboard(){
         return `${hours}h ${minutes}m`;
     }
     
-    // VIEW ORDERS - Modal with all orders
     document.querySelectorAll('.viewOrdersBtn').forEach(btn => {
         btn.addEventListener('click', function() {
             const productId = this.dataset.productid;
@@ -2492,7 +2487,6 @@ function renderSellerDashboard(){
         });
     });
     
-    // SHIP ORDER BUTTON - For Pending Orders
     document.querySelectorAll('.shipOrderBtnSeller').forEach(btn => {
         btn.addEventListener('click', function() {
             const orderId = this.dataset.id;
@@ -2520,7 +2514,6 @@ function renderSellerDashboard(){
         });
     });
     
-    // SHIP ORDER - From Sold Out Products
     document.querySelectorAll('.shipOrderBtn').forEach(btn => {
         btn.addEventListener('click', function() {
             const productId = this.dataset.productid;
@@ -2592,7 +2585,6 @@ function renderSellerDashboard(){
         });
     });
     
-    // Auto-delete check every minute
     if (window.autoDeleteInterval) clearInterval(window.autoDeleteInterval);
     window.autoDeleteInterval = setInterval(async function() {
         const now = Date.now();
@@ -2612,7 +2604,6 @@ function renderSellerDashboard(){
         updateMyShopBadge();
     }, 60000);
     
-    // EDIT BUTTON - ONLY in My Products
     document.querySelectorAll('.editProdBtn').forEach(btn => {
         btn.addEventListener('click', function() {
             const productId = this.dataset.id;
@@ -2636,7 +2627,6 @@ function renderSellerDashboard(){
         });
     });
     
-    // UPDATE PRODUCT - Restock on save
     document.getElementById('updateProductBtn')?.addEventListener('click', async function() {
         const btn = this;
         btn.disabled = true;
@@ -2729,7 +2719,6 @@ function renderSellerDashboard(){
         }
     });
     
-    // Confirm Order
     document.querySelectorAll('.confirmStockBtn').forEach(btn => {
         btn.addEventListener('click', function() {
             confirmOrderStock(this.dataset.id);
@@ -2859,9 +2848,6 @@ function renderBuyerWishlist(){ let w = products.filter(p => wishlist.includes(p
 document.getElementById('refreshAdminBtn')?.addEventListener('click', loadAdminData);
 window.viewSellerDocument = function(docImage, docType, sellerName){ if(docImage && docImage.startsWith('http')){ window.open(docImage, '_blank'); } else { alert(`No image available for ${sellerName}`); } };
 
-// ============================================================
-// KYC DOCUMENT VALIDATION
-// ============================================================
 function validateKYCFileType(file) {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
     if (!allowedTypes.includes(file.type)) {
@@ -2937,9 +2923,6 @@ function showTerms() {
     `;
 }
 
-// ============================================================
-// RESTOCK POPUP - YES/NO Modal Functions
-// ============================================================
 function showInventoryConfirmModal(productId, productName) {
     pendingConfirmationProduct = productId;
     document.getElementById('confirmProductName').textContent = productName;
@@ -3058,7 +3041,6 @@ initializeDatabase().then(() => {
     console.error('Init error:', err);
 });
 
-// Auto-delete check every minute
 setInterval(async function() {
     const now = Date.now();
     for (const p of products) {
@@ -3077,7 +3059,6 @@ setInterval(async function() {
     updateMyShopBadge();
 }, 60000);
 
-// Update My Shop badge every 5 seconds
 setInterval(updateMyShopBadge, 5000);
 
 renderCats(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge(); updateAdminMenuBadges();
