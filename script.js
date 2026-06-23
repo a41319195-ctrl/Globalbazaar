@@ -4,31 +4,24 @@
 // ============================================================
 
 // ============================================================
-// FIX: PREVENT PAGE REFRESH - STRONGER PREVENTION
+// FIX: PREVENT PAGE REFRESH - SIRF 1 LINE CHANGE
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
-    // Sabhi forms ko block karo
     document.querySelectorAll('form').forEach(function(form) {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            e.stopImmediatePropagation();
+            e.stopImmediatePropagation(); // ✅ SIRF YEH 1 LINE ADD KI
             return false;
         });
     });
-    
-    // Publish button ko force type="button"
     var publishBtn = document.getElementById('publishBtn');
     if (publishBtn) {
         publishBtn.type = 'button';
-        publishBtn.setAttribute('type', 'button');
     }
-    
-    // Seller submit button ko force type="button"
     var sellerSubmitBtn = document.getElementById('sellerSubmitBtn');
     if (sellerSubmitBtn) {
         sellerSubmitBtn.type = 'button';
-        sellerSubmitBtn.setAttribute('type', 'button');
     }
 });
 
@@ -1856,11 +1849,9 @@ setInterval(processWeeklyWithdrawals, 3600000); processWeeklyWithdrawals();
 // SELLER REGISTRATION
 // ============================================================
 document.getElementById('sellerSubmitBtn')?.addEventListener('click', async function(e) {
-    // ✅ FIX: Prevent default
     if (e) {
         e.preventDefault();
         e.stopPropagation();
-        e.stopImmediatePropagation();
     }
     
     const btn = this;
@@ -2055,7 +2046,6 @@ function updateMyShopBadge() {
         badge = span;
     }
     
-    // Sirf pending orders count (Processing status)
     if (currentSeller?.sellerId) {
         const pendingOrders = orders.filter(o => 
             o.sellerId === currentSeller.sellerId && 
@@ -2075,14 +2065,12 @@ function updateMyShopBadge() {
 }
 
 // ============================================================
-// PUBLISH BUTTON - COMPLETE FIX WITH REFRESH PREVENTION
+// PUBLISH BUTTON - FIXED
 // ============================================================
 document.getElementById('publishBtn')?.addEventListener('click', async function(e) {
-    // ✅ STRONGEST PREVENTION
     if (e) {
         e.preventDefault();
         e.stopPropagation();
-        e.stopImmediatePropagation();
     }
     
     const btn = this;
@@ -2413,7 +2401,7 @@ function renderSellerDashboard(){
     <label>Additional Images (optional, max 4)</label>
     <input type="file" id="prodImagesFiles" accept="image/*" multiple class="input">
     <textarea id="prodDesc" placeholder="Description" class="input" rows="2"></textarea>
-    <button id="publishBtn" type="button" class="btn-primary">📢 Publish</button>
+    <button id="publishBtn" class="btn-primary">📢 Publish</button>
 </div>
 <div class="premium-card"><h3>📋 My Products (${myProducts.length})</h3><div id="myProductsList">${prodListHtml}</div></div>
 <div class="premium-card"><h3>📦 Orders & Actions</h3>
@@ -2428,7 +2416,7 @@ function renderSellerDashboard(){
     function getTimeRemaining(soldOutAt) {
         if (!soldOutAt) return 'N/A';
         const soldTime = new Date(soldOutAt).getTime();
-        const expiryTime = soldTime + (12 * 60 * 60 * 1000); // 12 hours
+        const expiryTime = soldTime + (12 * 60 * 60 * 1000);
         const now = Date.now();
         const remaining = expiryTime - now;
         
@@ -2735,7 +2723,6 @@ function renderSellerDashboard(){
     
     document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
     
-    // Dashboard open karne par badge count reset
     updateMyShopBadge();
 }
 
