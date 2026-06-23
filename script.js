@@ -1,6 +1,6 @@
 // ============================================================
 // GLOBAL BAZAAR - COMPLETE FIXED CODE
-// 3 KAAM: ACTION BUTTON + EDITING + SHIPPING + AUTO-REFRESH FIX
+// AUTO-REFRESH FIX + 3 KAAM (ACTION BUTTON + EDITING + SHIPPING)
 // SAB DYNAMIC - HAR SELLER KE LIYE KAAM KAREGA
 // ============================================================
 
@@ -2041,7 +2041,120 @@ function updateMyShopBadge() {
 }
 
 // ============================================================
-// FIX: SELLER DASHBOARD - 3 KAAM FIXED + AUTO-REFRESH FIX
+// ============================================================
+// FIX: PUBLISH BUTTON - NO AUTO-REFRESH (e.preventDefault)
+// ============================================================
+document.getElementById('publishBtn')?.addEventListener('click', async function(e) {
+    // ✅ CRITICAL: Page refresh rokna
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    const btn = this;
+    btn.disabled = true;
+    btn.textContent = '⏳ Publishing...';
+    
+    try {
+        const name = document.getElementById('prodName')?.value?.trim() || '';
+        const price = parseFloat(document.getElementById('prodPrice')?.value || 0);
+        const cat = document.getElementById('prodCat')?.value || '';
+        const stock = parseInt(document.getElementById('prodStock')?.value || 0);
+        const desc = document.getElementById('prodDesc')?.value || '';
+        
+        if (!name) { showToast("❌ Product name required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+        if (!price || price <= 0) { showToast("❌ Valid price required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+        if (!stock || stock <= 0) { showToast("❌ Valid stock required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+        if (!cat) { showToast("❌ Please select a category", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+        if (!FIXED_CATEGORIES.includes(cat)) { showToast("❌ Invalid category selected", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+        
+        const mainFile = document.getElementById('prodMainImg')?.files[0];
+        if (!mainFile) { showToast("❌ Main image required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+        
+        const weight = parseFloat(document.getElementById('prodWeight')?.value || 0);
+        const length = parseFloat(document.getElementById('prodLength')?.value || 0);
+        const width = parseFloat(document.getElementById('prodWidth')?.value || 0);
+        const height = parseFloat(document.getElementById('prodHeight')?.value || 0);
+        
+        if (!weight || weight <= 0) { showToast("❌ Valid weight required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+        if (!length || length <= 0 || !width || width <= 0 || !height || height <= 0) {
+            showToast("❌ Valid dimensions required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return;
+        }
+        
+        const shippingSA = parseFloat(document.getElementById('prodShippingSA')?.value || 0);
+        const shippingGCC = parseFloat(document.getElementById('prodShippingGCC')?.value || 0);
+        const shippingInt = parseFloat(document.getElementById('prodShippingInt')?.value || 0);
+        
+        if (!currentSeller || !currentSeller.sellerId) { showToast("❌ Please login as seller first", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+        const seller = sellers.find(s => s.id === currentSeller.sellerId);
+        if (!seller || seller.kycStatus !== 'verified') { showToast("❌ Your KYC is not verified.", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+        
+        showToast("📤 Uploading image...", false);
+        const mainUrl = await uploadCompressedImage(mainFile);
+        if (!mainUrl) { showToast("❌ Image upload failed. Try again.", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+        
+        const additionalFiles = document.getElementById('prodImagesFiles')?.files || [];
+        const additionalUrls = [];
+        for (let f of additionalFiles) { if (additionalUrls.length >= 4) break; const url = await uploadCompressedImage(f); if (url) additionalUrls.push(url); }
+        const images = [mainUrl, ...additionalUrls];
+        
+        const newProduct = {
+            sellerId: seller.id,
+            sellerName: seller.shopName || "GlobalBazaar",
+            name: name,
+            price: price,
+            category: cat,
+            mainImage: mainUrl,
+            images: images,
+            description: desc || "",
+            sellerCountry: seller.country || "SA",
+            rating: 0,
+            stock: stock,
+            weight: weight,
+            size: { length: length, width: width, height: height },
+            shippingRates: {
+                SA: shippingSA,
+                GCC: shippingGCC,
+                International: shippingInt
+            },
+            createdAt: new Date().toISOString()
+        };
+        
+        await db.collection("products").add(newProduct);
+        showToast(`✅ Product "${name}" published successfully!`, false);
+        addNotification(`Product "${name}" published`, 'info');
+        await sendTelegramMessage(`📦 New product: ${name} by ${seller.shopName}`);
+        
+        // Clear form
+        document.getElementById('prodName').value = '';
+        document.getElementById('prodPrice').value = '';
+        document.getElementById('prodStock').value = '';
+        document.getElementById('prodMainImg').value = '';
+        document.getElementById('prodImagesFiles').value = '';
+        document.getElementById('prodDesc').value = '';
+        document.getElementById('prodWeight').value = '';
+        document.getElementById('prodLength').value = '';
+        document.getElementById('prodWidth').value = '';
+        document.getElementById('prodHeight').value = '';
+        document.getElementById('prodShippingSA').value = '';
+        document.getElementById('prodShippingGCC').value = '';
+        document.getElementById('prodShippingInt').value = '';
+        
+        renderSellerDashboard();
+        renderProducts();
+        btn.disabled = false;
+        btn.textContent = '📢 Publish';
+        
+    } catch (error) {
+        console.error("Publish error:", error);
+        showToast("❌ Error: " + (error.message || 'Unknown error'), true);
+        btn.disabled = false;
+        btn.textContent = '📢 Publish';
+    }
+});
+
+// ============================================================
+// SELLER DASHBOARD - COMPLETE
 // ============================================================
 function renderSellerDashboard(){
     if(!currentSeller?.sellerId) return;
@@ -2909,9 +3022,9 @@ updateCategorySelect();
 
 const debugMsg = document.getElementById('debugMsg');
 if (debugMsg) {
-    debugMsg.innerHTML = "GlobalBazaar Ready | 3 KAAM FIXED + AUTO-REFRESH FIX!";
+    debugMsg.innerHTML = "GlobalBazaar Ready | AUTO-REFRESH FIXED + 3 KAAM DONE!";
 }
 
 // ============================================================
-// END OF FILE - 3 KAAM FIXED + AUTO-REFRESH FIX
+// END OF FILE - ALL FIXED
 // ============================================================
