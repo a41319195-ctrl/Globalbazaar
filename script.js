@@ -4,24 +4,26 @@
 // ============================================================
 
 // ============================================================
-// FIX: PREVENT PAGE REFRESH - SIRF 1 LINE CHANGE
+// FIX: PREVENT PAGE REFRESH
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('form').forEach(function(form) {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            e.stopImmediatePropagation(); // ✅ SIRF YEH 1 LINE ADD KI
+            e.stopImmediatePropagation();
             return false;
         });
     });
     var publishBtn = document.getElementById('publishBtn');
     if (publishBtn) {
         publishBtn.type = 'button';
+        publishBtn.setAttribute('type', 'button');
     }
     var sellerSubmitBtn = document.getElementById('sellerSubmitBtn');
     if (sellerSubmitBtn) {
         sellerSubmitBtn.type = 'button';
+        sellerSubmitBtn.setAttribute('type', 'button');
     }
 });
 
@@ -1310,7 +1312,7 @@ function loadAdminData() {
 }
 
 // ============================================================
-// RENDER PRODUCTS - FIXED: SOLD OUT LABEL + DISABLE BUY
+// RENDER PRODUCTS
 // ============================================================
 let currentCategory = "All";
 
@@ -1318,7 +1320,6 @@ function renderProductCard(p) {
     const seller = sellers.find(s => s.id === p.sellerId) || { shopName: "GlobalBazaar", country: "SA" };
     const displayPrice = calculateDisplayPrice(p.price);
     
-    // SOLD OUT label - jab stock 0 ho
     const isSoldOut = p.stock <= 0;
     
     const soldOutBadge = isSoldOut ? 
@@ -1363,7 +1364,6 @@ function renderProducts(){
     grid.innerHTML = '';
     let search = document.getElementById('searchInput')?.value.toLowerCase() || "";
     
-    // Sirf available products dikhao (stock > 0)
     let filtered = products.filter(p => 
         (currentCategory === "All" || p.category === currentCategory) && 
         p.name.toLowerCase().includes(search) && 
@@ -1714,7 +1714,6 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             orders.push(newOrder);
             platformEarnings += (item.price * PLATFORM_COMMISSION) + priceCalc.gatewayFee + MAINTENANCE_FEE;
             
-            // UPDATE PRODUCT STOCK AND STATUS
             if (product) {
                 product.stock -= item.qty;
                 if (product.stock <= 0) {
@@ -1852,6 +1851,7 @@ document.getElementById('sellerSubmitBtn')?.addEventListener('click', async func
     if (e) {
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
     }
     
     const btn = this;
@@ -2065,13 +2065,16 @@ function updateMyShopBadge() {
 }
 
 // ============================================================
-// PUBLISH BUTTON - FIXED
+// PUBLISH BUTTON - COMPLETE FIX
 // ============================================================
 document.getElementById('publishBtn')?.addEventListener('click', async function(e) {
     if (e) {
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
     }
+    
+    console.log('🔴 PUBLISH BUTTON CLICKED!');
     
     const btn = this;
     btn.disabled = true;
@@ -2083,6 +2086,8 @@ document.getElementById('publishBtn')?.addEventListener('click', async function(
         const cat = document.getElementById('prodCat')?.value || '';
         const stock = parseInt(document.getElementById('prodStock')?.value || 0);
         const desc = document.getElementById('prodDesc')?.value || '';
+        
+        console.log('📦 Product Data:', { name, price, cat, stock, desc });
         
         if (!name) { showToast("❌ Product name required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
         if (!price || price <= 0) { showToast("❌ Valid price required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
@@ -2142,7 +2147,11 @@ document.getElementById('publishBtn')?.addEventListener('click', async function(
             createdAt: new Date().toISOString()
         };
         
-        await db.collection("products").add(newProduct);
+        console.log('📤 Sending to Firestore:', newProduct);
+        
+        const docRef = await db.collection("products").add(newProduct);
+        console.log('✅ Product saved with ID:', docRef.id);
+        
         showToast(`✅ Product "${name}" published successfully!`, false);
         addNotification(`Product "${name}" published`, 'info');
         await sendTelegramMessage(`📦 New product: ${name} by ${seller.shopName}`);
@@ -2167,7 +2176,7 @@ document.getElementById('publishBtn')?.addEventListener('click', async function(
         btn.textContent = '📢 Publish';
         
     } catch (error) {
-        console.error("Publish error:", error);
+        console.error("❌ Publish error:", error);
         showToast("❌ Error: " + (error.message || 'Unknown error'), true);
         btn.disabled = false;
         btn.textContent = '📢 Publish';
@@ -2217,9 +2226,8 @@ function renderSellerDashboard(){
     
     let kycClass = seller.kycStatus === "pending" ? "kyc-pending" : (seller.kycStatus === "verified" ? "kyc-verified" : "kyc-rejected");
     let kycText = seller.kycStatus === "pending" ? "⏳ KYC Pending - Wait for Admin" : (seller.kycStatus === "verified" ? "✅ KYC Verified" : "❌ KYC Rejected");
-    let topProducts = {}; 
-    myOrders.forEach(o => { topProducts[o.productName] = (topProducts[o.productName]||0) + o.qty; }); 
-    let topList = Object.entries(topProducts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    
+    // REMOVED: Top Products section (hata diya)
     
     let prodListHtml = myProducts.map(p => {
         const isSoldOut = p.stock <= 0;
@@ -2236,7 +2244,7 @@ function renderSellerDashboard(){
         </div>`;
     }).join('');
     
-    // SOLD OUT Products with Buyer Details
+    // SOLD OUT Products with Buyer Details and SHIP BUTTON
     let soldOutHtml = '';
     if (soldOutProducts.length > 0) {
         soldOutHtml = `<h4 style="margin:10px 0; color:#dc2626;">🔴 SOLD OUT Products (${soldOutProducts.length})</h4>`;
@@ -2280,7 +2288,7 @@ function renderSellerDashboard(){
                         ${orderCount > 0 ? `<button class="viewOrdersBtn" data-productid="${p.id}" style="background:#3b82f6; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer;">
                             👁️ View Orders (${orderCount})
                         </button>` : ''}
-                        ${orderCount > 0 ? `<button class="shipOrderBtn" data-productid="${p.id}" style="background:#f59e0b; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer;">
+                        ${orderCount > 0 ? `<button class="shipOrderBtn" data-productid="${p.id}" style="background:#10b981; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
                             🚚 Ship Order
                         </button>` : ''}
                     </div>
@@ -2293,7 +2301,7 @@ function renderSellerDashboard(){
         }).join('');
     }
     
-    // Pending Orders
+    // Pending Orders with SHIP BUTTON
     let ordersHtml = '';
     if (pendingOrders.length > 0) {
         ordersHtml += `<h4 style="margin:10px 0; color:#f59e0b;">🟡 Pending Orders (${pendingOrders.length})</h4>`;
@@ -2307,14 +2315,18 @@ function renderSellerDashboard(){
                         <br><span style="font-size:12px; color:#64748b;">Buyer: ${o.buyerName}</span>
                         <br><span style="font-size:13px; font-weight:bold; color:#10b981;">Net Revenue: ${getCurrencySymbol()}${convertPrice((o.basePrice - (o.basePrice * PLATFORM_COMMISSION) - MAINTENANCE_FEE) * o.qty)}</span>
                         <br><span style="font-size:12px; color:#64748b;">📦 Shipping Address: ${o.address || 'N/A'}</span>
+                        <br><span style="font-size:12px; color:#64748b;">📮 Tracking: ${o.trackingNumber || 'N/A'}</span>
                     </div>
                 </div>
-                <div style="display:flex; gap:8px; margin-top:8px;">
+                <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
                     <button class="confirmStockBtn" data-id="${o.id}" style="background:#10b981; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
-                        ✅ Confirm
+                        ✅ Confirm Order
                     </button>
                     <button class="rejectOrderBtn" data-id="${o.id}" style="background:#dc2626; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
-                        ❌ Reject
+                        ❌ Reject Order
+                    </button>
+                    <button class="shipOrderBtnSeller" data-id="${o.id}" style="background:#3b82f6; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
+                        🚚 Mark as Shipped
                     </button>
                 </div>
                 <div style="font-size:10px; color:#94a3b8; margin-top:4px;">${o.date}</div>
@@ -2365,7 +2377,6 @@ function renderSellerDashboard(){
 </div>
 <div style="margin-top:12px;">🏦 Balance: ${getCurrencySymbol()}${convertPrice(seller.earnings)}</div><button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Withdraw</button></div>
 <div class="chart-container"><h3>📊 Revenue</h3><canvas id="revenueChart"></canvas></div>
-<div class="premium-card"><h3>📈 Top Products</h3>${topList.map(p=>`${p[0]}: ${p[1]} sold`).join('<br>') || 'No sales'}</div>
 <div class="premium-card"><h3>➕ Add Product</h3>
     <input type="text" id="prodName" placeholder="Product Name" class="input" required>
     <input type="number" id="prodPrice" placeholder="Price (USD)" class="input" required>
@@ -2401,7 +2412,7 @@ function renderSellerDashboard(){
     <label>Additional Images (optional, max 4)</label>
     <input type="file" id="prodImagesFiles" accept="image/*" multiple class="input">
     <textarea id="prodDesc" placeholder="Description" class="input" rows="2"></textarea>
-    <button id="publishBtn" class="btn-primary">📢 Publish</button>
+    <button id="publishBtn" type="button" class="btn-primary">📢 Publish</button>
 </div>
 <div class="premium-card"><h3>📋 My Products (${myProducts.length})</h3><div id="myProductsList">${prodListHtml}</div></div>
 <div class="premium-card"><h3>📦 Orders & Actions</h3>
@@ -2481,7 +2492,35 @@ function renderSellerDashboard(){
         });
     });
     
-    // SHIP ORDER
+    // SHIP ORDER BUTTON - For Pending Orders
+    document.querySelectorAll('.shipOrderBtnSeller').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const orderId = this.dataset.id;
+            const order = orders.find(o => o.id == orderId);
+            if (!order) {
+                showToast('Order not found!', true);
+                return;
+            }
+            
+            const trackingNum = order.trackingNumber || 'GB' + Date.now();
+            order.status = 'Shipped';
+            order.trackingInfo = {
+                trackingNumber: trackingNum,
+                shippedAt: new Date().toISOString()
+            };
+            
+            saveAllLocal();
+            showToast(`✅ Order ${trackingNum} marked as Shipped!`, false);
+            addNotification(`📦 Order ${trackingNum} shipped to ${order.buyerName}`, 'order');
+            sendTelegramMessage(`📦 Order ${trackingNum} shipped to ${order.buyerName}`);
+            
+            renderSellerDashboard();
+            renderBuyerOrders();
+            updateMyShopBadge();
+        });
+    });
+    
+    // SHIP ORDER - From Sold Out Products
     document.querySelectorAll('.shipOrderBtn').forEach(btn => {
         btn.addEventListener('click', function() {
             const productId = this.dataset.productid;
@@ -2538,16 +2577,6 @@ function renderSellerDashboard(){
                         trackingNumber: order.trackingNumber || 'GB' + Date.now(),
                         shippedAt: new Date().toISOString()
                     };
-                    
-                    try {
-                        const orderRef = db.collection('orders').doc(order.id);
-                        await orderRef.update({
-                            status: 'Shipped',
-                            trackingInfo: order.trackingInfo
-                        });
-                    } catch (e) {
-                        console.error('Error updating order:', e);
-                    }
                 }
                 
                 saveAllLocal();
