@@ -1,6 +1,6 @@
 // ============================================================
-// GLOBAL BAZAAR - COMPLETE 100% FIXED CODE
-// ALL ISSUES RESOLVED: PAYMENT + SHIPPING + SELLER DASHBOARD
+// GLOBAL BAZAAR - COMPLETE FIXED CODE
+// SIMPLE SYSTEM: EDIT BUTTON RESTOCK + 12-HOUR AUTO-DELETE
 // ============================================================
 
 // ============================================================
@@ -1296,13 +1296,12 @@ function renderProductCard(p) {
     const seller = sellers.find(s => s.id === p.sellerId) || { shopName: "GlobalBazaar", country: "SA" };
     const displayPrice = calculateDisplayPrice(p.price);
     
-    // ✅ FIX: SOLD OUT label - jab stock 0 ho ya pending_approval
-    const isSoldOut = p.stock <= 0 || p.status === 'pending_approval';
+    // ✅ FIX: SOLD OUT label - jab stock 0 ho
+    const isSoldOut = p.stock <= 0;
     
     const soldOutBadge = isSoldOut ? 
         `<div class="soldout-badge">🔴 SOLD OUT</div>` : '';
     
-    // ✅ FIX: "Only X left" sirf tab dikhao jab stock > 0 aur stock < 5
     const stockBadge = (!isSoldOut && p.stock < 5 && p.stock > 0) ? 
         `<div class="stock-badge">Only ${p.stock} left</div>` : '';
     
@@ -1342,12 +1341,11 @@ function renderProducts(){
     grid.innerHTML = '';
     let search = document.getElementById('searchInput')?.value.toLowerCase() || "";
     
-    // ✅ FIX: Sirf available products dikhao (stock > 0 aur status 'available')
+    // ✅ Sirf available products dikhao (stock > 0)
     let filtered = products.filter(p => 
         (currentCategory === "All" || p.category === currentCategory) && 
         p.name.toLowerCase().includes(search) && 
-        p.stock > 0 && 
-        p.status !== 'pending_approval'
+        p.stock > 0
     );
     
     if (filtered.length === 0) {
@@ -1413,7 +1411,7 @@ function openProduct(id){
 
 function addToCart(id){
     let p = products.find(x => x.id == id); if(!p) return;
-    if(p.stock <= 0 || p.status === 'pending_approval'){ 
+    if(p.stock <= 0){ 
         showToast("This product is sold out!",true); 
         return; 
     }
@@ -2009,7 +2007,7 @@ document.getElementById('drawerMyShop')?.addEventListener('click', function() {
 });
 
 // ============================================================
-// NOTIFICATION BADGE ON 'MY SHOP' BUTTON
+// FIX: NOTIFICATION BADGE ON 'MY SHOP' BUTTON
 // ============================================================
 function updateMyShopBadge() {
     const btn = document.getElementById('drawerMyShop');
@@ -2024,13 +2022,16 @@ function updateMyShopBadge() {
         badge = span;
     }
     
+    // ✅ Sirf pending orders count (Processing status)
     if (currentSeller?.sellerId) {
-        const pendingOrders = orders.filter(o => o.sellerId === currentSeller.sellerId && o.status === 'Processing').length;
-        const pendingProducts = products.filter(p => p.sellerId === currentSeller.sellerId && p.status === 'pending_approval').length;
-        const totalPending = pendingOrders + pendingProducts;
+        const pendingOrders = orders.filter(o => 
+            o.sellerId === currentSeller.sellerId && 
+            o.status === 'Processing'
+        ).length;
         
-        if (totalPending > 0) {
-            badge.textContent = totalPending;
+        // ✅ Sirf pending orders count, sold out products nahi
+        if (pendingOrders > 0) {
+            badge.textContent = pendingOrders;
             badge.style.display = 'inline-block';
             badge.style.background = '#ef4444';
         } else {
@@ -2042,7 +2043,7 @@ function updateMyShopBadge() {
 }
 
 // ============================================================
-// SELLER DASHBOARD - COMPLETE WITH YES/NO BUTTONS
+// FIX: SELLER DASHBOARD - SIMPLE VERSION WITH EDIT RESTOCK
 // ============================================================
 function renderSellerDashboard(){
     if(!currentSeller?.sellerId) return;
@@ -2066,11 +2067,9 @@ function renderSellerDashboard(){
     let myOrders = orders.filter(o => o.sellerId == seller.id);
     let totalSales = 0, totalOrders = myOrders.length;
     let pendingOrders = myOrders.filter(o => o.status === 'Processing');
-    let pendingApprovalProducts = myProducts.filter(p => p.status === 'pending_approval');
+    let soldOutProducts = myProducts.filter(p => p.stock <= 0);
     
-    console.log('🔍 Pending Approval Products:', pendingApprovalProducts.length);
-    console.log('🔍 Pending Orders:', pendingOrders.length);
-    
+    // ✅ Revenue calculation
     let monthlyRevenue = {};
     myOrders.forEach(o => { 
         if(o.status === "Completed"){ 
@@ -2091,28 +2090,38 @@ function renderSellerDashboard(){
     myOrders.forEach(o => { topProducts[o.productName] = (topProducts[o.productName]||0) + o.qty; }); 
     let topList = Object.entries(topProducts).sort((a,b)=>b[1]-a[1]).slice(0,5);
     
-    let prodListHtml = myProducts.map(p => `<div class="flex-between"><span><img src="${p.mainImage}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;"> ${p.name} - ${getCurrencySymbol()}${convertPrice(p.price)} (Stock: ${p.stock}) ${p.status === 'pending_approval' ? '🔴 SOLD OUT - Pending' : ''}</span><button class="editProdBtn" data-id="${p.id}" style="background:#3b82f6;border:none;padding:4px 12px;border-radius:20px;">✏️ Edit</button><button class="delProd" data-id="${p.id}" style="background:#dc2626;border:none;padding:4px 12px;border-radius:20px;">Delete</button></div>`).join('');
+    let prodListHtml = myProducts.map(p => {
+        const isSoldOut = p.stock <= 0;
+        return `<div class="flex-between">
+            <span>
+                <img src="${p.mainImage}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;"> 
+                ${p.name} - ${getCurrencySymbol()}${convertPrice(p.price)} 
+                (Stock: ${p.stock}) 
+                ${isSoldOut ? '🔴 SOLD OUT' : ''}
+                ${p.soldOutAt && isSoldOut ? `⏳ Auto-delete: ${getTimeRemaining(p.soldOutAt)}` : ''}
+            </span>
+            <button class="editProdBtn" data-id="${p.id}" style="background:#3b82f6;border:none;padding:4px 12px;border-radius:20px;">✏️ Edit</button>
+            <button class="delProd" data-id="${p.id}" style="background:#dc2626;border:none;padding:4px 12px;border-radius:20px;">Delete</button>
+        </div>`;
+    }).join('');
     
-    let ordersHtml = '';
-    
-    // ============================================================
-    // SOLD OUT PRODUCTS WITH YES/NO BUTTONS + DETAILS
-    // ============================================================
-    if (pendingApprovalProducts.length > 0) {
-        ordersHtml += `<h4 style="margin:10px 0; color:#dc2626;">🔴 SOLD OUT - Need Action (${pendingApprovalProducts.length})</h4>`;
-        
-        pendingApprovalProducts.forEach(p => {
+    // ✅ SOLD OUT Products with Buyer Details
+    let soldOutHtml = '';
+    if (soldOutProducts.length > 0) {
+        soldOutHtml = `<h4 style="margin:10px 0; color:#dc2626;">🔴 SOLD OUT Products (${soldOutProducts.length})</h4>`;
+        soldOutHtml += soldOutProducts.map(p => {
+            // ✅ Find order for this product
             const productOrder = orders.find(o => o.productDetails?.id === p.id || o.productName === p.name);
             
-            ordersHtml += `
+            return `
                 <div class="order-card" style="border-left-color:#dc2626; margin-bottom:15px;">
                     <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
-                        <img src="${p.mainImage}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;">
+                        <img src="${p.mainImage}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">
                         <div style="flex:1;">
                             <strong>📦 ${p.name}</strong>
                             <br><span style="font-size:12px; color:#64748b;">💰 Price: ${getCurrencySymbol()}${convertPrice(p.price)}</span>
-                            <br><span style="font-size:12px; color:#64748b;">📂 Category: ${p.category}</span>
                             <br><span style="font-size:12px; color:#dc2626;">🔴 Stock: 0 (SOLD OUT)</span>
+                            ${p.soldOutAt ? `<br><span style="font-size:11px; color:#94a3b8;">⏳ Auto-delete in: ${getTimeRemaining(p.soldOutAt)}</span>` : ''}
                         </div>
                     </div>
                     
@@ -2131,37 +2140,22 @@ function renderSellerDashboard(){
                         </div>
                     ` : `
                         <div style="background:#fef3c7; padding:10px; border-radius:8px; margin:8px 0; font-size:13px; color:#92400e;">
-                            ⚠️ No order found for this product. It may have been deleted.
+                            ⚠️ No order found for this product.
                         </div>
                     `}
                     
-                    <div style="background:#fef2f2; padding:12px; border-radius:8px; margin:8px 0; border:1px solid #fecaca;">
-                        <span style="font-weight:600; color:#dc2626;">⚠️ Your product stock is 0</span>
-                        <br><span style="font-size:13px; color:#64748b;">Do you have stock available?</span>
-                    </div>
-                    
-                    <div style="display:flex; gap:10px; margin-top:10px;">
-                        <button class="restockYesBtn" data-id="${p.id}" style="background:#10b981; color:white; border:none; padding:8px 20px; border-radius:20px; cursor:pointer; font-weight:600;">
-                            ✅ YES (Restock)
+                    <div style="margin-top:10px;">
+                        <button class="editProdBtn" data-id="${p.id}" style="background:#10b981; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
+                            ✏️ Edit & Restock
                         </button>
-                        <button class="restockNoBtn" data-id="${p.id}" style="background:#dc2626; color:white; border:none; padding:8px 20px; border-radius:20px; cursor:pointer; font-weight:600;">
-                            ❌ NO (Delete)
-                        </button>
-                    </div>
-                    
-                    <div style="font-size:11px; color:#94a3b8; margin-top:8px;">
-                        ⏳ Auto-delete in: <span id="timer_${p.id}">24h 00m</span> remaining
                     </div>
                 </div>
             `;
-            
-            startAutoDeleteTimer(p.id, p.soldOutAt);
-        });
+        }).join('');
     }
     
-    // ============================================================
-    // PENDING ORDERS
-    // ============================================================
+    // ✅ Pending Orders
+    let ordersHtml = '';
     if (pendingOrders.length > 0) {
         ordersHtml += `<h4 style="margin:10px 0; color:#f59e0b;">🟡 Pending Orders (${pendingOrders.length})</h4>`;
         ordersHtml += pendingOrders.map(o => `
@@ -2173,6 +2167,7 @@ function renderSellerDashboard(){
                         <br><span style="font-size:12px; color:#64748b;">Qty: ${o.qty}</span>
                         <br><span style="font-size:12px; color:#64748b;">Buyer: ${o.buyerName}</span>
                         <br><span style="font-size:13px; font-weight:bold; color:#10b981;">Net Revenue: ${getCurrencySymbol()}${convertPrice((o.basePrice - (o.basePrice * PLATFORM_COMMISSION) - MAINTENANCE_FEE) * o.qty)}</span>
+                        <br><span style="font-size:12px; color:#64748b;">📦 Shipping Address: ${o.address || 'N/A'}</span>
                     </div>
                 </div>
                 <div style="display:flex; gap:8px; margin-top:8px;">
@@ -2188,9 +2183,6 @@ function renderSellerDashboard(){
         `).join('');
     }
     
-    // ============================================================
-    // COMPLETED ORDERS
-    // ============================================================
     let completedOrders = myOrders.filter(o => o.status === 'Completed' || o.status === 'Delivered' || o.status === 'Shipped');
     if (completedOrders.length > 0) {
         ordersHtml += `<h4 style="margin:15px 0; color:#10b981;">✅ Completed Orders (${completedOrders.length})</h4>`;
@@ -2210,7 +2202,7 @@ function renderSellerDashboard(){
         `).join('');
     }
     
-    if (myOrders.length === 0 && pendingApprovalProducts.length === 0) {
+    if (myOrders.length === 0 && soldOutProducts.length === 0) {
         ordersHtml = '<p style="text-align:center;padding:20px;color:#64748b;">No orders or pending actions.</p>';
     }
     
@@ -2228,7 +2220,7 @@ function renderSellerDashboard(){
         <div style="font-size:12px; color:#64748b;">💰 Net Revenue</div>
     </div>
     <div style="background:#fef3c7; padding:12px; border-radius:12px; text-align:center;">
-        <div style="font-size:24px; font-weight:800; color:#d97706;">${pendingOrders.length + pendingApprovalProducts.length}</div>
+        <div style="font-size:24px; font-weight:800; color:#d97706;">${pendingOrders.length + soldOutProducts.length}</div>
         <div style="font-size:12px; color:#64748b;">⏳ Pending</div>
     </div>
 </div>
@@ -2273,301 +2265,49 @@ function renderSellerDashboard(){
     <button id="publishBtn" class="btn-primary">📢 Publish</button>
 </div>
 <div class="premium-card"><h3>📋 My Products (${myProducts.length})</h3><div id="myProductsList">${prodListHtml}</div></div>
-<div class="premium-card"><h3>📦 Orders & Actions</h3><div id="ordersList">${ordersHtml}</div></div>
+<div class="premium-card"><h3>📦 Orders & Actions</h3>
+    ${soldOutHtml}
+    ${ordersHtml}
+</div>
 `;
     document.getElementById('sellerDashboard').innerHTML = sellerDashboardHtml;
     let ctx = document.getElementById('revenueChart')?.getContext('2d'); if(ctx){ if(sellerRevenueChart) sellerRevenueChart.destroy(); sellerRevenueChart = new Chart(ctx, { type: 'bar', data: { labels: chartLabels, datasets: [{ label: 'Revenue', data: chartData.map(v => parseFloat(convertPrice(v))), backgroundColor: '#3b82f6' }] } }); }
     
-    // ============================================================
-    // YES/NO BUTTON CLICK HANDLERS
-    // ============================================================
-    document.querySelectorAll('.restockYesBtn').forEach(btn => {
-        btn.addEventListener('click', async function() {
-            const productId = this.dataset.id;
-            if (!productId) return;
-            
-            try {
-                await db.collection('products').doc(productId).update({
-                    stock: 1,
-                    status: 'available',
-                    updatedAt: new Date().toISOString()
-                });
-                showToast('✅ Product restocked successfully!', false);
-                addNotification('Product restocked by seller', 'info');
-                renderSellerDashboard();
-                renderProducts();
-                updateMyShopBadge();
-            } catch (error) {
-                console.error('Restock error:', error);
-                showToast('Failed to restock: ' + error.message, true);
-            }
-        });
-    });
-    
-    document.querySelectorAll('.restockNoBtn').forEach(btn => {
-        btn.addEventListener('click', async function() {
-            const productId = this.dataset.id;
-            if (!productId) return;
-            
-            if (confirm('⚠️ Are you sure you want to permanently delete this product?')) {
-                try {
-                    await db.collection('products').doc(productId).delete();
-                    showToast('🗑️ Product deleted successfully!', false);
-                    addNotification('Product deleted by seller', 'info');
-                    renderSellerDashboard();
-                    renderProducts();
-                    updateMyShopBadge();
-                } catch (error) {
-                    console.error('Delete error:', error);
-                    showToast('Failed to delete: ' + error.message, true);
-                }
-            }
-        });
-    });
-    
-    // ============================================================
-    // AUTO-DELETE TIMER FUNCTION
-    // ============================================================
-    function startAutoDeleteTimer(productId, soldOutAt) {
-        const timerElement = document.getElementById(`timer_${productId}`);
-        if (!timerElement) return;
+    // ✅ Helper function for time remaining
+    function getTimeRemaining(soldOutAt) {
+        if (!soldOutAt) return 'N/A';
+        const soldTime = new Date(soldOutAt).getTime();
+        const expiryTime = soldTime + (12 * 60 * 60 * 1000); // 12 hours
+        const now = Date.now();
+        const remaining = expiryTime - now;
         
-        const soldOutTime = soldOutAt ? new Date(soldOutAt).getTime() : Date.now();
-        const expiryTime = soldOutTime + (24 * 60 * 60 * 1000);
-        
-        function updateTimer() {
-            const now = Date.now();
-            const remaining = expiryTime - now;
-            
-            if (remaining <= 0) {
-                db.collection('products').doc(productId).delete()
-                    .then(() => {
-                        console.log(`⏰ Product ${productId} auto-deleted after 24 hours`);
-                        addNotification(`Product auto-deleted after 24 hours`, 'info');
-                        renderSellerDashboard();
-                        renderProducts();
-                        updateMyShopBadge();
-                    })
-                    .catch(err => console.error('Auto-delete error:', err));
-                return;
-            }
-            
-            const hours = Math.floor(remaining / (60 * 60 * 1000));
-            const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
-            timerElement.textContent = `${hours}h ${minutes}m`;
-        }
-        
-        updateTimer();
-        const timerInterval = setInterval(updateTimer, 60000);
-        
-        if (!window.timerIntervals) window.timerIntervals = {};
-        window.timerIntervals[productId] = timerInterval;
+        if (remaining <= 0) return 'Expired';
+        const hours = Math.floor(remaining / (60 * 60 * 1000));
+        const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+        return `${hours}h ${minutes}m`;
     }
     
-    // ============================================================
-    // REAL-TIME ORDERS LISTENER
-    // ============================================================
-    if (currentSeller?.sellerId) {
-        db.collection("orders").where("sellerId", "==", currentSeller.sellerId).onSnapshot(snapshot => {
-            let realTimeOrders = [];
-            snapshot.forEach(doc => { realTimeOrders.push({ id: doc.id, ...doc.data() }); });
-            const ordersContainer = document.getElementById('ordersList');
-            if (ordersContainer) {
-                let pending = realTimeOrders.filter(o => o.status === 'Processing');
-                let completed = realTimeOrders.filter(o => o.status !== 'Processing');
-                let html = '';
-                
-                if (pending.length > 0) {
-                    html += `<h4 style="margin:10px 0; color:#f59e0b;">🟡 Pending Orders (${pending.length})</h4>`;
-                    html += pending.map(o => `
-                        <div class="order-card" style="border-left-color:#f59e0b;">
-                            <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
-                                ${o.productDetails?.image ? `<img src="${o.productDetails.image}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">` : ''}
-                                <div style="flex:1;">
-                                    <strong>${o.productDetails?.name || o.productName}</strong>
-                                    <br><span style="font-size:12px; color:#64748b;">Qty: ${o.qty}</span>
-                                    <br><span style="font-size:12px; color:#64748b;">Buyer: ${o.buyerName}</span>
-                                    <br><span style="font-size:13px; font-weight:bold; color:#10b981;">Net Revenue: ${getCurrencySymbol()}${convertPrice((o.basePrice - (o.basePrice * PLATFORM_COMMISSION) - MAINTENANCE_FEE) * o.qty)}</span>
-                                </div>
-                            </div>
-                            <div style="display:flex; gap:8px; margin-top:8px;">
-                                <button class="confirmStockBtn" data-id="${o.id}" style="background:#10b981; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
-                                    ✅ Confirm
-                                </button>
-                                <button class="rejectOrderBtn" data-id="${o.id}" style="background:#dc2626; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
-                                    ❌ Reject
-                                </button>
-                            </div>
-                            <div style="font-size:10px; color:#94a3b8; margin-top:4px;">${o.date}</div>
-                        </div>
-                    `).join('');
+    // ✅ Auto-delete check every minute
+    if (window.autoDeleteInterval) clearInterval(window.autoDeleteInterval);
+    window.autoDeleteInterval = setInterval(async function() {
+        const now = Date.now();
+        for (const p of products) {
+            if (p.stock <= 0 && p.soldOutAt) {
+                const soldTime = new Date(p.soldOutAt).getTime();
+                const expiryTime = soldTime + (12 * 60 * 60 * 1000);
+                if (now >= expiryTime) {
+                    await db.collection('products').doc(p.id).delete();
+                    console.log('🗑️ Auto-deleted:', p.name);
+                    addNotification(`Product "${p.name}" auto-deleted after 12 hours`, 'info');
                 }
-                
-                if (completed.length > 0) {
-                    html += `<h4 style="margin:15px 0; color:#10b981;">✅ Completed Orders (${completed.length})</h4>`;
-                    html += completed.map(o => `
-                        <div class="order-card" style="border-left-color:#10b981;">
-                            <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
-                                ${o.productDetails?.image ? `<img src="${o.productDetails.image}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">` : ''}
-                                <div style="flex:1;">
-                                    <strong>${o.productDetails?.name || o.productName}</strong>
-                                    <br><span style="font-size:12px; color:#64748b;">Qty: ${o.qty} | Status: ${o.status}</span>
-                                    <br><span style="font-size:13px; font-weight:bold; color:#10b981;">Net Revenue: ${getCurrencySymbol()}${convertPrice((o.basePrice - (o.basePrice * PLATFORM_COMMISSION) - MAINTENANCE_FEE) * o.qty)}</span>
-                                </div>
-                            </div>
-                            ${o.trackingInfo ? `<div style="font-size:12px; color:#64748b;">📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}</div>` : ''}
-                            <div style="font-size:10px; color:#94a3b8; margin-top:4px;">${o.date}</div>
-                        </div>
-                    `).join('');
-                }
-                
-                if (realTimeOrders.length === 0) {
-                    html = '<p style="text-align:center;padding:20px;color:#64748b;">No orders yet.</p>';
-                }
-                
-                ordersContainer.innerHTML = html;
-                
-                document.querySelectorAll('.confirmStockBtn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        confirmOrderStock(this.dataset.id);
-                    });
-                });
-                document.querySelectorAll('.rejectOrderBtn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        rejectOrder(this.dataset.id);
-                    });
-                });
-                updateMyShopBadge();
             }
-        }, error => {
-            console.error('Real-time orders error:', error);
-        });
-    }
-    
-    document.querySelectorAll('.confirmStockBtn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            confirmOrderStock(this.dataset.id);
-        });
-    });
-    document.querySelectorAll('.rejectOrderBtn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            rejectOrder(this.dataset.id);
-        });
-    });
-    
-    // ============================================================
-    // PUBLISH BUTTON - FIXED: Product Name Trim
-    // ============================================================
-    document.getElementById('publishBtn')?.addEventListener('click', async function() {
-        const btn = this;
-        btn.disabled = true;
-        btn.textContent = '⏳ Publishing...';
-        
-        try {
-            // ✅ FIX: Product name ko trim karo (extra spaces hatane ke liye)
-            const name = document.getElementById('prodName').value.trim();
-            const price = parseFloat(document.getElementById('prodPrice').value);
-            const cat = document.getElementById('prodCat').value;
-            const stock = parseInt(document.getElementById('prodStock').value);
-            const desc = document.getElementById('prodDesc').value;
-            
-            if (!name) { showToast("❌ Product name required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-            if (!price || price <= 0) { showToast("❌ Valid price required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-            if (!stock || stock <= 0) { showToast("❌ Valid stock required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-            if (!cat) { showToast("❌ Please select a category", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-            if (!FIXED_CATEGORIES.includes(cat)) { showToast("❌ Invalid category selected", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-            
-            const mainFile = document.getElementById('prodMainImg').files[0];
-            if (!mainFile) { showToast("❌ Main image required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-            
-            const weight = parseFloat(document.getElementById('prodWeight').value);
-            const length = parseFloat(document.getElementById('prodLength').value);
-            const width = parseFloat(document.getElementById('prodWidth').value);
-            const height = parseFloat(document.getElementById('prodHeight').value);
-            
-            if (!weight || weight <= 0) { showToast("❌ Valid weight required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-            if (!length || length <= 0 || !width || width <= 0 || !height || height <= 0) {
-                showToast("❌ Valid dimensions required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return;
-            }
-            
-            const shippingSA = parseFloat(document.getElementById('prodShippingSA').value) || 0;
-            const shippingGCC = parseFloat(document.getElementById('prodShippingGCC').value) || 0;
-            const shippingInt = parseFloat(document.getElementById('prodShippingInt').value) || 0;
-            
-            if (!currentSeller || !currentSeller.sellerId) { showToast("❌ Please login as seller first", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-            const seller = sellers.find(s => s.id === currentSeller.sellerId);
-            if (!seller || seller.kycStatus !== 'verified') { showToast("❌ Your KYC is not verified.", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-            
-            showToast("📤 Uploading image...", false);
-            const mainUrl = await uploadCompressedImage(mainFile);
-            if (!mainUrl) { showToast("❌ Image upload failed. Try again.", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-            
-            const additionalFiles = document.getElementById('prodImagesFiles').files;
-            const additionalUrls = [];
-            for (let f of additionalFiles) { if (additionalUrls.length >= 4) break; const url = await uploadCompressedImage(f); if (url) additionalUrls.push(url); }
-            const images = [mainUrl, ...additionalUrls];
-            
-            // ✅ FIX: Product name trim kar ke save ho raha hai
-            const newProduct = {
-                sellerId: seller.id,
-                sellerName: seller.shopName || "GlobalBazaar",
-                name: name,  // ✅ Trimmed name
-                price: price,
-                category: cat,
-                mainImage: mainUrl,
-                images: images,
-                description: desc || "",
-                sellerCountry: seller.country || "SA",
-                rating: 0,
-                stock: stock,
-                weight: weight,
-                size: { length: length, width: width, height: height },
-                shippingRates: {
-                    SA: shippingSA,
-                    GCC: shippingGCC,
-                    International: shippingInt
-                },
-                status: 'available',
-                createdAt: new Date().toISOString()
-            };
-            
-            await db.collection("products").add(newProduct);
-            showToast(`✅ Product "${name}" published successfully!`, false);
-            addNotification(`Product "${name}" published`, 'info');
-            await sendTelegramMessage(`📦 New product: ${name} by ${seller.shopName}`);
-            
-            // Clear form
-            document.getElementById('prodName').value = '';
-            document.getElementById('prodPrice').value = '';
-            document.getElementById('prodStock').value = '';
-            document.getElementById('prodMainImg').value = '';
-            document.getElementById('prodImagesFiles').value = '';
-            document.getElementById('prodDesc').value = '';
-            document.getElementById('prodWeight').value = '';
-            document.getElementById('prodLength').value = '';
-            document.getElementById('prodWidth').value = '';
-            document.getElementById('prodHeight').value = '';
-            document.getElementById('prodShippingSA').value = '';
-            document.getElementById('prodShippingGCC').value = '';
-            document.getElementById('prodShippingInt').value = '';
-            
-            renderSellerDashboard();
-            renderProducts();
-            btn.disabled = false;
-            btn.textContent = '📢 Publish';
-        } catch (error) {
-            console.error("Publish error:", error);
-            showToast("❌ Error: " + error.message, true);
-            btn.disabled = false;
-            btn.textContent = '📢 Publish';
         }
-    });
+        renderSellerDashboard();
+        renderProducts();
+        updateMyShopBadge();
+    }, 60000);
     
-    document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', async () => { let id = btn.dataset.id; await db.collection("products").doc(id).delete(); renderSellerDashboard(); renderProducts(); showToast("Product deleted", false); }));
-    
-    // ============================================================
-    // EDIT PRODUCT BUTTON - FIXED
-    // ============================================================
+    // ✅ Edit button click handler
     document.querySelectorAll('.editProdBtn').forEach(btn => {
         btn.addEventListener('click', function() {
             const productId = this.dataset.id;
@@ -2576,85 +2316,54 @@ function renderSellerDashboard(){
                 showToast('Product not found!', true);
                 return;
             }
-            
-            const editProdId = document.getElementById('editProdId');
-            const editProdName = document.getElementById('editProdName');
-            const editProdPrice = document.getElementById('editProdPrice');
-            const editProdCat = document.getElementById('editProdCat');
-            const editProdStock = document.getElementById('editProdStock');
-            const editProdDesc = document.getElementById('editProdDesc');
-            const editShippingSA = document.getElementById('editShippingSA');
-            const editShippingGCC = document.getElementById('editShippingGCC');
-            const editShippingInt = document.getElementById('editShippingInt');
-            const editCurrentImages = document.getElementById('editCurrentImages');
-            
-            if (editProdId) editProdId.value = prod.id;
-            if (editProdName) editProdName.value = prod.name || '';
-            if (editProdPrice) editProdPrice.value = prod.price || '';
-            if (editProdCat) editProdCat.value = prod.category || '';
-            if (editProdStock) editProdStock.value = prod.stock || '';
-            if (editProdDesc) editProdDesc.value = prod.description || '';
-            
+            document.getElementById('editProdId').value = prod.id;
+            document.getElementById('editProdName').value = prod.name || '';
+            document.getElementById('editProdPrice').value = prod.price || '';
+            document.getElementById('editProdCat').value = prod.category || '';
+            document.getElementById('editProdStock').value = prod.stock || '';
+            document.getElementById('editProdDesc').value = prod.description || '';
             if (prod.shippingRates) {
-                if (editShippingSA) editShippingSA.value = prod.shippingRates.SA || 0;
-                if (editShippingGCC) editShippingGCC.value = prod.shippingRates.GCC || 0;
-                if (editShippingInt) editShippingInt.value = prod.shippingRates.International || 0;
+                document.getElementById('editShippingSA').value = prod.shippingRates.SA || 0;
+                document.getElementById('editShippingGCC').value = prod.shippingRates.GCC || 0;
+                document.getElementById('editShippingInt').value = prod.shippingRates.International || 0;
             }
-            
-            if (editCurrentImages) {
-                let currImgHtml = prod.images && prod.images.length > 0 ? 
-                    prod.images.map(img => `<div style="display:inline-block; margin:5px;"><img src="${img}" width="50" style="border-radius:8px; border:2px solid #e2e8f0;"></div>`).join('') : 
-                    'No images';
-                editCurrentImages.innerHTML = `<strong>Current Images:</strong><br>${currImgHtml}`;
-            }
-            
-            const editModal = document.getElementById('editProductModal');
-            if (editModal) editModal.style.display = 'block';
+            document.getElementById('editProductModal').style.display = 'block';
         });
     });
     
-    // ============================================================
-    // UPDATE PRODUCT BUTTON - FIXED
-    // ============================================================
+    // ✅ Update Product Button - Restock on save
     document.getElementById('updateProductBtn')?.addEventListener('click', async function() {
         const btn = this;
         btn.disabled = true;
         btn.textContent = '⏳ Updating...';
         try {
-            const editProdId = document.getElementById('editProdId');
-            const editProdName = document.getElementById('editProdName');
-            const editProdPrice = document.getElementById('editProdPrice');
-            const editProdCat = document.getElementById('editProdCat');
-            const editProdStock = document.getElementById('editProdStock');
-            const editProdDesc = document.getElementById('editProdDesc');
-            const editShippingSA = document.getElementById('editShippingSA');
-            const editShippingGCC = document.getElementById('editShippingGCC');
-            const editShippingInt = document.getElementById('editShippingInt');
-            const editMainImg = document.getElementById('editMainImg');
-            const editExtraImgs = document.getElementById('editExtraImgs');
-            
-            if (!editProdId || !editProdId.value) {
+            let pid = document.getElementById('editProdId').value;
+            if (!pid) {
                 showToast('Product ID missing!', true);
                 btn.disabled = false;
                 btn.textContent = '💾 Update Product';
                 return;
             }
-            
-            let pid = editProdId.value;
             let prodRef = db.collection("products").doc(pid);
             let updates = { 
-                name: editProdName ? editProdName.value.trim() : '',
-                price: parseFloat(editProdPrice ? editProdPrice.value : 0),
-                category: editProdCat ? editProdCat.value : '',
-                stock: parseInt(editProdStock ? editProdStock.value : 0),
-                description: editProdDesc ? editProdDesc.value.trim() : '',
+                name: document.getElementById('editProdName').value.trim(),
+                price: parseFloat(document.getElementById('editProdPrice').value),
+                category: document.getElementById('editProdCat').value,
+                stock: parseInt(document.getElementById('editProdStock').value),
+                description: document.getElementById('editProdDesc').value.trim(),
                 shippingRates: {
-                    SA: parseFloat(editShippingSA ? editShippingSA.value : 0) || 0,
-                    GCC: parseFloat(editShippingGCC ? editShippingGCC.value : 0) || 0,
-                    International: parseFloat(editShippingInt ? editShippingInt.value : 0) || 0
+                    SA: parseFloat(document.getElementById('editShippingSA').value) || 0,
+                    GCC: parseFloat(document.getElementById('editShippingGCC').value) || 0,
+                    International: parseFloat(document.getElementById('editShippingInt').value) || 0
                 },
                 updatedAt: new Date().toISOString()
             };
+            
+            // ✅ If stock > 0, remove sold out status
+            if (updates.stock > 0) {
+                updates.status = 'available';
+                updates.soldOutAt = null;
+            }
             
             if (!updates.name || updates.name === '') {
                 showToast("Product name required", true);
@@ -2675,8 +2384,9 @@ function renderSellerDashboard(){
                 return;
             }
             
-            if (editMainImg && editMainImg.files && editMainImg.files[0]) {
-                let mainUrl = await uploadCompressedImage(editMainImg.files[0]);
+            let newMain = document.getElementById('editMainImg').files[0];
+            if (newMain) {
+                let mainUrl = await uploadCompressedImage(newMain);
                 if (mainUrl) {
                     updates.mainImage = mainUrl;
                     const currentProd = await prodRef.get();
@@ -2684,11 +2394,11 @@ function renderSellerDashboard(){
                     updates.images = [mainUrl, ...existingImages.filter(img => img !== currentProd.data().mainImage)];
                 }
             }
-            
-            if (editExtraImgs && editExtraImgs.files && editExtraImgs.files.length > 0) {
+            let newExtra = document.getElementById('editExtraImgs').files;
+            if (newExtra.length > 0) {
                 let extraUrls = [];
-                for (let i = 0; i < Math.min(editExtraImgs.files.length, 4); i++) {
-                    let url = await uploadCompressedImage(editExtraImgs.files[i]);
+                for (let i = 0; i < Math.min(newExtra.length, 4); i++) {
+                    let url = await uploadCompressedImage(newExtra[i]);
                     if (url) extraUrls.push(url);
                 }
                 if (extraUrls.length) {
@@ -2698,18 +2408,14 @@ function renderSellerDashboard(){
                     updates.images = [mainImage, ...extraUrls, ...existingImages.filter(img => img !== mainImage && !extraUrls.includes(img))];
                 }
             }
-            
             await prodRef.update(updates);
             showToast("✅ Product updated successfully!", false);
-            
-            const editModal = document.getElementById('editProductModal');
-            if (editModal) editModal.style.display = 'none';
-            
-            if (editMainImg) editMainImg.value = '';
-            if (editExtraImgs) editExtraImgs.value = '';
-            
+            document.getElementById('editProductModal').style.display = 'none';
+            document.getElementById('editMainImg').value = '';
+            document.getElementById('editExtraImgs').value = '';
             renderSellerDashboard();
             renderProducts();
+            updateMyShopBadge();
             btn.disabled = false;
             btn.textContent = '💾 Update Product';
         } catch (error) {
@@ -2719,6 +2425,27 @@ function renderSellerDashboard(){
             btn.textContent = '💾 Update Product';
         }
     });
+    
+    // ✅ Confirm Order
+    document.querySelectorAll('.confirmStockBtn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            confirmOrderStock(this.dataset.id);
+        });
+    });
+    
+    document.querySelectorAll('.rejectOrderBtn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            rejectOrder(this.dataset.id);
+        });
+    });
+    
+    document.querySelectorAll('.delProd').forEach(btn => btn.addEventListener('click', async () => { 
+        let id = btn.dataset.id; 
+        await db.collection("products").doc(id).delete(); 
+        renderSellerDashboard(); 
+        renderProducts(); 
+        showToast("Product deleted", false); 
+    }));
     
     document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
     
@@ -2749,7 +2476,7 @@ async function confirmOrderStock(orderId) {
         }
         if (order.productDetails && order.productDetails.id) {
             const product = products.find(p => p.id === order.productDetails.id);
-            if (product && product.status === 'pending_approval') {
+            if (product && product.stock <= 0) {
                 await db.collection('products').doc(product.id).update({
                     status: 'available',
                     stock: 1,
@@ -2786,15 +2513,17 @@ async function rejectOrder(orderId) {
         let product = products.find(p => p.id === order.productDetails?.id || p.name === order.productName);
         if (product) {
             product.stock += order.qty;
-            if (product.status === 'pending_approval') {
+            if (product.stock <= 0) {
                 await db.collection('products').doc(product.id).update({
                     stock: product.stock,
-                    status: 'available',
-                    updatedAt: new Date().toISOString()
+                    status: 'pending_approval',
+                    soldOutAt: new Date().toISOString()
                 });
             } else {
                 await db.collection('products').doc(product.id).update({
-                    stock: product.stock
+                    stock: product.stock,
+                    status: 'available',
+                    soldOutAt: null
                 });
             }
         }
@@ -3025,6 +2754,26 @@ initializeDatabase().then(() => {
     console.error('Init error:', err);
 });
 
+// ✅ Auto-delete interval check (runs every minute)
+setInterval(async function() {
+    const now = Date.now();
+    for (const p of products) {
+        if (p.stock <= 0 && p.soldOutAt) {
+            const soldTime = new Date(p.soldOutAt).getTime();
+            const expiryTime = soldTime + (12 * 60 * 60 * 1000);
+            if (now >= expiryTime) {
+                await db.collection('products').doc(p.id).delete();
+                console.log('🗑️ Auto-deleted:', p.name);
+                addNotification(`Product "${p.name}" auto-deleted after 12 hours`, 'info');
+            }
+        }
+    }
+    renderSellerDashboard();
+    renderProducts();
+    updateMyShopBadge();
+}, 60000);
+
+// ✅ Update My Shop badge every 5 seconds
 setInterval(updateMyShopBadge, 5000);
 
 renderCats(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge(); updateAdminMenuBadges();
@@ -3033,9 +2782,9 @@ updateCategorySelect();
 
 const debugMsg = document.getElementById('debugMsg');
 if (debugMsg) {
-    debugMsg.innerHTML = "GlobalBazaar Ready | ALL FIXED!";
+    debugMsg.innerHTML = "GlobalBazaar Ready | SIMPLE FIXED!";
 }
 
 // ============================================================
-// END OF FILE - 100% FIXED
+// END OF FILE - SIMPLE FIXED CODE
 // ============================================================
