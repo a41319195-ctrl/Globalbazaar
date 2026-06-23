@@ -22,11 +22,10 @@
 </div>
 <div class="notification-panel" id="notificationPanel"><div style="padding:12px;font-weight:bold;border-bottom:1px solid #e2e8f0;">🔔 Notifications</div><div id="notificationsList"></div></div>
 <div class="drawer-overlay" id="drawerOverlay"></div>
-<div class="drawer" id="drawer"><div class="drawer-header"><h2>GlobalBazaar 🌍</h2><p style="font-size:12px;">Multi‑Seller Hub</p></div><div class="dark-mode-menu-item" id="drawerDarkModeToggle">🌙 Dark Mode</div><div class="drawer-item" id="drawerBuyer">📦 My Orders</div><div class="drawer-item" id="drawerSeller">🏪 Seller Dashboard</div><div class="drawer-item" id="drawerMyShop" class="my-shop-btn">🏪 My Shop</div><div class="drawer-item" id="drawerAdmin">⚙️ Admin Panel <span id="adminPendingBadge" style="background:#ef4444; color:white; border-radius:20px; padding:2px 8px; font-size:12px; margin-left:8px; display:none;">0</span></div><div class="drawer-item" id="drawerCartPage">🛍️ My Cart</div><div class="drawer-item" id="drawerWishlist">❤️ Wishlist</div><div class="drawer-item" id="drawerSupport">📞 Support</div><div class="drawer-item" id="drawerLogout">🚪 Logout</div></div>
+<div class="drawer" id="drawer"><div class="drawer-header"><h2>GlobalBazaar 🌍</h2><p style="font-size:12px;">Multi‑Seller Hub</p></div><div class="dark-mode-menu-item" id="drawerDarkModeToggle">🌙 Dark Mode</div><div class="drawer-item" id="drawerBuyer">📦 My Orders</div><div class="drawer-item" id="drawerSeller">🏪 Seller Dashboard</div><div class="drawer-item" id="drawerMyShop">🏪 My Shop</div><div class="drawer-item" id="drawerAdmin">⚙️ Admin Panel <span id="adminPendingBadge" style="background:#ef4444; color:white; border-radius:20px; padding:2px 8px; font-size:12px; margin-left:8px; display:none;">0</span></div><div class="drawer-item" id="drawerCartPage">🛍️ My Cart</div><div class="drawer-item" id="drawerWishlist">❤️ Wishlist</div><div class="drawer-item" id="drawerSupport">📞 Support</div><div class="drawer-item" id="drawerLogout">🚪 Logout</div></div>
 <div class="container">
     <div id="buyerSection" class="section active"><div class="cat-scroll" id="catList"></div><div class="search-container"><input type="text" id="searchInput" placeholder="🔍 Search products..."></div><div class="product-grid" id="productsGrid"></div></div>
     <div id="sellerSection" class="section"><div id="sellerRegisterBox" class="premium-card"><h2>🏪 Open Your Shop</h2>
-        <!-- ✅ FIX: form ko div mein change kiya -->
         <div id="sellerRegForm">
             <input type="file" id="sellerAvatar" accept="image/*" class="input">
             <input type="text" id="sellerFullName" placeholder="Full Legal Name" class="input" required>
@@ -52,7 +51,6 @@
                 <img id="kycPreviewImg" style="display:none;">
             </div></div>
             <div class="checkbox-group"><input type="checkbox" id="sellerAgreement" required><label>I agree to <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label></div>
-            <!-- ✅ FIX: button type="button" -->
             <button type="button" class="btn-primary" id="sellerSubmitBtn">✅ Register Shop</button>
         </div>
     </div>
@@ -105,7 +103,7 @@
 <button class="fixed-cart" id="cartFloatBtn">🛒 Cart <span class="cart-badge" id="cartCountBadge">0</span></button>
 <div class="toast" id="toast"></div>
 
-<!-- MODALS (Same as before) -->
+<!-- MODALS -->
 <div class="modal-verify-overlay" id="verifyModal">
     <div class="modal-verify-card">
         <div class="icon">📧</div>
@@ -142,7 +140,14 @@
 
 <div id="productModal" class="modal"><div class="modal-card"><span class="close-modal" id="closeModalBtn">&times;</span><img id="modalMainImg" class="modal-main-img"><div class="modal-thumbnails" id="modalThumbnails"></div><h2 id="modalTitle"></h2><p id="modalDesc"></p><div id="modalPriceBreakdown" style="font-size:12px; color:#64748b; margin:10px 0;"></div><h3 id="modalPrice"></h3><div class="rating-stars" id="modalRatingStars"></div><div id="productReviews" style="margin:15px 0; max-height:200px; overflow-y:auto;"></div><div id="addReviewSection" style="margin:15px 0;"><textarea id="reviewText" placeholder="Write a review..." rows="2" style="width:100%; padding:10px; border-radius:12px; border:1px solid #e2e8f0;"></textarea><div class="rating-stars" id="reviewStars"></div><button id="submitReviewBtn" class="btn-secondary" style="margin-top:10px;">Submit Review</button></div><button class="btn-primary" id="modalAddCartBtn">Add to Cart</button><button class="btn-primary" id="modalAddWishBtn" style="background:#64748b; margin-top:10px;">❤️ Wishlist</button><button class="whatsapp-share" id="whatsappShareBtn">📱 Share on WhatsApp</button></div></div>
 
-<div id="editProductModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeEditModal()">&times;</span><h2>✏️ Edit Product</h2><input type="hidden" id="editProdId"><input type="text" id="editProdName" placeholder="Product Name" class="input" required><input type="number" id="editProdPrice" placeholder="Price (USD)" class="input" required><select id="editProdCat" class="input" required><option>Electronics</option><option>Fashion</option><option>Home</option><option>Textile</option><option>Cosmetic</option></select><input type="number" id="editProdStock" placeholder="Stock Quantity" class="input" required min="0"><textarea id="editProdDesc" placeholder="Product Description" class="input" rows="3"></textarea><label>Main Image (upload new)</label><input type="file" id="editMainImg" accept="image/*" class="input"><label>Additional Images (upload multiple, max 4)</label><input type="file" id="editExtraImgs" accept="image/*" multiple class="input"><div id="editCurrentImages"></div><button id="updateProductBtn" class="btn-primary">💾 Update Product</button></div></div>
+<div id="editProductModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeEditModal()">&times;</span><h2>✏️ Edit Product</h2><input type="hidden" id="editProdId"><input type="text" id="editProdName" placeholder="Product Name" class="input" required><input type="number" id="editProdPrice" placeholder="Price (USD)" class="input" required><select id="editProdCat" class="input" required><option>Electronics</option><option>Fashion</option><option>Home</option><option>Textile</option><option>Cosmetic</option></select><input type="number" id="editProdStock" placeholder="Stock Quantity" class="input" required min="0"><textarea id="editProdDesc" placeholder="Product Description" class="input" rows="3"></textarea><div style="background:#f8fafc; padding:16px; border-radius:16px; margin-top:12px; border:1px solid #e2e8f0;">
+    <h4 style="margin-bottom:10px;">📦 Shipping Rates</h4>
+    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+        <div><label style="font-size:13px; font-weight:600;">SA (Saudi)</label><input type="number" id="editShippingSA" placeholder="10.00" class="input" step="0.01" min="0"></div>
+        <div><label style="font-size:13px; font-weight:600;">GCC</label><input type="number" id="editShippingGCC" placeholder="15.00" class="input" step="0.01" min="0"></div>
+        <div><label style="font-size:13px; font-weight:600;">International</label><input type="number" id="editShippingInt" placeholder="25.00" class="input" step="0.01" min="0"></div>
+    </div>
+</div><label>Main Image (upload new)</label><input type="file" id="editMainImg" accept="image/*" class="input"><label>Additional Images (upload multiple, max 4)</label><input type="file" id="editExtraImgs" accept="image/*" multiple class="input"><div id="editCurrentImages"></div><button id="updateProductBtn" class="btn-primary">💾 Update Product</button></div></div>
 
 <div id="sellerSummaryModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSellerSummary()">&times;</span><h2>🎉 Thank you for registering!</h2><p style="margin:20px 0;">Your shop is under review. You will receive a notification once admin approves your KYC.</p><p><strong>⏳ Waiting for admin approval...</strong></p><button class="btn-primary" id="goToMyShopBtn">Go to My Shop</button></div></div>
 
@@ -181,7 +186,6 @@
 
 <div class="footer-legal">© 2026 GlobalBazaar Marketplace | <span class="legal-link" onclick="showTerms()">Terms</span> | <span class="legal-link" onclick="showPrivacy()">Privacy</span> | <span class="legal-link" onclick="showSupport()">Support</span></div>
 
-<!-- ✅ FIX: JavaScript file -->
 <script src="script.js"></script>
 </body>
 </html>
