@@ -2175,12 +2175,11 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
         await firebase.auth().signOut();
 
         let avatarUrl = "https://randomuser.me/api/portraits/lego/1.jpg";
-        if (avatarFile) {
-            avatarUrl = await uploadCompressedImage(avatarFile, 'avatar');
-            if (!avatarUrl) throw new Error("Avatar upload failed");
-        }
-        let docImageUrl = await uploadCompressedImage(docImgFile, 'kyc');
-        if (!docImageUrl) throw new Error("KYC document upload failed");
+        if // पुरानी 7 लाइनें हटाकर ये 3 लाइनें यहाँ डालो:
+let avatarUrl = avatarFile ? await getBase64(avatarFile) : "https://randomuser.me/api/portraits/lego/1.jpg";
+let docImageUrl = await getBase64(docImgFile);
+// बस इतना ही!
+
 
         let newSeller = {
             fullName: document.getElementById('sellerFullName').value,
@@ -3014,3 +3013,13 @@ console.log('  "France" → ' + getCountryCode('France'));
 console.log('✅ ALL COUNTRIES SUPPORTED!');
 console.log('📦 Mode: ' + (IS_TESTING ? 'TESTING (no real charges)' : 'PRODUCTION'));
 console.log('🚀 ========================================');
+
+async function getBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+}
+
