@@ -1,774 +1,4 @@
 // ============================================================
-// GLOBAL BAZAAR - COMPLETE SHIPPING ENGINE (100% WORKING)
-// ============================================================
-const EASYSHIP_API_KEY = 'prod_FCky2t1qk8dLSqRk6O8a62kUklUmcQuxmzLDmq+mhCI=';
-const EASYSHIP_BASE_URL = 'https://api.easyship.com/2024-09';
-const IS_TESTING = true; // 🔥 TEST MODE - No real charges
-
-// ============================================================
-// COMPLETE COUNTRY DATABASE - ALL COUNTRIES
-// ============================================================
-const countryDatabase = {
-    // ===== MIDDLE EAST =====
-    'saudi arabia': { code: 'SA', flag: '🇸🇦', currency: 'SAR' },
-    'uae': { code: 'AE', flag: '🇦🇪', currency: 'AED' },
-    'united arab emirates': { code: 'AE', flag: '🇦🇪', currency: 'AED' },
-    'qatar': { code: 'QA', flag: '🇶🇦', currency: 'QAR' },
-    'oman': { code: 'OM', flag: '🇴🇲', currency: 'OMR' },
-    'kuwait': { code: 'KW', flag: '🇰🇼', currency: 'KWD' },
-    'bahrain': { code: 'BH', flag: '🇧🇭', currency: 'BHD' },
-    'yemen': { code: 'YE', flag: '🇾🇪', currency: 'YER' },
-    'jordan': { code: 'JO', flag: '🇯🇴', currency: 'JOD' },
-    'lebanon': { code: 'LB', flag: '🇱🇧', currency: 'LBP' },
-    'iraq': { code: 'IQ', flag: '🇮🇶', currency: 'IQD' },
-    'syria': { code: 'SY', flag: '🇸🇾', currency: 'SYP' },
-    'israel': { code: 'IL', flag: '🇮🇱', currency: 'ILS' },
-    'palestine': { code: 'PS', flag: '🇵🇸', currency: 'ILS' },
-    'iran': { code: 'IR', flag: '🇮🇷', currency: 'IRR' },
-    'turkey': { code: 'TR', flag: '🇹🇷', currency: 'TRY' },
-    'cyprus': { code: 'CY', flag: '🇨🇾', currency: 'EUR' },
-    
-    // ===== SOUTH ASIA =====
-    'india': { code: 'IN', flag: '🇮🇳', currency: 'INR' },
-    'pakistan': { code: 'PK', flag: '🇵🇰', currency: 'PKR' },
-    'bangladesh': { code: 'BD', flag: '🇧🇩', currency: 'BDT' },
-    'nepal': { code: 'NP', flag: '🇳🇵', currency: 'NPR' },
-    'sri lanka': { code: 'LK', flag: '🇱🇰', currency: 'LKR' },
-    'bhutan': { code: 'BT', flag: '🇧🇹', currency: 'BTN' },
-    'maldives': { code: 'MV', flag: '🇲🇻', currency: 'MVR' },
-    'afghanistan': { code: 'AF', flag: '🇦🇫', currency: 'AFN' },
-    'myanmar': { code: 'MM', flag: '🇲🇲', currency: 'MMK' },
-    
-    // ===== SOUTHEAST ASIA =====
-    'malaysia': { code: 'MY', flag: '🇲🇾', currency: 'MYR' },
-    'indonesia': { code: 'ID', flag: '🇮🇩', currency: 'IDR' },
-    'philippines': { code: 'PH', flag: '🇵🇭', currency: 'PHP' },
-    'thailand': { code: 'TH', flag: '🇹🇭', currency: 'THB' },
-    'vietnam': { code: 'VN', flag: '🇻🇳', currency: 'VND' },
-    'singapore': { code: 'SG', flag: '🇸🇬', currency: 'SGD' },
-    'cambodia': { code: 'KH', flag: '🇰🇭', currency: 'KHR' },
-    'laos': { code: 'LA', flag: '🇱🇦', currency: 'LAK' },
-    'brunei': { code: 'BN', flag: '🇧🇳', currency: 'BND' },
-    
-    // ===== EAST ASIA =====
-    'china': { code: 'CN', flag: '🇨🇳', currency: 'CNY' },
-    'japan': { code: 'JP', flag: '🇯🇵', currency: 'JPY' },
-    'south korea': { code: 'KR', flag: '🇰🇷', currency: 'KRW' },
-    'taiwan': { code: 'TW', flag: '🇹🇼', currency: 'TWD' },
-    'hong kong': { code: 'HK', flag: '🇭🇰', currency: 'HKD' },
-    'macau': { code: 'MO', flag: '🇲🇴', currency: 'MOP' },
-    'mongolia': { code: 'MN', flag: '🇲🇳', currency: 'MNT' },
-    
-    // ===== NORTH AMERICA =====
-    'usa': { code: 'US', flag: '🇺🇸', currency: 'USD' },
-    'united states': { code: 'US', flag: '🇺🇸', currency: 'USD' },
-    'canada': { code: 'CA', flag: '🇨🇦', currency: 'CAD' },
-    'mexico': { code: 'MX', flag: '🇲🇽', currency: 'MXN' },
-    
-    // ===== EUROPE =====
-    'uk': { code: 'GB', flag: '🇬🇧', currency: 'GBP' },
-    'united kingdom': { code: 'GB', flag: '🇬🇧', currency: 'GBP' },
-    'england': { code: 'GB', flag: '🇬🇧', currency: 'GBP' },
-    'germany': { code: 'DE', flag: '🇩🇪', currency: 'EUR' },
-    'france': { code: 'FR', flag: '🇫🇷', currency: 'EUR' },
-    'italy': { code: 'IT', flag: '🇮🇹', currency: 'EUR' },
-    'spain': { code: 'ES', flag: '🇪🇸', currency: 'EUR' },
-    'portugal': { code: 'PT', flag: '🇵🇹', currency: 'EUR' },
-    'netherlands': { code: 'NL', flag: '🇳🇱', currency: 'EUR' },
-    'belgium': { code: 'BE', flag: '🇧🇪', currency: 'EUR' },
-    'switzerland': { code: 'CH', flag: '🇨🇭', currency: 'CHF' },
-    'austria': { code: 'AT', flag: '🇦🇹', currency: 'EUR' },
-    'sweden': { code: 'SE', flag: '🇸🇪', currency: 'SEK' },
-    'norway': { code: 'NO', flag: '🇳🇴', currency: 'NOK' },
-    'denmark': { code: 'DK', flag: '🇩🇰', currency: 'DKK' },
-    'finland': { code: 'FI', flag: '🇫🇮', currency: 'EUR' },
-    'ireland': { code: 'IE', flag: '🇮🇪', currency: 'EUR' },
-    'poland': { code: 'PL', flag: '🇵🇱', currency: 'PLN' },
-    'czech republic': { code: 'CZ', flag: '🇨🇿', currency: 'CZK' },
-    'hungary': { code: 'HU', flag: '🇭🇺', currency: 'HUF' },
-    'romania': { code: 'RO', flag: '🇷🇴', currency: 'RON' },
-    'bulgaria': { code: 'BG', flag: '🇧🇬', currency: 'BGN' },
-    'greece': { code: 'GR', flag: '🇬🇷', currency: 'EUR' },
-    'russia': { code: 'RU', flag: '🇷🇺', currency: 'RUB' },
-    'ukraine': { code: 'UA', flag: '🇺🇦', currency: 'UAH' },
-    'slovakia': { code: 'SK', flag: '🇸🇰', currency: 'EUR' },
-    'slovenia': { code: 'SI', flag: '🇸🇮', currency: 'EUR' },
-    'croatia': { code: 'HR', flag: '🇭🇷', currency: 'EUR' },
-    'serbia': { code: 'RS', flag: '🇷🇸', currency: 'RSD' },
-    'iceland': { code: 'IS', flag: '🇮🇸', currency: 'ISK' },
-    'luxembourg': { code: 'LU', flag: '🇱🇺', currency: 'EUR' },
-    'malta': { code: 'MT', flag: '🇲🇹', currency: 'EUR' },
-    
-    // ===== SOUTH AMERICA =====
-    'brazil': { code: 'BR', flag: '🇧🇷', currency: 'BRL' },
-    'argentina': { code: 'AR', flag: '🇦🇷', currency: 'ARS' },
-    'colombia': { code: 'CO', flag: '🇨🇴', currency: 'COP' },
-    'chile': { code: 'CL', flag: '🇨🇱', currency: 'CLP' },
-    'peru': { code: 'PE', flag: '🇵🇪', currency: 'PEN' },
-    'venezuela': { code: 'VE', flag: '🇻🇪', currency: 'VES' },
-    'ecuador': { code: 'EC', flag: '🇪🇨', currency: 'USD' },
-    'bolivia': { code: 'BO', flag: '🇧🇴', currency: 'BOB' },
-    'paraguay': { code: 'PY', flag: '🇵🇾', currency: 'PYG' },
-    'uruguay': { code: 'UY', flag: '🇺🇾', currency: 'UYU' },
-    
-    // ===== CENTRAL AMERICA & CARIBBEAN =====
-    'costa rica': { code: 'CR', flag: '🇨🇷', currency: 'CRC' },
-    'panama': { code: 'PA', flag: '🇵🇦', currency: 'USD' },
-    'guatemala': { code: 'GT', flag: '🇬🇹', currency: 'GTQ' },
-    'honduras': { code: 'HN', flag: '🇭🇳', currency: 'HNL' },
-    'nicaragua': { code: 'NI', flag: '🇳🇮', currency: 'NIO' },
-    'el salvador': { code: 'SV', flag: '🇸🇻', currency: 'USD' },
-    'belize': { code: 'BZ', flag: '🇧🇿', currency: 'BZD' },
-    'cuba': { code: 'CU', flag: '🇨🇺', currency: 'CUP' },
-    'jamaica': { code: 'JM', flag: '🇯🇲', currency: 'JMD' },
-    'dominican republic': { code: 'DO', flag: '🇩🇴', currency: 'DOP' },
-    'haiti': { code: 'HT', flag: '🇭🇹', currency: 'HTG' },
-    'bahamas': { code: 'BS', flag: '🇧🇸', currency: 'BSD' },
-    'barbados': { code: 'BB', flag: '🇧🇧', currency: 'BBD' },
-    'trinidad': { code: 'TT', flag: '🇹🇹', currency: 'TTD' },
-    
-    // ===== OCEANIA =====
-    'australia': { code: 'AU', flag: '🇦🇺', currency: 'AUD' },
-    'new zealand': { code: 'NZ', flag: '🇳🇿', currency: 'NZD' },
-    'fiji': { code: 'FJ', flag: '🇫🇯', currency: 'FJD' },
-    'papua new guinea': { code: 'PG', flag: '🇵🇬', currency: 'PGK' },
-    'samoa': { code: 'WS', flag: '🇼🇸', currency: 'WST' },
-    'tonga': { code: 'TO', flag: '🇹🇴', currency: 'TOP' },
-    
-    // ===== AFRICA =====
-    'south africa': { code: 'ZA', flag: '🇿🇦', currency: 'ZAR' },
-    'egypt': { code: 'EG', flag: '🇪🇬', currency: 'EGP' },
-    'nigeria': { code: 'NG', flag: '🇳🇬', currency: 'NGN' },
-    'kenya': { code: 'KE', flag: '🇰🇪', currency: 'KES' },
-    'ghana': { code: 'GH', flag: '🇬🇭', currency: 'GHS' },
-    'morocco': { code: 'MA', flag: '🇲🇦', currency: 'MAD' },
-    'algeria': { code: 'DZ', flag: '🇩🇿', currency: 'DZD' },
-    'tunisia': { code: 'TN', flag: '🇹🇳', currency: 'TND' },
-    'libya': { code: 'LY', flag: '🇱🇾', currency: 'LYD' },
-    'sudan': { code: 'SD', flag: '🇸🇩', currency: 'SDG' },
-    'ethiopia': { code: 'ET', flag: '🇪🇹', currency: 'ETB' },
-    'somalia': { code: 'SO', flag: '🇸🇴', currency: 'SOS' },
-    'uganda': { code: 'UG', flag: '🇺🇬', currency: 'UGX' },
-    'tanzania': { code: 'TZ', flag: '🇹🇿', currency: 'TZS' },
-    'rwanda': { code: 'RW', flag: '🇷🇼', currency: 'RWF' },
-    'congo': { code: 'CD', flag: '🇨🇩', currency: 'CDF' },
-    'zambia': { code: 'ZM', flag: '🇿🇲', currency: 'ZMW' },
-    'zimbabwe': { code: 'ZW', flag: '🇿🇼', currency: 'ZWL' },
-    'angola': { code: 'AO', flag: '🇦🇴', currency: 'AOA' },
-    'botswana': { code: 'BW', flag: '🇧🇼', currency: 'BWP' },
-    'namibia': { code: 'NA', flag: '🇳🇦', currency: 'NAD' },
-    'mauritius': { code: 'MU', flag: '🇲🇺', currency: 'MUR' },
-    'madagascar': { code: 'MG', flag: '🇲🇬', currency: 'MGA' },
-    'cameroon': { code: 'CM', flag: '🇨🇲', currency: 'XAF' },
-    'senegal': { code: 'SN', flag: '🇸🇳', currency: 'XOF' },
-    'ivory coast': { code: 'CI', flag: '🇨🇮', currency: 'XOF' },
-    'mali': { code: 'ML', flag: '🇲🇱', currency: 'XOF' },
-    'niger': { code: 'NE', flag: '🇳🇪', currency: 'XOF' },
-    'chad': { code: 'TD', flag: '🇹🇩', currency: 'XAF' },
-    'benin': { code: 'BJ', flag: '🇧🇯', currency: 'XOF' },
-    'togo': { code: 'TG', flag: '🇹🇬', currency: 'XOF' }
-};
-
-// ============================================================
-// DYNAMIC COUNTRY CODE CONVERTER
-// ============================================================
-function getCountryCode(countryName) {
-    console.log('🔍 getCountryCode called with:', countryName);
-    
-    if (!countryName) {
-        console.warn('⚠️ No country name. Using default: SA');
-        return 'SA';
-    }
-    
-    // Clean the input
-    let cleaned = countryName.toString().trim().toLowerCase();
-    console.log('🧹 Cleaned:', cleaned);
-    
-    // Already ISO code (2 letters)
-    if (cleaned.length === 2 && /^[a-z]{2}$/.test(cleaned)) {
-        console.log('✅ Already ISO code:', cleaned.toUpperCase());
-        return cleaned.toUpperCase();
-    }
-    
-    // Direct lookup in country database
-    if (countryDatabase[cleaned]) {
-        console.log('✅ Found in database:', cleaned, '→', countryDatabase[cleaned].code);
-        return countryDatabase[cleaned].code;
-    }
-    
-    // Partial match
-    const words = cleaned.split(' ');
-    for (const [key, data] of Object.entries(countryDatabase)) {
-        const keyWords = key.split(' ');
-        for (const word of words) {
-            if (word.length > 2 && keyWords.some(kw => kw.includes(word) || word.includes(kw))) {
-                console.log('✅ Partial match:', word, '→', data.code);
-                return data.code;
-            }
-        }
-    }
-    
-    // Common alternatives
-    const alternatives = {
-        'usa': 'US', 'america': 'US', 'us': 'US',
-        'uk': 'GB', 'britain': 'GB', 'england': 'GB',
-        'korea': 'KR', 'russia': 'RU'
-    };
-    if (alternatives[cleaned]) {
-        console.log('✅ Alternative match:', cleaned, '→', alternatives[cleaned]);
-        return alternatives[cleaned];
-    }
-    
-    console.warn(`⚠️ No ISO code found for: "${countryName}". Using default: SA`);
-    return 'SA';
-}
-
-// ============================================================
-// GET SHIPPING RATES - FULLY DYNAMIC
-// ============================================================
-async function getEasyshipRates(sellerAddress, buyerAddress, parcelDetails) {
-    try {
-        console.log('🚀 getEasyshipRates called');
-        console.log('📦 Seller Country:', sellerAddress.country);
-        console.log('📦 Buyer Country:', buyerAddress.country);
-        
-        if (!sellerAddress.country) {
-            throw new Error("Seller location (Country) is missing!");
-        }
-
-        // 🎯 DYNAMIC CONVERSION - Har country ka kaam karega
-        const originCode = getCountryCode(sellerAddress.country);
-        const destCode = getCountryCode(buyerAddress.country || 'SA');
-
-        console.log(`📍 Origin: "${sellerAddress.country}" → ${originCode}`);
-        console.log(`📍 Destination: "${buyerAddress.country || 'SA'}" → ${destCode}`);
-
-        // 📦 DYNAMIC PAYLOAD
-        const payload = {
-            origin_address: {
-                country_alpha2: originCode,
-                postal_code: sellerAddress.postal_code || '00000',
-                city: sellerAddress.city || 'N/A',
-                line1: sellerAddress.line1 || 'N/A',
-                state: sellerAddress.state || ''
-            },
-            destination_address: {
-                country_alpha2: destCode,
-                postal_code: buyerAddress.postal_code || '00000',
-                city: buyerAddress.city || 'N/A',
-                line1: buyerAddress.line1 || 'N/A',
-                state: buyerAddress.state || ''
-            },
-            parcels: [{
-                weight: parcelDetails.weight || 1,
-                distance_unit: 'cm',
-                mass_unit: 'kg',
-                dimensions: {
-                    length: parcelDetails.length || 10,
-                    width: parcelDetails.width || 10,
-                    height: parcelDetails.height || 10
-                }
-            }],
-            currency: 'USD'
-        };
-
-        console.log('📤 API Payload:', JSON.stringify(payload, null, 2));
-
-        // 🌐 API CALL
-        const response = await fetch(`${EASYSHIP_BASE_URL}/rates`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${EASYSHIP_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
-
-        console.log('📥 Response Status:', response.status);
-
-        if (!response.ok) {
-            const errData = await response.json();
-            console.error('❌ API Error:', errData);
-            throw new Error(errData.message || `API Error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log(`✅ Found ${data.rates?.length || 0} shipping rates`);
-        
-        if (data.rates && data.rates.length > 0) {
-            console.log('📊 Sample Rate:', data.rates[0]);
-        }
-        
-        return data.rates || [];
-    } catch (error) {
-        console.error('❌ Easyship Rates Error:', error);
-        return [];
-    }
-}
-
-// ============================================================
-// CREATE SHIPMENT - WITH TEST MODE
-// ============================================================
-async function createEasyshipShipment(orderData, sellerAddress, buyerAddress, parcelDetails) {
-    if (IS_TESTING) {
-        console.warn("⚠️ [Test Mode] Shipment creation simulated. No money deducted.");
-        return { shipment: { id: "TEST_SHIP_ID_" + Date.now() } };
-    }
-
-    try {
-        const originCode = getCountryCode(sellerAddress.country || 'SA');
-        const destCode = getCountryCode(buyerAddress.country || 'SA');
-
-        const response = await fetch(`${EASYSHIP_BASE_URL}/shipments`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${EASYSHIP_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                shipment: {
-                    origin_address: {
-                        country_alpha2: originCode,
-                        postal_code: sellerAddress.postal_code || '00000',
-                        city: sellerAddress.city || 'N/A',
-                        line1: sellerAddress.line1 || 'N/A',
-                        state: sellerAddress.state || ''
-                    },
-                    destination_address: {
-                        country_alpha2: destCode,
-                        postal_code: buyerAddress.postal_code || '00000',
-                        city: buyerAddress.city || 'N/A',
-                        line1: buyerAddress.line1 || 'N/A',
-                        state: buyerAddress.state || ''
-                    },
-                    parcels: [{ 
-                        weight: parcelDetails.weight || 1,
-                        length: parcelDetails.length || 10,
-                        width: parcelDetails.width || 10,
-                        height: parcelDetails.height || 10
-                    }],
-                    selected_rate_id: orderData.selected_rate_id,
-                    order_data: { order_id: orderData.order_id }
-                }
-            })
-        });
-        
-        if (!response.ok) {
-            const errData = await response.json();
-            throw new Error(errData.message || `API Error: ${response.status}`);
-        }
-        
-        return await response.json();
-    } catch (error) {
-        console.error('❌ Shipment Creation Error:', error);
-        return null;
-    }
-}
-
-// ============================================================
-// FETCH SHIPPING RATES - FIXED VERSION
-// ============================================================
-async function fetchAndDisplayShippingRates() {
-    console.log('🚀 fetchAndDisplayShippingRates called');
-    
-    if (Date.now() - lastShippingFetch < 3000) {
-        console.log('⏳ Throttling');
-        return;
-    }
-    lastShippingFetch = Date.now();
-    
-    const shippingContainer = document.getElementById('shippingCostContainer');
-    const shippingDisplay = document.getElementById('shippingCostDisplay');
-    const payBtn = document.getElementById('payNowBtn');
-    
-    if (shippingContainer) shippingContainer.style.display = 'flex';
-    if (shippingDisplay) {
-        shippingDisplay.textContent = 'Calculating...';
-        shippingDisplay.className = 'cost shipping-loading';
-    }
-    
-    if (payBtn) {
-        payBtn.disabled = true;
-        payBtn.textContent = '⏳ Calculating Shipping...';
-    }
-    
-    try {
-        // Get cart item
-        const firstCartItem = cart[0];
-        if (!firstCartItem) { 
-            console.warn('⚠️ Cart is empty');
-            if (shippingDisplay) {
-                shippingDisplay.textContent = 'No items in cart';
-                shippingDisplay.className = 'cost error';
-            }
-            if (payBtn) { payBtn.disabled = true; payBtn.textContent = '⏳ Waiting for items...'; }
-            return;
-        }
-        
-        // Get product
-        const product = products.find(p => p.id === firstCartItem.id);
-        if (!product) { 
-            console.warn('⚠️ Product not found');
-            if (shippingDisplay) {
-                shippingDisplay.textContent = 'Product not found';
-                shippingDisplay.className = 'cost error';
-            }
-            if (payBtn) { payBtn.disabled = true; payBtn.textContent = '⏳ Product not found'; }
-            return;
-        }
-        
-        // Get seller
-        const seller = sellers.find(s => s.id === product.sellerId);
-        if (!seller) { 
-            console.warn('⚠️ Seller not found');
-            if (shippingDisplay) {
-                shippingDisplay.textContent = 'Seller info missing';
-                shippingDisplay.className = 'cost error';
-            }
-            if (payBtn) { payBtn.disabled = true; payBtn.textContent = '⏳ Seller info missing'; }
-            return;
-        }
-        
-        // 🔥 GET DYNAMIC BUYER ADDRESS
-        const buyerCountryEl = document.getElementById('deliveryCountry');
-        const buyerCityEl = document.getElementById('deliveryCity');
-        const buyerPostcodeEl = document.getElementById('deliveryPostcode');
-        const buyerStateEl = document.getElementById('deliveryState');
-        const buyerStreetEl = document.getElementById('deliveryStreet');
-        
-        const buyerCountry = buyerCountryEl ? buyerCountryEl.value : 'SA';
-        const buyerCity = buyerCityEl ? buyerCityEl.value : '';
-        const buyerPostcode = buyerPostcodeEl ? buyerPostcodeEl.value : '';
-        const buyerState = buyerStateEl ? buyerStateEl.value : '';
-        const buyerStreet = buyerStreetEl ? buyerStreetEl.value : '';
-        
-        console.log(`📍 Buyer Country Input: "${buyerCountry}"`);
-        console.log(`📍 Buyer City: "${buyerCity}"`);
-        console.log(`📍 Buyer Postcode: "${buyerPostcode}"`);
-        
-        // 🔥 CHECK COUNTRY SELECTED
-        if (!buyerCountry || buyerCountry === '' || buyerCountry === 'Select Country') {
-            console.warn('⚠️ No country selected');
-            if (shippingDisplay) {
-                shippingDisplay.textContent = 'Select country first';
-                shippingDisplay.className = 'cost error';
-            }
-            if (payBtn) { payBtn.disabled = true; payBtn.textContent = '⏳ Select country'; }
-            return;
-        }
-        
-        // 🔥 BUILD SELLER ADDRESS (DYNAMIC)
-        const sellerAddress = {
-            country: seller.country || 'SA',
-            city: seller.city || 'Riyadh',
-            postal_code: seller.pincode || '00000',
-            state: seller.state || '',
-            line1: seller.street || seller.houseNo || 'N/A'
-        };
-        
-        // 🔥 BUILD BUYER ADDRESS (DYNAMIC)
-        const buyerAddress = {
-            country: buyerCountry,
-            city: buyerCity || 'Kathmandu',
-            postal_code: buyerPostcode || '00000',
-            state: buyerState || '',
-            line1: buyerStreet || buyerCity || 'N/A'
-        };
-        
-        // 🔥 BUILD PARCEL DETAILS (DYNAMIC)
-        const parcelDetails = {
-            weight: product.weight || 1,
-            length: product.size?.length || 10,
-            width: product.size?.width || 10,
-            height: product.size?.height || 10
-        };
-        
-        console.log('📦 Seller Address:', sellerAddress);
-        console.log('📦 Buyer Address:', buyerAddress);
-        console.log('📦 Parcel Details:', parcelDetails);
-        
-        // 🔥 CALL API
-        const rates = await getEasyshipRates(sellerAddress, buyerAddress, parcelDetails);
-        
-        if (rates && rates.length > 0) {
-            const cheapest = rates.reduce((a, b) => a.total_charge < b.total_charge ? a : b);
-            currentShippingCost = cheapest.total_charge || 0;
-            console.log('💰 Cheapest Rate:', cheapest);
-            console.log('💰 Shipping Cost:', currentShippingCost);
-            
-            if (isNaN(currentShippingCost) || currentShippingCost < 0) {
-                currentShippingCost = 0;
-                if (shippingDisplay) {
-                    shippingDisplay.textContent = 'Shipping Quote Pending';
-                    shippingDisplay.className = 'cost pending';
-                }
-                showToast('⚠️ Shipping quote pending. Please try again.', true);
-                if (payBtn) { payBtn.disabled = true; payBtn.textContent = '⏳ Shipping Pending'; }
-                return;
-            }
-            
-            // ✅ DISPLAY SHIPPING COST
-            const displayCost = convertPrice(currentShippingCost);
-            if (shippingDisplay) {
-                shippingDisplay.textContent = `${getCurrencySymbol()}${displayCost}`;
-                shippingDisplay.className = 'cost';
-                shippingDisplay.style.color = '#10b981';
-            }
-            
-            sessionStorage.setItem('selected_rate_id', cheapest.id);
-            sessionStorage.setItem('shipping_cost', currentShippingCost);
-            sessionStorage.setItem('shipping_rates', JSON.stringify(rates));
-            
-            if (cheapest.carrier_name && shippingDisplay) {
-                shippingDisplay.title = `Carrier: ${cheapest.carrier_name}`;
-            }
-            
-            if (payBtn) {
-                payBtn.disabled = false;
-                payBtn.textContent = 'Pay with Card (Dummy)';
-                payBtn.style.opacity = '1';
-            }
-            
-            showToast(`Shipping: ${getCurrencySymbol()}${displayCost}`, false);
-        } else {
-            console.warn('⚠️ No rates found');
-            currentShippingCost = 0;
-            if (shippingDisplay) {
-                shippingDisplay.textContent = 'Shipping Quote Pending';
-                shippingDisplay.className = 'cost pending';
-                shippingDisplay.style.color = '#f59e0b';
-            }
-            sessionStorage.setItem('shipping_cost', 0);
-            showToast('⚠️ Shipping quote pending. Please try again.', true);
-            if (payBtn) {
-                payBtn.disabled = true;
-                payBtn.textContent = '⏳ Shipping Pending';
-            }
-        }
-    } catch (error) {
-        console.error('❌ Shipping fetch error:', error);
-        currentShippingCost = 0;
-        if (shippingDisplay) {
-            shippingDisplay.textContent = 'Shipping Quote Pending';
-            shippingDisplay.className = 'cost pending';
-        }
-        sessionStorage.setItem('shipping_cost', 0);
-        showToast('⚠️ Could not fetch shipping rates', true);
-        if (payBtn) {
-            payBtn.disabled = true;
-            payBtn.textContent = '⏳ Shipping Pending';
-        }
-    }
-}
-
-// ============================================================
-// CREATE SHIPMENT AFTER ORDER
-// ============================================================
-async function createShipmentAfterOrder(orderData) {
-    try {
-        const result = await createEasyshipShipment(
-            {
-                order_id: orderData.orderId,
-                selected_rate_id: sessionStorage.getItem('selected_rate_id') || null
-            },
-            {
-                country: orderData.sellerCountry || 'SA',
-                postal_code: orderData.sellerPostcode || '',
-                city: orderData.sellerCity || '',
-                state: orderData.sellerState || '',
-                line1: orderData.sellerStreet || ''
-            },
-            {
-                country: orderData.buyerCountry || 'SA',
-                postal_code: orderData.buyerPostcode || '',
-                city: orderData.buyerCity || '',
-                state: orderData.buyerState || '',
-                line1: orderData.buyerStreet || ''
-            },
-            {
-                weight: orderData.weight || 1,
-                length: orderData.length || 10,
-                width: orderData.width || 10,
-                height: orderData.height || 10
-            }
-        );
-        
-        if (IS_TESTING) {
-            return {
-                trackingNumber: 'TEST_TRACK_' + Date.now(),
-                labelUrl: 'https://example.com/test-label.pdf',
-                carrierName: 'Test Carrier'
-            };
-        }
-        
-        if (result && result.shipment) {
-            return {
-                trackingNumber: result.shipment.tracking_number || 'TRACK_' + Date.now(),
-                labelUrl: result.shipment.label_url || null,
-                carrierName: result.shipment.carrier_name || 'Unknown'
-            };
-        }
-        
-        return null;
-    } catch (error) {
-        console.error('❌ Shipment creation failed:', error);
-        return null;
-    }
-}
-
-// ============================================================
-// ✅ FIXED: CONFIRM DELIVERY BUTTON HANDLER
-// ============================================================
-function setupConfirmDeliveryButton() {
-    console.log('🔧 Setting up Confirm Delivery Button...');
-    
-    const confirmBtn = document.getElementById('confirmDeliveryBtn');
-    if (!confirmBtn) {
-        console.warn('⚠️ Confirm Delivery button not found!');
-        return;
-    }
-    
-    // Remove all existing listeners by cloning
-    const newBtn = confirmBtn.cloneNode(true);
-    confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
-    
-    // Add fresh event listener
-    newBtn.addEventListener('click', async function(e) {
-        e.preventDefault();
-        console.log('🔄 Confirm Delivery button clicked!');
-        
-        const user = auth.currentUser;
-        if (!user) {
-            sessionStorage.setItem('pendingCheckout', 'true');
-            sessionStorage.setItem('pendingCart', JSON.stringify(cart));
-            showToast("Please login to continue", true);
-            document.getElementById('loginModal').style.display = 'block';
-            return;
-        }
-        
-        // Get form values
-        const fn = document.getElementById('deliveryFullName')?.value || '';
-        const ph = document.getElementById('deliveryPhone')?.value || '';
-        const c = document.getElementById('deliveryCountry')?.value || '';
-        const ci = document.getElementById('deliveryCity')?.value || '';
-        const pc = document.getElementById('deliveryPostcode')?.value || '';
-        const st = document.getElementById('deliveryStreet')?.value || '';
-        
-        console.log('📋 Delivery Details:', { fn, ph, c, ci, pc, st });
-        
-        if (!fn || !ph || !c || !ci || !pc || !st) {
-            showToast("Please fill all delivery fields!", true);
-            return;
-        }
-        
-        // Test country conversion
-        const testCode = getCountryCode(c);
-        console.log(`🧪 "${c}" → ${testCode}`);
-        
-        if (testCode === 'SA' && c.toLowerCase() !== 'saudi arabia' && c.toLowerCase() !== 'sa') {
-            console.warn(`⚠️ Country "${c}" not found in database, using SA as fallback`);
-        }
-        
-        // Save buyer country
-        buyerCountry = c;
-        localStorage.setItem('buyerCountry', buyerCountry);
-        
-        // Save delivery info
-        currentDelivery = {
-            fullName: fn,
-            phone: ph,
-            country: c,
-            city: ci,
-            postcode: pc,
-            street: st,
-            houseNo: document.getElementById('deliveryHouseNo')?.value || '',
-            fullAddress: `${document.getElementById('deliveryHouseNo')?.value || ''}, ${st}, ${ci}, ${pc}, ${c}`,
-            email: user.email,
-            state: document.getElementById('deliveryState')?.value || ''
-        };
-        
-        // Save address if checked
-        if (document.getElementById('saveAddressCheckbox')?.checked) {
-            const idx = savedAddresses.findIndex(a => a.email === user.email);
-            const addr = {
-                email: user.email,
-                fullName: fn,
-                phone: ph,
-                country: c,
-                city: ci,
-                postcode: pc,
-                street: st,
-                houseNo: document.getElementById('deliveryHouseNo')?.value || '',
-                state: document.getElementById('deliveryState')?.value || ''
-            };
-            if (idx >= 0) savedAddresses[idx] = addr;
-            else savedAddresses.push(addr);
-            saveAllLocal();
-        }
-        
-        // 🔥 CALCULATE SHIPPING
-        showToast("Calculating shipping...", false);
-        console.log('🔄 Calling fetchAndDisplayShippingRates...');
-        await fetchAndDisplayShippingRates();
-        console.log('✅ fetchAndDisplayShippingRates completed');
-        
-        // Show payment section
-        setTimeout(() => {
-            showSection('payment');
-            loadSavedCards();
-        }, 1000);
-    });
-    
-    console.log('✅ Confirm Delivery button setup complete!');
-}
-
-// ============================================================
-// FIX 1: DATABASE & RECOVERY
-// ============================================================
-async function initializeDatabase() {
-    try {
-        console.log('🔍 Initializing database...');
-        
-        const productsSnapshot = await db.collection('products').limit(1).get();
-        if (productsSnapshot.empty) {
-            console.log('📦 Products collection empty. Seeding default products...');
-            await seedProductsIfEmpty();
-        }
-        
-        const sellersSnapshot = await db.collection('sellers').limit(1).get();
-        if (sellersSnapshot.empty) {
-            console.log('👤 Sellers collection empty. Creating...');
-        }
-        
-        const ordersSnapshot = await db.collection('orders').limit(1).get();
-        if (ordersSnapshot.empty) {
-            console.log('📦 Orders collection empty. Creating...');
-        }
-        
-        console.log('✅ Database initialized successfully!');
-        return true;
-    } catch (error) {
-        console.error('❌ Database initialization error:', error);
-        showToast('⚠️ Database initialization failed. Please refresh.', true);
-        return false;
-    }
-}
-
-// ============================================================
-// FIX 2: 5 FIXED CATEGORIES
-// ============================================================
-const FIXED_CATEGORIES = ['Fashion', 'Textiles', 'Cosmetics', 'Electronics', 'Home Decor'];
-
-function updateCategorySelect() {
-    const select = document.getElementById('prodCat');
-    if (select) {
-        select.innerHTML = FIXED_CATEGORIES.map(cat => 
-            `<option value="${cat}">${cat}</option>`
-        ).join('');
-    }
-}
-
-// ============================================================
 // GLOBAL ERROR HANDLING
 // ============================================================
 window.onerror = function(message, source, lineno, colno, error) {
@@ -802,7 +32,126 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 
 // ============================================================
-// IMAGE COMPRESSION
+// EASYSHIP API
+// ============================================================
+const EASYSHIP_API_KEY = 'prod_FCky2t1qk8dLSqRk6O8a62kUklUmcQuxmzLDmq+mhCI=';
+const EASYSHIP_MODE = 'sandbox';
+const EASYSHIP_BASE_URL = EASYSHIP_MODE === 'sandbox' 
+    ? 'https://api.sandbox.easyship.com/2024-09' 
+    : 'https://api.easyship.com/2024-09';
+
+async function getEasyshipRates(sellerAddress, buyerAddress, parcelDetails) {
+    try {
+        const response = await fetch(`${EASYSHIP_BASE_URL}/rates`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${EASYSHIP_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                origin_address: {
+                    country_alpha2: sellerAddress.country || 'SA',
+                    postal_code: sellerAddress.postal_code || '',
+                    city: sellerAddress.city || '',
+                    state: sellerAddress.state || '',
+                    line1: sellerAddress.line1 || ''
+                },
+                destination_address: {
+                    country_alpha2: buyerAddress.country || 'US',
+                    postal_code: buyerAddress.postal_code || '',
+                    city: buyerAddress.city || '',
+                    state: buyerAddress.state || '',
+                    line1: buyerAddress.line1 || ''
+                },
+                parcels: [{
+                    weight: parcelDetails.weight || 1,
+                    dimensions: {
+                        length: parcelDetails.length || 10,
+                        width: parcelDetails.width || 10,
+                        height: parcelDetails.height || 10
+                    }
+                }],
+                currency: 'USD'
+            })
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        return data.rates || [];
+    } catch (error) {
+        console.error('Easyship rates error:', error);
+        return [];
+    }
+}
+
+async function createEasyshipShipment(orderData, sellerAddress, buyerAddress, parcelDetails) {
+    try {
+        const response = await fetch(`${EASYSHIP_BASE_URL}/shipments`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${EASYSHIP_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                shipment: {
+                    origin_address: {
+                        country_alpha2: sellerAddress.country || 'SA',
+                        postal_code: sellerAddress.postal_code || '',
+                        city: sellerAddress.city || '',
+                        state: sellerAddress.state || '',
+                        line1: sellerAddress.line1 || ''
+                    },
+                    destination_address: {
+                        country_alpha2: buyerAddress.country || 'US',
+                        postal_code: buyerAddress.postal_code || '',
+                        city: buyerAddress.city || '',
+                        state: buyerAddress.state || '',
+                        line1: buyerAddress.line1 || ''
+                    },
+                    parcels: [{
+                        weight: parcelDetails.weight || 1,
+                        dimensions: {
+                            length: parcelDetails.length || 10,
+                            width: parcelDetails.width || 10,
+                            height: parcelDetails.height || 10
+                        }
+                    }],
+                    selected_rate_id: orderData.selected_rate_id || null,
+                    order_data: {
+                        order_id: orderData.order_id || 'GB_' + Date.now()
+                    }
+                }
+            })
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Easyship shipment error:', error);
+        return null;
+    }
+}
+
+async function buyEasyshipLabel(shipmentId, rateId) {
+    try {
+        const response = await fetch(`${EASYSHIP_BASE_URL}/shipments/${shipmentId}/buy-label`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${EASYSHIP_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ selected_rate_id: rateId })
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Easyship label buy error:', error);
+        return null;
+    }
+}
+
+// ============================================================
+// IMAGE COMPRESSION - DO NOT CHANGE
 // ============================================================
 function compressImage(file, maxSizeMB = 0.5, maxWidth = 1024, maxHeight = 1024) {
     return new Promise((resolve, reject) => {
@@ -863,79 +212,12 @@ async function uploadCompressedImage(file, type = 'image') {
 }
 
 // ============================================================
-// DEFAULT PRODUCTS - 5 CATEGORIES
+// DEFAULT PRODUCTS - SIRF 3 PRODUCTS
 // ============================================================
 const defaultProducts = [
-    { 
-        sellerId: 0, 
-        sellerName: "GlobalBazaar", 
-        name: "Matte Lipstick Set", 
-        price: 29.99, 
-        category: "Cosmetics", 
-        sellerCountry: "SA", 
-        mainImage: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400", 
-        images: ["https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400", "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=400"], 
-        description: "Long-lasting matte lipstick set with 6 vibrant colors", 
-        stock: 10, 
-        weight: 0.2, 
-        size: { length: 10, width: 8, height: 4 } 
-    },
-    { 
-        sellerId: 0, 
-        sellerName: "GlobalBazaar", 
-        name: "Wireless Headphones", 
-        price: 89.99, 
-        category: "Electronics", 
-        sellerCountry: "SA", 
-        mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", 
-        images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400"], 
-        description: "Premium wireless headphones with noise cancellation", 
-        stock: 10, 
-        weight: 0.5, 
-        size: { length: 15, width: 10, height: 5 } 
-    },
-    { 
-        sellerId: 0, 
-        sellerName: "GlobalBazaar", 
-        name: "Premium Cotton T-Shirt", 
-        price: 24.99, 
-        category: "Fashion", 
-        sellerCountry: "SA", 
-        mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", 
-        images: ["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400"], 
-        description: "100% combed cotton premium t-shirt", 
-        stock: 10, 
-        weight: 0.3, 
-        size: { length: 25, width: 20, height: 5 } 
-    },
-    { 
-        sellerId: 0, 
-        sellerName: "GlobalBazaar", 
-        name: "Silk Scarf", 
-        price: 19.99, 
-        category: "Textiles", 
-        sellerCountry: "SA", 
-        mainImage: "https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=400", 
-        images: ["https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=400", "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400"], 
-        description: "Luxury silk scarf with elegant design", 
-        stock: 10, 
-        weight: 0.15, 
-        size: { length: 20, width: 20, height: 2 } 
-    },
-    { 
-        sellerId: 0, 
-        sellerName: "GlobalBazaar", 
-        name: "Home Decor Vase", 
-        price: 39.99, 
-        category: "Home Decor", 
-        sellerCountry: "SA", 
-        mainImage: "https://images.unsplash.com/photo-1581783898377-1c85bf937427?w=400", 
-        images: ["https://images.unsplash.com/photo-1581783898377-1c85bf937427?w=400", "https://images.unsplash.com/photo-1618220179428-22790b461013?w=400"], 
-        description: "Elegant ceramic vase for modern home decor", 
-        stock: 10, 
-        weight: 0.8, 
-        size: { length: 20, width: 20, height: 30 } 
-    }
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Wireless Headphones", price: 89.99, category: "Electronics", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400"], description: "Premium wireless headphones with noise cancellation", stock: 10, weight: 0.5, size: { length: 15, width: 10, height: 5 } },
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Cotton T-Shirt", price: 24.99, category: "Textile", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", images: ["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400"], description: "100% combed cotton t-shirt", stock: 25, weight: 0.3, size: { length: 25, width: 20, height: 5 } },
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Smart Watch", price: 49.99, category: "Electronics", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", images: ["https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400"], description: "Latest smart watch with health tracking", stock: 8, weight: 0.4, size: { length: 12, width: 8, height: 3 } }
 ];
 
 async function seedProductsIfEmpty() {
@@ -943,23 +225,24 @@ async function seedProductsIfEmpty() {
         const snapshot = await db.collection("products").get();
         if (snapshot.empty) {
             for (let p of defaultProducts) {
-                const calc = calculateDisplayPrice(p.price);
+                const calc = calculateProductPrice(p.price);
                 await db.collection("products").add({
                     ...p,
-                    price: p.price,
-                    publicPrice: calc.total,
-                    gatewayFee: calc.gateway,
-                    handlingFee: calc.handling,
-                    commission: p.price * 0.10,
-                    sellerEarning: p.price - (p.price * 0.10) - 1.50,
-                    platformRevenue: calc.gateway + (p.price * 0.10) + 1.50,
+                    price: calc.publicPrice,
+                    publicPrice: calc.publicPrice,
+                    gatewayFee: calc.gatewayFee,
+                    handlingFee: calc.handlingFee,
+                    commission: calc.commission,
+                    sellerEarning: calc.sellerEarning,
+                    platformRevenue: calc.platformRevenue,
                     createdAt: new Date().toISOString()
                 });
             }
-            console.log("Seeded 5 default products");
+            console.log("Seeded 3 default products");
         }
     } catch (e) { console.error('Seed error:', e); }
 }
+seedProductsIfEmpty();
 
 // ============================================================
 // GLOBAL VARIABLES
@@ -983,61 +266,6 @@ let isAdminLoggedIn = false;
 let currentShippingCost = 0;
 let lastShippingFetch = 0;
 let verificationCheckInterval = null;
-let pendingConfirmationProduct = null;
-
-// ============================================================
-// DYNAMIC PRICING
-// ============================================================
-const MAINTENANCE_FEE = 1.50;
-const GATEWAY_PERCENT = 0.03;
-const PLATFORM_COMMISSION = 0.10;
-
-function calculateDynamicPrice(basePrice, shippingCost = 0) {
-    let gatewayFee = basePrice * GATEWAY_PERCENT;
-    let maintenanceFee = MAINTENANCE_FEE;
-    let grandTotal = basePrice + maintenanceFee + gatewayFee + shippingCost;
-    
-    return {
-        basePrice: basePrice,
-        gatewayFee: gatewayFee,
-        maintenanceFee: maintenanceFee,
-        shippingCost: shippingCost,
-        grandTotal: grandTotal,
-        breakdown: {
-            'Product Price': basePrice,
-            '+ Gateway Fee (3%)': gatewayFee,
-            '+ Maintenance Fee': maintenanceFee,
-            '+ Shipping Cost': shippingCost,
-            '= Grand Total': grandTotal
-        }
-    };
-}
-
-function calculateDisplayPrice(basePrice) {
-    let gatewayFee = basePrice * GATEWAY_PERCENT;
-    let total = basePrice + gatewayFee + MAINTENANCE_FEE;
-    return { 
-        total: total, 
-        basePrice: basePrice, 
-        gateway: gatewayFee,
-        handling: MAINTENANCE_FEE
-    };
-}
-
-function calculateFinalPrice(basePrice, sellerCountry, buyerCountry, shippingCost = 0) {
-    let gatewayFee = basePrice * GATEWAY_PERCENT;
-    let commission = basePrice * PLATFORM_COMMISSION;
-    let total = basePrice + gatewayFee + MAINTENANCE_FEE + shippingCost + commission;
-    return { 
-        total: total, 
-        basePrice: basePrice, 
-        shipping: shippingCost, 
-        commission: commission, 
-        gateway: gatewayFee,
-        handling: MAINTENANCE_FEE,
-        sellerEarning: basePrice - commission - MAINTENANCE_FEE
-    };
-}
 
 // ============================================================
 // TELEGRAM NOTIFICATIONS
@@ -1199,6 +427,128 @@ function convertPrice(usd){ return (usd*fxRates[selectedCurrency]).toFixed(2); }
 function getCurrencySymbol(){ return currencySymbols[selectedCurrency]; }
 document.getElementById('currencySelect').value=selectedCurrency;
 document.getElementById('currencySelect').addEventListener('change',(e)=>{ selectedCurrency=e.target.value; localStorage.setItem('selectedCurrency',selectedCurrency); renderProducts(); updateCartUI(); renderCartPage(); if(currentSeller) renderSellerDashboard(); showToast(`Currency: ${selectedCurrency}`,false); });
+
+// ============================================================
+// DYNAMIC PRICE CALCULATION
+// ============================================================
+const PLATFORM_COMMISSION = 0.10;
+const GATEWAY_FEE_PERCENT = 0.0299;
+const GATEWAY_FEE_FIXED = 0.49;
+const HANDLING_FEE = 1.50;
+
+function calculateProductPrice(basePrice) {
+    let gatewayFee = (basePrice * GATEWAY_FEE_PERCENT) + GATEWAY_FEE_FIXED;
+    let handlingFee = HANDLING_FEE;
+    let publicPrice = basePrice + gatewayFee + handlingFee;
+    let commission = basePrice * PLATFORM_COMMISSION;
+    let sellerEarning = basePrice - commission - handlingFee;
+    let platformRevenue = gatewayFee + commission + handlingFee;
+    return { basePrice, gatewayFee, handlingFee, publicPrice, commission, sellerEarning, platformRevenue };
+}
+
+function calculateFinalPrice(basePrice, sellerCountry, buyerCountry, shippingCost = 0) {
+    let gatewayFee = (basePrice * GATEWAY_FEE_PERCENT) + GATEWAY_FEE_FIXED;
+    let commission = basePrice * PLATFORM_COMMISSION;
+    let total = basePrice + gatewayFee + commission + shippingCost + HANDLING_FEE;
+    return { 
+        total: total, 
+        basePrice: basePrice, 
+        shipping: shippingCost, 
+        commission: commission, 
+        gateway: gatewayFee,
+        handling: HANDLING_FEE,
+        sellerEarning: basePrice - commission - HANDLING_FEE
+    };
+}
+
+// ============================================================
+// EASYSHIP DYNAMIC SHIPPING
+// ============================================================
+async function fetchAndDisplayShippingRates() {
+    if (Date.now() - lastShippingFetch < 3000) return;
+    lastShippingFetch = Date.now();
+    
+    const shippingContainer = document.getElementById('shippingCostContainer');
+    const shippingDisplay = document.getElementById('shippingCostDisplay');
+    shippingContainer.style.display = 'flex';
+    shippingDisplay.textContent = 'Calculating...';
+    shippingDisplay.className = 'cost shipping-loading';
+    
+    try {
+        const firstCartItem = cart[0];
+        if (!firstCartItem) { 
+            shippingDisplay.textContent = 'No items in cart'; 
+            return; 
+        }
+        
+        const product = products.find(p => p.id === firstCartItem.id);
+        if (!product) { 
+            shippingDisplay.textContent = 'Product not found'; 
+            return; 
+        }
+        
+        const seller = sellers.find(s => s.id === product.sellerId);
+        if (!seller) { 
+            shippingDisplay.textContent = 'Seller info missing'; 
+            return; 
+        }
+        
+        const buyerAddress = {
+            country: document.getElementById('deliveryCountry').value || 'SA',
+            city: document.getElementById('deliveryCity').value || '',
+            postal_code: document.getElementById('deliveryPostcode').value || '',
+            state: document.getElementById('deliveryState')?.value || '',
+            line1: document.getElementById('deliveryStreet').value || ''
+        };
+        
+        if (!buyerAddress.country || buyerAddress.country === '') {
+            shippingDisplay.textContent = 'Select country first';
+            return;
+        }
+        
+        const sellerAddress = {
+            country: seller.country || 'SA',
+            city: seller.city || '',
+            postal_code: seller.pincode || '',
+            state: seller.state || '',
+            line1: seller.street || ''
+        };
+        
+        const parcelDetails = {
+            weight: product.weight || 1,
+            length: product.size?.length || 10,
+            width: product.size?.width || 10,
+            height: product.size?.height || 10
+        };
+        
+        const rates = await getEasyshipRates(sellerAddress, buyerAddress, parcelDetails);
+        
+        if (rates && rates.length > 0) {
+            const cheapest = rates.reduce((a, b) => a.total_charge < b.total_charge ? a : b);
+            currentShippingCost = cheapest.total_charge || 0;
+            shippingDisplay.textContent = `${getCurrencySymbol()}${convertPrice(currentShippingCost)}`;
+            shippingDisplay.className = 'cost';
+            sessionStorage.setItem('selected_rate_id', cheapest.id);
+            sessionStorage.setItem('shipping_cost', currentShippingCost);
+            sessionStorage.setItem('shipping_rates', JSON.stringify(rates));
+            if (cheapest.carrier_name) shippingDisplay.title = `Carrier: ${cheapest.carrier_name}`;
+            showToast(`Shipping: ${getCurrencySymbol()}${convertPrice(currentShippingCost)}`, false);
+        } else {
+            currentShippingCost = 10;
+            shippingDisplay.textContent = `${getCurrencySymbol()}${convertPrice(currentShippingCost)}`;
+            shippingDisplay.className = 'cost';
+            sessionStorage.setItem('shipping_cost', currentShippingCost);
+            showToast('Using default shipping rate', true);
+        }
+    } catch (error) {
+        console.error('Shipping fetch error:', error);
+        currentShippingCost = 10;
+        shippingDisplay.textContent = 'Error fetching rates';
+        shippingDisplay.className = 'cost';
+        sessionStorage.setItem('shipping_cost', currentShippingCost);
+        showToast('Could not fetch shipping rates', true);
+    }
+}
 
 // ============================================================
 // EMAIL VERIFICATION MODAL FUNCTIONS
@@ -1754,9 +1104,9 @@ let currentCategory = "All";
 
 function renderProductCard(p) {
     const seller = sellers.find(s => s.id === p.sellerId) || { shopName: "GlobalBazaar", country: "SA" };
-    const displayPrice = calculateDisplayPrice(p.price);
+    const shipping = currentShippingCost > 0 ? currentShippingCost : 10;
+    const final = calculateFinalPrice(p.price, seller.country, buyerCountry, shipping);
     const stockBadge = p.stock < 5 ? `<div class="stock-badge">Only ${p.stock} left</div>` : '';
-    const soldOutBadge = p.stock <= 0 ? `<div class="soldout-badge">SOLD OUT</div>` : '';
     let thumbnailsHtml = '';
     if (p.images && p.images.length > 1) {
         thumbnailsHtml = p.images.slice(0,4).map(img => 
@@ -1764,7 +1114,6 @@ function renderProductCard(p) {
         ).join('');
     }
     return `<div class="product-card" data-id="${p.id}">
-        ${soldOutBadge}
         ${stockBadge}
         <div class="image-wrapper">
             <img class="main-img" src="${p.mainImage}" id="mainImg_${p.id}">
@@ -1772,9 +1121,9 @@ function renderProductCard(p) {
         </div>
         <div class="seller-name-tag">🏪 ${seller.shopName}</div>
         <h4 style="font-size:13px; margin:2px 0;">${p.name}</h4>
-        <div class="prod-price">${getCurrencySymbol()}${convertPrice(displayPrice.total)}</div>
+        <div class="prod-price">${getCurrencySymbol()}${convertPrice(final.total)}</div>
         <div class="card-actions">
-            <button class="btn-sm btn-buy addCartBtn" data-id="${p.id}" ${p.stock <= 0 ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>🛒 Buy</button>
+            <button class="btn-sm btn-buy addCartBtn" data-id="${p.id}">🛒 Buy</button>
         </div>
     </div>`;
 }
@@ -1786,13 +1135,10 @@ function renderCats(){
 }
 
 function renderProducts(){
-    const grid = document.getElementById('productsGrid');
-    grid.innerHTML = '';
-    
     let search = document.getElementById('searchInput')?.value.toLowerCase() || "";
     let filtered = products.filter(p => (currentCategory === "All" || p.category === currentCategory) && p.name.toLowerCase().includes(search) && p.stock > 0);
     if (filtered.length === 0) {
-        grid.innerHTML = '<div style="text-align:center;padding:40px;grid-column:1/-1;">No products found</div>';
+        document.getElementById('productsGrid').innerHTML = '<div style="text-align:center;padding:40px;grid-column:1/-1;">No products found</div>';
         return;
     }
     const firstTwo = filtered.slice(0, 2);
@@ -1810,7 +1156,7 @@ function renderProducts(){
         </div>
     `;
     html += rest.map(p => renderProductCard(p)).join('');
-    grid.innerHTML = html;
+    document.getElementById('productsGrid').innerHTML = html;
     document.querySelectorAll('.addCartBtn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); addToCart(btn.dataset.id); }));
     document.querySelectorAll('.product-card').forEach(card => card.addEventListener('click', () => openProduct(card.dataset.id)));
     renderBuyerOrders(); renderBuyerWishlist();
@@ -1830,24 +1176,27 @@ let currentProduct = null, currentRatingHandler = { currentRating: 0 };
 function openProduct(id){
     let p = products.find(x => x.id == id); if(!p) return;
     currentProduct = p;
-    let seller = sellers.find(s => s.id === p.sellerId) || { shopName: "GlobalBazaar", country: "SA" };
-    const displayPrice = calculateDisplayPrice(p.price);
+    let seller = sellers.find(s => s.id == p.sellerId) || { shopName: "GlobalBazaar", country: "SA" };
+    const shipping = currentShippingCost > 0 ? currentShippingCost : 10;
+    let final = calculateFinalPrice(p.price, seller.country, buyerCountry, shipping);
     document.getElementById('modalMainImg').src = p.mainImage;
     document.getElementById('modalTitle').innerText = p.name;
     document.getElementById('modalDesc').innerText = p.description;
     document.getElementById('modalPriceBreakdown').innerHTML = `
         Base: ${getCurrencySymbol()}${convertPrice(p.price)}<br>
-        + Gateway Fee (3%): ${getCurrencySymbol()}${convertPrice(displayPrice.gateway)}<br>
-        + Maintenance Fee: ${getCurrencySymbol()}${convertPrice(displayPrice.handling)}
+        + Shipping: ${getCurrencySymbol()}${convertPrice(final.shipping)}<br>
+        + Gateway Fee (2.99% + $0.49): ${getCurrencySymbol()}${convertPrice(final.gateway)}<br>
+        + Handling Fee: ${getCurrencySymbol()}${convertPrice(HANDLING_FEE)}<br>
+        + Commission: ${getCurrencySymbol()}${convertPrice(final.commission)}
     `;
-    document.getElementById('modalPrice').innerHTML = `<strong>Total: ${getCurrencySymbol()}${convertPrice(displayPrice.total)}</strong>`;
+    document.getElementById('modalPrice').innerHTML = `<strong>Total: ${getCurrencySymbol()}${convertPrice(final.total)}</strong>`;
     let thumb = document.getElementById('modalThumbnails'); if(thumb && p.images && p.images.length) thumb.innerHTML = p.images.map(img => `<img src="${img}" onclick="changeProductImage('${p.id}','${img}')">`).join('');
     let reviews = productReviews[p.id] || [];
     let avg = reviews.length ? (reviews.reduce((s,r)=>s+r.rating,0)/reviews.length).toFixed(1) : 0;
     document.getElementById('modalRatingStars').innerHTML = `<div class="rating-display"><span class="rating-badge">⭐ ${avg}</span><span>(${reviews.length} reviews)</span></div>`;
     document.getElementById('productReviews').innerHTML = reviews.map(r => `<div class="review-item"><strong>${r.userName||'User'}</strong> ⭐${r.rating}<br>${r.review}<br><small>${r.date}</small></div>`).join('');
     currentRatingHandler.currentRating = 0; renderReviewStars('reviewStars', currentRatingHandler);
-    document.getElementById('whatsappShareBtn').onclick = () => shareOnWhatsApp(p, displayPrice.total);
+    document.getElementById('whatsappShareBtn').onclick = () => shareOnWhatsApp(p, final.total);
     document.getElementById('submitReviewBtn').onclick = () => { let txt = document.getElementById('reviewText').value; if(!txt){ showToast("Write review",true); return; } if(currentRatingHandler.currentRating===0){ showToast("Select rating",true); return; } addReview(p.id, currentRatingHandler.currentRating, txt, currentBuyer ? currentBuyer.email : "Guest User"); document.getElementById('reviewText').value=''; currentRatingHandler.currentRating=0; renderReviewStars('reviewStars',currentRatingHandler); };
     document.getElementById('productModal').style.display = 'block';
 }
@@ -1870,7 +1219,7 @@ function toggleWish(id){
 function renderCartPage(){
     if(cart.length === 0){ document.getElementById('cartItemsList').innerHTML = '<p style="text-align:center;padding:40px;">Cart empty</p>'; document.getElementById('cartTotalAmount').innerHTML = `${getCurrencySymbol()}0.00`; return; }
     let totalUSD = 0;
-    const shipping = currentShippingCost > 0 ? currentShippingCost : 0;
+    const shipping = currentShippingCost > 0 ? currentShippingCost : 10;
     let html = cart.map((item, idx) => {
         let seller = sellers.find(s => s.id == item.sellerId) || { country: "SA" };
         let final = calculateFinalPrice(item.price, seller.country, buyerCountry, shipping / cart.length);
@@ -1926,22 +1275,68 @@ document.getElementById('proceedToCheckoutBtn')?.addEventListener('click', () =>
     }
 });
 
-// ✅ FIXED: This is the main fix - setup button after page loads
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('📄 DOM Loaded - Setting up Confirm Delivery Button');
-    setupConfirmDeliveryButton();
+document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async function() {
+    const user = auth.currentUser;
+    if (!user) {
+        sessionStorage.setItem('pendingCheckout', 'true');
+        sessionStorage.setItem('pendingCart', JSON.stringify(cart));
+        showToast("Please login to continue", true);
+        document.getElementById('loginModal').style.display = 'block';
+        return;
+    }
+    let fn = document.getElementById('deliveryFullName').value;
+    let ph = document.getElementById('deliveryPhone').value;
+    let c = document.getElementById('deliveryCountry').value;
+    let ci = document.getElementById('deliveryCity').value;
+    let pc = document.getElementById('deliveryPostcode').value;
+    let st = document.getElementById('deliveryStreet').value;
+    if (!fn || !ph || !c || !ci || !pc || !st) {
+        showToast("Fill all fields!", true);
+        return;
+    }
+    buyerCountry = c;
+    localStorage.setItem('buyerCountry', buyerCountry);
+    currentDelivery = {
+        fullName: fn,
+        phone: ph,
+        country: c,
+        city: ci,
+        postcode: pc,
+        street: st,
+        houseNo: document.getElementById('deliveryHouseNo').value,
+        fullAddress: `${document.getElementById('deliveryHouseNo').value || ''}, ${st}, ${ci}, ${pc}, ${c}`,
+        email: user.email,
+        state: document.getElementById('deliveryState')?.value || ''
+    };
+    if (document.getElementById('saveAddressCheckbox').checked) {
+        let idx = savedAddresses.findIndex(a => a.email === user.email);
+        let addr = {
+            email: user.email,
+            fullName: fn,
+            phone: ph,
+            country: c,
+            city: ci,
+            postcode: pc,
+            street: st,
+            houseNo: document.getElementById('deliveryHouseNo').value,
+            state: document.getElementById('deliveryState')?.value || ''
+        };
+        if (idx >= 0) savedAddresses[idx] = addr;
+        else savedAddresses.push(addr);
+        saveAllLocal();
+    }
+    showToast("Calculating shipping...", false);
+    await fetchAndDisplayShippingRates();
+    setTimeout(() => {
+        showSection('payment');
+        loadSavedCards();
+    }, 1000);
 });
-
-// Also run immediately in case DOM already loaded
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    console.log('📄 DOM Already Ready - Setting up Confirm Delivery Button');
-    setupConfirmDeliveryButton();
-}
 
 function loadSavedCards(){ let userCards = savedCards.filter(c => c.userEmail === "guest@globalbazaar.com"); if(userCards.length > 0){ document.getElementById('savedCardsSection').style.display = 'block'; document.getElementById('savedCardsList').innerHTML = userCards.map((card,idx) => `<div class="flex-between"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}">Use</button></div>`).join(''); document.querySelectorAll('.useSavedCardBtn').forEach(btn => btn.addEventListener('click', () => { let card = userCards[parseInt(btn.dataset.idx)]; document.getElementById('cardNumber').value = card.cardNumber; document.getElementById('cardHolderName').value = card.cardHolderName; document.getElementById('expiryDate').value = card.expiryDate; document.getElementById('cvv').value = ''; showToast("Card loaded", false); })); } }
 
 // ============================================================
-// PAYMENT
+// PAYMENT - FIX: Double-Click Protection
 // ============================================================
 document.getElementById('payNowBtn')?.addEventListener('click', async function() {
     const btn = this;
@@ -1959,92 +1354,46 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             if(existing >= 0) savedCards[existing] = cardData; else savedCards.push(cardData);
             saveAllLocal();
         }
-        
-        const shippingCost = parseFloat(sessionStorage.getItem('shipping_cost')) || 0;
+        const shippingCost = parseFloat(sessionStorage.getItem('shipping_cost')) || 10;
         let totalUSD = 0;
-        
         for(let item of cart){
             let seller = sellers.find(s => s.id == item.sellerId);
             let final = calculateFinalPrice(item.price, seller?.country || "SA", buyerCountry, shippingCost / cart.length);
             totalUSD += final.total * item.qty;
         }
-        
         let tracking = "GB" + Date.now();
         let cartCopy = [...cart];
         const totalWithShipping = totalUSD;
-        
         for(let item of cart){
             let seller = sellers.find(s => s.id == item.sellerId);
+            let final = calculateFinalPrice(item.price, seller?.country || "SA", buyerCountry, shippingCost / cart.length);
             let product = products.find(p => p.id == item.id);
-            let priceCalc = calculateDynamicPrice(item.price, shippingCost / cart.length);
-            
             let newOrder = { 
                 id: Date.now()+Math.random(), 
                 trackingNumber: tracking, 
                 sellerId: item.sellerId, 
                 sellerName: seller?.shopName || "GlobalBazaar", 
                 buyerEmail: currentDelivery.email, 
-                buyerName: currentDelivery.fullName,
-                
-                productDetails: {
-                    id: item.id,
-                    name: item.name,
-                    price: item.price,
-                    image: item.image,
-                    category: product?.category || '',
-                    sellerId: item.sellerId,
-                    sellerName: seller?.shopName || "GlobalBazaar"
-                },
-                
-                productName: item.name,
-                amount: totalWithShipping / cart.length,
-                basePrice: item.price,
+                buyerName: currentDelivery.fullName, 
+                productName: item.name, 
+                amount: final.total, 
+                basePrice: item.price, 
                 address: currentDelivery.fullAddress, 
                 date: new Date().toLocaleString(), 
                 status: "Processing", 
-                qty: item.qty,
-                
-                priceBreakdown: {
-                    basePrice: item.price,
-                    gatewayFee: priceCalc.gatewayFee,
-                    maintenanceFee: priceCalc.maintenanceFee,
-                    shippingCost: priceCalc.shippingCost,
-                    grandTotal: priceCalc.grandTotal
-                },
-                
-                shippingCost: priceCalc.shippingCost,
-                commission: item.price * PLATFORM_COMMISSION,
-                gatewayFee: priceCalc.gatewayFee,
-                handlingFee: MAINTENANCE_FEE,
+                qty: item.qty, 
+                shippingCost: final.shipping, 
+                commission: final.commission, 
+                gatewayFee: final.gateway,
+                handlingFee: HANDLING_FEE,
                 trackingInfo: null,
                 shippingCharge: shippingCost / cart.length
             };
             orders.push(newOrder);
-            platformEarnings += (item.price * PLATFORM_COMMISSION) + priceCalc.gatewayFee + MAINTENANCE_FEE;
-            
-            if(product){ 
-                product.stock -= item.qty; 
-                if(product.stock <= 0){
-                    product.status = 'pending_approval';
-                    await db.collection('products').doc(product.id).update({
-                        stock: 0,
-                        status: 'pending_approval',
-                        soldOutAt: new Date().toISOString()
-                    });
-                    addNotification(`📢 ${product.name} is now SOLD OUT! Waiting for seller approval.`, 'info');
-                    sendTelegramMessage(`📢 ${product.name} is SOLD OUT! Waiting for seller approval.`);
-                    if (currentSeller && currentSeller.sellerId === product.sellerId) {
-                        showInventoryConfirmModal(product.id, product.name);
-                    }
-                } else {
-                    await db.collection('products').doc(product.id).update({
-                        stock: product.stock
-                    });
-                }
-            }
+            platformEarnings += final.commission * item.qty + final.gateway * item.qty + HANDLING_FEE * item.qty;
+            if(product){ product.stock -= item.qty; if(product.stock === 0){ addNotification(`Product ${product.name} is now SOLD OUT!`, 'info'); sendTelegramMessage(`⚠️ Product ${product.name} out of stock.`); } }
         }
         saveAllLocal();
-        
         try {
             const firstItem = cart[0];
             const product = products.find(p => p.id === firstItem?.id);
@@ -2052,11 +1401,6 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             if (product && seller) {
                 const shipmentResult = await createShipmentAfterOrder({
                     sellerId: seller.id,
-                    sellerCountry: seller.country || 'SA',
-                    sellerCity: seller.city || '',
-                    sellerPostcode: seller.pincode || '',
-                    sellerState: seller.state || '',
-                    sellerStreet: seller.street || '',
                     orderId: tracking,
                     buyerCountry: currentDelivery.country || 'SA',
                     buyerCity: currentDelivery.city || '',
@@ -2086,33 +1430,16 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         } catch (e) {
             console.error('Shipment creation failed:', e);
         }
-        
         await sendTelegramMessage(`🛍️ NEW ORDER!\nOrder: ${tracking}\nCustomer: ${currentDelivery.fullName}\nAmount: ${getCurrencySymbol()}${convertPrice(totalWithShipping)}`);
         addNotification(`Order placed! #${tracking}`, 'order');
         cart = []; saveAllLocal(); updateCartUI();
         if (currentBuyer) await saveUserCart(currentBuyer.uid);
         let last4 = cardNum.slice(-4);
-        
-        let breakdownHtml = cartCopy.map(i => {
-            let calc = calculateDynamicPrice(i.price, shippingCost / cart.length);
-            return `
-                <div style="background:#f8fafc; padding:12px; border-radius:12px; margin-bottom:10px;">
-                    <strong>${i.name}</strong> x${i.qty}
-                    <div style="font-size:12px; color:#64748b; margin-top:5px;">
-                        Base: ${getCurrencySymbol()}${convertPrice(i.price)}<br>
-                        + Gateway (3%): ${getCurrencySymbol()}${convertPrice(calc.gatewayFee)}<br>
-                        + Maintenance: ${getCurrencySymbol()}${convertPrice(calc.maintenanceFee)}<br>
-                        + Shipping: ${getCurrencySymbol()}${convertPrice(calc.shippingCost)}<br>
-                        <strong>= ${getCurrencySymbol()}${convertPrice(calc.grandTotal)}</strong>
-                    </div>
-                </div>
-            `;
-        }).join('');
-        
+        let itemsHtml = cartCopy.map(i => `<li>${i.name} x${i.qty} = ${getCurrencySymbol()}${convertPrice(i.price * i.qty)}</li>`).join('');
         document.getElementById('orderSummaryContent').innerHTML = `
             <p><strong>Order ID:</strong> ${tracking}</p>
             <h3>📦 Items</h3>
-            ${breakdownHtml}
+            <ul>${itemsHtml}</ul>
             <h3>💰 Total Paid: ${getCurrencySymbol()}${convertPrice(totalWithShipping)}</h3>
             <h3>📦 Shipping Cost: ${getCurrencySymbol()}${convertPrice(shippingCost)}</h3>
             <h3>👤 Delivery Details</h3>
@@ -2134,7 +1461,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
     }
 });
 
-function confirmOrderReceived(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Shipped"){ order.status = "Delivered"; saveAllLocal(); showToast("Order marked Delivered", false); renderBuyerOrders(); addNotification(`Order ${order.trackingNumber} delivered`,'order'); setTimeout(()=>{ let ord = orders.find(o => o.id === orderId); if(ord && ord.status === "Delivered"){ ord.status = "Completed"; let seller = sellers.find(s => s.id == ord.sellerId); if(seller){ let sellerEarning = ord.basePrice - ord.commission - MAINTENANCE_FEE; seller.earnings = (seller.earnings||0) + (sellerEarning * ord.qty); saveAllLocal(); showToast(`Payment released to seller`,false); if(currentSeller) renderSellerDashboard(); } } },5000); } else showToast("Order not shipped yet",true); }
+function confirmOrderReceived(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Shipped"){ order.status = "Delivered"; saveAllLocal(); showToast("Order marked Delivered", false); renderBuyerOrders(); addNotification(`Order ${order.trackingNumber} delivered`,'order'); setTimeout(()=>{ let ord = orders.find(o => o.id === orderId); if(ord && ord.status === "Delivered"){ ord.status = "Completed"; let seller = sellers.find(s => s.id == ord.sellerId); if(seller){ let sellerEarning = ord.basePrice - ord.commission - HANDLING_FEE; seller.earnings = (seller.earnings||0) + (sellerEarning * ord.qty); saveAllLocal(); showToast(`Payment released to seller`,false); if(currentSeller) renderSellerDashboard(); } } },5000); } else showToast("Order not shipped yet",true); }
 function cancelOrder(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Processing"){ let prod = products.find(p => p.name === order.productName && p.sellerId === order.sellerId); if(prod){ prod.stock += order.qty; saveAllLocal(); } order.status = "Cancelled"; saveAllLocal(); showToast("Order cancelled successfully",false); renderBuyerOrders(); renderProducts(); addNotification(`Order ${order.trackingNumber} cancelled`,'order'); if(currentSeller) renderSellerDashboard(); } else { showToast("Only orders in 'Processing' status can be cancelled",true); } }
 function markOrderShipped(orderId, trackingNum){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Processing"){ order.status = "Shipped"; order.trackingInfo = { trackingNumber: trackingNum }; saveAllLocal(); showToast(`Order Shipped! Tracking: ${trackingNum}`,false); renderSellerDashboard(); renderBuyerOrders(); addNotification(`Your order ${order.trackingNumber} shipped`,'order'); } }
 function requestWithdrawal(sellerId){ let seller = sellers.find(s => s.id == sellerId); if(seller && seller.earnings > 0){ let newWithdrawal = { id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, amount: seller.earnings, date: new Date().toLocaleString(), status: "Pending" }; pendingWithdrawals.push(newWithdrawal); seller.earnings = 0; saveAllLocal(); showToast("Withdrawal request submitted",false); renderSellerDashboard(); sendTelegramMessage(`💰 Withdrawal Request: ${seller.shopName} - ${getCurrencySymbol()}${convertPrice(newWithdrawal.amount)}`); addNotification(`Withdrawal request for ${getCurrencySymbol()}${convertPrice(newWithdrawal.amount)}`,'payment'); } else showToast("No balance",true); }
@@ -2142,7 +1469,7 @@ function processWeeklyWithdrawals(){ let last = localStorage.getItem('gb_last_wi
 setInterval(processWeeklyWithdrawals, 3600000); processWeeklyWithdrawals();
 
 // ============================================================
-// SELLER REGISTRATION
+// SELLER REGISTRATION - FIX: Email Verification + Double-Click Protection
 // ============================================================
 document.getElementById('sellerRegForm')?.addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -2175,11 +1502,12 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
         await firebase.auth().signOut();
 
         let avatarUrl = "https://randomuser.me/api/portraits/lego/1.jpg";
-        if // पुरानी 7 लाइनें हटाकर ये 3 लाइनें यहाँ डालो:
-let avatarUrl = avatarFile ? await getBase64(avatarFile) : "https://randomuser.me/api/portraits/lego/1.jpg";
-let docImageUrl = await getBase64(docImgFile);
-// बस इतना ही!
-
+        if (avatarFile) {
+            avatarUrl = await uploadCompressedImage(avatarFile, 'avatar');
+            if (!avatarUrl) throw new Error("Avatar upload failed");
+        }
+        let docImageUrl = await uploadCompressedImage(docImgFile, 'kyc');
+        if (!docImageUrl) throw new Error("KYC document upload failed");
 
         let newSeller = {
             fullName: document.getElementById('sellerFullName').value,
@@ -2235,7 +1563,7 @@ let docImageUrl = await getBase64(docImgFile);
 });
 
 // ============================================================
-// MY SHOP LOGIN
+// MY SHOP LOGIN - With Email Verification Check
 // ============================================================
 async function showMyShopLogin(){
     const user = auth.currentUser;
@@ -2245,6 +1573,7 @@ async function showMyShopLogin(){
         return;
     }
     
+    // Check if email is verified
     if (!user.emailVerified) {
         showVerifyModal();
         return;
@@ -2255,6 +1584,7 @@ async function showMyShopLogin(){
     if (!password) return;
     
     try {
+        // Re-authenticate to confirm password
         const credential = firebase.auth.EmailAuthProvider.credential(email, password);
         await user.reauthenticateWithCredential(credential);
         
@@ -2324,42 +1654,14 @@ document.getElementById('drawerMyShop')?.addEventListener('click', function() {
 });
 
 // ============================================================
-// NOTIFICATION BADGE
-// ============================================================
-function updateMyShopBadge() {
-    const btn = document.getElementById('drawerMyShop');
-    if (!btn) return;
-    
-    let badge = btn.querySelector('.badge');
-    if (!badge) {
-        const span = document.createElement('span');
-        span.className = 'badge';
-        span.style.cssText = 'background:#ef4444; color:white; border-radius:50%; padding:2px 8px; font-size:11px; margin-left:8px; display:none;';
-        btn.appendChild(span);
-        badge = span;
-    }
-    
-    if (currentSeller?.sellerId) {
-        const pendingOrders = orders.filter(o => o.sellerId === currentSeller.sellerId && o.status === 'Processing');
-        if (pendingOrders.length > 0) {
-            badge.textContent = pendingOrders.length;
-            badge.style.display = 'inline-block';
-        } else {
-            badge.style.display = 'none';
-        }
-    } else {
-        badge.style.display = 'none';
-    }
-}
-
-// ============================================================
-// SELLER DASHBOARD
+// SELLER DASHBOARD - FIX: KYC Strict Control
 // ============================================================
 function renderSellerDashboard(){
     if(!currentSeller?.sellerId) return;
     let seller = sellers.find(s => s.id === currentSeller.sellerId);
     if(!seller) return;
     
+    // FIX #4: KYC Strict Control
     if (seller.kycStatus !== 'verified') {
         document.getElementById('sellerDashboard').innerHTML = `
             <div class="kyc-blocked-message">
@@ -2369,114 +1671,27 @@ function renderSellerDashboard(){
                 <br>📧 support@globalbazaar.com</p>
             </div>
         `;
-        updateMyShopBadge();
         return;
     }
     
     let myProducts = products.filter(p => p.sellerId == seller.id);
     let myOrders = orders.filter(o => o.sellerId == seller.id);
-    let totalSales = 0, totalOrders = myOrders.length;
-    let pendingOrders = myOrders.filter(o => o.status === 'Processing');
-    let monthlyRevenue = {};
-    myOrders.forEach(o => { 
-        if(o.status === "Completed"){ 
-            let netRevenue = (o.basePrice - (o.basePrice * PLATFORM_COMMISSION) - MAINTENANCE_FEE) * o.qty;
-            totalSales += netRevenue; 
-            let date = new Date(o.date); 
-            let my = `${date.getMonth()+1}/${date.getFullYear()}`; 
-            monthlyRevenue[my] = (monthlyRevenue[my]||0) + netRevenue; 
-        } 
-    });
-    
-    let chartLabels = Object.keys(monthlyRevenue), chartData = Object.values(monthlyRevenue); 
-    if(chartLabels.length === 0){ chartLabels = ["No Data"]; chartData = [0]; }
-    
+    let totalSales = 0, monthlyRevenue = {};
+    myOrders.forEach(o => { if(o.status === "Completed"){ let earning = (o.basePrice - o.commission - HANDLING_FEE) * o.qty; totalSales += earning; let date = new Date(o.date); let my = `${date.getMonth()+1}/${date.getFullYear()}`; monthlyRevenue[my] = (monthlyRevenue[my]||0) + earning; } });
+    let chartLabels = Object.keys(monthlyRevenue), chartData = Object.values(monthlyRevenue); if(chartLabels.length === 0){ chartLabels = ["No Data"]; chartData = [0]; }
     let kycClass = seller.kycStatus === "pending" ? "kyc-pending" : (seller.kycStatus === "verified" ? "kyc-verified" : "kyc-rejected");
     let kycText = seller.kycStatus === "pending" ? "⏳ KYC Pending - Wait for Admin" : (seller.kycStatus === "verified" ? "✅ KYC Verified" : "❌ KYC Rejected");
-    let topProducts = {}; 
-    myOrders.forEach(o => { topProducts[o.productName] = (topProducts[o.productName]||0) + o.qty; }); 
-    let topList = Object.entries(topProducts).sort((a,b)=>b[1]-a[1]).slice(0,5);
-    
+    let topProducts = {}; myOrders.forEach(o => { topProducts[o.productName] = (topProducts[o.productName]||0) + o.qty; }); let topList = Object.entries(topProducts).sort((a,b)=>b[1]-a[1]).slice(0,5);
     let prodListHtml = myProducts.map(p => `<div class="flex-between"><span><img src="${p.mainImage}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;"> ${p.name} - ${getCurrencySymbol()}${convertPrice(p.price)} (Stock: ${p.stock})</span><button class="editProdBtn" data-id="${p.id}" style="background:#3b82f6;border:none;padding:4px 12px;border-radius:20px;">✏️ Edit</button><button class="delProd" data-id="${p.id}" style="background:#dc2626;border:none;padding:4px 12px;border-radius:20px;">Delete</button></div>`).join('');
-    
-    let ordersHtml = '';
-    if (pendingOrders.length > 0) {
-        ordersHtml += `<h4 style="margin:10px 0; color:#dc2626;">🔴 Pending Approval (${pendingOrders.length})</h4>`;
-        ordersHtml += pendingOrders.map(o => `
-            <div class="order-card" style="border-left-color:#dc2626;">
-                <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
-                    ${o.productDetails?.image ? `<img src="${o.productDetails.image}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">` : ''}
-                    <div style="flex:1;">
-                        <strong>${o.productDetails?.name || o.productName}</strong>
-                        <br><span style="font-size:12px; color:#64748b;">Qty: ${o.qty}</span>
-                        <br><span style="font-size:12px; color:#64748b;">Buyer: ${o.buyerName}</span>
-                        <br><span style="font-size:13px; font-weight:bold; color:#10b981;">Net Revenue: ${getCurrencySymbol()}${convertPrice((o.basePrice - (o.basePrice * PLATFORM_COMMISSION) - MAINTENANCE_FEE) * o.qty)}</span>
-                    </div>
-                </div>
-                <div style="display:flex; gap:8px; margin-top:8px;">
-                    <button class="confirmStockBtn" data-id="${o.id}" style="background:#10b981; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
-                        ✅ YES (Confirm Stock)
-                    </button>
-                    <button class="rejectOrderBtn" data-id="${o.id}" style="background:#dc2626; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
-                        ❌ NO (Reject/Remove)
-                    </button>
-                </div>
-                <div style="font-size:10px; color:#94a3b8; margin-top:4px;">${o.date}</div>
-            </div>
-        `).join('');
-    }
-    
-    let completedOrders = myOrders.filter(o => o.status !== 'Processing');
-    if (completedOrders.length > 0) {
-        ordersHtml += `<h4 style="margin:15px 0; color:#10b981;">✅ Completed Orders (${completedOrders.length})</h4>`;
-        ordersHtml += completedOrders.map(o => `
-            <div class="order-card" style="border-left-color:#10b981;">
-                <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
-                    ${o.productDetails?.image ? `<img src="${o.productDetails.image}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">` : ''}
-                    <div style="flex:1;">
-                        <strong>${o.productDetails?.name || o.productName}</strong>
-                        <br><span style="font-size:12px; color:#64748b;">Qty: ${o.qty} | Status: ${o.status}</span>
-                        <br><span style="font-size:13px; font-weight:bold; color:#10b981;">Net Revenue: ${getCurrencySymbol()}${convertPrice((o.basePrice - (o.basePrice * PLATFORM_COMMISSION) - MAINTENANCE_FEE) * o.qty)}</span>
-                    </div>
-                </div>
-                ${o.trackingInfo ? `<div style="font-size:12px; color:#64748b;">📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}</div>` : ''}
-                <div style="font-size:10px; color:#94a3b8; margin-top:4px;">${o.date}</div>
-            </div>
-        `).join('');
-    }
-    
-    if (myOrders.length === 0) {
-        ordersHtml = '<p style="text-align:center;padding:20px;color:#64748b;">No orders yet.</p>';
-    }
-    
-    const categoryOptions = FIXED_CATEGORIES.map(cat => `<option value="${cat}">${cat}</option>`).join('');
-    
+    let ordersHtml = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty}<br>${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: ${o.status}<br>Buyer: ${o.buyerName}<br>${o.trackingInfo ? `<br>📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}` : ''}${o.status === "Processing" ? `<br><button class="shipBtn" data-id="${o.id}" style="background:#3b82f6;margin-top:6px;">📦 Mark Shipped</button>` : ''}</div>`).join('');
     let sellerDashboardHtml = `
-<div class="premium-card"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📧 ${seller.email}<br>📍 ${seller.city}, ${seller.country}</p></div><div><span class="kyc-status ${kycClass}">${kycText}</span></div>
-<div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin-top:12px;">
-    <div style="background:#f1f5f9; padding:12px; border-radius:12px; text-align:center;">
-        <div style="font-size:24px; font-weight:800; color:#1e3a8a;">${totalOrders}</div>
-        <div style="font-size:12px; color:#64748b;">📦 Total Orders</div>
-    </div>
-    <div style="background:#f1f5f9; padding:12px; border-radius:12px; text-align:center;">
-        <div style="font-size:24px; font-weight:800; color:#10b981;">${getCurrencySymbol()}${convertPrice(totalSales)}</div>
-        <div style="font-size:12px; color:#64748b;">💰 Net Revenue</div>
-    </div>
-    <div style="background:#fef3c7; padding:12px; border-radius:12px; text-align:center;">
-        <div style="font-size:24px; font-weight:800; color:#d97706;">${pendingOrders.length}</div>
-        <div style="font-size:12px; color:#64748b;">⏳ Pending</div>
-    </div>
-</div>
-<div style="margin-top:12px;">🏦 Balance: ${getCurrencySymbol()}${convertPrice(seller.earnings)}</div><button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Withdraw</button></div>
+<div class="premium-card"><div><img src="${seller.avatar}" class="seller-avatar"><h3>${seller.shopName}</h3><p>${seller.fullName}<br>📞 ${seller.phone}<br>📧 ${seller.email}<br>📍 ${seller.city}, ${seller.country}</p></div><div><span class="kyc-status ${kycClass}">${kycText}</span></div><div>🏦 Bank: Payout via DEED (to be added)<br>💰 Balance: ${getCurrencySymbol()}${convertPrice(seller.earnings)}</div><button id="withdrawBtn" class="btn-primary" style="background:#10b981;">💸 Withdraw</button></div>
 <div class="chart-container"><h3>📊 Revenue</h3><canvas id="revenueChart"></canvas></div>
 <div class="premium-card"><h3>📈 Top Products</h3>${topList.map(p=>`${p[0]}: ${p[1]} sold`).join('<br>') || 'No sales'}</div>
 <div class="premium-card"><h3>➕ Add Product</h3>
     <input type="text" id="prodName" placeholder="Product Name" class="input" required>
     <input type="number" id="prodPrice" placeholder="Price (USD)" class="input" required>
-    <select id="prodCat" class="input" required>
-        <option value="">Select Category</option>
-        ${categoryOptions}
-    </select>
+    <select id="prodCat" class="input" required><option>Electronics</option><option>Fashion</option><option>Home</option><option>Textile</option><option>Cosmetic</option></select>
     <input type="number" id="prodStock" placeholder="Stock Quantity" class="input" required>
     <div style="background:#f8fafc; padding:16px; border-radius:16px; margin-top:12px; border:1px solid #e2e8f0;">
         <h4 style="margin-bottom:10px;">📦 Shipping Details (Required)</h4>
@@ -2504,95 +1719,7 @@ function renderSellerDashboard(){
     document.getElementById('sellerDashboard').innerHTML = sellerDashboardHtml;
     let ctx = document.getElementById('revenueChart')?.getContext('2d'); if(ctx){ if(sellerRevenueChart) sellerRevenueChart.destroy(); sellerRevenueChart = new Chart(ctx, { type: 'bar', data: { labels: chartLabels, datasets: [{ label: 'Revenue', data: chartData.map(v => parseFloat(convertPrice(v))), backgroundColor: '#3b82f6' }] } }); }
     
-    if (currentSeller?.sellerId) {
-        db.collection("orders").where("sellerId", "==", currentSeller.sellerId).onSnapshot(snapshot => {
-            let realTimeOrders = [];
-            snapshot.forEach(doc => { realTimeOrders.push({ id: doc.id, ...doc.data() }); });
-            const ordersContainer = document.getElementById('ordersList');
-            if (ordersContainer) {
-                let pending = realTimeOrders.filter(o => o.status === 'Processing');
-                let completed = realTimeOrders.filter(o => o.status !== 'Processing');
-                let html = '';
-                
-                if (pending.length > 0) {
-                    html += `<h4 style="margin:10px 0; color:#dc2626;">🔴 Pending Approval (${pending.length})</h4>`;
-                    html += pending.map(o => `
-                        <div class="order-card" style="border-left-color:#dc2626;">
-                            <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
-                                ${o.productDetails?.image ? `<img src="${o.productDetails.image}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">` : ''}
-                                <div style="flex:1;">
-                                    <strong>${o.productDetails?.name || o.productName}</strong>
-                                    <br><span style="font-size:12px; color:#64748b;">Qty: ${o.qty}</span>
-                                    <br><span style="font-size:12px; color:#64748b;">Buyer: ${o.buyerName}</span>
-                                    <br><span style="font-size:13px; font-weight:bold; color:#10b981;">Net Revenue: ${getCurrencySymbol()}${convertPrice((o.basePrice - (o.basePrice * PLATFORM_COMMISSION) - MAINTENANCE_FEE) * o.qty)}</span>
-                                </div>
-                            </div>
-                            <div style="display:flex; gap:8px; margin-top:8px;">
-                                <button class="confirmStockBtn" data-id="${o.id}" style="background:#10b981; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
-                                    ✅ YES (Confirm Stock)
-                                </button>
-                                <button class="rejectOrderBtn" data-id="${o.id}" style="background:#dc2626; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
-                                    ❌ NO (Reject/Remove)
-                                </button>
-                            </div>
-                            <div style="font-size:10px; color:#94a3b8; margin-top:4px;">${o.date}</div>
-                        </div>
-                    `).join('');
-                }
-                
-                if (completed.length > 0) {
-                    html += `<h4 style="margin:15px 0; color:#10b981;">✅ Completed Orders (${completed.length})</h4>`;
-                    html += completed.map(o => `
-                        <div class="order-card" style="border-left-color:#10b981;">
-                            <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
-                                ${o.productDetails?.image ? `<img src="${o.productDetails.image}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">` : ''}
-                                <div style="flex:1;">
-                                    <strong>${o.productDetails?.name || o.productName}</strong>
-                                    <br><span style="font-size:12px; color:#64748b;">Qty: ${o.qty} | Status: ${o.status}</span>
-                                    <br><span style="font-size:13px; font-weight:bold; color:#10b981;">Net Revenue: ${getCurrencySymbol()}${convertPrice((o.basePrice - (o.basePrice * PLATFORM_COMMISSION) - MAINTENANCE_FEE) * o.qty)}</span>
-                                </div>
-                            </div>
-                            ${o.trackingInfo ? `<div style="font-size:12px; color:#64748b;">📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}</div>` : ''}
-                            <div style="font-size:10px; color:#94a3b8; margin-top:4px;">${o.date}</div>
-                        </div>
-                    `).join('');
-                }
-                
-                if (realTimeOrders.length === 0) {
-                    html = '<p style="text-align:center;padding:20px;color:#64748b;">No orders yet.</p>';
-                }
-                
-                ordersContainer.innerHTML = html;
-                
-                document.querySelectorAll('.confirmStockBtn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        confirmOrderStock(this.dataset.id);
-                    });
-                });
-                document.querySelectorAll('.rejectOrderBtn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        rejectOrder(this.dataset.id);
-                    });
-                });
-                
-                updateMyShopBadge();
-            }
-        }, error => {
-            console.error('Real-time orders error:', error);
-        });
-    }
-    
-    document.querySelectorAll('.confirmStockBtn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            confirmOrderStock(this.dataset.id);
-        });
-    });
-    document.querySelectorAll('.rejectOrderBtn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            rejectOrder(this.dataset.id);
-        });
-    });
-    
+    // FIX: Double-Click Protection on Publish Button
     document.getElementById('publishBtn')?.addEventListener('click', async function() {
         const btn = this;
         btn.disabled = true;
@@ -2607,8 +1734,6 @@ function renderSellerDashboard(){
             if (!name) { showToast("Product name required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
             if (!price || price <= 0) { showToast("Valid price required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
             if (!stock || stock <= 0) { showToast("Valid stock required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-            if (!cat) { showToast("Please select a category", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
-            if (!FIXED_CATEGORIES.includes(cat)) { showToast("Invalid category selected", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
             const mainFile = document.getElementById('prodMainImg').files[0];
             if (!mainFile) { showToast("Main image required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
             const weight = parseFloat(document.getElementById('prodWeight').value);
@@ -2696,83 +1821,8 @@ function renderSellerDashboard(){
             btn.textContent = '💾 Update Product';
         }
     });
+    document.querySelectorAll('.shipBtn').forEach(btn => btn.addEventListener('click', () => { let track = prompt("Enter tracking number:"); if(track) markOrderShipped(parseFloat(btn.dataset.id), track); }));
     document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
-    
-    updateMyShopBadge();
-}
-
-// ============================================================
-// EMBEDDED ACTIONS
-// ============================================================
-async function confirmOrderStock(orderId) {
-    let order = orders.find(o => o.id == orderId);
-    if (!order) {
-        showToast("Order not found!", true);
-        return;
-    }
-    
-    try {
-        order.status = "Completed";
-        order.confirmedAt = new Date().toISOString();
-        
-        let netRevenue = (order.basePrice - (order.basePrice * PLATFORM_COMMISSION) - MAINTENANCE_FEE) * order.qty;
-        let seller = sellers.find(s => s.id === order.sellerId);
-        if (seller) {
-            seller.earnings = (seller.earnings || 0) + netRevenue;
-            await db.collection("sellers").doc(seller.id).update({
-                earnings: seller.earnings,
-                totalSales: (seller.totalSales || 0) + order.qty
-            });
-        }
-        
-        saveAllLocal();
-        showToast(`✅ Order ${order.trackingNumber} confirmed! Net Revenue: ${getCurrencySymbol()}${convertPrice(netRevenue)}`, false);
-        addNotification(`Order ${order.trackingNumber} confirmed by seller`, 'order');
-        sendTelegramMessage(`✅ Order ${order.trackingNumber} confirmed by seller. Net Revenue: $${netRevenue.toFixed(2)}`);
-        
-        renderSellerDashboard();
-        renderBuyerOrders();
-        updateMyShopBadge();
-    } catch (error) {
-        console.error('Confirm order error:', error);
-        showToast('Failed to confirm order: ' + error.message, true);
-    }
-}
-
-async function rejectOrder(orderId) {
-    if (!confirm('⚠️ Are you sure you want to reject this order?')) return;
-    
-    let order = orders.find(o => o.id == orderId);
-    if (!order) {
-        showToast("Order not found!", true);
-        return;
-    }
-    
-    try {
-        order.status = "Rejected";
-        order.rejectedAt = new Date().toISOString();
-        
-        let product = products.find(p => p.id === order.productDetails?.id || p.name === order.productName);
-        if (product) {
-            product.stock += order.qty;
-            await db.collection("products").doc(product.id).update({
-                stock: product.stock
-            });
-        }
-        
-        saveAllLocal();
-        showToast(`❌ Order ${order.trackingNumber} rejected!`, false);
-        addNotification(`Order ${order.trackingNumber} rejected by seller`, 'order');
-        sendTelegramMessage(`❌ Order ${order.trackingNumber} rejected by seller.`);
-        
-        renderSellerDashboard();
-        renderBuyerOrders();
-        renderProducts();
-        updateMyShopBadge();
-    } catch (error) {
-        console.error('Reject order error:', error);
-        showToast('Failed to reject order: ' + error.message, true);
-    }
 }
 
 function renderBuyerOrders(){
@@ -2783,7 +1833,6 @@ function renderBuyerOrders(){
     document.querySelectorAll('.confirmReceivedBtn').forEach(btn => btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id))));
     document.querySelectorAll('.cancelOrderBtn').forEach(btn => btn.addEventListener('click', () => cancelOrder(parseFloat(btn.dataset.id))));
 }
-
 function renderBuyerWishlist(){ let w = products.filter(p => wishlist.includes(p.id)); document.getElementById('buyerWishlistList').innerHTML = w.map(p => `<div class="order-card"><strong>${p.name}</strong><br>Price: ${getCurrencySymbol()}${convertPrice(p.price)}<br><button class="removeWishlistBtn" data-id="${p.id}" style="background:#dc2626;">Remove</button></div>`).join(''); document.querySelectorAll('.removeWishlistBtn').forEach(btn => btn.addEventListener('click', () => { wishlist = wishlist.filter(id => id != btn.dataset.id); saveAllLocal(); renderProducts(); renderBuyerWishlist(); showToast("Removed", false); })); }
 
 document.getElementById('refreshAdminBtn')?.addEventListener('click', loadAdminData);
@@ -2868,60 +1917,6 @@ function showTerms() {
     `;
 }
 
-// ============================================================
-// RESTOCK POPUP
-// ============================================================
-function showInventoryConfirmModal(productId, productName) {
-    pendingConfirmationProduct = productId;
-    document.getElementById('confirmProductName').textContent = productName;
-    document.getElementById('inventoryConfirmModal').style.display = 'flex';
-}
-
-function hideInventoryConfirmModal() {
-    document.getElementById('inventoryConfirmModal').style.display = 'none';
-    pendingConfirmationProduct = null;
-}
-
-document.getElementById('confirmYesBtn')?.addEventListener('click', async function() {
-    if (!pendingConfirmationProduct) return;
-    
-    try {
-        await db.collection('products').doc(pendingConfirmationProduct).update({
-            status: 'available',
-            stock: 1,
-            updatedAt: new Date().toISOString()
-        });
-        showToast('✅ Product restocked successfully!', false);
-        addNotification('Product restocked by seller', 'info');
-        hideInventoryConfirmModal();
-        renderProducts();
-        renderSellerDashboard();
-        updateMyShopBadge();
-    } catch (error) {
-        console.error('Restock error:', error);
-        showToast('Failed to restock: ' + error.message, true);
-    }
-});
-
-document.getElementById('confirmNoBtn')?.addEventListener('click', async function() {
-    if (!pendingConfirmationProduct) return;
-    
-    if (confirm('⚠️ Are you sure you want to permanently delete this product?')) {
-        try {
-            await db.collection('products').doc(pendingConfirmationProduct).delete();
-            showToast('🗑️ Product deleted successfully!', false);
-            addNotification('Product deleted by seller', 'info');
-            hideInventoryConfirmModal();
-            renderProducts();
-            renderSellerDashboard();
-            updateMyShopBadge();
-        } catch (error) {
-            console.error('Delete error:', error);
-            showToast('Failed to delete: ' + error.message, true);
-        }
-    }
-});
-
 function showSection(section){ document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.getElementById(section+"Section").classList.add('active'); }
 document.getElementById('drawerBuyer')?.addEventListener('click', () => { showMyOrdersPage(); closeDrawer(); });
 document.getElementById('drawerSeller')?.addEventListener('click', () => { showSection('seller'); document.getElementById('sellerRegisterBox').style.display='block'; document.getElementById('sellerDashboard').style.display='none'; closeDrawer(); });
@@ -2982,44 +1977,5 @@ document.getElementById('loginModal')?.addEventListener('click', (e) => {
     }
 });
 
-initializeDatabase().then(() => {
-    console.log('Database ready');
-}).catch(err => {
-    console.error('Init error:', err);
-});
-
-setInterval(updateMyShopBadge, 5000);
-
 renderCats(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge(); updateAdminMenuBadges();
-updateMyShopBadge();
-updateCategorySelect();
-document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | Dynamic Pricing | Easyship Shipping | Mode: " + (IS_TESTING ? 'TESTING (no real charges)' : 'PRODUCTION');
-
-console.log('🚀 ========================================');
-console.log('🚀 GLOBAL BAZAAR SHIPPING ENGINE LOADED');
-console.log('🚀 ========================================');
-console.log('🌍 Total Countries Supported: ' + Object.keys(countryDatabase).length);
-console.log('📦 Testing Country Conversions:');
-console.log('  "Nepal" → ' + getCountryCode('Nepal'));
-console.log('  "India" → ' + getCountryCode('India'));
-console.log('  "USA" → ' + getCountryCode('USA'));
-console.log('  "UK" → ' + getCountryCode('UK'));
-console.log('  "Saudi Arabia" → ' + getCountryCode('Saudi Arabia'));
-console.log('  "UAE" → ' + getCountryCode('UAE'));
-console.log('  "Pakistan" → ' + getCountryCode('Pakistan'));
-console.log('  "Bangladesh" → ' + getCountryCode('Bangladesh'));
-console.log('  "Germany" → ' + getCountryCode('Germany'));
-console.log('  "France" → ' + getCountryCode('France'));
-console.log('✅ ALL COUNTRIES SUPPORTED!');
-console.log('📦 Mode: ' + (IS_TESTING ? 'TESTING (no real charges)' : 'PRODUCTION'));
-console.log('🚀 ========================================');
-
-async function getBase64(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
-    });
-}
-
+document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 3 Products | Easyship Shipping | Mode: " + EASYSHIP_MODE;
