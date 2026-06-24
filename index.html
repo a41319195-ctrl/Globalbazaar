@@ -14,14 +14,19 @@
 <body>
 <div class="debug-status" id="debugMsg">Initializing...</div>
 <div class="header-3d">
-    <div class="header-left"><button class="menu-icon-3d" id="menuBtn">☰</button><div class="brand-3d">GLOBALBAZAAR</div><div class="logo-3d">🌍</div></div>
+    <div class="header-left">
+        <!-- ✅ FIX 1: Menu Button with onclick -->
+        <button class="menu-icon-3d" id="menuBtn" onclick="openDrawer()">☰</button>
+        <div class="brand-3d">GLOBALBAZAAR</div>
+        <div class="logo-3d">🌍</div>
+    </div>
     <div class="header-right">
         <button class="notification-bell" id="notificationBell">🔔<span class="notification-badge" id="notificationCount">0</span></button>
         <select id="currencySelect" class="currency-dropdown"><option value="SAR">🇸🇦 SAR</option><option value="USD">🇺🇸 USD $</option><option value="EUR">🇪🇺 EUR €</option><option value="GBP">🇬🇧 GBP £</option><option value="INR">🇮🇳 INR ₹</option><option value="PKR">🇵🇰 PKR ₨</option><option value="NPR">🇳🇵 NPR रू</option><option value="BDT">🇧🇩 BDT ৳</option><option value="LKR">🇱🇰 LKR Rs</option><option value="AED">🇦🇪 AED د.إ</option><option value="CAD">🇨🇦 CAD $</option><option value="AUD">🇦🇺 AUD $</option><option value="SGD">🇸🇬 SGD $</option><option value="MYR">🇲🇾 MYR RM</option><option value="THB">🇹🇭 THB ฿</option><option value="JPY">🇯🇵 JPY ¥</option><option value="CNY">🇨🇳 CNY ¥</option></select>
     </div>
 </div>
 <div class="notification-panel" id="notificationPanel"><div style="padding:12px;font-weight:bold;border-bottom:1px solid #e2e8f0;">🔔 Notifications</div><div id="notificationsList"></div></div>
-<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
 <div class="drawer" id="drawer"><div class="drawer-header"><h2>GlobalBazaar 🌍</h2><p style="font-size:12px;">Multi‑Seller Hub</p></div><div class="dark-mode-menu-item" id="drawerDarkModeToggle">🌙 Dark Mode</div><div class="drawer-item" id="drawerBuyer">📦 My Orders</div><div class="drawer-item" id="drawerSeller">🏪 Seller Dashboard</div><div class="drawer-item" id="drawerMyShop">🏪 My Shop</div><div class="drawer-item" id="drawerAdmin">⚙️ Admin Panel <span id="adminPendingBadge" style="background:#ef4444; color:white; border-radius:20px; padding:2px 8px; font-size:12px; margin-left:8px; display:none;">0</span></div><div class="drawer-item" id="drawerCartPage">🛍️ My Cart</div><div class="drawer-item" id="drawerWishlist">❤️ Wishlist</div><div class="drawer-item" id="drawerSupport">📞 Support</div><div class="drawer-item" id="drawerLogout">🚪 Logout</div></div>
 <div class="container">
     <div id="buyerSection" class="section active"><div class="cat-scroll" id="catList"></div><div class="search-container"><input type="text" id="searchInput" placeholder="🔍 Search products..."></div><div class="product-grid" id="productsGrid"></div></div>
@@ -105,7 +110,10 @@
         <button id="confirmDeliveryBtn" class="btn-primary">Continue to Payment</button></div></div></div>
     <div id="paymentSection" class="section"><div class="premium-card"><h2>💳 Payment Options</h2><div id="paymentForm"><input type="text" id="cardNumber" placeholder="Card Number *" class="input" maxlength="19"><input type="text" id="cardHolderName" placeholder="Card Holder Name *" class="input"><div class="delivery-form-row"><input type="text" id="expiryDate" placeholder="MM/YY *" maxlength="5"><input type="password" id="cvv" placeholder="CVV *" maxlength="4"></div><div class="checkbox-group"><input type="checkbox" id="saveCardCheckbox"> <label>Save card for next time</label></div><button id="payNowBtn" class="btn-primary">Pay with Card (Dummy)</button></div><div class="payment-divider"><hr><span>OR</span><hr></div><div id="savedCardsSection" style="margin-top:20px; display:none;"><h4>💳 Saved Cards</h4><div id="savedCardsList"></div></div></div></div>
 </div>
-<button class="fixed-cart" id="cartFloatBtn">🛒 Cart <span class="cart-badge" id="cartCountBadge">0</span></button>
+
+<!-- ✅ FIX 2: Cart Button with onclick -->
+<button class="fixed-cart" id="cartFloatBtn" onclick="renderCartPage(); showSection('cartPage');">🛒 Cart <span class="cart-badge" id="cartCountBadge">0</span></button>
+
 <div class="toast" id="toast"></div>
 
 <!-- MODALS -->
