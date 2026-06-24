@@ -1296,7 +1296,6 @@ function renderProductCard(p) {
     const seller = sellers.find(s => s.id === p.sellerId) || { shopName: "GlobalBazaar", country: "SA" };
     const displayPrice = calculateDisplayPrice(p.price);
     
-    // ✅ FIX: SOLD OUT label - jab stock 0 ho
     const isSoldOut = p.stock <= 0;
     
     const soldOutBadge = isSoldOut ? 
@@ -1341,7 +1340,6 @@ function renderProducts(){
     grid.innerHTML = '';
     let search = document.getElementById('searchInput')?.value.toLowerCase() || "";
     
-    // ✅ Sirf available products dikhao (stock > 0)
     let filtered = products.filter(p => 
         (currentCategory === "All" || p.category === currentCategory) && 
         p.name.toLowerCase().includes(search) && 
@@ -1692,7 +1690,6 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             orders.push(newOrder);
             platformEarnings += (item.price * PLATFORM_COMMISSION) + priceCalc.gatewayFee + MAINTENANCE_FEE;
             
-            // ✅ FIX: UPDATE PRODUCT STOCK AND STATUS
             if (product) {
                 product.stock -= item.qty;
                 if (product.stock <= 0) {
@@ -2022,14 +2019,12 @@ function updateMyShopBadge() {
         badge = span;
     }
     
-    // ✅ Sirf pending orders count (Processing status)
     if (currentSeller?.sellerId) {
         const pendingOrders = orders.filter(o => 
             o.sellerId === currentSeller.sellerId && 
             o.status === 'Processing'
         ).length;
         
-        // ✅ Sirf pending orders count, sold out products nahi
         if (pendingOrders > 0) {
             badge.textContent = pendingOrders;
             badge.style.display = 'inline-block';
@@ -2043,7 +2038,7 @@ function updateMyShopBadge() {
 }
 
 // ============================================================
-// FIX: SELLER DASHBOARD - SIMPLE VERSION WITH EDIT RESTOCK
+// FIX: SELLER DASHBOARD - WITH PENDING ORDERS COUNT + VIEW DETAIL
 // ============================================================
 function renderSellerDashboard(){
     if(!currentSeller?.sellerId) return;
@@ -2068,8 +2063,8 @@ function renderSellerDashboard(){
     let totalSales = 0, totalOrders = myOrders.length;
     let pendingOrders = myOrders.filter(o => o.status === 'Processing');
     let soldOutProducts = myProducts.filter(p => p.stock <= 0);
+    let pendingCount = pendingOrders.length;
     
-    // ✅ Revenue calculation
     let monthlyRevenue = {};
     myOrders.forEach(o => { 
         if(o.status === "Completed"){ 
@@ -2105,14 +2100,11 @@ function renderSellerDashboard(){
         </div>`;
     }).join('');
     
-    // ✅ SOLD OUT Products with Buyer Details
     let soldOutHtml = '';
     if (soldOutProducts.length > 0) {
         soldOutHtml = `<h4 style="margin:10px 0; color:#dc2626;">🔴 SOLD OUT Products (${soldOutProducts.length})</h4>`;
         soldOutHtml += soldOutProducts.map(p => {
-            // ✅ Find order for this product
             const productOrder = orders.find(o => o.productDetails?.id === p.id || o.productName === p.name);
-            
             return `
                 <div class="order-card" style="border-left-color:#dc2626; margin-bottom:15px;">
                     <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
@@ -2124,7 +2116,6 @@ function renderSellerDashboard(){
                             ${p.soldOutAt ? `<br><span style="font-size:11px; color:#94a3b8;">⏳ Auto-delete in: ${getTimeRemaining(p.soldOutAt)}</span>` : ''}
                         </div>
                     </div>
-                    
                     ${productOrder ? `
                         <div style="background:#f8fafc; padding:12px; border-radius:8px; margin:8px 0;">
                             <h4 style="margin:0 0 8px 0; font-size:14px;">👤 Buyer Details</h4>
@@ -2143,7 +2134,6 @@ function renderSellerDashboard(){
                             ⚠️ No order found for this product.
                         </div>
                     `}
-                    
                     <div style="margin-top:10px;">
                         <button class="editProdBtn" data-id="${p.id}" style="background:#10b981; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
                             ✏️ Edit & Restock
@@ -2154,31 +2144,101 @@ function renderSellerDashboard(){
         }).join('');
     }
     
-    // ✅ Pending Orders
+    // ✅ PENDING ORDERS WITH COUNT + VIEW DETAIL
     let ordersHtml = '';
     if (pendingOrders.length > 0) {
-        ordersHtml += `<h4 style="margin:10px 0; color:#f59e0b;">🟡 Pending Orders (${pendingOrders.length})</h4>`;
-        ordersHtml += pendingOrders.map(o => `
-            <div class="order-card" style="border-left-color:#f59e0b;">
-                <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
-                    ${o.productDetails?.image ? `<img src="${o.productDetails.image}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">` : ''}
-                    <div style="flex:1;">
-                        <strong>${o.productDetails?.name || o.productName}</strong>
-                        <br><span style="font-size:12px; color:#64748b;">Qty: ${o.qty}</span>
-                        <br><span style="font-size:12px; color:#64748b;">Buyer: ${o.buyerName}</span>
-                        <br><span style="font-size:13px; font-weight:bold; color:#10b981;">Net Revenue: ${getCurrencySymbol()}${convertPrice((o.basePrice - (o.basePrice * PLATFORM_COMMISSION) - MAINTENANCE_FEE) * o.qty)}</span>
-                        <br><span style="font-size:12px; color:#64748b;">📦 Shipping Address: ${o.address || 'N/A'}</span>
+        ordersHtml += `
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
+                <h4 style="margin:0; color:#f59e0b;">🟡 Pending Orders</h4>
+                <span style="background:#ef4444; color:white; border-radius:50%; padding:4px 12px; font-size:14px; font-weight:bold;">
+                    ${pendingCount}
+                </span>
+            </div>
+        `;
+        
+        ordersHtml += pendingOrders.map((o, index) => `
+            <div class="order-card" style="border-left-color:#f59e0b; margin-bottom:15px; padding:15px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="background:#f59e0b; color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:13px;">
+                            ${index + 1}
+                        </span>
+                        ${o.productDetails?.image ? `<img src="${o.productDetails.image}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">` : ''}
+                        <div>
+                            <strong>${o.productDetails?.name || o.productName}</strong>
+                            <br><span style="font-size:12px; color:#64748b;">Qty: ${o.qty} | Order: ${o.trackingNumber}</span>
+                        </div>
+                    </div>
+                    <button class="viewOrderDetailBtn" data-id="${o.id}" style="background:#3b82f6; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
+                        👁️ View Detail
+                    </button>
+                </div>
+                
+                <!-- Order Detail - Hidden by default -->
+                <div id="orderDetail_${o.id}" style="display:none; margin-top:15px; padding:15px; background:#f8fafc; border-radius:12px; border:1px solid #e2e8f0;">
+                    <h4 style="margin:0 0 10px 0; color:#1e293b;">📋 Order Details</h4>
+                    
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                        <!-- Buyer Information -->
+                        <div style="background:white; padding:12px; border-radius:8px;">
+                            <h5 style="margin:0 0 8px 0; color:#3b82f6;">👤 Buyer Information</h5>
+                            <div style="font-size:13px; color:#334155;">
+                                <div><strong>Name:</strong> ${o.buyerName || 'N/A'}</div>
+                                <div><strong>Phone:</strong> ${o.buyerPhone || 'N/A'}</div>
+                                <div><strong>Email:</strong> ${o.buyerEmail || 'N/A'}</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Shipping Address -->
+                        <div style="background:white; padding:12px; border-radius:8px;">
+                            <h5 style="margin:0 0 8px 0; color:#10b981;">📍 Shipping Address</h5>
+                            <div style="font-size:13px; color:#334155;">
+                                <div><strong>Address:</strong> ${o.address || 'N/A'}</div>
+                                ${o.shippingCost ? `<div><strong>Shipping Cost:</strong> ${getCurrencySymbol()}${convertPrice(o.shippingCost)}</div>` : ''}
+                            </div>
+                        </div>
+                        
+                        <!-- Product Details -->
+                        <div style="background:white; padding:12px; border-radius:8px; grid-column: 1/2;">
+                            <h5 style="margin:0 0 8px 0; color:#8b5cf6;">📦 Product Details</h5>
+                            <div style="font-size:13px; color:#334155;">
+                                <div><strong>Product:</strong> ${o.productDetails?.name || o.productName}</div>
+                                <div><strong>Category:</strong> ${o.productDetails?.category || 'N/A'}</div>
+                                <div><strong>Quantity:</strong> ${o.qty}</div>
+                                <div><strong>Base Price:</strong> ${getCurrencySymbol()}${convertPrice(o.basePrice || o.amount)}</div>
+                                ${o.priceBreakdown ? `
+                                    <div style="margin-top:5px; font-size:12px; color:#64748b;">
+                                        <div>Gateway Fee: ${getCurrencySymbol()}${convertPrice(o.priceBreakdown.gatewayFee || 0)}</div>
+                                        <div>Maintenance: ${getCurrencySymbol()}${convertPrice(o.priceBreakdown.maintenanceFee || 0)}</div>
+                                        <div>Shipping: ${getCurrencySymbol()}${convertPrice(o.priceBreakdown.shippingCost || 0)}</div>
+                                    </div>
+                                ` : ''}
+                                <div style="margin-top:5px; font-weight:bold; color:#10b981;">
+                                    Total: ${getCurrencySymbol()}${convertPrice(o.amount || 0)}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Order Status & Actions -->
+                        <div style="background:white; padding:12px; border-radius:8px; grid-column: 2/3;">
+                            <h5 style="margin:0 0 8px 0; color:#f59e0b;">⚡ Actions</h5>
+                            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                <button class="confirmStockBtn" data-id="${o.id}" style="background:#10b981; color:white; border:none; padding:8px 20px; border-radius:20px; cursor:pointer; font-weight:600;">
+                                    ✅ Confirm Order
+                                </button>
+                                <button class="rejectOrderBtn" data-id="${o.id}" style="background:#dc2626; color:white; border:none; padding:8px 20px; border-radius:20px; cursor:pointer; font-weight:600;">
+                                    ❌ Reject Order
+                                </button>
+                            </div>
+                            <div style="margin-top:8px; font-size:11px; color:#94a3b8;">
+                                Order Date: ${o.date || 'N/A'}
+                            </div>
+                            <div style="margin-top:4px; font-size:11px; color:#94a3b8;">
+                                Status: <span style="font-weight:bold; color:#f59e0b;">${o.status}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div style="display:flex; gap:8px; margin-top:8px;">
-                    <button class="confirmStockBtn" data-id="${o.id}" style="background:#10b981; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
-                        ✅ Confirm
-                    </button>
-                    <button class="rejectOrderBtn" data-id="${o.id}" style="background:#dc2626; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
-                        ❌ Reject
-                    </button>
-                </div>
-                <div style="font-size:10px; color:#94a3b8; margin-top:4px;">${o.date}</div>
             </div>
         `).join('');
     }
@@ -2273,21 +2333,18 @@ function renderSellerDashboard(){
     document.getElementById('sellerDashboard').innerHTML = sellerDashboardHtml;
     let ctx = document.getElementById('revenueChart')?.getContext('2d'); if(ctx){ if(sellerRevenueChart) sellerRevenueChart.destroy(); sellerRevenueChart = new Chart(ctx, { type: 'bar', data: { labels: chartLabels, datasets: [{ label: 'Revenue', data: chartData.map(v => parseFloat(convertPrice(v))), backgroundColor: '#3b82f6' }] } }); }
     
-    // ✅ Helper function for time remaining
     function getTimeRemaining(soldOutAt) {
         if (!soldOutAt) return 'N/A';
         const soldTime = new Date(soldOutAt).getTime();
-        const expiryTime = soldTime + (12 * 60 * 60 * 1000); // 12 hours
+        const expiryTime = soldTime + (12 * 60 * 60 * 1000);
         const now = Date.now();
         const remaining = expiryTime - now;
-        
         if (remaining <= 0) return 'Expired';
         const hours = Math.floor(remaining / (60 * 60 * 1000));
         const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
         return `${hours}h ${minutes}m`;
     }
     
-    // ✅ Auto-delete check every minute
     if (window.autoDeleteInterval) clearInterval(window.autoDeleteInterval);
     window.autoDeleteInterval = setInterval(async function() {
         const now = Date.now();
@@ -2307,7 +2364,6 @@ function renderSellerDashboard(){
         updateMyShopBadge();
     }, 60000);
     
-    // ✅ Edit button click handler
     document.querySelectorAll('.editProdBtn').forEach(btn => {
         btn.addEventListener('click', function() {
             const productId = this.dataset.id;
@@ -2331,7 +2387,6 @@ function renderSellerDashboard(){
         });
     });
     
-    // ✅ Update Product Button - Restock on save
     document.getElementById('updateProductBtn')?.addEventListener('click', async function() {
         const btn = this;
         btn.disabled = true;
@@ -2358,13 +2413,10 @@ function renderSellerDashboard(){
                 },
                 updatedAt: new Date().toISOString()
             };
-            
-            // ✅ If stock > 0, remove sold out status
             if (updates.stock > 0) {
                 updates.status = 'available';
                 updates.soldOutAt = null;
             }
-            
             if (!updates.name || updates.name === '') {
                 showToast("Product name required", true);
                 btn.disabled = false;
@@ -2383,7 +2435,6 @@ function renderSellerDashboard(){
                 btn.textContent = '💾 Update Product';
                 return;
             }
-            
             let newMain = document.getElementById('editMainImg').files[0];
             if (newMain) {
                 let mainUrl = await uploadCompressedImage(newMain);
@@ -2426,7 +2477,25 @@ function renderSellerDashboard(){
         }
     });
     
-    // ✅ Confirm Order
+    // ✅ View Detail Button - Toggle
+    document.querySelectorAll('.viewOrderDetailBtn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const orderId = this.dataset.id;
+            const detailDiv = document.getElementById(`orderDetail_${orderId}`);
+            if (detailDiv) {
+                if (detailDiv.style.display === 'none') {
+                    detailDiv.style.display = 'block';
+                    this.textContent = '🔽 Hide Detail';
+                    this.style.background = '#64748b';
+                } else {
+                    detailDiv.style.display = 'none';
+                    this.textContent = '👁️ View Detail';
+                    this.style.background = '#3b82f6';
+                }
+            }
+        });
+    });
+    
     document.querySelectorAll('.confirmStockBtn').forEach(btn => {
         btn.addEventListener('click', function() {
             confirmOrderStock(this.dataset.id);
@@ -2448,8 +2517,6 @@ function renderSellerDashboard(){
     }));
     
     document.getElementById('withdrawBtn')?.addEventListener('click', () => requestWithdrawal(seller.id));
-    
-    // ✅ Dashboard open karne par badge count reset
     updateMyShopBadge();
 }
 
@@ -2754,7 +2821,7 @@ initializeDatabase().then(() => {
     console.error('Init error:', err);
 });
 
-// ✅ Auto-delete interval check (runs every minute)
+// ✅ Auto-delete interval check
 setInterval(async function() {
     const now = Date.now();
     for (const p of products) {
@@ -2786,5 +2853,126 @@ if (debugMsg) {
 }
 
 // ============================================================
-// END OF FILE - SIMPLE FIXED CODE
+// ⭐ FIX: PRODUCT PUBLISH - PAGE REFRESH PROBLEM SOLVED
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    const publishBtn = document.getElementById('publishBtn');
+    if (publishBtn) {
+        const newBtn = publishBtn.cloneNode(true);
+        publishBtn.parentNode.replaceChild(newBtn, publishBtn);
+        
+        newBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const btn = this;
+            btn.disabled = true;
+            btn.textContent = '⏳ Publishing...';
+            
+            try {
+                if (!currentSeller?.sellerId) {
+                    showToast("❌ Please login as seller first!", true);
+                    btn.disabled = false;
+                    btn.textContent = '📢 Publish';
+                    return;
+                }
+                
+                const name = document.getElementById('prodName')?.value?.trim();
+                const price = parseFloat(document.getElementById('prodPrice')?.value);
+                const category = document.getElementById('prodCat')?.value;
+                const stock = parseInt(document.getElementById('prodStock')?.value);
+                const description = document.getElementById('prodDesc')?.value?.trim();
+                
+                if (!name) { showToast("❌ Product name required!", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+                if (!price || price <= 0) { showToast("❌ Valid price required!", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+                if (!category) { showToast("❌ Select a category!", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+                if (!stock || stock <= 0) { showToast("❌ Valid stock required!", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+                
+                const shippingSA = parseFloat(document.getElementById('prodShippingSA')?.value) || 0;
+                const shippingGCC = parseFloat(document.getElementById('prodShippingGCC')?.value) || 0;
+                const shippingInt = parseFloat(document.getElementById('prodShippingInt')?.value) || 0;
+                
+                const weight = parseFloat(document.getElementById('prodWeight')?.value);
+                const length = parseInt(document.getElementById('prodLength')?.value);
+                const width = parseInt(document.getElementById('prodWidth')?.value);
+                const height = parseInt(document.getElementById('prodHeight')?.value);
+                
+                if (!weight || weight <= 0) { showToast("❌ Valid weight required!", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+                if (!length || !width || !height) { showToast("❌ All dimensions required!", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+                
+                const mainImageFile = document.getElementById('prodMainImg')?.files[0];
+                if (!mainImageFile) { showToast("❌ Main image required!", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+                
+                showToast("📤 Uploading images...", false);
+                
+                const mainImageUrl = await uploadCompressedImage(mainImageFile);
+                if (!mainImageUrl) { showToast("❌ Image upload failed!", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
+                
+                const extraFiles = document.getElementById('prodImagesFiles')?.files || [];
+                let imageUrls = [mainImageUrl];
+                for (let i = 0; i < Math.min(extraFiles.length, 4); i++) {
+                    const url = await uploadCompressedImage(extraFiles[i]);
+                    if (url) imageUrls.push(url);
+                }
+                
+                const calc = calculateDisplayPrice(price);
+                const seller = sellers.find(s => s.id === currentSeller.sellerId);
+                
+                const productData = {
+                    sellerId: currentSeller.sellerId,
+                    sellerName: seller?.shopName || currentSeller.shopName || "GlobalBazaar",
+                    sellerCountry: seller?.country || "SA",
+                    name: name,
+                    price: price,
+                    category: category,
+                    mainImage: mainImageUrl,
+                    images: imageUrls,
+                    description: description || "No description",
+                    stock: stock,
+                    weight: weight,
+                    size: { length, width, height },
+                    shippingRates: { SA: shippingSA, GCC: shippingGCC, International: shippingInt },
+                    publicPrice: calc.total,
+                    gatewayFee: calc.gateway,
+                    handlingFee: calc.handling,
+                    commission: price * 0.10,
+                    sellerEarning: price - (price * 0.10) - 1.50,
+                    platformRevenue: calc.gateway + (price * 0.10) + 1.50,
+                    status: 'available',
+                    createdAt: new Date().toISOString(),
+                    soldOutAt: null
+                };
+                
+                await db.collection('products').add(productData);
+                
+                showToast("✅ Product published successfully!", false);
+                addNotification(`📢 New product: ${name}`, 'info');
+                await sendTelegramMessage(`📢 New Product: ${name}\n💰 Price: $${price}\n👤 Seller: ${seller?.shopName || 'GlobalBazaar'}`);
+                
+                ['prodName','prodPrice','prodStock','prodDesc','prodMainImg','prodImagesFiles',
+                 'prodShippingSA','prodShippingGCC','prodShippingInt','prodWeight','prodLength',
+                 'prodWidth','prodHeight'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = '';
+                });
+                
+                renderSellerDashboard();
+                renderProducts();
+                updateMyShopBadge();
+                
+                btn.disabled = false;
+                btn.textContent = '📢 Publish';
+                
+            } catch (error) {
+                console.error('Publish error:', error);
+                showToast("❌ Failed: " + error.message, true);
+                btn.disabled = false;
+                btn.textContent = '📢 Publish';
+            }
+        });
+    }
+});
+
+// ============================================================
+// END OF FILE - COMPLETE FIXED CODE
 // ============================================================
