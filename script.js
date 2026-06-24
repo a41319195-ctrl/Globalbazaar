@@ -2784,7 +2784,183 @@ const debugMsg = document.getElementById('debugMsg');
 if (debugMsg) {
     debugMsg.innerHTML = "GlobalBazaar Ready | SIMPLE FIXED!";
 }
-
+// ============================================================
+// PUBLISH BUTTON - ADD PRODUCT TO FIRESTORE
+// ============================================================
+document.getElementById('publishBtn')?.addEventListener('click', async function() {
+    const btn = this;
+    btn.disabled = true;
+    btn.textContent = '⏳ Publishing...';
+    
+    try {
+        // ✅ Form se data lein
+        const prodName = document.getElementById('prodName')?.value?.trim();
+        const prodPrice = parseFloat(document.getElementById('prodPrice')?.value);
+        const prodCat = document.getElementById('prodCat')?.value;
+        const prodStock = parseInt(document.getElementById('prodStock')?.value);
+        const prodDesc = document.getElementById('prodDesc')?.value?.trim();
+        const prodMainImg = document.getElementById('prodMainImg')?.files[0];
+        const prodImagesFiles = document.getElementById('prodImagesFiles')?.files;
+        
+        // ✅ Validation
+        if (!prodName || prodName === '') {
+            showToast("❌ Product name is required", true);
+            btn.disabled = false;
+            btn.textContent = '📢 Publish';
+            return;
+        }
+        if (!prodPrice || prodPrice <= 0) {
+            showToast("❌ Valid price is required", true);
+            btn.disabled = false;
+            btn.textContent = '📢 Publish';
+            return;
+        }
+        if (!prodCat || prodCat === '') {
+            showToast("❌ Category is required", true);
+            btn.disabled = false;
+            btn.textContent = '📢 Publish';
+            return;
+        }
+        if (!prodStock || prodStock < 1) {
+            showToast("❌ Stock quantity must be at least 1", true);
+            btn.disabled = false;
+            btn.textContent = '📢 Publish';
+            return;
+        }
+        if (!prodMainImg) {
+            showToast("❌ Main image is required", true);
+            btn.disabled = false;
+            btn.textContent = '📢 Publish';
+            return;
+        }
+        
+        // ✅ Seller ID - currentSeller.sellerId se lein
+        if (!currentSeller || !currentSeller.sellerId) {
+            showToast("❌ Seller not found. Please login to your shop.", true);
+            btn.disabled = false;
+            btn.textContent = '📢 Publish';
+            return;
+        }
+        
+        const sellerId = currentSeller.sellerId;
+        const seller = sellers.find(s => s.id === sellerId);
+        
+        if (!seller) {
+            showToast("❌ Seller not found in database", true);
+            btn.disabled = false;
+            btn.textContent = '📢 Publish';
+            return;
+        }
+        
+        // ✅ Image upload
+        showToast("📸 Uploading main image...", false);
+        const mainImageUrl = await uploadCompressedImage(prodMainImg);
+        if (!mainImageUrl) {
+            showToast("❌ Failed to upload main image", true);
+            btn.disabled = false;
+            btn.textContent = '📢 Publish';
+            return;
+        }
+        
+        let extraImageUrls = [];
+        if (prodImagesFiles && prodImagesFiles.length > 0) {
+            showToast("📸 Uploading additional images...", false);
+            for (let i = 0; i < Math.min(prodImagesFiles.length, 4); i++) {
+                const url = await uploadCompressedImage(prodImagesFiles[i]);
+                if (url) extraImageUrls.push(url);
+            }
+        }
+        
+        const allImages = [mainImageUrl, ...extraImageUrls];
+        
+        // ✅ Shipping rates
+        const shippingSA = parseFloat(document.getElementById('prodShippingSA')?.value) || 0;
+        const shippingGCC = parseFloat(document.getElementById('prodShippingGCC')?.value) || 0;
+        const shippingInt = parseFloat(document.getElementById('prodShippingInt')?.value) || 0;
+        
+        // ✅ Weight & dimensions
+        const weight = parseFloat(document.getElementById('prodWeight')?.value) || 0.5;
+        const length = parseFloat(document.getElementById('prodLength')?.value) || 10;
+        const width = parseFloat(document.getElementById('prodWidth')?.value) || 10;
+        const height = parseFloat(document.getElementById('prodHeight')?.value) || 10;
+        
+        // ✅ Calculate prices
+        const calc = calculateDisplayPrice(prodPrice);
+        
+        // ✅ Firestore document prepare karein
+        const productData = {
+            sellerId: sellerId,
+            sellerName: seller.shopName || 'GlobalBazaar',
+            sellerCountry: seller.country || 'SA',
+            name: prodName,
+            price: prodPrice,
+            category: prodCat,
+            mainImage: mainImageUrl,
+            images: allImages,
+            description: prodDesc || '',
+            stock: prodStock,
+            weight: weight,
+            size: {
+                length: length,
+                width: width,
+                height: height
+            },
+            shippingRates: {
+                SA: shippingSA,
+                GCC: shippingGCC,
+                International: shippingInt
+            },
+            publicPrice: calc.total,
+            gatewayFee: calc.gateway,
+            handlingFee: calc.handling,
+            commission: prodPrice * 0.10,
+            sellerEarning: prodPrice - (prodPrice * 0.10) - 1.50,
+            platformRevenue: calc.gateway + (prodPrice * 0.10) + 1.50,
+            status: 'available',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        
+        // ✅ Firestore mein save karein
+        showToast("💾 Saving product to database...", false);
+        await db.collection('products').add(productData);
+        
+        // ✅ Success
+        showToast(`✅ "${prodName}" published successfully!`, false);
+        addNotification(`📢 New product: ${prodName}`, 'info');
+        sendTelegramMessage(`📢 New Product: ${prodName}\nPrice: ${getCurrencySymbol()}${convertPrice(prodPrice)}\nCategory: ${prodCat}\nSeller: ${seller.shopName}`);
+        
+        // ✅ Form reset
+        document.getElementById('prodName').value = '';
+        document.getElementById('prodPrice').value = '';
+        document.getElementById('prodCat').value = '';
+        document.getElementById('prodStock').value = '';
+        document.getElementById('prodDesc').value = '';
+        document.getElementById('prodMainImg').value = '';
+        document.getElementById('prodImagesFiles').value = '';
+        document.getElementById('prodShippingSA').value = '';
+        document.getElementById('prodShippingGCC').value = '';
+        document.getElementById('prodShippingInt').value = '';
+        document.getElementById('prodWeight').value = '';
+        document.getElementById('prodLength').value = '';
+        document.getElementById('prodWidth').value = '';
+        document.getElementById('prodHeight').value = '';
+        
+        // ✅ Dashboard aur products refresh
+        renderSellerDashboard();
+        renderProducts();
+        updateMyShopBadge();
+        
+        btn.disabled = false;
+        btn.textContent = '📢 Publish';
+        
+    } catch (error) {
+        console.error('Publish error:', error);
+        showToast('❌ Failed to publish: ' + error.message, true);
+        btn.disabled = false;
+        btn.textContent = '📢 Publish';
+    }
+});
 // ============================================================
 // END OF FILE - SIMPLE FIXED CODE
 // ============================================================
