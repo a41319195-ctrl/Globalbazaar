@@ -1722,19 +1722,27 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                                (HANDLING_FEE * item.qty);
             
             
-                        if (product) {
+                                if (product && product.id) {
             product.stock -= item.qty;
-            // फायरबेस डेटाबेस अपडेट करें
+            
+            // फायरबेस अपडेट - सिर्फ तभी चले अगर ID मौजूद हो
             db.collection("products").doc(product.id).update({ 
                 stock: product.stock 
+            }).then(() => {
+                console.log("Stock updated");
+            }).catch((err) => {
+                console.error("Firebase update failed", err);
             });
             
-            // स्टॉक चेक करें और नोटिफिकेशन भेजें
+            // स्टॉक चेक
             if (product.stock <= 0) {
                 addNotification(`Product ${product.name} is now SOLD OUT!`, 'info');
                 sendTelegramMessage(`⚠️ Product ${product.name} out of stock.`);
             }
+        } else {
+            console.error("Product ID missing, cannot update stock");
         }
+
 
 
         saveAllLocal();
