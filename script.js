@@ -1721,15 +1721,17 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                                (final.gateway * item.qty) + 
                                (HANDLING_FEE * item.qty);
             
-            if (product) {
-                product.stock -= item.qty;
-                if (product.stock === 0) {
-                    addNotification(`Product ${product.name} is now SOLD OUT!`, 'info');
-                    sendTelegramMessage(`⚠️ Product ${product.name} out of stock.`);
-                }
+            
+                if (product) {
+            product.stock -= item.qty;
+            db.collection("products").doc(product.id).update({ stock: product.stock });
+            
+            if (product.stock <= 0) {
+                addNotification(`Product ${product.name} is now SOLD OUT!`, 'info');
+                sendTelegramMessage(`⚠️ Product ${product.name} out of stock.`);
             }
         }
-        
+
         saveAllLocal();
         
         await sendTelegramMessage(`🛍️ NEW ORDER!\nOrder: ${tracking}\nCustomer: ${currentDelivery.fullName}\nPhone: ${currentDelivery.phone}\nAmount: ${getCurrencySymbol()}${convertPrice(totalUSD)}\nShipping: ${getCurrencySymbol()}${convertPrice(totalShipping)}`);
