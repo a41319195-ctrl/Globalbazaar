@@ -10,10 +10,22 @@ body.dark-mode .modal-verify-card { background: #1e293b; color: #f1f5f9; }
 body.dark-mode .modal-verify-card h3 { color: #f1f5f9; }
 body.dark-mode .modal-verify-card p { color: #94a3b8; }
 body.dark-mode .modal-verify-card .spam-note { background: #450a0a; color: #fca5a5; }
+
+/* ============================================================
+   DARK MODE MENU
+   ============================================================ */
 .dark-mode-menu-item { display: flex; align-items: center; gap: 14px; padding: 14px 20px; font-weight: 600; font-size: 16px; cursor: pointer; margin: 4px 12px; border-radius: 14px; }
 .dark-mode-menu-item:hover { background: #f1f5f9; }
 body.dark-mode .dark-mode-menu-item:hover { background: #334155; }
+
+/* ============================================================
+   MY SHOP BUTTON
+   ============================================================ */
 .my-shop-btn { background: linear-gradient(145deg, #10b981, #059669); color: white; border-radius: 14px; }
+
+/* ============================================================
+   RATING STARS
+   ============================================================ */
 .rating-stars { display: flex; gap: 5px; margin: 10px 0; }
 .star { font-size: 24px; cursor: pointer; color: #cbd5e1; transition: 0.1s; }
 .star.active { color: #fbbf24; }
@@ -21,16 +33,32 @@ body.dark-mode .dark-mode-menu-item:hover { background: #334155; }
 .rating-badge { background: #fbbf24; color: #1e293b; padding: 4px 8px; border-radius: 20px; font-weight: bold; font-size: 12px; }
 .review-item { background: #f8fafc; padding: 12px; border-radius: 12px; margin-bottom: 10px; }
 body.dark-mode .review-item { background: #334155; }
+
+/* ============================================================
+   PRODUCT THUMBNAILS
+   ============================================================ */
 .product-thumbnails { display: flex; gap: 6px; margin-top: 8px; overflow-x: auto; }
 .product-thumbnails img { width: 50px; height: 50px; object-fit: cover; border-radius: 10px; cursor: pointer; border: 1px solid #e2e8f0; }
 .product-thumbnails img:hover { border-color: #3b82f6; }
+
+/* ============================================================
+   NOTIFICATION BELL
+   ============================================================ */
 .notification-bell { position: relative; cursor: pointer; font-size: 22px; background: none; border: none; }
 .notification-badge { position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; font-size: 10px; padding: 2px 6px; border-radius: 50%; min-width: 18px; text-align: center; }
+
+/* ============================================================
+   NOTIFICATION PANEL
+   ============================================================ */
 .notification-panel { position: fixed; top: 70px; right: 20px; width: 300px; max-height: 400px; background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 1000; display: none; overflow-y: auto; }
 body.dark-mode .notification-panel { background: #1e293b; }
 .notification-item { padding: 12px; border-bottom: 1px solid #e2e8f0; cursor: pointer; }
 .notification-item:hover { background: #f1f5f9; }
 body.dark-mode .notification-item:hover { background: #334155; }
+
+/* ============================================================
+   HEADER 3D
+   ============================================================ */
 .header-3d { background: linear-gradient(145deg, #ffffff, #f0f4fa); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 10px 25px -8px rgba(0,0,0,0.15); border-bottom: 1px solid rgba(59,130,246,0.15); flex-wrap: wrap; gap: 10px; }
 .header-left { display: flex; align-items: center; gap: 15px; }
 .header-right { display: flex; align-items: center; gap: 10px; }
@@ -38,26 +66,54 @@ body.dark-mode .notification-item:hover { background: #334155; }
 .brand-3d { font-weight: 800; font-size: 28px; background: linear-gradient(135deg, #1e3a8a, #3b82f6, #06b6d4); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .logo-3d { font-size: 32px; background: radial-gradient(circle at 35% 35%, #ffdd77, #ffaa33); border-radius: 50%; padding: 5px; }
 .currency-dropdown { background: linear-gradient(145deg, #1e2a4a, #0f172f); border: none; padding: 8px 14px; border-radius: 40px; color: #FFD966; font-size: 13px; font-weight: bold; cursor: pointer; }
+
+/* ============================================================
+   DRAWER
+   ============================================================ */
 .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); z-index: 200; display: none; }
 .drawer { position: fixed; top: 0; left: -85%; width: 75%; max-width: 280px; height: 100%; background: white; z-index: 201; transition: left 0.3s ease; border-radius: 0 24px 24px 0; padding: 20px 0; overflow-y: auto; }
 .drawer.open { left: 0; }
 .drawer-header { padding: 20px; border-bottom: 1px solid #eef2f8; }
 .drawer-item { display: flex; align-items: center; gap: 14px; padding: 14px 20px; font-weight: 600; font-size: 16px; cursor: pointer; margin: 4px 12px; border-radius: 14px; }
 .drawer-item:hover { background: #f1f5f9; }
+
+/* ============================================================
+   CONTAINER
+   ============================================================ */
 .container { max-width: 560px; margin: 0 auto; padding: 16px; }
 .section { display: none; }
 .section.active { display: block; }
+
+/* ============================================================
+   CATEGORIES
+   ============================================================ */
 .cat-scroll { display: flex; gap: 10px; overflow-x: auto; padding: 8px 0 16px; }
 .cat-pill { background: white; padding: 8px 22px; border-radius: 40px; font-weight: 600; font-size: 14px; border: 1px solid #e2e8f0; cursor: pointer; white-space: nowrap; }
 .cat-pill.active { background: #1e3a8a; color: white; }
+
+/* ============================================================
+   SEARCH
+   ============================================================ */
 .search-container { position: relative; margin-bottom: 16px; }
 .search-container input { width: 100%; padding: 14px 40px 14px 16px; border: 1px solid #e2e8f0; border-radius: 40px; font-size: 14px; }
+
+/* ============================================================
+   PRODUCT GRID
+   ============================================================ */
 .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
 .product-card { background: white; border-radius: 20px; padding: 12px; cursor: pointer; border: 1px solid #eef2f8; transition: 0.2s; position: relative; }
 .product-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
 .product-card .main-img { width: 100%; height: 140px; object-fit: cover; border-radius: 16px; }
+
+/* ============================================================
+   BADGES
+   ============================================================ */
 .soldout-badge { position: absolute; top: 10px; left: 10px; background: #dc2626; color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; z-index: 2; }
 .stock-badge { position: absolute; top: 10px; right: 10px; background: #10b981; color: white; padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; }
+
+/* ============================================================
+   PRODUCT DETAILS
+   ============================================================ */
 .seller-name-tag { font-size: 11px; color: #3b82f6; margin: 10px 0 6px; font-weight: 600; }
 .prod-price { font-weight: 800; font-size: 16px; color: #1e3a8a; margin-top: 6px; }
 .card-actions { display: flex; gap: 8px; margin-top: 12px; }
@@ -65,29 +121,73 @@ body.dark-mode .notification-item:hover { background: #334155; }
 .btn-buy { background: #0f172a; color: white; }
 .btn-wish { background: #f1f5f9; }
 .btn-wish.active { background: #fee2e2; color: #dc2626; }
+
+/* ============================================================
+   FIXED CART
+   ============================================================ */
 .fixed-cart { position: fixed; bottom: 25px; right: 25px; background: linear-gradient(145deg, #1e3a8a, #1e2a5a); color: white; border: none; border-radius: 60px; padding: 16px 28px; display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 18px; z-index: 99; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.25); }
 .cart-badge { background: #ef4444; color: white; font-size: 13px; padding: 2px 10px; border-radius: 40px; }
+
+/* ============================================================
+   INPUTS & BUTTONS
+   ============================================================ */
 .input { width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; margin-bottom: 14px; font-size: 14px; }
 .btn-primary { background: #1e3a8a; color: white; border: none; padding: 14px; border-radius: 60px; font-weight: 700; font-size: 15px; width: 100%; cursor: pointer; transition: opacity 0.2s; }
 .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn-secondary { background: #64748b; color: white; border: none; padding: 14px; border-radius: 60px; font-weight: 700; font-size: 15px; width: 100%; cursor: pointer; margin-top: 10px; }
+
+/* ============================================================
+   CARDS
+   ============================================================ */
 .premium-card { background: white; border-radius: 24px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
 .flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
 .order-card { background: #f8fafc; border-radius: 16px; padding: 14px; margin-bottom: 12px; font-size: 13px; border-left: 4px solid #cbd5e1; }
 .chart-container { background: white; border-radius: 24px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
 .chart-container canvas { max-height: 250px; width: 100%; }
+
+/* ============================================================
+   MODALS
+   ============================================================ */
 .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 300; overflow-y: auto; }
 .modal-card { background: white; margin: 50px 20px; border-radius: 28px; padding: 24px; max-width: 500px; margin-left: auto; margin-right: auto; }
 .close-modal { float: right; font-size: 28px; cursor: pointer; }
 .modal-main-img { width: 100%; height: 200px; object-fit: cover; border-radius: 16px; }
 .modal-thumbnails { display: flex; gap: 10px; margin: 15px 0; overflow-x: auto; }
 .modal-thumbnails img { width: 60px; height: 60px; object-fit: cover; border-radius: 10px; cursor: pointer; border: 2px solid #e2e8f0; }
+
+/* ============================================================
+   SELLER AVATAR
+   ============================================================ */
 .seller-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #3b82f6; }
+
+/* ============================================================
+   ROLE BADGE
+   ============================================================ */
 .role-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; background: #dbeafe; color: #1e40af; }
+
+/* ============================================================
+   TOAST
+   ============================================================ */
 .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; z-index: 1000; display: none; font-size: 14px; }
+
+/* ============================================================
+   CHECKBOX GROUP
+   ============================================================ */
 .checkbox-group { display: flex; align-items: center; gap: 10px; margin: 15px 0; flex-wrap: wrap; }
+
+/* ============================================================
+   LEGAL LINK
+   ============================================================ */
 .legal-link { color: #3b82f6; text-decoration: none; cursor: pointer; }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
 .footer-legal { text-align: center; padding: 20px; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; margin-top: 20px; }
+
+/* ============================================================
+   PHONE GROUP
+   ============================================================ */
 .phone-group { display: flex; gap: 10px; margin-bottom: 14px; position: relative; }
 .phone-group select { width: 35%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; }
 .phone-group input { width: 65%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; margin-bottom: 0; }
@@ -96,36 +196,84 @@ body.dark-mode .notification-item:hover { background: #334155; }
 .country-dropdown-list { position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #e2e8f0; border-radius: 12px; z-index: 1000; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 .country-dropdown-list div { padding: 10px 14px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
 .country-dropdown-list div:hover { background: #f1f5f9; }
+
+/* ============================================================
+   KYC STATUS
+   ============================================================ */
 .kyc-status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
 .kyc-pending { background: #fef3c7; color: #d97706; }
 .kyc-verified { background: #d1fae5; color: #059669; }
 .kyc-rejected { background: #fee2e2; color: #dc2626; }
+
+/* ============================================================
+   CART ITEM
+   ============================================================ */
 .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eef2f8; }
 .cart-item-controls { display: flex; gap: 10px; align-items: center; }
 .cart-qty-btn { background: #e2e8f0; border: none; width: 30px; height: 30px; border-radius: 30px; font-size: 18px; cursor: pointer; }
 .cart-remove { background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 12px; }
+
+/* ============================================================
+   DELIVERY FORM ROW
+   ============================================================ */
 .delivery-form-row { display: flex; gap: 10px; margin-bottom: 14px; }
 .delivery-form-row input, .delivery-form-row select { flex: 1; padding: 12px; border: 1px solid #e2e8f0; border-radius: 16px; }
+
+/* ============================================================
+   WHATSAPP SHARE
+   ============================================================ */
 .whatsapp-share { background: #25D366; color: white; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; }
+
+/* ============================================================
+   TRACKING MAP
+   ============================================================ */
 .tracking-map { background: #f1f5f9; border-radius: 16px; padding: 15px; text-align: center; margin-top: 10px; }
 .tracking-steps { display: flex; justify-content: space-between; margin-top: 15px; flex-wrap: wrap; }
 .tracking-step { text-align: center; flex: 1; font-size: 10px; color: #64748b; }
 .tracking-step.active { color: #3b82f6; font-weight: bold; }
+
+/* ============================================================
+   KYC TABLE
+   ============================================================ */
 .kyc-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
 .kyc-table th, .kyc-table td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
 .kyc-table th { background: #f1f5f9; font-weight: 600; }
 body.dark-mode .kyc-table th { background: #334155; }
+
+/* ============================================================
+   KYC SECTION TITLE
+   ============================================================ */
 .kyc-section-title { font-size: 18px; font-weight: 700; margin: 20px 0 10px 0; padding-bottom: 8px; border-bottom: 2px solid #3b82f6; display: inline-block; }
+
+/* ============================================================
+   BADGES
+   ============================================================ */
 .badge-pending { background: #fef3c7; color: #d97706; padding: 4px 10px; border-radius: 20px; font-size: 11px; }
 .badge-verified { background: #d1fae5; color: #059669; padding: 4px 10px; border-radius: 20px; font-size: 11px; }
 .badge-rejected { background: #fee2e2; color: #dc2626; padding: 4px 10px; border-radius: 20px; font-size: 11px; }
+
+/* ============================================================
+   ADMIN BUTTONS
+   ============================================================ */
 .btn-approve { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; margin-right: 8px; }
 .btn-reject { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; }
 .btn-view-doc { background: #3b82f6; color: white; border: none; padding: 4px 10px; border-radius: 15px; cursor: pointer; font-size: 11px; }
+
+/* ============================================================
+   PAYMENT DIVIDER
+   ============================================================ */
 .payment-divider { display: flex; align-items: center; gap: 10px; margin: 15px 0; }
 .payment-divider hr { flex: 1; border: none; border-top: 1px solid #e2e8f0; }
 body.dark-mode .payment-divider hr { border-top-color: #475569; }
+
+/* ============================================================
+   DEBUG STATUS
+   ============================================================ */
 .debug-status { position: fixed; bottom: 10px; left: 10px; background: #000000aa; color: #0f0; padding: 4px 8px; border-radius: 8px; font-size: 10px; z-index: 9999; pointer-events: none; }
+
+/* ============================================================
+   OFFER BANNER
+   ============================================================ */
 .offer-banner {
     grid-column: 1 / -1;
     background: linear-gradient(135deg, #1e3a8a, #3b82f6);
@@ -141,6 +289,10 @@ body.dark-mode .payment-divider hr { border-top-color: #475569; }
     0%, 100% { box-shadow: 0 4px 15px rgba(59,130,246,0.3); }
     50% { box-shadow: 0 4px 30px rgba(59,130,246,0.6); }
 }
+
+/* ============================================================
+   KYC PREVIEW
+   ============================================================ */
 .kyc-preview-container {
     display: none;
     margin: 10px 0;
@@ -165,6 +317,10 @@ body.dark-mode .kyc-preview-container {
     font-weight: 600;
     margin-bottom: 5px;
 }
+
+/* ============================================================
+   KYC BLOCKED MESSAGE
+   ============================================================ */
 .kyc-blocked-message {
     text-align: center;
     padding: 40px 20px;
@@ -181,7 +337,9 @@ body.dark-mode .kyc-blocked-message {
 .kyc-blocked-message h2 { font-size: 24px; margin-bottom: 10px; }
 .kyc-blocked-message p { font-size: 14px; }
 
-/* Verify Modal Styles */
+/* ============================================================
+   VERIFY MODAL
+   ============================================================ */
 .modal-verify-overlay {
     display: none;
     position: fixed;
@@ -269,6 +427,140 @@ body.dark-mode .modal-verify-card .spam-note {
 body.dark-mode .modal-verify-card .checkbox-label span { color: #f1f5f9; }
 body.dark-mode .modal-verify-card .footer-text { color: #64748b; }
 
+/* ============================================================
+   SHIPPING ZONES SECTION
+   ============================================================ */
+.shipping-zones-container {
+    margin-top: 20px;
+    border-top: 2px solid #e2e8f0;
+    padding-top: 20px;
+}
+body.dark-mode .shipping-zones-container {
+    border-top-color: #334155;
+}
+.shipping-zones-container h3 {
+    color: #1e293b;
+}
+body.dark-mode .shipping-zones-container h3 {
+    color: #f1f5f9;
+}
+.shipping-zones-container h4 {
+    color: #1e293b;
+}
+body.dark-mode .shipping-zones-container h4 {
+    color: #f1f5f9;
+}
+.shipping-zones-container .shipping-zone-card {
+    background: #f8fafc;
+    padding: 16px;
+    border-radius: 12px;
+    margin-top: 12px;
+    border: 1px solid #e2e8f0;
+}
+body.dark-mode .shipping-zones-container .shipping-zone-card {
+    background: #1e293b;
+    border-color: #334155;
+}
+.shipping-zones-container select[multiple] {
+    width: 100%;
+    height: 100px;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    margin-top: 5px;
+}
+body.dark-mode .shipping-zones-container select[multiple] {
+    background: #334155;
+    color: white;
+    border-color: #475569;
+}
+
+/* ============================================================
+   SHIPPING COST DISPLAY
+   ============================================================ */
+.shipping-cost-display {
+    background: #f1f5f9;
+    padding: 16px;
+    border-radius: 12px;
+    margin: 14px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #e2e8f0;
+}
+body.dark-mode .shipping-cost-display {
+    background: #1e293b;
+    border-color: #334155;
+}
+.shipping-cost-display .label {
+    font-weight: 600;
+    color: #64748b;
+}
+body.dark-mode .shipping-cost-display .label {
+    color: #94a3b8;
+}
+.shipping-cost-display .cost {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e3a8a;
+}
+body.dark-mode .shipping-cost-display .cost {
+    color: #60a5fa;
+}
+
+/* ============================================================
+   EDIT PRODUCT MODAL - STOCK STATUS
+   ============================================================ */
+#editStockStatus {
+    margin-top: 8px;
+    font-weight: 600;
+}
+#quickRestockBtn {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    margin-top: 8px;
+    font-weight: 500;
+}
+#quickRestockBtn:hover {
+    background: #059669;
+}
+
+/* ============================================================
+   ORDER DETAILS MODAL
+   ============================================================ */
+#orderDetailsModal .modal-card {
+    max-width: 650px;
+}
+#orderDetailsContent h3 {
+    margin-top: 16px;
+    margin-bottom: 8px;
+    font-size: 16px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 8px;
+}
+body.dark-mode #orderDetailsContent h3 {
+    border-bottom-color: #334155;
+}
+#orderDetailsContent ul {
+    list-style: none;
+    padding: 0;
+}
+#orderDetailsContent ul li {
+    padding: 6px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 14px;
+}
+body.dark-mode #orderDetailsContent ul li {
+    border-bottom-color: #334155;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
 @media (max-width: 600px) {
     .brand-3d { font-size: 18px; }
     .logo-3d { font-size: 24px; }
@@ -289,4 +581,26 @@ body.dark-mode .modal-verify-card .footer-text { color: #64748b; }
     .offer-banner span:last-child { font-size: 11px; }
     .modal-verify-card { padding: 20px 16px; }
     .modal-verify-card h3 { font-size: 18px; }
+    .container { padding: 10px; }
+    .phone-group { flex-direction: column; gap: 10px; }
+    .phone-group select { width: 100%; }
+    .phone-group input { width: 100%; }
+    .country-search-select { width: 100%; }
+    .delivery-form-row { flex-direction: column; gap: 10px; }
+    .notification-panel { width: 90%; right: 5%; left: 5%; }
+    .drawer { width: 85%; max-width: 280px; }
+    .shipping-zones-container .shipping-zone-card { padding: 12px; }
+    .shipping-zones-container .shipping-zone-card .zone-grid { grid-template-columns: 1fr; gap: 8px; }
+    .shipping-cost-display { flex-direction: column; gap: 8px; text-align: center; }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+    .product-grid { grid-template-columns: repeat(2, 1fr); }
+    .container { max-width: 100%; padding: 16px 24px; }
+}
+
+@media (min-width: 901px) {
+    .product-grid { grid-template-columns: repeat(3, 1fr); }
+    .container { max-width: 900px; padding: 20px; }
+    .product-card .main-img { height: 180px; }
 }
