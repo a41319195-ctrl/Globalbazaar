@@ -113,7 +113,7 @@ const GATEWAY_FEE_PERCENT = 0.03;
 const HANDLING_FEE_PERCENT = 0.015;
 
 // ============================================================
-// CATEGORY COMMISSION SYSTEM
+// CATEGORY COMMISSION SYSTEM - UPDATED WITH 6 CATEGORIES
 // ============================================================
 
 const CATEGORY_COMMISSIONS = {
@@ -121,7 +121,8 @@ const CATEGORY_COMMISSIONS = {
     'Fashion': 0.15,
     'Home & Kitchen': 0.15,
     'Beauty & Cosmetics': 0.15,
-    'Books & Stationery': 0.15
+    'Books & Stationery': 0.15,
+    'Toys & Hobbies': 0.15
 };
 
 function getCategoryCommission(category) {
@@ -387,7 +388,7 @@ function setupShippingZonesForSeller(country) {
 }
 
 // ============================================================
-// DEFAULT PRODUCTS - 5 CATEGORIES, 15 PRODUCTS
+// DEFAULT PRODUCTS - 6 CATEGORIES
 // ============================================================
 
 const defaultProducts = [
@@ -414,14 +415,19 @@ const defaultProducts = [
     // ===== BOOKS & STATIONERY (15% Commission) =====
     { sellerId: 0, sellerName: "GlobalBazaar", name: "Business Book Collection", price: 39.99, category: "Books & Stationery", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400", images: ["https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400"], description: "Set of 5 best-selling business and self-development books.", stock: 20, weight: 1.2, size: { length: 25, width: 18, height: 12 } },
     { sellerId: 0, sellerName: "GlobalBazaar", name: "Premium Notebook Set", price: 19.99, category: "Books & Stationery", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=400", images: ["https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=400"], description: "3-pack premium leather-bound notebooks with fountain pen.", stock: 30, weight: 0.4, size: { length: 22, width: 15, height: 3 } },
-    { sellerId: 0, sellerName: "GlobalBazaar", name: "Art Supplies Kit", price: 29.99, category: "Books & Stationery", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400", images: ["https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400"], description: "Complete art supplies kit with 120 pieces including sketch pens, pencils, and paints.", stock: 15, weight: 0.8, size: { length: 28, width: 20, height: 6 } }
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Art Supplies Kit", price: 29.99, category: "Books & Stationery", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400", images: ["https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400"], description: "Complete art supplies kit with 120 pieces including sketch pens, pencils, and paints.", stock: 15, weight: 0.8, size: { length: 28, width: 20, height: 6 } },
+
+    // ===== TOYS & HOBBIES (15% Commission) =====
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "LEGO Classic Set", price: 49.99, category: "Toys & Hobbies", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400", images: ["https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400"], description: "Classic LEGO building set with 500+ pieces. Perfect for creative minds.", stock: 25, weight: 0.8, size: { length: 30, width: 20, height: 10 } },
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Remote Control Car", price: 39.99, category: "Toys & Hobbies", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1594787318286-3d835c1d207f?w=400", images: ["https://images.unsplash.com/photo-1594787318286-3d835c1d207f?w=400"], description: "High-speed remote control car with rechargeable battery and 2.4GHz remote.", stock: 18, weight: 0.6, size: { length: 25, width: 15, height: 8 } },
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Puzzle Game Collection", price: 19.99, category: "Toys & Hobbies", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1611996575749-79a3a250f948?w=400", images: ["https://images.unsplash.com/photo-1611996575749-79a3a250f948?w=400"], description: "Set of 5 brain-teasing puzzle games for all ages. Fun and educational.", stock: 30, weight: 0.3, size: { length: 20, width: 15, height: 5 } }
 ];
 
 async function seedProductsIfEmpty() {
     try {
         const snapshot = await db.collection("products").get();
         if (snapshot.empty) {
-            console.log('🌱 Seeding 15 default products...');
+            console.log('🌱 Seeding default products...');
             document.getElementById('debugMsg').innerHTML = '🌱 Seeding products...';
             for (let p of defaultProducts) {
                 const calc = calculateProductPrice(p.price, p.category);
@@ -438,8 +444,8 @@ async function seedProductsIfEmpty() {
                     createdAt: new Date().toISOString()
                 });
             }
-            console.log("✅ Seeded 15 default products");
-            document.getElementById('debugMsg').innerHTML = '✅ 15 Products seeded!';
+            console.log("✅ Seeded default products");
+            document.getElementById('debugMsg').innerHTML = '✅ Products seeded!';
         } else {
             console.log('✅ Products already exist in database');
             document.getElementById('debugMsg').innerHTML = '✅ Products loaded from database';
@@ -470,6 +476,7 @@ let sellerRevenueChart = null;
 let currentBuyer = null;
 let isAdminLoggedIn = false;
 let verificationCheckInterval = null;
+let currentCategory = "All"; // ✅ FIXED - currentCategory defined
 
 // ============================================================
 // TELEGRAM NOTIFICATIONS
@@ -2593,6 +2600,7 @@ function renderSellerDashboard() {
                 <option value="Home & Kitchen">Home & Kitchen (15% Commission)</option>
                 <option value="Beauty & Cosmetics">Beauty & Cosmetics (15% Commission)</option>
                 <option value="Books & Stationery">Books & Stationery (15% Commission)</option>
+                <option value="Toys & Hobbies">Toys & Hobbies (15% Commission)</option>
             </select>
             <input type="number" id="prodStock" placeholder="Stock Quantity" class="input" required>
             <div style="background:#f8fafc; padding:16px; border-radius:16px; margin-top:12px; border:1px solid #e2e8f0;">
@@ -3264,4 +3272,4 @@ updateCartUI();
 updateNotificationUI(); 
 updateAdminPendingBadge(); 
 updateAdminMenuBadges();
-document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 5 Categories | Dynamic Commission";
+document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 6 Categories | Dynamic Commission";
