@@ -92,7 +92,16 @@
             <img id="kycPreviewImg" style="display:none;">
         </div></div>
         <div class="checkbox-group"><input type="checkbox" id="sellerAgreement" required><label>I agree to <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label></div><button type="submit" class="btn-primary" id="sellerSubmitBtn">✅ Register Shop</button></form></div><div id="sellerDashboard" style="display:none;"></div></div>
-    <div id="profileSection" class="section"><div id="buyerProfilePanel" style="display:block;"><div class="premium-card"><div class="flex-between"><h2>👋 My Account</h2><span class="role-badge" id="userRoleBadge">Buyer</span></div></div><div class="premium-card"><h3>📜 My Orders</h3><div id="buyerOrdersList"></div></div><div class="premium-card"><h3>❤️ My Wishlist</h3><div id="buyerWishlistList"></div></div></div></div>
+    <div id="profileSection" class="section"><div id="buyerProfilePanel" style="display:block;"><div class="premium-card"><div class="flex-between"><h2>👋 My Account</h2><span class="role-badge" id="userRoleBadge">Buyer</span></div></div>
+        <div class="premium-card"><h3>📜 My Orders</h3>
+            <!-- ========== ORDER HISTORY THREE-DOT MENU ========== -->
+            <div id="orderHistoryContainer" style="display:none; margin-bottom:15px; padding:15px; background:#f8fafc; border-radius:12px; border:1px solid #e2e8f0;">
+                <h4>📋 Order History</h4>
+                <div id="orderHistoryList"></div>
+            </div>
+            <div id="buyerOrdersList"></div>
+        </div>
+        <div class="premium-card"><h3>❤️ My Wishlist</h3><div id="buyerWishlistList"></div></div></div></div>
     <div id="adminSection" class="section"><div id="adminPanel" class="premium-card"><h2>⚙️ Admin Dashboard</h2><div id="adminLoginBox"><input type="password" id="adminKey" class="input" placeholder="Enter Admin Key"><button class="btn-primary" id="adminLoginBtn">Login</button></div><div id="adminContent" style="display:none;">
         <div style="position:relative; display:inline-block; float:right; margin-top:-40px;">
             <button id="adminMenuBtn" style="background:none; border:none; font-size:24px; cursor:pointer;">⋮</button>
@@ -106,10 +115,20 @@
                     <span>✅ Verified Sellers</span>
                     <span id="verifiedCountBadge" style="background:#10b981; color:white; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:bold;">0</span>
                 </div>
-                <div class="admin-menu-item" data-section="withdrawals" style="padding:10px 16px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+                <div class="admin-menu-item" data-section="withdrawals" style="padding:10px 16px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9;">
                     <span>💸 Withdrawal Requests</span>
                     <span id="withdrawalCountBadge" style="background:#ef4444; color:white; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:bold;">0</span>
                 </div>
+                <!-- ========== NEW ADMIN VIEW BUTTONS ========== -->
+                <div style="border-top:1px solid #eef2f8; margin-top:4px; padding-top:4px;">
+                    <div class="admin-menu-item" id="admin-buyer-view" style="padding:10px 16px; cursor:pointer; display:flex; align-items:center; gap:10px; border-bottom:1px solid #f1f5f9;">
+                        <span>👤 Buyer View</span>
+                    </div>
+                    <div class="admin-menu-item" id="admin-seller-view" style="padding:10px 16px; cursor:pointer; display:flex; align-items:center; gap:10px;">
+                        <span>🏪 Seller View</span>
+                    </div>
+                </div>
+                <!-- ========== END NEW ADMIN VIEW BUTTONS ========== -->
             </div>
         </div>
         <div style="clear:both;"></div>
@@ -137,9 +156,9 @@
             <div id="cartItemsList"></div>
             <div id="cartTotal" style="margin-top:20px; padding-top:20px; border-top:2px solid #e2e8f0;">
                 <div class="flex-between"><span>📦 Subtotal:</span><span id="cartSubtotal">SAR 0.00</span></div>
-                <div class="flex-between"><span>🚚 Shipping:</span><span id="cartShippingTotal">SAR 0.00</span></div>
+                <div class="flex-between"><span>🚚 Shipping Fee:</span><span id="cartShippingTotal">SAR 0.00</span></div>
                 <div class="flex-between" style="font-size:20px; font-weight:700; border-top:2px solid #e2e8f0; padding-top:10px; margin-top:10px;">
-                    <span>💰 Total:</span>
+                    <span>💰 Total Paid:</span>
                     <span id="cartTotalAmount">SAR 0.00</span>
                 </div>
             </div>
@@ -147,13 +166,35 @@
         </div>
     </div>
     
+    <!-- ========== CHECKOUT PAGE ========== -->
     <div id="checkoutSection" class="section"><div class="premium-card"><h2>📦 Delivery Details</h2><div id="deliveryForm"><input type="text" id="deliveryFullName" placeholder="Receiver Full Name *" class="input"><div class="phone-group"><div class="country-search-select" id="deliveryCountrySearchContainer"><input type="text" id="deliveryCountrySearch" placeholder="🔍 Search country..." autocomplete="off"><div class="country-dropdown-list" id="deliveryCountryDropdown"></div><select id="deliveryCountryCode" style="display:none;"></select></div><input type="tel" id="deliveryPhone" placeholder="Phone Number *" class="input"></div><select id="deliveryCountry" class="input" required><option value="">Select Country *</option></select><input type="text" id="deliveryCity" placeholder="City *" class="input"><input type="text" id="deliveryPostcode" placeholder="Post Code / ZIP *" class="input"><input type="text" id="deliveryStreet" placeholder="Street Address *" class="input"><input type="text" id="deliveryHouseNo" placeholder="House No. (Optional)" class="input"><div class="checkbox-group"><input type="checkbox" id="saveAddressCheckbox"> <label>Save this address for future</label></div>
         <div id="shippingCostContainer" style="display:none;" class="shipping-cost-display">
-            <span class="label">📦 Shipping Cost</span>
+            <span class="label">📦 Shipping Fee</span>
             <span class="cost" id="shippingCostDisplay">Calculating...</span>
         </div>
         <button id="confirmDeliveryBtn" class="btn-primary">Continue to Payment</button></div></div></div>
-    <div id="paymentSection" class="section"><div class="premium-card"><h2>💳 Payment Options</h2><div id="paymentForm"><input type="text" id="cardNumber" placeholder="Card Number *" class="input" maxlength="19"><input type="text" id="cardHolderName" placeholder="Card Holder Name *" class="input"><div class="delivery-form-row"><input type="text" id="expiryDate" placeholder="MM/YY *" maxlength="5"><input type="password" id="cvv" placeholder="CVV *" maxlength="4"></div><div class="checkbox-group"><input type="checkbox" id="saveCardCheckbox"> <label>Save card for next time</label></div><button id="payNowBtn" class="btn-primary">Pay with Card (Dummy)</button></div><div class="payment-divider"><hr><span>OR</span><hr></div><div id="savedCardsSection" style="margin-top:20px; display:none;"><h4>💳 Saved Cards</h4><div id="savedCardsList"></div></div></div></div>
+    
+    <!-- ========== PAYMENT PAGE ========== -->
+    <div id="paymentSection" class="section"><div class="premium-card"><h2>💳 Payment Options</h2><div id="paymentForm">
+        <input type="text" id="cardNumber" placeholder="Card Number *" class="input" maxlength="19">
+        <input type="text" id="cardHolderName" placeholder="Card Holder Name *" class="input">
+        <div class="delivery-form-row"><input type="text" id="expiryDate" placeholder="MM/YY *" maxlength="5"><input type="password" id="cvv" placeholder="CVV *" maxlength="4"></div>
+        <div class="checkbox-group"><input type="checkbox" id="saveCardCheckbox"> <label>Save card for next time</label></div>
+        
+        <!-- ========== PAYMENT SUMMARY - REMOVED COMMISSION, GATEWAY, MAINTENANCE ========== -->
+        <div style="background:#f8fafc; padding:16px; border-radius:12px; margin:15px 0; border:1px solid #e2e8f0;">
+            <h4 style="margin-bottom:10px;">💰 Payment Summary</h4>
+            <div class="flex-between"><span>📦 Subtotal:</span><span id="paymentSubtotal">SAR 0.00</span></div>
+            <div class="flex-between"><span>🚚 Shipping Fee:</span><span id="paymentShipping">SAR 0.00</span></div>
+            <div class="flex-between" style="font-size:18px; font-weight:700; border-top:2px solid #e2e8f0; padding-top:10px; margin-top:10px;">
+                <span>💰 Total Paid:</span>
+                <span id="paymentTotal">SAR 0.00</span>
+            </div>
+        </div>
+        <!-- ========== END PAYMENT SUMMARY ========== -->
+        
+        <button id="payNowBtn" class="btn-primary">Pay with Card (Dummy)</button>
+        </div><div class="payment-divider"><hr><span>OR</span><hr></div><div id="savedCardsSection" style="margin-top:20px; display:none;"><h4>💳 Saved Cards</h4><div id="savedCardsList"></div></div></div></div>
 </div>
 <button class="fixed-cart" id="cartFloatBtn">🛒 Cart <span class="cart-badge" id="cartCountBadge">0</span></button>
 <div class="toast" id="toast"></div>
@@ -211,7 +252,7 @@
 <div id="productModal" class="modal"><div class="modal-card"><span class="close-modal" id="closeModalBtn">&times;</span><img id="modalMainImg" class="modal-main-img"><div class="modal-thumbnails" id="modalThumbnails"></div><h2 id="modalTitle"></h2><p id="modalDesc"></p><div id="modalPriceBreakdown" style="font-size:12px; color:#64748b; margin:10px 0;"></div><h3 id="modalPrice"></h3><div class="rating-stars" id="modalRatingStars"></div><div id="productReviews" style="margin:15px 0; max-height:200px; overflow-y:auto;"></div><div id="addReviewSection" style="margin:15px 0;"><textarea id="reviewText" placeholder="Write a review..." rows="2" style="width:100%; padding:10px; border-radius:12px; border:1px solid #e2e8f0;"></textarea><div class="rating-stars" id="reviewStars"></div><button id="submitReviewBtn" class="btn-secondary" style="margin-top:10px;">Submit Review</button></div><button class="btn-primary" id="modalAddCartBtn">Add to Cart</button><button class="btn-primary" id="modalAddWishBtn" style="background:#64748b; margin-top:10px;">❤️ Wishlist</button><button class="whatsapp-share" id="whatsappShareBtn">📱 Share on WhatsApp</button></div></div>
 
 <!-- ============================================================ -->
-<!-- EDIT PRODUCT MODAL - UPDATED WITH RESTOCK -->
+<!-- EDIT PRODUCT MODAL -->
 <!-- ============================================================ -->
 <div id="editProductModal" class="modal">
     <div class="modal-card">
@@ -226,6 +267,7 @@
             <option value="Home & Kitchen">Home & Kitchen (15% Commission)</option>
             <option value="Beauty & Cosmetics">Beauty & Cosmetics (15% Commission)</option>
             <option value="Books & Stationery">Books & Stationery (15% Commission)</option>
+            <option value="Toys & Hobbies">Toys & Hobbies (15% Commission)</option>
         </select>
         
         <!-- ========== STOCK SECTION WITH STATUS ========== -->
@@ -271,7 +313,7 @@
 <div id="orderSummaryModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeOrderSummary()">&times;</span><h2>✅ Payment Successful!</h2><div id="orderSummaryContent"></div><button class="btn-primary" onclick="closeOrderSummary()">Continue Shopping</button></div></div>
 
 <!-- ============================================================ -->
-<!-- TERMS MODAL - UPDATED WITH PLATFORM POLICY -->
+<!-- TERMS MODAL -->
 <!-- ============================================================ -->
 <div id="termsModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeTermsModal()">&times;</span><h2>Terms & Conditions</h2>
         <p><strong>Last Updated:</strong> 16 June 2026</p>
@@ -296,7 +338,7 @@
         <button class="btn-primary" onclick="closeTermsModal()">Close</button></div></div>
 
 <!-- ============================================================ -->
-<!-- SELLER AGREEMENT MODAL - UPDATED -->
+<!-- SELLER AGREEMENT MODAL -->
 <!-- ============================================================ -->
 <div id="sellerAgreementModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSellerAgreementModal()">&times;</span><h2>Seller Agreement</h2>
         <p><strong>Commission:</strong> 10% for Electronics, 15% for other categories</p>
@@ -307,7 +349,7 @@
         <p><strong>📌 Commission Structure:</strong></p>
         <ul style="text-align:left;">
             <li>🔹 Electronics: 10% Commission</li>
-            <li>🔹 Fashion, Home, Beauty, Books: 15% Commission</li>
+            <li>🔹 Fashion, Home, Beauty, Books, Toys: 15% Commission</li>
             <li>🔹 More profit for sellers 💰</li>
         </ul><br>
         <p><strong>⚠️ Platform Policy:</strong></p>
@@ -319,7 +361,7 @@
         <button class="btn-primary" onclick="closeSellerAgreementModal()">Close</button></div></div>
 
 <!-- ============================================================ -->
-<!-- SUPPORT MODAL - UPDATED -->
+<!-- SUPPORT MODAL -->
 <!-- ============================================================ -->
 <div id="supportModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSupportModal()">&times;</span><h2>📞 Support</h2>
         <p>
@@ -344,7 +386,7 @@ function closeOrderDetailsModal() {
 </script>
 
 <!-- ============================================================ -->
-<!-- FOOTER - UPDATED -->
+<!-- FOOTER -->
 <!-- ============================================================ -->
 <div class="footer-legal">
     © 2026 GlobalBazaar Marketplace | 
