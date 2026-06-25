@@ -106,6 +106,130 @@ async function uploadCompressedImage(file, type = 'image') {
 }
 
 // ============================================================
+// CONSTANTS - CLEANED (REMOVED GATEWAY_FEE_FIXED)
+// ============================================================
+const PLATFORM_COMMISSION = 0.10;      // 10% for Electronics
+const GATEWAY_FEE_PERCENT = 0.03;       // 3% Gateway Fee
+const HANDLING_FEE_PERCENT = 0.015;     // 1.5% Maintenance Fee
+
+// ============================================================
+// CATEGORY COMMISSION SYSTEM - DYNAMIC
+// ============================================================
+
+const CATEGORY_COMMISSIONS = {
+    'Electronics': 0.10,        // 10%
+    'Fashion': 0.15,            // 15%
+    'Home & Kitchen': 0.15,     // 15%
+    'Beauty & Cosmetics': 0.15, // 15%
+    'Books & Stationery': 0.15  // 15%
+};
+
+function getCategoryCommission(category) {
+    return CATEGORY_COMMISSIONS[category] || 0.15; // Default 15%
+}
+
+// ============================================================
+// PRICE CALCULATION - FIXED: Base + 3% Gateway + 1.5% Handling
+// ============================================================
+
+function calculateProductPrice(basePrice, category = 'Electronics') {
+    const commissionRate = getCategoryCommission(category);
+    
+    // Buyer pays: Base + 3% Gateway + 1.5% Handling
+    const gatewayFee = basePrice * GATEWAY_FEE_PERCENT;
+    const handlingFee = basePrice * HANDLING_FEE_PERCENT;
+    const publicPrice = basePrice + gatewayFee + handlingFee;
+    
+    // Seller pays commission from their earnings (not added to buyer price)
+    const commission = basePrice * commissionRate;
+    const sellerEarning = basePrice - commission;
+    const platformRevenue = gatewayFee + handlingFee + commission;
+    
+    return { 
+        basePrice, 
+        gatewayFee, 
+        handlingFee, 
+        publicPrice, 
+        commission, 
+        sellerEarning, 
+        platformRevenue,
+        commissionRate 
+    };
+}
+
+function calculateFinalPriceWithCategory(basePrice, sellerId, buyerCountry, category, cartTotal = 0, sellerObj = null) {
+    try {
+        let seller = sellerObj;
+        if (!seller && sellerId) {
+            seller = sellers.find(s => s.id === sellerId);
+        }
+        
+        const commissionRate = getCategoryCommission(category);
+        
+        if (!seller || sellerId === 0 || sellerId === '0') {
+            let shippingCharge = 0;
+            if (buyerCountry === "SA" || buyerCountry === "Saudi Arabia") {
+                shippingCharge = cartTotal > 100 ? 0 : 15;
+            } else {
+                shippingCharge = cartTotal > 200 ? 0 : 25;
+            }
+            
+            // Buyer pays: Base + 3% Gateway + 1.5% Handling + Shipping
+            let gatewayFee = basePrice * GATEWAY_FEE_PERCENT;
+            let handlingFee = basePrice * HANDLING_FEE_PERCENT;
+            let total = basePrice + gatewayFee + handlingFee + shippingCharge;
+            
+            return {
+                total: total,
+                basePrice: basePrice,
+                shipping: shippingCharge,
+                commission: basePrice * commissionRate,
+                commissionRate: commissionRate,
+                gateway: gatewayFee,
+                handling: handlingFee,
+                sellerEarning: basePrice - (basePrice * commissionRate)
+            };
+        }
+        
+        const shippingCharge = getShippingCharge(
+            seller.shippingZones || setupShippingZonesForSeller(seller.country),
+            buyerCountry,
+            cartTotal
+        );
+        
+        // Buyer pays: Base + 3% Gateway + 1.5% Handling + Shipping
+        let gatewayFee = basePrice * GATEWAY_FEE_PERCENT;
+        let handlingFee = basePrice * HANDLING_FEE_PERCENT;
+        let total = basePrice + gatewayFee + handlingFee + shippingCharge;
+        
+        return {
+            total: total,
+            basePrice: basePrice,
+            shipping: shippingCharge,
+            commission: basePrice * commissionRate,
+            commissionRate: commissionRate,
+            gateway: gatewayFee,
+            handling: handlingFee,
+            sellerEarning: basePrice - (basePrice * commissionRate)
+        };
+        
+    } catch (error) {
+        console.error('Price calculation error:', error);
+        let total = basePrice + (basePrice * 0.03) + (basePrice * 0.015);
+        return {
+            total: total,
+            basePrice: basePrice,
+            shipping: 0,
+            commission: basePrice * 0.10,
+            commissionRate: 0.10,
+            gateway: basePrice * 0.03,
+            handling: basePrice * 0.015,
+            sellerEarning: basePrice * 0.90
+        };
+    }
+}
+
+// ============================================================
 // SHIPPING ZONE SYSTEM
 // ============================================================
 
@@ -269,121 +393,6 @@ function setupShippingZonesForSeller(country) {
 }
 
 // ============================================================
-// CATEGORY COMMISSION SYSTEM - DYNAMIC
-// ============================================================
-
-const CATEGORY_COMMISSIONS = {
-    'Electronics': 0.10,        // 10%
-    'Fashion': 0.15,            // 15%
-    'Home & Kitchen': 0.15,     // 15%
-    'Beauty & Cosmetics': 0.15, // 15%
-    'Books & Stationery': 0.15  // 15%
-};
-
-function getCategoryCommission(category) {
-    return CATEGORY_COMMISSIONS[category] || 0.15; // Default 15%
-}
-
-// ============================================================
-// PRICE CALCULATION - UPDATED WITH CATEGORY COMMISSION
-// ============================================================
-
-function calculateProductPrice(basePrice, category = 'Electronics') {
-    const commissionRate = getCategoryCommission(category);
-    const gatewayFee = (basePrice * GATEWAY_FEE_PERCENT) + GATEWAY_FEE_FIXED;
-    const handlingFee = HANDLING_FEE;
-    const publicPrice = basePrice + gatewayFee + handlingFee;
-    const commission = basePrice * commissionRate;
-    const sellerEarning = basePrice - commission - handlingFee;
-    const platformRevenue = gatewayFee + commission + handlingFee;
-    return { 
-        basePrice, 
-        gatewayFee, 
-        handlingFee, 
-        publicPrice, 
-        commission, 
-        sellerEarning, 
-        platformRevenue,
-        commissionRate 
-    };
-}
-
-function calculateFinalPriceWithCategory(basePrice, sellerId, buyerCountry, category, cartTotal = 0, sellerObj = null) {
-    try {
-        let seller = sellerObj;
-        if (!seller && sellerId) {
-            seller = sellers.find(s => s.id === sellerId);
-        }
-        
-        const commissionRate = getCategoryCommission(category);
-        
-        if (!seller || sellerId === 0 || sellerId === '0') {
-            let shippingCharge = 0;
-            if (buyerCountry === "SA" || buyerCountry === "Saudi Arabia") {
-                shippingCharge = cartTotal > 100 ? 0 : 15;
-            } else {
-                shippingCharge = cartTotal > 200 ? 0 : 25;
-            }
-            
-            let gatewayFee = (basePrice * GATEWAY_FEE_PERCENT) + GATEWAY_FEE_FIXED;
-            let commission = basePrice * commissionRate;
-            let total = basePrice + gatewayFee + commission + HANDLING_FEE + shippingCharge;
-            
-            return {
-                total: total,
-                basePrice: basePrice,
-                shipping: shippingCharge,
-                commission: commission,
-                commissionRate: commissionRate,
-                gateway: gatewayFee,
-                handling: HANDLING_FEE,
-                sellerEarning: basePrice - commission - HANDLING_FEE
-            };
-        }
-        
-        const shippingCharge = getShippingCharge(
-            seller.shippingZones || setupShippingZonesForSeller(seller.country),
-            buyerCountry,
-            cartTotal
-        );
-        
-        let gatewayFee = (basePrice * GATEWAY_FEE_PERCENT) + GATEWAY_FEE_FIXED;
-        let commission = basePrice * commissionRate;
-        let total = basePrice + gatewayFee + commission + HANDLING_FEE + shippingCharge;
-        
-        return {
-            total: total,
-            basePrice: basePrice,
-            shipping: shippingCharge,
-            commission: commission,
-            commissionRate: commissionRate,
-            gateway: gatewayFee,
-            handling: HANDLING_FEE,
-            sellerEarning: basePrice - commission - HANDLING_FEE
-        };
-        
-    } catch (error) {
-        console.error('Price calculation error:', error);
-        let total = basePrice + (basePrice * 0.10) + 1.50;
-        return {
-            total: total,
-            basePrice: basePrice,
-            shipping: 0,
-            commission: basePrice * 0.10,
-            commissionRate: 0.10,
-            gateway: 0.49,
-            handling: HANDLING_FEE,
-            sellerEarning: basePrice * 0.90
-        };
-    }
-}
-
-// Legacy function for backward compatibility
-function calculateFinalPrice(basePrice, sellerId, buyerCountry, cartTotal = 0, sellerObj = null) {
-    return calculateFinalPriceWithCategory(basePrice, sellerId, buyerCountry, 'Electronics', cartTotal, sellerObj);
-}
-
-// ============================================================
 // DEFAULT PRODUCTS - 5 CATEGORIES, 15 PRODUCTS
 // ============================================================
 
@@ -483,7 +492,7 @@ async function sendTelegramMessage(msg) {
 }
 
 // ============================================================
-// SUPPORT CONTACT INFO - UPDATED
+// SUPPORT CONTACT INFO
 // ============================================================
 const SUPPORT_EMAIL = "supportglobalbazaarshopco@gmail.com";
 const SUPPORT_WHATSAPP = "+9779811245373";
@@ -634,12 +643,6 @@ function convertPrice(usd){ return (usd*fxRates[selectedCurrency]).toFixed(2); }
 function getCurrencySymbol(){ return currencySymbols[selectedCurrency]; }
 document.getElementById('currencySelect').value=selectedCurrency;
 document.getElementById('currencySelect').addEventListener('change',(e)=>{ selectedCurrency=e.target.value; localStorage.setItem('selectedCurrency',selectedCurrency); renderProducts(); updateCartUI(); renderCartPage(); if(currentSeller) renderSellerDashboard(); showToast(`Currency: ${selectedCurrency}`,false); });
-
-// ============================================================
-// CONSTANTS
-// ============================================================
-const GATEWAY_FEE_PERCENT = 0.03;   // 3% Gateway Fee
-const HANDLING_FEE = 1.50;           // $1.50 Handling Fee
 
 // ============================================================
 // EMAIL VERIFICATION MODAL FUNCTIONS
@@ -973,7 +976,7 @@ function showMyOrdersPage() {
 }
 
 // ============================================================
-// FIRESTORE LISTENERS
+// FIRESTORE LISTENERS - FIXED
 // ============================================================
 db.collection("products").onSnapshot(snapshot => {
     try {
@@ -1075,6 +1078,9 @@ function updateAdminMenuBadges() {
     if (withdrawalBadge) withdrawalBadge.textContent = withdrawals;
 }
 
+// ============================================================
+// ADMIN FUNCTIONS
+// ============================================================
 document.getElementById('adminMenuBtn')?.addEventListener('click', function(e) {
     e.stopPropagation();
     const menu = document.getElementById('adminDropdownMenu');
@@ -1107,10 +1113,6 @@ document.querySelectorAll('.admin-menu-item').forEach(item => {
         document.getElementById('adminDropdownMenu').style.display = 'none';
     });
 });
-
-// ============================================================
-// ADMIN - FIXED: VERIFICATION ONCE ONLY
-// ============================================================
 
 function loadPendingSellers() {
     const pending = sellers.filter(s => s.kycStatus === 'pending');
@@ -1297,7 +1299,7 @@ function loadAdminData() {
 }
 
 // ============================================================
-// RENDER PRODUCTS - SHIPPING REMOVED FROM CARDS
+// RENDER PRODUCTS - FIXED
 // ============================================================
 let currentCategory = "All";
 
@@ -1309,11 +1311,11 @@ function renderProductCard(p) {
             shippingZones: null 
         };
         
-        // Calculate base price without shipping (shipping only at checkout)
+        // Calculate price: Base + 3% Gateway + 1.5% Handling
         const commissionRate = getCategoryCommission(p.category);
-        let gatewayFee = (p.price * GATEWAY_FEE_PERCENT) + GATEWAY_FEE_FIXED;
-        let commission = p.price * commissionRate;
-        let total = p.price + gatewayFee + commission + HANDLING_FEE;
+        let gatewayFee = p.price * GATEWAY_FEE_PERCENT;
+        let handlingFee = p.price * HANDLING_FEE_PERCENT;
+        let total = p.price + gatewayFee + handlingFee;
         
         const isSoldOut = p.stock <= 0;
         const stockBadge = isSoldOut ? 
@@ -1324,8 +1326,6 @@ function renderProductCard(p) {
                 `<div style="background:#f59e0b; color:white; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; position:absolute; top:10px; right:10px; z-index:10;">
                     ⚠️ Only ${p.stock} left
                 </div>` : '');
-        
-        // NO SHIPPING BADGE ON PRODUCT CARDS - removed
         
         let thumbnailsHtml = '';
         if (p.images && p.images.length > 1) {
@@ -1353,7 +1353,7 @@ function renderProductCard(p) {
         </div>`;
     } catch (error) {
         console.error('Render product error:', error);
-        return `<div class="product-card">Error loading product</div>`;
+        return `<div class="product-card" style="padding:20px;text-align:center;color:#dc2626;">Error loading product</div>`;
     }
 }
 
@@ -1450,9 +1450,9 @@ function openProduct(id) {
         };
         
         const commissionRate = getCategoryCommission(p.category);
-        let gatewayFee = (p.price * GATEWAY_FEE_PERCENT) + GATEWAY_FEE_FIXED;
-        let commission = p.price * commissionRate;
-        let total = p.price + gatewayFee + commission + HANDLING_FEE;
+        let gatewayFee = p.price * GATEWAY_FEE_PERCENT;
+        let handlingFee = p.price * HANDLING_FEE_PERCENT;
+        let total = p.price + gatewayFee + handlingFee;
         
         document.getElementById('modalMainImg').src = p.mainImage;
         document.getElementById('modalTitle').innerText = p.name;
@@ -1461,8 +1461,8 @@ function openProduct(id) {
         document.getElementById('modalPriceBreakdown').innerHTML = `
             Base: ${getCurrencySymbol()}${convertPrice(p.price)}<br>
             + Gateway Fee (3%): ${getCurrencySymbol()}${convertPrice(gatewayFee)}<br>
-            + Handling Fee: ${getCurrencySymbol()}${convertPrice(HANDLING_FEE)}<br>
-            + Commission (${(commissionRate * 100).toFixed(0)}%): ${getCurrencySymbol()}${convertPrice(commission)}<br>
+            + Maintenance Fee (1.5%): ${getCurrencySymbol()}${convertPrice(handlingFee)}<br>
+            + Commission (${(commissionRate * 100).toFixed(0)}%): Deducted from seller's earnings<br>
             + Shipping: Calculated at checkout based on your address
         `;
         
@@ -1525,7 +1525,7 @@ function toggleWish(id){
 }
 
 // ============================================================
-// CART PAGE - SHIPPING ONLY AT CHECKOUT
+// CART PAGE
 // ============================================================
 
 function renderCartPage() {
@@ -1539,13 +1539,12 @@ function renderCartPage() {
         }
         
         let totalUSD = 0;
-        let totalShipping = 0;
         
         let html = cart.map((item, idx) => {
             const commissionRate = getCategoryCommission(item.category || 'Electronics');
-            let gatewayFee = (item.price * GATEWAY_FEE_PERCENT) + GATEWAY_FEE_FIXED;
-            let commission = item.price * commissionRate;
-            let itemTotal = item.price + gatewayFee + commission + HANDLING_FEE;
+            let gatewayFee = item.price * GATEWAY_FEE_PERCENT;
+            let handlingFee = item.price * HANDLING_FEE_PERCENT;
+            let itemTotal = item.price + gatewayFee + handlingFee;
             
             const itemTotalWithQty = itemTotal * item.qty;
             totalUSD += itemTotalWithQty;
@@ -1725,7 +1724,6 @@ document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async f
     setTimeout(() => {
         showSection('payment');
         loadSavedCards();
-        // Store shipping info for payment
         sessionStorage.setItem('checkoutShipping', JSON.stringify({ totalShipping, shippingBreakdown }));
     }, 500);
 });
@@ -1733,7 +1731,7 @@ document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async f
 function loadSavedCards(){ let userCards = savedCards.filter(c => c.userEmail === "guest@globalbazaar.com"); if(userCards.length > 0){ document.getElementById('savedCardsSection').style.display = 'block'; document.getElementById('savedCardsList').innerHTML = userCards.map((card,idx) => `<div class="flex-between"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}">Use</button></div>`).join(''); document.querySelectorAll('.useSavedCardBtn').forEach(btn => btn.addEventListener('click', () => { let card = userCards[parseInt(btn.dataset.idx)]; document.getElementById('cardNumber').value = card.cardNumber; document.getElementById('cardHolderName').value = card.cardHolderName; document.getElementById('expiryDate').value = card.expiryDate; document.getElementById('cvv').value = ''; showToast("Card loaded", false); })); } }
 
 // ============================================================
-// PAYMENT - UPDATED WITH CATEGORY COMMISSION
+// PAYMENT - FIXED
 // ============================================================
 
 document.getElementById('payNowBtn')?.addEventListener('click', async function() {
@@ -1789,16 +1787,19 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         let totalUSD = 0;
         let totalCommission = 0;
         let totalGateway = 0;
+        let totalHandling = 0;
         
         for (let item of cart) {
             const commissionRate = getCategoryCommission(item.category || 'Electronics');
-            let gatewayFee = (item.price * GATEWAY_FEE_PERCENT) + GATEWAY_FEE_FIXED;
+            let gatewayFee = item.price * GATEWAY_FEE_PERCENT;
+            let handlingFee = item.price * HANDLING_FEE_PERCENT;
             let commission = item.price * commissionRate;
-            let itemTotal = item.price + gatewayFee + commission + HANDLING_FEE;
+            let itemTotal = item.price + gatewayFee + handlingFee;
             
             totalUSD += itemTotal * item.qty;
             totalCommission += commission * item.qty;
             totalGateway += gatewayFee * item.qty;
+            totalHandling += handlingFee * item.qty;
         }
         
         // Add shipping to total
@@ -1810,13 +1811,13 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         for (let item of cart) {
             const seller = sellers.find(s => s.id == item.sellerId);
             const commissionRate = getCategoryCommission(item.category || 'Electronics');
-            let gatewayFee = (item.price * GATEWAY_FEE_PERCENT) + GATEWAY_FEE_FIXED;
+            let gatewayFee = item.price * GATEWAY_FEE_PERCENT;
+            let handlingFee = item.price * HANDLING_FEE_PERCENT;
             let commission = item.price * commissionRate;
-            let itemTotal = item.price + gatewayFee + commission + HANDLING_FEE;
+            let itemTotal = item.price + gatewayFee + handlingFee;
             
             let product = products.find(p => p.id == item.id);
             
-            // Stock update in Firestore
             if (product) {
                 const newStock = product.stock - item.qty;
                 await db.collection("products").doc(product.id).update({
@@ -1830,7 +1831,6 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                 }
             }
             
-            // Find shipping for this item
             const itemShipping = shippingBreakdown.find(s => s.product === item.name)?.shipping || 0;
             
             let newOrder = {
@@ -1854,14 +1854,15 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                 commission: commission,
                 commissionRate: commissionRate,
                 gatewayFee: gatewayFee,
-                handlingFee: HANDLING_FEE,
+                handlingFee: handlingFee,
                 trackingInfo: null,
-                buyerCountry: buyerCountry
+                buyerCountry: buyerCountry,
+                sellerEarning: item.price - commission
             };
             
             orders.push(newOrder);
             
-            platformEarnings += (commission * item.qty) + (gatewayFee * item.qty) + (HANDLING_FEE * item.qty);
+            platformEarnings += (commission * item.qty) + (gatewayFee * item.qty) + (handlingFee * item.qty);
         }
         
         saveAllLocal();
@@ -1888,8 +1889,8 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             <h3>🚚 Shipping</h3>
             <ul>${shippingHtml}</ul>
             <h3>💰 Total Paid: ${getCurrencySymbol()}${convertPrice(totalUSD)}</h3>
-            <p><small>(Includes ${getCurrencySymbol()}${convertPrice(totalShipping)} shipping)</small></p>
-            <p><small>Commission: ${getCurrencySymbol()}${convertPrice(totalCommission)} | Gateway: ${getCurrencySymbol()}${convertPrice(totalGateway)}</small></p>
+            <p><small>Includes ${getCurrencySymbol()}${convertPrice(totalShipping)} shipping</small></p>
+            <p><small>Gateway: ${getCurrencySymbol()}${convertPrice(totalGateway)} | Maintenance: ${getCurrencySymbol()}${convertPrice(totalHandling)} | Commission: ${getCurrencySymbol()}${convertPrice(totalCommission)}</small></p>
             <h3>👤 Delivery Details</h3>
             <p>${currentDelivery.fullName}<br>📞 ${currentDelivery.phone}<br>${currentDelivery.fullAddress}</p>
             <h3>💳 Payment</h3>
@@ -1915,11 +1916,11 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
     }
 });
 
-function confirmOrderReceived(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Shipped"){ order.status = "Delivered"; saveAllLocal(); showToast("Order marked Delivered", false); renderBuyerOrders(); addNotification(`Order ${order.trackingNumber} delivered`,'order'); setTimeout(()=>{ let ord = orders.find(o => o.id === orderId); if(ord && ord.status === "Delivered"){ ord.status = "Completed"; let seller = sellers.find(s => s.id == ord.sellerId); if(seller){ let sellerEarning = ord.basePrice - ord.commission - ord.handlingFee; seller.earnings = (seller.earnings||0) + (sellerEarning * ord.qty); saveAllLocal(); showToast(`Payment released to seller`,false); if(currentSeller) renderSellerDashboard(); } } },5000); } else showToast("Order not shipped yet",true); }
+function confirmOrderReceived(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Shipped"){ order.status = "Delivered"; saveAllLocal(); showToast("Order marked Delivered", false); renderBuyerOrders(); addNotification(`Order ${order.trackingNumber} delivered`,'order'); setTimeout(()=>{ let ord = orders.find(o => o.id === orderId); if(ord && ord.status === "Delivered"){ ord.status = "Completed"; let seller = sellers.find(s => s.id == ord.sellerId); if(seller){ let sellerEarning = ord.sellerEarning || (ord.basePrice - ord.commission); seller.earnings = (seller.earnings||0) + (sellerEarning * ord.qty); saveAllLocal(); showToast(`Payment released to seller`,false); if(currentSeller) renderSellerDashboard(); } } },5000); } else showToast("Order not shipped yet",true); }
 function cancelOrder(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Processing"){ let prod = products.find(p => p.name === order.productName && p.sellerId === order.sellerId); if(prod){ prod.stock += order.qty; saveAllLocal(); } order.status = "Cancelled"; saveAllLocal(); showToast("Order cancelled successfully",false); renderBuyerOrders(); renderProducts(); addNotification(`Order ${order.trackingNumber} cancelled`,'order'); if(currentSeller) renderSellerDashboard(); } else { showToast("Only orders in 'Processing' status can be cancelled",true); } }
 
 // ============================================================
-// MARK ORDER SHIPPED WITH NOTIFICATIONS
+// MARK ORDER SHIPPED
 // ============================================================
 
 function markOrderShipped(orderId, trackingNum) {
@@ -1945,7 +1946,7 @@ function processWeeklyWithdrawals(){ let last = localStorage.getItem('gb_last_wi
 setInterval(processWeeklyWithdrawals, 3600000); processWeeklyWithdrawals();
 
 // ============================================================
-// SELLER REGISTRATION WITH SHIPPING ZONES
+// SELLER REGISTRATION
 // ============================================================
 
 document.getElementById('sellerRegForm')?.addEventListener('submit', async function(e) {
@@ -2129,7 +2130,6 @@ async function showMyShopLogin(){
         return;
     }
     
-    // Check if user already has seller account
     const sellerSnapshot = await db.collection("sellers").where("uid", "==", user.uid).get();
     if (!sellerSnapshot.empty) {
         const sellerData = sellerSnapshot.docs[0].data();
@@ -2171,7 +2171,6 @@ async function showMyShopLogin(){
         }
     }
     
-    // If not a seller yet, ask for password to confirm (one-time verification)
     const email = user.email;
     const password = prompt("Enter your password to access your shop:");
     if (!password) return;
@@ -2289,6 +2288,9 @@ function showOrderDetailsModal(order) {
                     <div style="margin-top:10px; padding-top:10px; border-top:2px solid #e2e8f0; font-size:18px; font-weight:700; color:#1e293b;">
                         Total: ${getCurrencySymbol()}${convertPrice(order.amount + (order.shippingCost || 0))}
                     </div>
+                    <div style="font-size:12px; color:#64748b; margin-top:4px;">
+                        Seller Earning: ${getCurrencySymbol()}${convertPrice(order.sellerEarning || (order.basePrice - order.commission))}
+                    </div>
                 </div>
                 
                 <h3 style="border-bottom:1px solid #e2e8f0; padding-bottom:8px; font-size:16px;">👤 Buyer Details</h3>
@@ -2389,7 +2391,7 @@ function renderSellerDashboard() {
     let totalSales = 0, monthlyRevenue = {};
     myOrders.forEach(o => {
         if (o.status === "Completed" || o.status === "Delivered") {
-            let earning = (o.basePrice - o.commission - o.handlingFee) * o.qty;
+            let earning = (o.sellerEarning || (o.basePrice - o.commission)) * o.qty;
             totalSales += earning;
             let date = new Date(o.date);
             let my = `${date.getMonth()+1}/${date.getFullYear()}`;
@@ -2437,6 +2439,7 @@ function renderSellerDashboard() {
     
     let prodListHtml = myProducts.map(p => {
         const isSoldOut = p.stock <= 0;
+        const commissionRate = getCategoryCommission(p.category);
         return `
             <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #e2e8f0; ${isSoldOut ? 'background:#fef2f2;' : ''}">
                 <div style="display:flex; align-items:center; gap:12px; flex:1;">
@@ -2450,7 +2453,7 @@ function renderSellerDashboard() {
                                 `<span style="color:#dc2626; font-weight:700;">🔴 SOLD OUT</span>` : 
                                 `<span style="color:#10b981;">✅ ${p.stock} in stock</span>`
                             }
-                            <span style="margin-left:8px; font-size:11px; color:#8b5cf6;">Commission: ${(p.commissionRate || 0.15) * 100}%</span>
+                            <span style="margin-left:8px; font-size:11px; color:#8b5cf6;">Commission: ${(commissionRate * 100).toFixed(0)}%</span>
                         </div>
                     </div>
                 </div>
@@ -2493,6 +2496,7 @@ function renderSellerDashboard() {
                     </div>
                     ${o.shippingCost > 0 ? `<div style="font-size:12px; color:#64748b;">🚚 +${getCurrencySymbol()}${convertPrice(o.shippingCost)} shipping</div>` : 
                     `<div style="font-size:12px; color:#10b981;">🚚 Free Shipping</div>`}
+                    <div style="font-size:12px; color:#8b5cf6;">Your Earning: ${getCurrencySymbol()}${convertPrice(o.sellerEarning || (o.basePrice - o.commission))}</div>
                 </div>
                 
                 <div style="background:#f0fdf4; padding:12px; border-radius:8px; border:1px solid #bbf7d0;">
@@ -2731,7 +2735,8 @@ function renderSellerDashboard() {
                 gatewayFee: calc.gatewayFee,
                 handlingFee: calc.handlingFee,
                 sellerEarning: calc.sellerEarning,
-                platformRevenue: calc.platformRevenue
+                platformRevenue: calc.platformRevenue,
+                publicPrice: calc.publicPrice
             };
             
             await db.collection("products").add(newProduct);
@@ -2856,7 +2861,8 @@ document.getElementById('updateProductBtn')?.addEventListener('click', async fun
             gatewayFee: calc.gatewayFee,
             handlingFee: calc.handlingFee,
             sellerEarning: calc.sellerEarning,
-            platformRevenue: calc.platformRevenue
+            platformRevenue: calc.platformRevenue,
+            publicPrice: calc.publicPrice
         };
         
         if (oldStock <= 0 && newStock > 0) {
@@ -3088,7 +3094,11 @@ function showTerms() {
         <h3>4. Seller Terms</h3>
         <ul style="text-align:left;"><li>Sellers must provide accurate product descriptions</li><li>Commission: <strong>10% for Electronics, 15% for other categories</strong></li><li>KYC verification required for withdrawals</li></ul>
         <h3>5. ⚠️ Platform Policy</h3>
-        <p><strong>⚠️ GlobalBazaar is not responsible for any transaction made outside the platform.</strong> Any transaction done outside GlobalBazaar violates our terms and conditions, and the platform will not be liable for any loss, fraud, or dispute arising from such transactions.</p>
+        <p style="color:#dc2626; font-weight:bold;">
+            <strong>GlobalBazaar is not responsible for any transaction made outside the platform.</strong> 
+            Any transaction done outside GlobalBazaar violates our terms and conditions, 
+            and the platform will not be liable for any loss, fraud, or dispute arising from such transactions.
+        </p>
         <h3>6. Refund and Dispute</h3>
         <ul style="text-align:left;"><li>If not received within <strong>7 days</strong>, request a refund</li><li>Disputes must be raised within <strong>2 days</strong> of delivery</li></ul>
         <h3>7. Contact Us</h3>
@@ -3171,7 +3181,6 @@ function updateFooterSupport() {
     const footer = document.querySelector('.footer-legal');
     if (footer) {
         const existing = footer.innerHTML;
-        // Replace email if exists
         const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
         const updated = existing.replace(emailRegex, SUPPORT_EMAIL);
         if (updated !== existing) {
@@ -3188,7 +3197,6 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 GlobalBazaar Initializing...');
     document.getElementById('debugMsg').innerHTML = '🚀 Loading...';
     
-    // Update footer support info
     updateFooterSupport();
     
     const countrySelect = document.getElementById('sellerCountryReg');
@@ -3212,26 +3220,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Set currency
     const currencySelect = document.getElementById('currencySelect');
     if (currencySelect) {
         currencySelect.value = selectedCurrency;
     }
     
-    // Cart float button
     document.getElementById('cartFloatBtn')?.addEventListener('click', () => {
         renderCartPage();
         showSection('cartPage');
     });
     
-    // Menu button
     document.getElementById('menuBtn')?.addEventListener('click', openDrawer);
     document.getElementById('drawerOverlay')?.addEventListener('click', closeDrawer);
     
-    // Search input
     document.getElementById('searchInput')?.addEventListener('input', renderProducts);
     
-    // Proceed to checkout
     document.getElementById('proceedToCheckoutBtn')?.addEventListener('click', () => {
         if (cart.length === 0) {
             showToast('Cart is empty', true);
@@ -3249,7 +3252,6 @@ document.addEventListener('DOMContentLoaded', function() {
     updateCartUI();
     renderCartPage();
     
-    // Fix for order details modal close
     const closeOrderDetails = document.querySelector('#orderDetailsModal .close-modal');
     if (closeOrderDetails) {
         closeOrderDetails.addEventListener('click', closeOrderDetailsModal);
@@ -3259,7 +3261,6 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ GlobalBazaar Initialized Successfully');
 });
 
-// Close order details modal function
 function closeOrderDetailsModal() {
     const modal = document.getElementById('orderDetailsModal');
     if (modal) modal.style.display = 'none';
