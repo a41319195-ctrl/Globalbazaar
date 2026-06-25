@@ -1621,10 +1621,10 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             btn.textContent = 'Pay with Card (Dummy)';
             return;
         }
-        if (cardNum.length < 15) {
+         (cardNum.length < 15) {
             showToast("Invalid card", true);
             btn.disabled = false;
-            btn.textContent = 'Pay with Card (Dummy)';
+            btn.textCoifntent = 'Pay with Card (Dummy)';
             return;
         }
         if (cvv.length < 3) {
@@ -1722,15 +1722,20 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                                (HANDLING_FEE * item.qty);
             
             
-                if (product) {
+                        if (product) {
             product.stock -= item.qty;
-            db.collection("products").doc(product.id).update({ stock: product.stock });
+            // फायरबेस डेटाबेस अपडेट करें
+            db.collection("products").doc(product.id).update({ 
+                stock: product.stock 
+            });
             
+            // स्टॉक चेक करें और नोटिफिकेशन भेजें
             if (product.stock <= 0) {
                 addNotification(`Product ${product.name} is now SOLD OUT!`, 'info');
                 sendTelegramMessage(`⚠️ Product ${product.name} out of stock.`);
             }
         }
+
 
         saveAllLocal();
         
