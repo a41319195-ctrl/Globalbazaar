@@ -113,7 +113,7 @@ const GATEWAY_FEE_PERCENT = 0.03;
 const HANDLING_FEE_PERCENT = 0.015;
 
 // ============================================================
-// CATEGORY COMMISSION SYSTEM - UPDATED WITH 6 CATEGORIES
+// CATEGORY COMMISSION SYSTEM - 6 CATEGORIES
 // ============================================================
 
 const CATEGORY_COMMISSIONS = {
@@ -388,6 +388,48 @@ function setupShippingZonesForSeller(country) {
 }
 
 // ============================================================
+// GLOBAL VARIABLES
+// ============================================================
+let products = [];
+let sellers = [];
+let currentSeller = null;
+let cart = JSON.parse(localStorage.getItem('gb_cart')) || [];
+let wishlist = JSON.parse(localStorage.getItem('gb_wishlist')) || [];
+let orders = JSON.parse(localStorage.getItem('gb_orders')) || [];
+let platformEarnings = parseFloat(localStorage.getItem('gb_platform_earnings')) || 0;
+let pendingWithdrawals = JSON.parse(localStorage.getItem('gb_pending_withdrawals')) || [];
+let savedCards = JSON.parse(localStorage.getItem('gb_saved_cards')) || [];
+let savedAddresses = JSON.parse(localStorage.getItem('gb_saved_addresses')) || [];
+let notifications = JSON.parse(localStorage.getItem('gb_notifications')) || [];
+let selectedCurrency = localStorage.getItem('selectedCurrency') || 'SAR';
+let buyerCountry = localStorage.getItem('buyerCountry') || 'SA';
+let sellerRevenueChart = null;
+let currentBuyer = null;
+let isAdminLoggedIn = false;
+let verificationCheckInterval = null;
+let currentCategory = "All";
+
+// ============================================================
+// TELEGRAM NOTIFICATIONS
+// ============================================================
+const TELEGRAM_BOT_TOKEN = "8328824652:AAE-b4o6DaFDa9WPtZfrOfM7SYGU9gUa9HQ";
+const TELEGRAM_CHAT_ID = "7111653640";
+async function sendTelegramMessage(msg) {
+    try {
+        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg, parse_mode: 'HTML' })
+        });
+    } catch(e) { console.error('Telegram error:', e); }
+}
+
+// ============================================================
+// SUPPORT CONTACT INFO
+// ============================================================
+const SUPPORT_EMAIL = "supportglobalbazaarshopco@gmail.com";
+const SUPPORT_WHATSAPP = "+9779811245373";
+
+// ============================================================
 // DEFAULT PRODUCTS - 6 CATEGORIES
 // ============================================================
 
@@ -457,48 +499,6 @@ async function seedProductsIfEmpty() {
 }
 
 // ============================================================
-// GLOBAL VARIABLES
-// ============================================================
-let products = [];
-let sellers = [];
-let currentSeller = null;
-let cart = JSON.parse(localStorage.getItem('gb_cart')) || [];
-let wishlist = JSON.parse(localStorage.getItem('gb_wishlist')) || [];
-let orders = JSON.parse(localStorage.getItem('gb_orders')) || [];
-let platformEarnings = parseFloat(localStorage.getItem('gb_platform_earnings')) || 0;
-let pendingWithdrawals = JSON.parse(localStorage.getItem('gb_pending_withdrawals')) || [];
-let savedCards = JSON.parse(localStorage.getItem('gb_saved_cards')) || [];
-let savedAddresses = JSON.parse(localStorage.getItem('gb_saved_addresses')) || [];
-let notifications = JSON.parse(localStorage.getItem('gb_notifications')) || [];
-let selectedCurrency = localStorage.getItem('selectedCurrency') || 'SAR';
-let buyerCountry = localStorage.getItem('buyerCountry') || 'SA';
-let sellerRevenueChart = null;
-let currentBuyer = null;
-let isAdminLoggedIn = false;
-let verificationCheckInterval = null;
-let currentCategory = "All"; // ✅ FIXED - currentCategory defined
-
-// ============================================================
-// TELEGRAM NOTIFICATIONS
-// ============================================================
-const TELEGRAM_BOT_TOKEN = "8328824652:AAE-b4o6DaFDa9WPtZfrOfM7SYGU9gUa9HQ";
-const TELEGRAM_CHAT_ID = "7111653640";
-async function sendTelegramMessage(msg) {
-    try {
-        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg, parse_mode: 'HTML' })
-        });
-    } catch(e) { console.error('Telegram error:', e); }
-}
-
-// ============================================================
-// SUPPORT CONTACT INFO
-// ============================================================
-const SUPPORT_EMAIL = "supportglobalbazaarshopco@gmail.com";
-const SUPPORT_WHATSAPP = "+9779811245373";
-
-// ============================================================
 // NOTIFICATIONS
 // ============================================================
 function addNotification(msg, type = 'info') {
@@ -549,6 +549,9 @@ function toggleDarkMode() {
 }
 document.getElementById('drawerDarkModeToggle')?.addEventListener('click', () => { toggleDarkMode(); closeDrawer(); });
 
+// ============================================================
+// REVIEWS
+// ============================================================
 let productReviews = JSON.parse(localStorage.getItem('gb_reviews')) || {};
 function renderReviewStars(containerId, onRatingSelect) {
     let cont = document.getElementById(containerId);
@@ -607,6 +610,9 @@ function showDocumentModal(docData, docType, sellerName) {
 }
 function closeDocumentModal() { document.getElementById('documentModal').style.display = 'none'; }
 
+// ============================================================
+// COUNTRY CODES
+// ============================================================
 const countryCodes = [
     {code:"+91",name:"India",flag:"🇮🇳"},{code:"+92",name:"Pakistan",flag:"🇵🇰"},{code:"+880",name:"Bangladesh",flag:"🇧🇩"},{code:"+977",name:"Nepal",flag:"🇳🇵"},{code:"+94",name:"Sri Lanka",flag:"🇱🇰"},{code:"+60",name:"Malaysia",flag:"🇲🇾"},{code:"+62",name:"Indonesia",flag:"🇮🇩"},{code:"+63",name:"Philippines",flag:"🇵🇭"},{code:"+66",name:"Thailand",flag:"🇹🇭"},{code:"+84",name:"Vietnam",flag:"🇻🇳"},{code:"+86",name:"China",flag:"🇨🇳"},{code:"+81",name:"Japan",flag:"🇯🇵"},{code:"+82",name:"South Korea",flag:"🇰🇷"},
     {code:"+49",name:"Germany",flag:"🇩🇪"},{code:"+33",name:"France",flag:"🇫🇷"},{code:"+44",name:"UK",flag:"🇬🇧"},{code:"+39",name:"Italy",flag:"🇮🇹"},{code:"+34",name:"Spain",flag:"🇪🇸"},{code:"+41",name:"Switzerland",flag:"🇨🇭"},{code:"+31",name:"Netherlands",flag:"🇳🇱"},{code:"+46",name:"Sweden",flag:"🇸🇪"},{code:"+47",name:"Norway",flag:"🇳🇴"},{code:"+45",name:"Denmark",flag:"🇩🇰"},{code:"+358",name:"Finland",flag:"🇫🇮"},{code:"+32",name:"Belgium",flag:"🇧🇪"},{code:"+43",name:"Austria",flag:"🇦🇹"},{code:"+48",name:"Poland",flag:"🇵🇱"},{code:"+420",name:"Czech Republic",flag:"🇨🇿"},{code:"+36",name:"Hungary",flag:"🇭🇺"},{code:"+40",name:"Romania",flag:"🇷🇴"},{code:"+359",name:"Bulgaria",flag:"🇧🇬"},{code:"+30",name:"Greece",flag:"🇬🇷"},{code:"+90",name:"Turkey",flag:"🇹🇷"},
@@ -644,6 +650,355 @@ function convertPrice(usd){ return (usd*fxRates[selectedCurrency]).toFixed(2); }
 function getCurrencySymbol(){ return currencySymbols[selectedCurrency]; }
 document.getElementById('currencySelect').value=selectedCurrency;
 document.getElementById('currencySelect').addEventListener('change',(e)=>{ selectedCurrency=e.target.value; localStorage.setItem('selectedCurrency',selectedCurrency); renderProducts(); updateCartUI(); renderCartPage(); if(currentSeller) renderSellerDashboard(); showToast(`Currency: ${selectedCurrency}`,false); });
+
+// ============================================================
+// THREE-DOT DROPDOWN MENU SYSTEM
+// ============================================================
+
+function toggleThreeDotMenu(btn) {
+    document.querySelectorAll('.three-dot-dropdown.show').forEach(dropdown => {
+        if (dropdown !== btn.nextElementSibling) {
+            dropdown.classList.remove('show');
+        }
+    });
+    
+    const dropdown = btn.nextElementSibling;
+    if (dropdown && dropdown.classList.contains('three-dot-dropdown')) {
+        dropdown.classList.toggle('show');
+    }
+}
+
+function closeAllThreeDotMenus() {
+    document.querySelectorAll('.three-dot-dropdown.show').forEach(dropdown => {
+        dropdown.classList.remove('show');
+    });
+}
+
+function setupOrderThreeDotMenu(orderCard, orderData) {
+    let wrapper = orderCard.querySelector('.three-dot-wrapper');
+    if (wrapper) {
+        wrapper.remove();
+    }
+    
+    wrapper = document.createElement('div');
+    wrapper.className = 'three-dot-wrapper';
+    wrapper.style.cssText = 'position:relative; display:inline-block; margin-left:auto;';
+    
+    const btn = document.createElement('button');
+    btn.className = 'three-dot-btn';
+    btn.innerHTML = '⋮';
+    btn.setAttribute('aria-label', 'Order menu');
+    
+    const dropdown = document.createElement('div');
+    dropdown.className = 'three-dot-dropdown';
+    
+    const historyBtn = document.createElement('button');
+    historyBtn.className = 'menu-item';
+    historyBtn.innerHTML = '📋 Order History';
+    historyBtn.onclick = function(e) {
+        e.stopPropagation();
+        moveOrderToHistory(orderData);
+        closeAllThreeDotMenus();
+    };
+    dropdown.appendChild(historyBtn);
+    
+    document.addEventListener('click', function(e) {
+        if (!wrapper.contains(e.target)) {
+            dropdown.classList.remove('show');
+        }
+    });
+    
+    wrapper.appendChild(btn);
+    wrapper.appendChild(dropdown);
+    
+    btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        toggleThreeDotMenu(this);
+    });
+    
+    const header = orderCard.querySelector('.order-header');
+    if (header) {
+        header.appendChild(wrapper);
+    } else {
+        const newHeader = document.createElement('div');
+        newHeader.className = 'order-header';
+        const existingStrong = orderCard.querySelector('strong');
+        if (existingStrong) {
+            const strongClone = existingStrong.cloneNode(true);
+            newHeader.appendChild(strongClone);
+            existingStrong.remove();
+        }
+        newHeader.appendChild(wrapper);
+        orderCard.prepend(newHeader);
+    }
+}
+
+// ============================================================
+// ORDER HISTORY SYSTEM
+// ============================================================
+
+function moveOrderToHistory(order) {
+    if (order.status !== 'Cancelled' && order.status !== 'Completed') {
+        showToast('Only Cancelled or Completed orders can be moved to history', true);
+        return;
+    }
+    
+    const orderIndex = orders.findIndex(o => o.id === order.id);
+    if (orderIndex === -1) {
+        showToast('Order not found', true);
+        return;
+    }
+    
+    const movedOrder = orders.splice(orderIndex, 1)[0];
+    saveAllLocal();
+    
+    const historyContainer = document.getElementById('orderHistoryContainer');
+    const historyList = document.getElementById('orderHistoryList');
+    
+    if (!historyContainer || !historyList) {
+        console.error('History container not found');
+        return;
+    }
+    
+    const historyCard = document.createElement('div');
+    historyCard.className = 'order-card';
+    historyCard.style.borderLeftColor = order.status === 'Cancelled' ? '#ef4444' : '#10b981';
+    historyCard.innerHTML = `
+        <div class="order-header">
+            <strong>🔖 ${movedOrder.trackingNumber}</strong>
+            <span class="order-status ${movedOrder.status.toLowerCase()}">${movedOrder.status}</span>
+        </div>
+        <div class="order-details">
+            <div class="product-info">
+                <div class="label">📦 Product</div>
+                <div class="value">${movedOrder.productName} x${movedOrder.qty}</div>
+                <div class="value">${getCurrencySymbol()}${convertPrice(movedOrder.amount)}</div>
+            </div>
+            <div class="buyer-info">
+                <div class="label">👤 Buyer</div>
+                <div class="value">${movedOrder.buyerName}</div>
+                <div class="value">📅 ${movedOrder.date}</div>
+            </div>
+        </div>
+    `;
+    
+    historyList.appendChild(historyCard);
+    historyContainer.classList.add('show');
+    renderBuyerOrders();
+    showToast(`Order ${movedOrder.trackingNumber} moved to history`, false);
+}
+
+function renderOrderHistory() {
+    const historyContainer = document.getElementById('orderHistoryContainer');
+    const historyList = document.getElementById('orderHistoryList');
+    
+    if (!historyContainer || !historyList) return;
+    
+    const historyOrders = orders.filter(o => 
+        o.status === 'Cancelled' || o.status === 'Completed'
+    );
+    
+    if (historyOrders.length === 0) {
+        historyContainer.classList.remove('show');
+        historyList.innerHTML = '<p style="text-align:center; padding:20px; color:#64748b;">No order history</p>';
+        return;
+    }
+    
+    historyList.innerHTML = '';
+    historyOrders.forEach(order => {
+        const historyCard = document.createElement('div');
+        historyCard.className = 'order-card';
+        historyCard.style.borderLeftColor = order.status === 'Cancelled' ? '#ef4444' : '#10b981';
+        historyCard.innerHTML = `
+            <div class="order-header">
+                <strong>🔖 ${order.trackingNumber}</strong>
+                <span class="order-status ${order.status.toLowerCase()}">${order.status}</span>
+            </div>
+            <div class="order-details">
+                <div class="product-info">
+                    <div class="label">📦 Product</div>
+                    <div class="value">${order.productName} x${order.qty}</div>
+                    <div class="value">${getCurrencySymbol()}${convertPrice(order.amount)}</div>
+                </div>
+                <div class="buyer-info">
+                    <div class="label">👤 Buyer</div>
+                    <div class="value">${order.buyerName}</div>
+                    <div class="value">📅 ${order.date}</div>
+                </div>
+            </div>
+        `;
+        historyList.appendChild(historyCard);
+    });
+    
+    historyContainer.classList.add('show');
+}
+
+// ============================================================
+// ADMIN VIEW SYSTEM - DYNAMIC
+// ============================================================
+
+async function fetchUserData(userId, type) {
+    try {
+        showToast(`Loading ${type} data...`, false);
+        
+        let userData = null;
+        let collection = type === 'buyer' ? 'users' : 'sellers';
+        
+        const doc = await db.collection(collection).doc(userId).get();
+        if (doc.exists) {
+            userData = { id: doc.id, ...doc.data() };
+        } else {
+            const snapshot = await db.collection(collection).where('uid', '==', userId).get();
+            if (!snapshot.empty) {
+                userData = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
+            }
+        }
+        
+        if (!userData) {
+            showToast('User not found', true);
+            return;
+        }
+        
+        displayUserData(userData, type);
+        
+    } catch (error) {
+        console.error('Fetch user error:', error);
+        showToast('Error fetching user data: ' + error.message, true);
+    }
+}
+
+function displayUserData(userData, type) {
+    const container = document.getElementById('pendingKycList');
+    if (!container) return;
+    
+    const html = `
+        <div style="background:white; border-radius:16px; padding:20px; margin-top:20px; border:2px solid #3b82f6;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px;">
+                <h3 style="margin:0;">👤 ${type === 'buyer' ? 'Buyer' : 'Seller'} Details</h3>
+                <button onclick="document.getElementById('pendingKycList').innerHTML = ''" style="background:#64748b; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer;">Close</button>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                <div><strong>Name:</strong> ${userData.fullName || userData.name || 'N/A'}</div>
+                <div><strong>Email:</strong> ${userData.email || 'N/A'}</div>
+                <div><strong>Phone:</strong> ${userData.phone || 'N/A'}</div>
+                <div><strong>Country:</strong> ${userData.country || userData.sellerCountry || 'N/A'}</div>
+                ${type === 'seller' ? `
+                    <div><strong>Shop Name:</strong> ${userData.shopName || 'N/A'}</div>
+                    <div><strong>KYC Status:</strong> <span class="kyc-status ${userData.kycStatus || 'pending'}">${userData.kycStatus || 'N/A'}</span></div>
+                    <div><strong>Earnings:</strong> ${getCurrencySymbol()}${convertPrice(userData.earnings || 0)}</div>
+                    <div><strong>Total Sales:</strong> ${userData.totalSales || 0}</div>
+                ` : `
+                    <div><strong>Account Type:</strong> Buyer</div>
+                    <div><strong>Joined:</strong> ${userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : 'N/A'}</div>
+                `}
+            </div>
+            ${type === 'seller' && userData.shippingZones ? `
+                <div style="margin-top:15px; padding:12px; background:#f1f5f9; border-radius:8px;">
+                    <strong>🌍 Shipping Zones:</strong>
+                    <div style="font-size:13px; margin-top:5px;">
+                        <div>📍 Local: ${userData.shippingZones.local?.countries?.join(', ') || 'N/A'} - ${getCurrencySymbol()}${convertPrice(userData.shippingZones.local?.charge || 0)}</div>
+                        <div>🌏 Regional: ${userData.shippingZones.regional?.countries?.join(', ') || 'N/A'} - ${getCurrencySymbol()}${convertPrice(userData.shippingZones.regional?.charge || 0)}</div>
+                        <div>🌐 International: ${userData.shippingZones.international?.countries?.join(', ') || 'N/A'} - ${getCurrencySymbol()}${convertPrice(userData.shippingZones.international?.charge || 0)}</div>
+                    </div>
+                </div>
+            ` : ''}
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
+// ============================================================
+// SHIPPING CALCULATION - REAL-TIME AT CHECKOUT
+// ============================================================
+
+function calculateShippingRealTime() {
+    const countrySelect = document.getElementById('deliveryCountry');
+    if (!countrySelect) return;
+    
+    const country = countrySelect.value;
+    if (!country) {
+        document.getElementById('shippingCostContainer').style.display = 'none';
+        return;
+    }
+    
+    buyerCountry = country;
+    localStorage.setItem('buyerCountry', buyerCountry);
+    
+    let totalShipping = 0;
+    let shippingBreakdown = [];
+    
+    for (let item of cart) {
+        const seller = sellers.find(s => s.id === item.sellerId);
+        const itemTotal = item.price * item.qty;
+        const shipping = getShippingCharge(
+            seller?.shippingZones || setupShippingZonesForSeller(seller?.country || "SA"),
+            buyerCountry,
+            itemTotal
+        );
+        totalShipping += shipping * item.qty;
+        shippingBreakdown.push({
+            product: item.name,
+            seller: seller?.shopName || 'GlobalBazaar',
+            shipping: shipping,
+            qty: item.qty
+        });
+    }
+    
+    const shippingContainer = document.getElementById('shippingCostContainer');
+    const shippingDisplay = document.getElementById('shippingCostDisplay');
+    
+    if (shippingContainer && shippingDisplay) {
+        if (totalShipping === 0 && shippingBreakdown.length > 0) {
+            shippingContainer.style.display = 'block';
+            shippingDisplay.innerHTML = `
+                <strong>🎉 Free Shipping!</strong>
+                <div style="font-size:13px; color:#10b981; margin-top:4px;">All items qualify for free shipping</div>
+            `;
+        } else if (totalShipping > 0) {
+            let breakdownHtml = shippingBreakdown.map(s => 
+                `<li style="font-size:12px; color:#64748b;">${s.product} (${s.seller}): ${s.shipping > 0 ? getCurrencySymbol() + convertPrice(s.shipping) : 'FREE'} x${s.qty}</li>`
+            ).join('');
+            
+            shippingContainer.style.display = 'block';
+            shippingDisplay.innerHTML = `
+                <strong>Total Shipping: ${getCurrencySymbol()}${convertPrice(totalShipping)}</strong>
+                <ul style="margin-top:6px; list-style:none; padding:0;">${breakdownHtml}</ul>
+            `;
+        } else {
+            shippingContainer.style.display = 'none';
+        }
+    }
+    
+    updatePaymentSummary();
+}
+
+function updatePaymentSummary() {
+    let subtotal = 0;
+    let totalShipping = 0;
+    
+    for (let item of cart) {
+        const seller = sellers.find(s => s.id === item.sellerId);
+        const itemTotal = item.price * item.qty;
+        const shipping = getShippingCharge(
+            seller?.shippingZones || setupShippingZonesForSeller(seller?.country || "SA"),
+            buyerCountry,
+            itemTotal
+        );
+        subtotal += itemTotal;
+        totalShipping += shipping * item.qty;
+    }
+    
+    const total = subtotal + totalShipping;
+    
+    const subtotalEl = document.getElementById('paymentSubtotal');
+    const shippingEl = document.getElementById('paymentShipping');
+    const totalEl = document.getElementById('paymentTotal');
+    
+    if (subtotalEl) subtotalEl.textContent = `${getCurrencySymbol()}${convertPrice(subtotal)}`;
+    if (shippingEl) shippingEl.textContent = `${getCurrencySymbol()}${convertPrice(totalShipping)}`;
+    if (totalEl) totalEl.textContent = `${getCurrencySymbol()}${convertPrice(total)}`;
+}
 
 // ============================================================
 // EMAIL VERIFICATION MODAL FUNCTIONS
@@ -967,12 +1322,79 @@ function showMyOrdersPage() {
     if (myOrders.length === 0) {
         document.getElementById('buyerOrdersList').innerHTML = '<div class="premium-card"><p>No orders yet. Start shopping!</p></div>';
     } else {
-        let ordersHtml = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty}<br>${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: ${o.status}<br>${renderTrackingMap(o)}${o.trackingInfo ? `<br>📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}` : ''}<br>${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981;">✅ Received</button>` : ''}${o.status === "Processing" ? `<button class="cancelOrderBtn" data-id="${o.id}" style="background:#dc2626;">❌ Cancel Order</button>` : ''}</div>`).join('');
-        document.getElementById('buyerOrdersList').innerHTML = ordersHtml;
-        document.querySelectorAll('.confirmReceivedBtn').forEach(btn => btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id))));
-        document.querySelectorAll('.cancelOrderBtn').forEach(btn => btn.addEventListener('click', () => cancelOrder(parseFloat(btn.dataset.id))));
+        renderBuyerOrders();
     }
     showSection('profile');
+}
+
+// ============================================================
+// RENDER BUYER ORDERS - WITH THREE-DOT MENU
+// ============================================================
+
+function renderBuyerOrders() {
+    const user = auth.currentUser;
+    if (!user) return;
+    
+    let activeOrders = orders.filter(o => 
+        o.buyerEmail === user.email && 
+        o.status !== 'Cancelled' && 
+        o.status !== 'Completed'
+    );
+    
+    renderOrderHistory();
+    
+    const container = document.getElementById('buyerOrdersList');
+    if (!container) return;
+    
+    if (activeOrders.length === 0) {
+        container.innerHTML = '<div class="premium-card"><p>No active orders. Check your order history for completed orders.</p></div>';
+        return;
+    }
+    
+    let ordersHtml = '';
+    activeOrders.forEach(o => {
+        ordersHtml += `
+            <div class="order-card" data-order-id="${o.id}">
+                <div class="order-header">
+                    <strong>🔖 ${o.trackingNumber}</strong>
+                    <span class="order-status ${o.status.toLowerCase()}">${o.status}</span>
+                </div>
+                <div class="order-details">
+                    <div class="product-info">
+                        <div class="label">📦 Product</div>
+                        <div class="value">${o.productName} x${o.qty}</div>
+                        <div class="value">${getCurrencySymbol()}${convertPrice(o.amount)}</div>
+                        ${o.shippingCost > 0 ? `<div class="value" style="font-size:11px; color:#64748b;">🚚 +${getCurrencySymbol()}${convertPrice(o.shippingCost)} shipping</div>` : 
+                        `<div class="value" style="font-size:11px; color:#10b981;">🚚 Free Shipping</div>`}
+                    </div>
+                    <div class="buyer-info">
+                        <div class="label">📅 Order Details</div>
+                        <div class="value">Date: ${o.date}</div>
+                        <div class="value">${o.trackingInfo ? `📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}` : ''}</div>
+                        ${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981; color:white; border:none; padding:4px 12px; border-radius:16px; cursor:pointer; font-size:11px;">✅ Received</button>` : ''}
+                        ${o.status === "Processing" ? `<button class="cancelOrderBtn" data-id="${o.id}" style="background:#dc2626; color:white; border:none; padding:4px 12px; border-radius:16px; cursor:pointer; font-size:11px;">❌ Cancel</button>` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = ordersHtml;
+    
+    document.querySelectorAll('.order-card').forEach((card, index) => {
+        const orderId = parseFloat(card.dataset.orderId);
+        const order = activeOrders.find(o => o.id === orderId);
+        if (order) {
+            setupOrderThreeDotMenu(card, order);
+        }
+    });
+    
+    document.querySelectorAll('.confirmReceivedBtn').forEach(btn => {
+        btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id)));
+    });
+    document.querySelectorAll('.cancelOrderBtn').forEach(btn => {
+        btn.addEventListener('click', () => cancelOrder(parseFloat(btn.dataset.id)));
+    });
 }
 
 // ============================================================
@@ -1079,8 +1501,9 @@ function updateAdminMenuBadges() {
 }
 
 // ============================================================
-// ADMIN FUNCTIONS
+// ADMIN - ENHANCED WITH VIEW BUTTONS
 // ============================================================
+
 document.getElementById('adminMenuBtn')?.addEventListener('click', function(e) {
     e.stopPropagation();
     const menu = document.getElementById('adminDropdownMenu');
@@ -1094,7 +1517,7 @@ document.addEventListener('click', function(e) {
     }
 });
 
-document.querySelectorAll('.admin-menu-item').forEach(item => {
+document.querySelectorAll('.admin-menu-item[data-section]').forEach(item => {
     item.addEventListener('click', function() {
         const section = this.dataset.section;
         document.getElementById('pendingKycList').style.display = 'none';
@@ -1113,6 +1536,26 @@ document.querySelectorAll('.admin-menu-item').forEach(item => {
         document.getElementById('adminDropdownMenu').style.display = 'none';
     });
 });
+
+document.getElementById('admin-buyer-view')?.addEventListener('click', function() {
+    const userId = prompt('Enter Buyer User ID or Email:');
+    if (userId) {
+        fetchUserData(userId, 'buyer');
+    }
+    document.getElementById('adminDropdownMenu').style.display = 'none';
+});
+
+document.getElementById('admin-seller-view')?.addEventListener('click', function() {
+    const userId = prompt('Enter Seller Shop Name or Email:');
+    if (userId) {
+        fetchUserData(userId, 'seller');
+    }
+    document.getElementById('adminDropdownMenu').style.display = 'none';
+});
+
+// ============================================================
+// PENDING SELLERS - KYC
+// ============================================================
 
 function loadPendingSellers() {
     const pending = sellers.filter(s => s.kycStatus === 'pending');
@@ -1299,7 +1742,7 @@ function loadAdminData() {
 }
 
 // ============================================================
-// RENDER PRODUCTS - FIXED (Buyer Side Clean)
+// RENDER PRODUCTS - FIXED
 // ============================================================
 
 function renderProductCard(p) {
@@ -1310,18 +1753,16 @@ function renderProductCard(p) {
             shippingZones: null 
         };
         
-        // ========== HIDE SOLD OUT PRODUCTS ==========
+        // HIDE SOLD OUT PRODUCTS
         const isSoldOut = p.stock <= 0;
         if (isSoldOut) {
-            return ''; // Sold out products ko hide karo
+            return '';
         }
         
-        // Calculate price: Base + 3% Gateway + 1.5% Handling
         let gatewayFee = p.price * GATEWAY_FEE_PERCENT;
         let handlingFee = p.price * HANDLING_FEE_PERCENT;
         let total = p.price + gatewayFee + handlingFee;
         
-        // Low stock warning (only if < 5)
         const stockBadge = p.stock < 5 ? 
             `<div style="background:#f59e0b; color:white; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; position:absolute; top:10px; right:10px; z-index:10;">
                 ⚠️ Only ${p.stock} left
@@ -1334,7 +1775,7 @@ function renderProductCard(p) {
             ).join('');
         }
         
-        // ========== NO COMMISSION TEXT FOR BUYER ==========
+        // NO COMMISSION TEXT FOR BUYER
         return `<div class="product-card" data-id="${p.id}" style="position:relative;">
             ${stockBadge}
             <div class="image-wrapper">
@@ -1383,11 +1824,10 @@ function renderProducts(){
     try {
         let search = document.getElementById('searchInput')?.value.toLowerCase() || "";
         
-        // ========== FILTER: Only show products with stock > 0 ==========
         let filtered = products.filter(p => {
             const categoryMatch = currentCategory === "All" || p.category === currentCategory;
             const searchMatch = p.name.toLowerCase().includes(search);
-            const inStock = p.stock > 0; // ✅ Only available products
+            const inStock = p.stock > 0;
             return categoryMatch && searchMatch && inStock;
         });
         
@@ -1402,7 +1842,6 @@ function renderProducts(){
             return;
         }
         
-        // ========== RENDER ONLY AVAILABLE PRODUCTS ==========
         let html = filtered.map(p => renderProductCard(p)).join('');
         grid.innerHTML = html;
         
@@ -1687,44 +2126,13 @@ document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async f
     }
     
     // Calculate shipping at checkout
-    let totalShipping = 0;
-    let shippingBreakdown = [];
-    for (let item of cart) {
-        const seller = sellers.find(s => s.id == item.sellerId);
-        const itemTotal = item.price * item.qty;
-        const shipping = getShippingCharge(
-            seller?.shippingZones || setupShippingZonesForSeller(seller?.country || "SA"),
-            buyerCountry,
-            itemTotal
-        );
-        totalShipping += shipping * item.qty;
-        shippingBreakdown.push({
-            product: item.name,
-            seller: seller?.shopName || 'GlobalBazaar',
-            shipping: shipping,
-            qty: item.qty
-        });
-    }
-    
-    // Show shipping breakdown
-    let shippingHtml = shippingBreakdown.map(s => 
-        `<li>${s.product} (${s.seller}): ${s.shipping > 0 ? getCurrencySymbol() + convertPrice(s.shipping) : 'FREE'} x${s.qty}</li>`
-    ).join('');
-    
-    document.getElementById('shippingCostContainer').style.display = 'block';
-    document.getElementById('shippingCostDisplay').innerHTML = `
-        <strong>Shipping Details:</strong>
-        <ul style="margin-top:8px; list-style:none; padding:0;">${shippingHtml}</ul>
-        <div style="font-size:18px; font-weight:700; margin-top:10px; border-top:1px solid #e2e8f0; padding-top:10px;">
-            Total Shipping: ${getCurrencySymbol()}${convertPrice(totalShipping)}
-        </div>
-    `;
+    calculateShippingRealTime();
     
     showToast("Proceeding to payment...", false);
     setTimeout(() => {
         showSection('payment');
         loadSavedCards();
-        sessionStorage.setItem('checkoutShipping', JSON.stringify({ totalShipping, shippingBreakdown }));
+        updatePaymentSummary();
     }, 500);
 });
 
@@ -1779,7 +2187,6 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             saveAllLocal();
         }
         
-        // Get shipping from session
         let shippingData = JSON.parse(sessionStorage.getItem('checkoutShipping') || '{"totalShipping":0,"shippingBreakdown":[]}');
         let totalShipping = shippingData.totalShipping || 0;
         let shippingBreakdown = shippingData.shippingBreakdown || [];
@@ -1802,7 +2209,6 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             totalHandling += handlingFee * item.qty;
         }
         
-        // Add shipping to total
         totalUSD += totalShipping;
         
         let tracking = "GB" + Date.now();
@@ -2652,7 +3058,6 @@ function renderSellerDashboard() {
         });
     }
     
-    // Event Listeners
     document.getElementById('publishBtn')?.addEventListener('click', async function() {
         const btn = this;
         btn.disabled = true;
@@ -2913,15 +3318,6 @@ document.getElementById('updateProductBtn')?.addEventListener('click', async fun
         btn.textContent = '💾 Update Product';
     }
 });
-
-function renderBuyerOrders(){
-    const user = auth.currentUser;
-    if (!user) return;
-    let myOrders = orders.filter(o => o.buyerEmail === user.email);
-    document.getElementById('buyerOrdersList').innerHTML = myOrders.map(o => `<div class="order-card"><strong>🔖 ${o.trackingNumber}</strong><br>${o.productName} x${o.qty}<br>${getCurrencySymbol()}${convertPrice(o.amount)}<br>Status: ${o.status}<br>${renderTrackingMap(o)}${o.trackingInfo ? `<br>📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}` : ''}<br>${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981;">✅ Received</button>` : ''}${o.status === "Processing" ? `<button class="cancelOrderBtn" data-id="${o.id}" style="background:#dc2626;">❌ Cancel Order</button>` : ''}</div>`).join('');
-    document.querySelectorAll('.confirmReceivedBtn').forEach(btn => btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id))));
-    document.querySelectorAll('.cancelOrderBtn').forEach(btn => btn.addEventListener('click', () => cancelOrder(parseFloat(btn.dataset.id))));
-}
 
 function renderBuyerWishlist(){ let w = products.filter(p => wishlist.includes(p.id)); document.getElementById('buyerWishlistList').innerHTML = w.map(p => `<div class="order-card"><strong>${p.name}</strong><br>Price: ${getCurrencySymbol()}${convertPrice(p.price)}<br><button class="removeWishlistBtn" data-id="${p.id}" style="background:#dc2626;">Remove</button></div>`).join(''); document.querySelectorAll('.removeWishlistBtn').forEach(btn => btn.addEventListener('click', () => { wishlist = wishlist.filter(id => id != btn.dataset.id); saveAllLocal(); renderProducts(); renderBuyerWishlist(); showToast("Removed", false); })); }
 
@@ -3200,9 +3596,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     updateFooterSupport();
     
+    // Country select for shipping zones
     const countrySelect = document.getElementById('sellerCountryReg');
     if (countrySelect) {
         countrySelect.addEventListener('change', populateShippingZones);
+    }
+    
+    // Real-time shipping calculation on country change
+    const deliveryCountry = document.getElementById('deliveryCountry');
+    if (deliveryCountry) {
+        deliveryCountry.addEventListener('change', calculateShippingRealTime);
     }
     
     const cartTotalDiv = document.getElementById('cartShippingTotal');
@@ -3216,7 +3619,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const shippingDiv = document.createElement('div');
             shippingDiv.className = 'flex-between';
-            shippingDiv.innerHTML = `<span>🚚 Shipping:</span><span id="cartShippingTotal">${getCurrencySymbol()}0.00</span>`;
+            shippingDiv.innerHTML = `<span>🚚 Shipping Fee:</span><span id="cartShippingTotal">${getCurrencySymbol()}0.00</span>`;
             cartSummary.insertBefore(shippingDiv, cartSummary.lastChild);
         }
     }
