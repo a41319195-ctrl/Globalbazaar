@@ -27,7 +27,7 @@
     <div id="buyerSection" class="section active"><div class="cat-scroll" id="catList"></div><div class="search-container"><input type="text" id="searchInput" placeholder="🔍 Search products..."></div><div class="product-grid" id="productsGrid"></div></div>
     <div id="sellerSection" class="section"><div id="sellerRegisterBox" class="premium-card"><h2>🏪 Open Your Shop</h2><form id="sellerRegForm"><input type="file" id="sellerAvatar" accept="image/*" class="input"><input type="text" id="sellerFullName" placeholder="Full Legal Name" class="input" required><input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required><input type="email" id="sellerEmail" placeholder="Email" class="input" required><div class="phone-group"><div class="country-search-select" id="sellerCountrySearchContainer"><input type="text" id="sellerCountrySearch" placeholder="🔍 Search country..." autocomplete="off"><div class="country-dropdown-list" id="sellerCountryDropdown"></div><select id="sellerCountryCode" style="display:none;"></select></div><input type="tel" id="sellerPhone" placeholder="Phone Number" class="input" required></div><input type="password" id="sellerPassword" placeholder="Password" class="input" required><label style="font-weight:600; margin-top:10px;">🎂 Date of Birth</label><input type="date" id="sellerDob" class="input" required><h4>📍 Shop Address</h4><input type="text" id="sellerHouseNo" placeholder="House No." class="input" required><input type="text" id="sellerStreet" placeholder="Street" class="input" required><input type="text" id="sellerCity" placeholder="City" class="input" required><input type="text" id="sellerState" placeholder="State" class="input" required><input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required><select id="sellerCountryReg" class="input" required><option value="">Select Country</option></select>
         
-        <!-- ========== SHIPPING ZONES SECTION - NEW ========== -->
+        <!-- ========== SHIPPING ZONES SECTION ========== -->
         <div class="shipping-zones-container" style="margin-top:20px; border-top:2px solid #e2e8f0; padding-top:20px;">
             <h3 style="color:#1e293b;">🌍 Shipping Zones Configuration</h3>
             <p style="color:#64748b; font-size:14px;">Configure shipping charges for different regions</p>
@@ -130,7 +130,7 @@
         </div>
     </div></div></div>
     
-    <!-- ========== CART PAGE - UPDATED WITH SUBTOTAL & SHIPPING ========== -->
+    <!-- ========== CART PAGE ========== -->
     <div id="cartPageSection" class="section">
         <div class="premium-card">
             <h2>🛍️ My Cart</h2>
@@ -221,7 +221,11 @@
         <input type="text" id="editProdName" placeholder="Product Name" class="input" required>
         <input type="number" id="editProdPrice" placeholder="Price (USD)" class="input" required>
         <select id="editProdCat" class="input" required>
-            <option>Electronics</option><option>Fashion</option><option>Home</option><option>Textile</option><option>Cosmetic</option>
+            <option value="Electronics">Electronics (10% Commission)</option>
+            <option value="Fashion">Fashion (15% Commission)</option>
+            <option value="Home & Kitchen">Home & Kitchen (15% Commission)</option>
+            <option value="Beauty & Cosmetics">Beauty & Cosmetics (15% Commission)</option>
+            <option value="Books & Stationery">Books & Stationery (15% Commission)</option>
         </select>
         
         <!-- ========== STOCK SECTION WITH STATUS ========== -->
@@ -246,7 +250,7 @@
 </div>
 
 <!-- ============================================================ -->
-<!-- ORDER DETAILS MODAL - NEW -->
+<!-- ORDER DETAILS MODAL -->
 <!-- ============================================================ -->
 <div id="orderDetailsModal" class="modal" style="display:none;">
     <div class="modal-card" style="max-width:650px;">
@@ -257,10 +261,18 @@
 </div>
 
 <!-- ============================================================ -->
-<!-- OTHER MODALS -->
+<!-- SELLER SUMMARY MODAL -->
 <!-- ============================================================ -->
 <div id="sellerSummaryModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSellerSummary()">&times;</span><h2>🎉 Thank you for registering!</h2><p style="margin:20px 0;">Your shop is under review. You will receive a notification once admin approves your KYC.</p><p><strong>⏳ Waiting for admin approval...</strong></p><button class="btn-primary" id="goToMyShopBtn">Go to My Shop</button></div></div>
+
+<!-- ============================================================ -->
+<!-- ORDER SUMMARY MODAL -->
+<!-- ============================================================ -->
 <div id="orderSummaryModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeOrderSummary()">&times;</span><h2>✅ Payment Successful!</h2><div id="orderSummaryContent"></div><button class="btn-primary" onclick="closeOrderSummary()">Continue Shopping</button></div></div>
+
+<!-- ============================================================ -->
+<!-- TERMS MODAL - UPDATED WITH PLATFORM POLICY -->
+<!-- ============================================================ -->
 <div id="termsModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeTermsModal()">&times;</span><h2>Terms & Conditions</h2>
         <p><strong>Last Updated:</strong> 16 June 2026</p>
         <h3>1. Acceptance of Terms</h3>
@@ -270,23 +282,56 @@
         <h3>3. ⭐ Auto-Order Confirmation (2 Days Rule)</h3>
         <ul style="text-align:left;"><li><strong>Confirm within 2 days (48 hours)</strong> of receiving the product</li><li><strong>If not confirmed:</strong> Order will be <strong>automatically marked as delivered</strong></li><li><strong>Disputes:</strong> Must be filed within 2 days of delivery</li></ul>
         <h3>4. Seller Terms</h3>
-        <ul style="text-align:left;"><li>Sellers must provide accurate product descriptions</li><li>Commission: <strong>10%</strong> of each sale</li><li>KYC verification required for withdrawals</li></ul>
-        <h3>5. Refund and Dispute</h3>
+        <ul style="text-align:left;"><li>Sellers must provide accurate product descriptions</li><li>Commission: <strong>10% for Electronics, 15% for other categories</strong></li><li>KYC verification required for withdrawals</li></ul>
+        <h3>5. ⚠️ Platform Policy</h3>
+        <p style="color:#dc2626; font-weight:bold;">
+            <strong>GlobalBazaar is not responsible for any transaction made outside the platform.</strong> 
+            Any transaction done outside GlobalBazaar violates our terms and conditions, 
+            and the platform will not be liable for any loss, fraud, or dispute arising from such transactions.
+        </p>
+        <h3>6. Refund and Dispute</h3>
         <ul style="text-align:left;"><li>If not received within <strong>7 days</strong>, request a refund</li><li>Disputes must be raised within <strong>2 days</strong> of delivery</li></ul>
-        <h3>6. Contact Us</h3>
-        <p>Email: support@globalbazaar.com</p>
+        <h3>7. Contact Us</h3>
+        <p>Email: supportglobalbazaarshopco@gmail.com</p>
         <button class="btn-primary" onclick="closeTermsModal()">Close</button></div></div>
+
+<!-- ============================================================ -->
+<!-- SELLER AGREEMENT MODAL - UPDATED -->
+<!-- ============================================================ -->
 <div id="sellerAgreementModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSellerAgreementModal()">&times;</span><h2>Seller Agreement</h2>
-        <p><strong>Commission:</strong> 10% of each sale</p>
-        <p><strong>Gateway Fee:</strong> 2.99% + $0.49</p>
+        <p><strong>Commission:</strong> 10% for Electronics, 15% for other categories</p>
+        <p><strong>Gateway Fee:</strong> 3% + $0.49</p>
         <p><strong>Handling Fee:</strong> $1.50 per order</p><br>
         <p><strong>Payment Release:</strong></p>
         <ul style="text-align:left;"><li>✅ Buyer confirms delivery → Payment released to seller</li><li>✅ Auto-confirm after 2 days (if buyer doesn't confirm)</li><li>✅ Weekly withdrawal available (Monday & Friday)</li></ul><br>
-        <p><strong>📌 Why 10%?</strong></p>
-        <ul style="text-align:left;"><li>🔹 Amazon/Flipkart take 15-30%</li><li>🔹 GlobalBazaar takes only 10%</li><li>🔹 More profit for sellers 💰</li></ul><br>
-        <p><strong>📞 Support:</strong> support@globalbazaar.com</p>
+        <p><strong>📌 Commission Structure:</strong></p>
+        <ul style="text-align:left;">
+            <li>🔹 Electronics: 10% Commission</li>
+            <li>🔹 Fashion, Home, Beauty, Books: 15% Commission</li>
+            <li>🔹 More profit for sellers 💰</li>
+        </ul><br>
+        <p><strong>⚠️ Platform Policy:</strong></p>
+        <p style="color:#dc2626; font-weight:bold;">
+            GlobalBazaar is not responsible for any transaction made outside the platform. 
+            Any transaction done outside GlobalBazaar violates our terms and conditions.
+        </p><br>
+        <p><strong>📞 Support:</strong> supportglobalbazaarshopco@gmail.com</p>
         <button class="btn-primary" onclick="closeSellerAgreementModal()">Close</button></div></div>
-<div id="supportModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSupportModal()">&times;</span><h2>📞 Support</h2><p>Email: support@globalbazaar.com<br>WhatsApp: +966 123 456 789<br>24/7 Customer Support</p><button class="btn-primary" onclick="closeSupportModal()">Close</button></div></div>
+
+<!-- ============================================================ -->
+<!-- SUPPORT MODAL - UPDATED -->
+<!-- ============================================================ -->
+<div id="supportModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeSupportModal()">&times;</span><h2>📞 Support</h2>
+        <p>
+            Email: <a href="mailto:supportglobalbazaarshopco@gmail.com" style="color:#3b82f6; text-decoration:underline;">supportglobalbazaarshopco@gmail.com</a><br>
+            WhatsApp: <a href="https://wa.me/9779811245373" target="_blank" style="color:#25D366; text-decoration:underline;">+977 9811245373</a><br>
+            24/7 Customer Support
+        </p>
+        <button class="btn-primary" onclick="closeSupportModal()">Close</button></div></div>
+
+<!-- ============================================================ -->
+<!-- DOCUMENT MODAL -->
+<!-- ============================================================ -->
 <div id="documentModal" class="modal"><div class="modal-card"><span class="close-modal" onclick="closeDocumentModal()">&times;</span><h2>📄 KYC Document</h2><img id="documentModalImg" style="width:100%; border-radius:12px;"><p id="documentModalText" style="margin-top:10px;"></p><button class="btn-primary" onclick="closeDocumentModal()">Close</button></div></div>
 
 <!-- ============================================================ -->
@@ -298,7 +343,16 @@ function closeOrderDetailsModal() {
 }
 </script>
 
-<div class="footer-legal">© 2026 GlobalBazaar Marketplace | <span class="legal-link" onclick="showTerms()">Terms</span> | <span class="legal-link" onclick="showPrivacy()">Privacy</span> | <span class="legal-link" onclick="showSupport()">Support</span></div>
+<!-- ============================================================ -->
+<!-- FOOTER - UPDATED -->
+<!-- ============================================================ -->
+<div class="footer-legal">
+    © 2026 GlobalBazaar Marketplace | 
+    <span class="legal-link" onclick="showTerms()">Terms</span> | 
+    <span class="legal-link" onclick="showPrivacy()">Privacy</span> | 
+    <span class="legal-link" onclick="showSupport()">Support</span> | 
+    <span style="font-size:11px; color:#94a3b8;">📧 supportglobalbazaarshopco@gmail.com</span>
+</div>
 
 <script src="script.js"></script>
 </body>
