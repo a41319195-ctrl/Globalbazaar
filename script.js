@@ -106,41 +106,37 @@ async function uploadCompressedImage(file, type = 'image') {
 }
 
 // ============================================================
-// CONSTANTS - CLEANED (REMOVED GATEWAY_FEE_FIXED)
+// CONSTANTS
 // ============================================================
-const PLATFORM_COMMISSION = 0.10;      // 10% for Electronics
-const GATEWAY_FEE_PERCENT = 0.03;       // 3% Gateway Fee
-const HANDLING_FEE_PERCENT = 0.015;     // 1.5% Maintenance Fee
+const PLATFORM_COMMISSION = 0.10;
+const GATEWAY_FEE_PERCENT = 0.03;
+const HANDLING_FEE_PERCENT = 0.015;
 
 // ============================================================
-// CATEGORY COMMISSION SYSTEM - DYNAMIC
+// CATEGORY COMMISSION SYSTEM
 // ============================================================
 
 const CATEGORY_COMMISSIONS = {
-    'Electronics': 0.10,        // 10%
-    'Fashion': 0.15,            // 15%
-    'Home & Kitchen': 0.15,     // 15%
-    'Beauty & Cosmetics': 0.15, // 15%
-    'Books & Stationery': 0.15  // 15%
+    'Electronics': 0.10,
+    'Fashion': 0.15,
+    'Home & Kitchen': 0.15,
+    'Beauty & Cosmetics': 0.15,
+    'Books & Stationery': 0.15
 };
 
 function getCategoryCommission(category) {
-    return CATEGORY_COMMISSIONS[category] || 0.15; // Default 15%
+    return CATEGORY_COMMISSIONS[category] || 0.15;
 }
 
 // ============================================================
-// PRICE CALCULATION - FIXED: Base + 3% Gateway + 1.5% Handling
+// PRICE CALCULATION
 // ============================================================
 
 function calculateProductPrice(basePrice, category = 'Electronics') {
     const commissionRate = getCategoryCommission(category);
-    
-    // Buyer pays: Base + 3% Gateway + 1.5% Handling
     const gatewayFee = basePrice * GATEWAY_FEE_PERCENT;
     const handlingFee = basePrice * HANDLING_FEE_PERCENT;
     const publicPrice = basePrice + gatewayFee + handlingFee;
-    
-    // Seller pays commission from their earnings (not added to buyer price)
     const commission = basePrice * commissionRate;
     const sellerEarning = basePrice - commission;
     const platformRevenue = gatewayFee + handlingFee + commission;
@@ -174,7 +170,6 @@ function calculateFinalPriceWithCategory(basePrice, sellerId, buyerCountry, cate
                 shippingCharge = cartTotal > 200 ? 0 : 25;
             }
             
-            // Buyer pays: Base + 3% Gateway + 1.5% Handling + Shipping
             let gatewayFee = basePrice * GATEWAY_FEE_PERCENT;
             let handlingFee = basePrice * HANDLING_FEE_PERCENT;
             let total = basePrice + gatewayFee + handlingFee + shippingCharge;
@@ -197,7 +192,6 @@ function calculateFinalPriceWithCategory(basePrice, sellerId, buyerCountry, cate
             cartTotal
         );
         
-        // Buyer pays: Base + 3% Gateway + 1.5% Handling + Shipping
         let gatewayFee = basePrice * GATEWAY_FEE_PERCENT;
         let handlingFee = basePrice * HANDLING_FEE_PERCENT;
         let total = basePrice + gatewayFee + handlingFee + shippingCharge;
@@ -705,7 +699,7 @@ function stopVerificationCheck() {
 }
 
 // ============================================================
-// AUTHENTICATION - FIXED: SINGLE VERIFICATION
+// AUTHENTICATION
 // ============================================================
 auth.onAuthStateChanged(async (user) => {
     if (user) {
@@ -717,7 +711,6 @@ auth.onAuthStateChanged(async (user) => {
             const sellerData = sellerSnapshot.docs[0].data();
             const sellerId = sellerSnapshot.docs[0].id;
             
-            // If email verified but seller doc says not verified - ONE TIME
             if (user.emailVerified && !sellerData.emailVerified) {
                 await db.collection("sellers").doc(sellerId).update({
                     emailVerified: true,
@@ -976,7 +969,7 @@ function showMyOrdersPage() {
 }
 
 // ============================================================
-// FIRESTORE LISTENERS - FIXED
+// FIRESTORE LISTENERS
 // ============================================================
 db.collection("products").onSnapshot(snapshot => {
     try {
@@ -1299,9 +1292,8 @@ function loadAdminData() {
 }
 
 // ============================================================
-// RENDER PRODUCTS - FIXED
+// RENDER PRODUCTS - FIXED (Buyer Side Clean)
 // ============================================================
-let currentCategory = "All";
 
 function renderProductCard(p) {
     try {
@@ -1311,21 +1303,22 @@ function renderProductCard(p) {
             shippingZones: null 
         };
         
+        // ========== HIDE SOLD OUT PRODUCTS ==========
+        const isSoldOut = p.stock <= 0;
+        if (isSoldOut) {
+            return ''; // Sold out products ko hide karo
+        }
+        
         // Calculate price: Base + 3% Gateway + 1.5% Handling
-        const commissionRate = getCategoryCommission(p.category);
         let gatewayFee = p.price * GATEWAY_FEE_PERCENT;
         let handlingFee = p.price * HANDLING_FEE_PERCENT;
         let total = p.price + gatewayFee + handlingFee;
         
-        const isSoldOut = p.stock <= 0;
-        const stockBadge = isSoldOut ? 
-            `<div style="background:#dc2626; color:white; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; position:absolute; top:10px; right:10px; z-index:10;">
-                🔴 SOLD OUT
-            </div>` :
-            (p.stock < 5 ? 
-                `<div style="background:#f59e0b; color:white; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; position:absolute; top:10px; right:10px; z-index:10;">
-                    ⚠️ Only ${p.stock} left
-                </div>` : '');
+        // Low stock warning (only if < 5)
+        const stockBadge = p.stock < 5 ? 
+            `<div style="background:#f59e0b; color:white; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; position:absolute; top:10px; right:10px; z-index:10;">
+                ⚠️ Only ${p.stock} left
+            </div>` : '';
         
         let thumbnailsHtml = '';
         if (p.images && p.images.length > 1) {
@@ -1334,26 +1327,23 @@ function renderProductCard(p) {
             ).join('');
         }
         
-        return `<div class="product-card" data-id="${p.id}" style="position:relative; ${isSoldOut ? 'opacity:0.7;' : ''}">
+        // ========== NO COMMISSION TEXT FOR BUYER ==========
+        return `<div class="product-card" data-id="${p.id}" style="position:relative;">
             ${stockBadge}
             <div class="image-wrapper">
                 <img class="main-img" src="${p.mainImage}" id="mainImg_${p.id}">
                 <div class="product-thumbnails">${thumbnailsHtml}</div>
             </div>
             <div class="seller-name-tag">🏪 ${seller.shopName}</div>
-            <h4 style="font-size:13px; margin:2px 0; ${isSoldOut ? 'text-decoration:line-through;' : ''}">${p.name}</h4>
+            <h4 style="font-size:13px; margin:2px 0;">${p.name}</h4>
             <div class="prod-price">${getCurrencySymbol()}${convertPrice(total)}</div>
-            <div style="font-size:10px; color:#64748b; margin-top:2px;">Commission: ${(commissionRate * 100).toFixed(0)}%</div>
             <div class="card-actions">
-                ${isSoldOut ? 
-                    `<button style="background:#ef4444; color:white; border:none; padding:8px 16px; border-radius:30px; font-weight:600; cursor:not-allowed; width:100%;">⛔ Out of Stock</button>` :
-                    `<button class="btn-sm btn-buy addCartBtn" data-id="${p.id}" style="width:100%;">🛒 Buy</button>`
-                }
+                <button class="btn-sm btn-buy addCartBtn" data-id="${p.id}" style="width:100%;">🛒 Buy</button>
             </div>
         </div>`;
     } catch (error) {
         console.error('Render product error:', error);
-        return `<div class="product-card" style="padding:20px;text-align:center;color:#dc2626;">Error loading product</div>`;
+        return '';
     }
 }
 
@@ -1385,10 +1375,13 @@ function renderCats(){
 function renderProducts(){
     try {
         let search = document.getElementById('searchInput')?.value.toLowerCase() || "";
+        
+        // ========== FILTER: Only show products with stock > 0 ==========
         let filtered = products.filter(p => {
             const categoryMatch = currentCategory === "All" || p.category === currentCategory;
             const searchMatch = p.name.toLowerCase().includes(search);
-            return categoryMatch && searchMatch;
+            const inStock = p.stock > 0; // ✅ Only available products
+            return categoryMatch && searchMatch && inStock;
         });
         
         const grid = document.getElementById('productsGrid');
@@ -1396,12 +1389,13 @@ function renderProducts(){
         
         if (filtered.length === 0) {
             grid.innerHTML = `<div style="text-align:center;padding:40px;grid-column:1/-1;">
-                <p>No products found</p>
-                <p style="font-size:12px; color:#64748b;">Try adjusting your search or filter</p>
+                <p>No products available</p>
+                <p style="font-size:12px; color:#64748b;">Check back later for new arrivals!</p>
             </div>`;
             return;
         }
         
+        // ========== RENDER ONLY AVAILABLE PRODUCTS ==========
         let html = filtered.map(p => renderProductCard(p)).join('');
         grid.innerHTML = html;
         
@@ -1462,7 +1456,6 @@ function openProduct(id) {
             Base: ${getCurrencySymbol()}${convertPrice(p.price)}<br>
             + Gateway Fee (3%): ${getCurrencySymbol()}${convertPrice(gatewayFee)}<br>
             + Maintenance Fee (1.5%): ${getCurrencySymbol()}${convertPrice(handlingFee)}<br>
-            + Commission (${(commissionRate * 100).toFixed(0)}%): Deducted from seller's earnings<br>
             + Shipping: Calculated at checkout based on your address
         `;
         
@@ -1553,7 +1546,7 @@ function renderCartPage() {
                 <div>
                     <strong>${item.name}</strong><br>
                     ${getCurrencySymbol()}${convertPrice(itemTotal)} each
-                    <br><span style="font-size:11px; color:#64748b;">📦 ${item.category || 'General'} (${(commissionRate * 100).toFixed(0)}% commission)</span>
+                    <br><span style="font-size:11px; color:#64748b;">📦 ${item.category || 'General'}</span>
                 </div>
                 <div class="cart-item-controls">
                     <button class="cart-qty-btn" data-idx="${idx}" data-dir="dec">-</button>
@@ -1731,7 +1724,7 @@ document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async f
 function loadSavedCards(){ let userCards = savedCards.filter(c => c.userEmail === "guest@globalbazaar.com"); if(userCards.length > 0){ document.getElementById('savedCardsSection').style.display = 'block'; document.getElementById('savedCardsList').innerHTML = userCards.map((card,idx) => `<div class="flex-between"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}">Use</button></div>`).join(''); document.querySelectorAll('.useSavedCardBtn').forEach(btn => btn.addEventListener('click', () => { let card = userCards[parseInt(btn.dataset.idx)]; document.getElementById('cardNumber').value = card.cardNumber; document.getElementById('cardHolderName').value = card.cardHolderName; document.getElementById('expiryDate').value = card.expiryDate; document.getElementById('cvv').value = ''; showToast("Card loaded", false); })); } }
 
 // ============================================================
-// PAYMENT - FIXED
+// PAYMENT
 // ============================================================
 
 document.getElementById('payNowBtn')?.addEventListener('click', async function() {
@@ -2114,7 +2107,7 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
 });
 
 // ============================================================
-// MY SHOP LOGIN - SINGLE VERIFICATION
+// MY SHOP LOGIN
 // ============================================================
 
 async function showMyShopLogin(){
