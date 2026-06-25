@@ -4,7 +4,7 @@
 window.onerror = function(message, source, lineno, colno, error) {
     console.error('Global Error:', message, source, lineno, colno, error);
     showToast('⚠️ Something went wrong. Please try again.', true);
-    document.getElementById('debugMsg').innerText = 'Error: ' + message;
+    document.getElementById('debugMsg').innerHTML = 'Error: ' + message;
     return true;
 };
 
@@ -325,18 +325,41 @@ function calculateFinalPrice(basePrice, sellerId, buyerCountry, cartTotal = 0, s
 }
 
 // ============================================================
-// DEFAULT PRODUCTS - SIRF 3 PRODUCTS
+// DEFAULT PRODUCTS - 5 CATEGORIES, 15 PRODUCTS
 // ============================================================
+
 const defaultProducts = [
-    { sellerId: 0, sellerName: "GlobalBazaar", name: "Wireless Headphones", price: 89.99, category: "Electronics", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400"], description: "Premium wireless headphones with noise cancellation", stock: 10, weight: 0.5, size: { length: 15, width: 10, height: 5 } },
-    { sellerId: 0, sellerName: "GlobalBazaar", name: "Cotton T-Shirt", price: 24.99, category: "Textile", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", images: ["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400"], description: "100% combed cotton t-shirt", stock: 25, weight: 0.3, size: { length: 25, width: 20, height: 5 } },
-    { sellerId: 0, sellerName: "GlobalBazaar", name: "Smart Watch", price: 49.99, category: "Electronics", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", images: ["https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400"], description: "Latest smart watch with health tracking", stock: 8, weight: 0.4, size: { length: 12, width: 8, height: 3 } }
+    // ===== ELECTRONICS (3) =====
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Wireless Headphones Pro", price: 89.99, category: "Electronics", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400"], description: "Premium wireless headphones with active noise cancellation and 30hr battery life.", stock: 15, weight: 0.5, size: { length: 20, width: 15, height: 8 } },
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Smart Watch Series 8", price: 199.99, category: "Electronics", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", images: ["https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400"], description: "Advanced smart watch with heart rate monitor, GPS, and 7-day battery life.", stock: 8, weight: 0.3, size: { length: 12, width: 8, height: 3 } },
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Bluetooth Speaker X3", price: 49.99, category: "Electronics", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400", images: ["https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400"], description: "Portable waterproof Bluetooth speaker with 360° sound and 20hr playtime.", stock: 20, weight: 0.4, size: { length: 18, width: 10, height: 10 } },
+
+    // ===== FASHION (3) =====
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Classic Cotton T-Shirt", price: 24.99, category: "Fashion", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", images: ["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400"], description: "100% combed cotton t-shirt, available in multiple colors. Regular fit.", stock: 30, weight: 0.3, size: { length: 25, width: 20, height: 5 } },
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Leather Jacket Premium", price: 149.99, category: "Fashion", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400", images: ["https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400"], description: "Genuine leather jacket with premium zippers and warm inner lining.", stock: 5, weight: 1.2, size: { length: 30, width: 25, height: 10 } },
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Running Shoes Air Max", price: 79.99, category: "Fashion", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400", images: ["https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400"], description: "Lightweight running shoes with air cushioning technology.", stock: 12, weight: 0.8, size: { length: 30, width: 15, height: 12 } },
+
+    // ===== HOME & KITCHEN (3) =====
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Non-Stick Cookware Set", price: 129.99, category: "Home & Kitchen", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1584991106646-4fb6fb2d1485?w=400", images: ["https://images.unsplash.com/photo-1584991106646-4fb6fb2d1485?w=400"], description: "5-piece non-stick cookware set with induction compatible base.", stock: 10, weight: 3.5, size: { length: 40, width: 30, height: 20 } },
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Coffee Maker Deluxe", price: 89.99, category: "Home & Kitchen", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1565205610303-11fe6b1f9a35?w=400", images: ["https://images.unsplash.com/photo-1565205610303-11fe6b1f9a35?w=400"], description: "Programmable coffee maker with thermal carafe and 12-cup capacity.", stock: 7, weight: 2.5, size: { length: 35, width: 20, height: 25 } },
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Kitchen Knife Set", price: 59.99, category: "Home & Kitchen", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1576521890258-0d8e8e67a5cc?w=400", images: ["https://images.unsplash.com/photo-1576521890258-0d8e8e67a5cc?w=400"], description: "Premium 6-piece kitchen knife set with wooden storage block.", stock: 15, weight: 1.5, size: { length: 30, width: 15, height: 8 } },
+
+    // ===== BEAUTY & COSMETICS (3) =====
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Facial Cleanser Set", price: 34.99, category: "Beauty & Cosmetics", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400", images: ["https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400"], description: "Natural facial cleanser set with vitamin C and hyaluronic acid.", stock: 25, weight: 0.2, size: { length: 10, width: 8, height: 5 } },
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Makeup Kit Professional", price: 49.99, category: "Beauty & Cosmetics", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1522338242992-e1a54906a8da?w=400", images: ["https://images.unsplash.com/photo-1522338242992-e1a54906a8da?w=400"], description: "Complete 42-piece professional makeup kit with case.", stock: 10, weight: 0.5, size: { length: 20, width: 15, height: 8 } },
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Perfume Collection", price: 79.99, category: "Beauty & Cosmetics", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1541643600914-78b084683601?w=400", images: ["https://images.unsplash.com/photo-1541643600914-78b084683601?w=400"], description: "Luxury perfume collection with 5 different fragrances.", stock: 8, weight: 0.3, size: { length: 15, width: 10, height: 8 } },
+
+    // ===== BOOKS & STATIONERY (3) =====
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Business Book Collection", price: 39.99, category: "Books & Stationery", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400", images: ["https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400"], description: "Set of 5 best-selling business and self-development books.", stock: 20, weight: 1.2, size: { length: 25, width: 18, height: 12 } },
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Premium Notebook Set", price: 19.99, category: "Books & Stationery", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=400", images: ["https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=400"], description: "3-pack premium leather-bound notebooks with fountain pen.", stock: 30, weight: 0.4, size: { length: 22, width: 15, height: 3 } },
+    { sellerId: 0, sellerName: "GlobalBazaar", name: "Art Supplies Kit", price: 29.99, category: "Books & Stationery", sellerCountry: "SA", mainImage: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400", images: ["https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400"], description: "Complete art supplies kit with 120 pieces including sketch pens, pencils, and paints.", stock: 15, weight: 0.8, size: { length: 28, width: 20, height: 6 } }
 ];
 
 async function seedProductsIfEmpty() {
     try {
         const snapshot = await db.collection("products").get();
         if (snapshot.empty) {
+            console.log('🌱 Seeding 15 default products...');
             for (let p of defaultProducts) {
                 const calc = calculateProductPrice(p.price);
                 await db.collection("products").add({
@@ -351,7 +374,7 @@ async function seedProductsIfEmpty() {
                     createdAt: new Date().toISOString()
                 });
             }
-            console.log("Seeded 3 default products");
+            console.log("✅ Seeded 15 default products");
         }
     } catch (e) { console.error('Seed error:', e); }
 }
@@ -624,14 +647,12 @@ auth.onAuthStateChanged(async (user) => {
     if (user) {
         currentBuyer = user;
         
-        // Check if user is a seller
         const sellerSnapshot = await db.collection("sellers").where("uid", "==", user.uid).get();
         
         if (!sellerSnapshot.empty) {
             const sellerData = sellerSnapshot.docs[0].data();
             const sellerId = sellerSnapshot.docs[0].id;
             
-            // If email is verified but seller document says not verified
             if (user.emailVerified && !sellerData.emailVerified) {
                 await db.collection("sellers").doc(sellerId).update({
                     emailVerified: true,
@@ -641,7 +662,6 @@ auth.onAuthStateChanged(async (user) => {
                 addNotification(`Seller ${sellerData.shopName} verified email! Now pending KYC.`, 'info');
                 await sendTelegramMessage(`✅ Email verified: ${sellerData.shopName}\nNow pending KYC approval.`);
                 
-                // Update currentSeller
                 currentSeller = {
                     name: sellerData.fullName,
                     email: sellerData.email,
@@ -652,17 +672,13 @@ auth.onAuthStateChanged(async (user) => {
                     shopName: sellerData.shopName
                 };
                 localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
-                
-                // Show seller dashboard with pending status
                 document.getElementById('sellerRegisterBox').style.display = 'none';
                 document.getElementById('sellerDashboard').style.display = 'block';
                 renderSellerDashboard();
                 return;
             }
             
-            // If email is verified and seller has KYC status
             if (sellerData.emailVerified) {
-                // IMPORTANT: Always get fresh data from Firestore
                 const freshSellerData = sellerSnapshot.docs[0].data();
                 
                 currentSeller = {
@@ -677,14 +693,12 @@ auth.onAuthStateChanged(async (user) => {
                 };
                 localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
                 
-                // If KYC is verified, show dashboard
                 if (freshSellerData.kycStatus === 'verified') {
                     document.getElementById('sellerRegisterBox').style.display = 'none';
                     document.getElementById('sellerDashboard').style.display = 'block';
                     renderSellerDashboard();
                     showToast(`Welcome back ${freshSellerData.shopName}!`, false);
                 } else if (freshSellerData.kycStatus === 'pending') {
-                    // Show pending message
                     document.getElementById('sellerRegisterBox').style.display = 'none';
                     document.getElementById('sellerDashboard').style.display = 'block';
                     renderSellerDashboard();
@@ -696,7 +710,6 @@ auth.onAuthStateChanged(async (user) => {
                 }
             }
         } else {
-            // User is not a seller, show buyer view
             if (currentSeller) {
                 currentSeller = null;
                 localStorage.removeItem('gb_current_seller');
@@ -705,7 +718,6 @@ auth.onAuthStateChanged(async (user) => {
             }
         }
     } else {
-        // User logged out
         currentBuyer = null;
         currentSeller = null;
         localStorage.removeItem('gb_current_seller');
@@ -736,12 +748,10 @@ document.getElementById('doLoginBtn')?.addEventListener('click', async () => {
         document.getElementById('loginEmail').value = '';
         document.getElementById('loginPassword').value = '';
         
-        // Check if user is a seller after login
         const sellerSnapshot = await db.collection("sellers").where("uid", "==", userCredential.user.uid).get();
         if (!sellerSnapshot.empty) {
             const sellerData = sellerSnapshot.docs[0].data();
             if (sellerData.kycStatus === 'verified') {
-                // Auto-show seller dashboard if verified
                 setTimeout(() => {
                     showSection('seller');
                 }, 1000);
@@ -916,7 +926,6 @@ db.collection("sellers").onSnapshot(snapshot => {
         sellers.push({ id: doc.id, ...doc.data() }); 
     });
     
-    // Update current seller with fresh data
     if (currentSeller) {
         const freshSeller = sellers.find(s => s.id === currentSeller.sellerId);
         if (freshSeller) {
@@ -929,26 +938,22 @@ db.collection("sellers").onSnapshot(snapshot => {
             };
             localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
             
-            // If KYC was just verified, show toast and refresh dashboard
             if (oldStatus !== 'verified' && freshSeller.kycStatus === 'verified') {
                 showToast("✅ Your KYC has been verified! You can now access your shop.", false);
                 addNotification('🎉 Your KYC has been approved!', 'info');
-                await sendTelegramMessage(`✅ KYC Approved: ${freshSeller.shopName}`);
+                sendTelegramMessage(`✅ KYC Approved: ${freshSeller.shopName}`);
                 
-                // Refresh dashboard
                 document.getElementById('sellerRegisterBox').style.display = 'none';
                 document.getElementById('sellerDashboard').style.display = 'block';
                 renderSellerDashboard();
             }
             
-            // If still pending, show pending message
             if (freshSeller.kycStatus === 'pending' && currentSeller.kycStatus === 'pending') {
                 document.getElementById('sellerRegisterBox').style.display = 'none';
                 document.getElementById('sellerDashboard').style.display = 'block';
                 renderSellerDashboard();
             }
             
-            // If rejected, show rejected message
             if (freshSeller.kycStatus === 'rejected') {
                 document.getElementById('sellerRegisterBox').style.display = 'block';
                 document.getElementById('sellerDashboard').style.display = 'none';
@@ -1062,7 +1067,6 @@ function loadPendingSellers() {
             try {
                 if (!isAdminLoggedIn) { showToast("Please login as admin", true); return; }
                 
-                // Check if already verified
                 const sellerRef = db.collection("sellers").doc(sellerId);
                 const sellerDoc = await sellerRef.get();
                 if (sellerDoc.exists && sellerDoc.data().kycStatus === 'verified') {
@@ -1070,7 +1074,6 @@ function loadPendingSellers() {
                     return;
                 }
                 
-                // Update to verified - ONLY ONCE
                 await sellerRef.update({ 
                     kycStatus: 'verified', 
                     verifiedAt: new Date().toISOString() 
@@ -1080,7 +1083,6 @@ function loadPendingSellers() {
                 addNotification(`Seller KYC verified`, 'info');
                 await sendTelegramMessage(`✅ KYC Verified: ${sellerDoc.data().shopName}`);
                 
-                // Refresh sellers list
                 const snapshot = await db.collection("sellers").get();
                 sellers = [];
                 snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
@@ -1902,7 +1904,6 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
         const user = userCredential.user;
         await user.sendEmailVerification();
         // DO NOT sign out - user should remain logged in
-        // await firebase.auth().signOut(); // REMOVED - This was causing login issues
 
         let avatarUrl = "https://randomuser.me/api/portraits/lego/1.jpg";
         if (avatarFile) {
@@ -1993,7 +1994,6 @@ async function showMyShopLogin(){
         return;
     }
     
-    // Check if user is already a seller with verified KYC
     const sellerSnapshot = await db.collection("sellers").where("uid", "==", user.uid).get();
     if (!sellerSnapshot.empty) {
         const sellerData = sellerSnapshot.docs[0].data();
@@ -2035,7 +2035,6 @@ async function showMyShopLogin(){
         }
     }
     
-    // If not seller, ask for password to confirm
     const email = user.email;
     const password = prompt("Enter your password to access your shop:");
     if (!password) return;
@@ -2211,7 +2210,6 @@ function renderSellerDashboard() {
     if (!currentSeller?.sellerId) return;
     let seller = sellers.find(s => s.id === currentSeller.sellerId);
     if (!seller) {
-        // If seller not found in array, try to get from localStorage
         const stored = localStorage.getItem('gb_current_seller');
         if (stored) {
             currentSeller = JSON.parse(stored);
@@ -2453,7 +2451,7 @@ function renderSellerDashboard() {
             <input type="text" id="prodName" placeholder="Product Name" class="input" required>
             <input type="number" id="prodPrice" placeholder="Price (USD)" class="input" required>
             <select id="prodCat" class="input" required>
-                <option>Electronics</option><option>Fashion</option><option>Home</option><option>Textile</option><option>Cosmetic</option>
+                <option>Electronics</option><option>Fashion</option><option>Home & Kitchen</option><option>Beauty & Cosmetics</option><option>Books & Stationery</option>
             </select>
             <input type="number" id="prodStock" placeholder="Stock Quantity" class="input" required>
             <div style="background:#f8fafc; padding:16px; border-radius:16px; margin-top:12px; border:1px solid #e2e8f0;">
@@ -3018,7 +3016,19 @@ document.addEventListener('DOMContentLoaded', function() {
             cartSummary.insertBefore(shippingDiv, cartSummary.lastChild);
         }
     }
+    
+    // Fix for order details modal close
+    const closeOrderDetails = document.querySelector('#orderDetailsModal .close-modal');
+    if (closeOrderDetails) {
+        closeOrderDetails.addEventListener('click', closeOrderDetailsModal);
+    }
 });
 
+// Close order details modal function
+function closeOrderDetailsModal() {
+    const modal = document.getElementById('orderDetailsModal');
+    if (modal) modal.style.display = 'none';
+}
+
 renderCats(); updateCartUI(); updateNotificationUI(); updateAdminPendingBadge(); updateAdminMenuBadges();
-document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | Shipping Zone System Active | 3 Products";
+document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 5 Categories | 15 Products | Shipping Active";
