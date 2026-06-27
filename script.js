@@ -2056,7 +2056,7 @@ function updatePaymentSummary() {
     let totalShipping = shippingData.totalShipping || 0;
     let shippingBreakdown = shippingData.shippingBreakdown || [];
     
-    // Calculate totals with fees
+    // Calculate totals with fees - SAME LOGIC AS payNowBtn
     let subtotal = 0;
     let totalGateway = 0;
     let totalHandling = 0;
@@ -2075,44 +2075,18 @@ function updatePaymentSummary() {
         totalCommission += commission * item.qty;
     }
     
-    // Add shipping
+    // Add shipping to get total
     let totalPaid = subtotal + totalShipping;
     
-    // Update UI
+    // Update UI - ONLY existing elements that you have in your HTML
     document.getElementById('paymentSubtotal').textContent = getCurrencySymbol() + convertPrice(subtotal);
     document.getElementById('paymentShipping').textContent = getCurrencySymbol() + convertPrice(totalShipping);
     document.getElementById('paymentTotal').textContent = getCurrencySymbol() + convertPrice(totalPaid);
     
-    // Show fee breakdown if needed
+    // Update fee breakdown if element exists
     let feeElement = document.getElementById('paymentFees');
     if (feeElement) {
-        feeElement.innerHTML = `
-            <small>Gateway Fee (3%): ${getCurrencySymbol()}${convertPrice(totalGateway)} | 
-            Maintenance Fee (1.5%): ${getCurrencySymbol()}${convertPrice(totalHandling)}</small>
-        `;
-    }
-    
-    // Update items list in summary
-    let itemsHtml = cart.map(item => {
-        const gatewayFee = item.price * GATEWAY_FEE_PERCENT;
-        const handlingFee = item.price * HANDLING_FEE_PERCENT;
-        const itemTotal = (item.price + gatewayFee + handlingFee) * item.qty;
-        return `<li>${item.name} x${item.qty} = ${getCurrencySymbol()}${convertPrice(itemTotal)}</li>`;
-    }).join('');
-    
-    let itemsList = document.getElementById('paymentItemsList');
-    if (itemsList) {
-        itemsList.innerHTML = itemsHtml;
-    }
-    
-    // Update shipping breakdown
-    let shippingHtml = shippingBreakdown.map(s => 
-        `<li>${s.product} (${s.seller}): ${s.shipping > 0 ? getCurrencySymbol() + convertPrice(s.shipping) : 'FREE'} x${s.qty}</li>`
-    ).join('');
-    
-    let shippingList = document.getElementById('paymentShippingList');
-    if (shippingList) {
-        shippingList.innerHTML = shippingHtml;
+        feeElement.textContent = `Gateway (3%): ${getCurrencySymbol()}${convertPrice(totalGateway)} | Maintenance (1.5%): ${getCurrencySymbol()}${convertPrice(totalHandling)}`;
     }
 }
 
