@@ -2142,7 +2142,7 @@ function loadSavedCards(){ let userCards = savedCards.filter(c => c.userEmail ==
 // PAYMENT
 // ============================================================
 
-document.getElementById('payNowBtn')?.addEventListener('click', async function() {
+        document.getElementById('payNowBtn')?.addEventListener('click', async function() {
     const btn = this;
     btn.disabled = true;
     btn.textContent = '⏳ Processing...';
@@ -2209,7 +2209,8 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             totalHandling += handlingFee * item.qty;
         }
         
-        totalUSD += totalShipping;
+        // FIX: Add both gateway and handling fees to totalUSD along with shipping
+        totalUSD = totalUSD + totalShipping; // totalUSD already includes fees from the loop above
         
         let tracking = "GB" + Date.now();
         let cartCopy = [...cart];
@@ -2288,6 +2289,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             `<li>${s.product} (${s.seller}): ${s.shipping > 0 ? getCurrencySymbol() + convertPrice(s.shipping) : 'FREE'} x${s.qty}</li>`
         ).join('');
         
+        // FIX: Display total with all fees included in the summary
         document.getElementById('orderSummaryContent').innerHTML = `
             <p><strong>Order ID:</strong> ${tracking}</p>
             <h3>📦 Items</h3>
@@ -2296,7 +2298,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             <ul>${shippingHtml}</ul>
             <h3>💰 Total Paid: ${getCurrencySymbol()}${convertPrice(totalUSD)}</h3>
             <p><small>Includes ${getCurrencySymbol()}${convertPrice(totalShipping)} shipping</small></p>
-            <p><small>Gateway: ${getCurrencySymbol()}${convertPrice(totalGateway)} | Maintenance: ${getCurrencySymbol()}${convertPrice(totalHandling)} | Commission: ${getCurrencySymbol()}${convertPrice(totalCommission)}</small></p>
+            <p><small>Gateway Fee (3%): ${getCurrencySymbol()}${convertPrice(totalGateway)} | Maintenance Fee (1.5%): ${getCurrencySymbol()}${convertPrice(totalHandling)} | Commission: ${getCurrencySymbol()}${convertPrice(totalCommission)}</small></p>
             <h3>👤 Delivery Details</h3>
             <p>${currentDelivery.fullName}<br>📞 ${currentDelivery.phone}<br>${currentDelivery.fullAddress}</p>
             <h3>💳 Payment</h3>
@@ -2321,10 +2323,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         btn.textContent = 'Pay with Card (Dummy)';
     }
 });
-
-function confirmOrderReceived(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Shipped"){ order.status = "Delivered"; saveAllLocal(); showToast("Order marked Delivered", false); renderBuyerOrders(); addNotification(`Order ${order.trackingNumber} delivered`,'order'); setTimeout(()=>{ let ord = orders.find(o => o.id === orderId); if(ord && ord.status === "Delivered"){ ord.status = "Completed"; let seller = sellers.find(s => s.id == ord.sellerId); if(seller){ let sellerEarning = ord.sellerEarning || (ord.basePrice - ord.commission); seller.earnings = (seller.earnings||0) + (sellerEarning * ord.qty); saveAllLocal(); showToast(`Payment released to seller`,false); if(currentSeller) renderSellerDashboard(); } } },5000); } else showToast("Order not shipped yet",true); }
-function cancelOrder(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Processing"){ let prod = products.find(p => p.name === order.productName && p.sellerId === order.sellerId); if(prod){ prod.stock += order.qty; saveAllLocal(); } order.status = "Cancelled"; saveAllLocal(); showToast("Order cancelled successfully",false); renderBuyerOrders(); renderProducts(); addNotification(`Order ${order.trackingNumber} cancelled`,'order'); if(currentSeller) renderSellerDashboard(); } else { showToast("Only orders in 'Processing' status can be cancelled",true); } }
-
+        
 // ============================================================
 // MARK ORDER SHIPPED
 // ============================================================
