@@ -2050,25 +2050,46 @@ let currentDelivery = null;
 // ============================================================
 // CHECKOUT
 // ============================================================
+
+            
+        // सबसे पहले console में ये चेक करो:
+console.log('🟢 Cart items:', cart);
+console.log('🟢 Current Delivery:', currentDelivery);
+console.log('🟢 Shipping Data:', sessionStorage.getItem('checkoutShipping'));
+
+// अब confirmDeliveryBtn के क्लिक को डीबग करते हैं
 document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async function() {
+    console.log('🔵 Confirm Delivery Button Clicked');
+    
     const user = auth.currentUser;
+    console.log('🔵 Current User:', user);
+    
     if (!user) {
+        console.log('🔴 No user logged in');
         sessionStorage.setItem('pendingCheckout', 'true');
         sessionStorage.setItem('pendingCart', JSON.stringify(cart));
         showToast("Please login to continue", true);
         document.getElementById('loginModal').style.display = 'block';
         return;
     }
+    
+    // Form fields collect करो
     let fn = document.getElementById('deliveryFullName').value;
     let ph = document.getElementById('deliveryPhone').value;
     let c = document.getElementById('deliveryCountry').value;
     let ci = document.getElementById('deliveryCity').value;
     let pc = document.getElementById('deliveryPostcode').value;
     let st = document.getElementById('deliveryStreet').value;
+    
+    console.log('🔵 Form Data:', { fn, ph, c, ci, pc, st });
+    
     if (!fn || !ph || !c || !ci || !pc || !st) {
+        console.log('🔴 Validation Failed - Missing fields');
         showToast("Fill all fields!", true);
         return;
     }
+    
+    // Delivery data save करो
     buyerCountry = c;
     localStorage.setItem('buyerCountry', buyerCountry);
     currentDelivery = {
@@ -2083,6 +2104,9 @@ document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async f
         email: user.email,
         state: document.getElementById('deliveryState')?.value || ''
     };
+    console.log('🟢 Delivery saved:', currentDelivery);
+    
+    // Address save करो
     if (document.getElementById('saveAddressCheckbox').checked) {
         let idx = savedAddresses.findIndex(a => a.email === user.email);
         let addr = {
@@ -2099,226 +2123,134 @@ document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async f
         if (idx >= 0) savedAddresses[idx] = addr;
         else savedAddresses.push(addr);
         saveAllLocal();
+        console.log('🟢 Address saved');
     }
     
-    // Calculate shipping at checkout
+    // Shipping calculate करो
+    console.log('🟡 Calculating shipping...');
     calculateShippingRealTime();
     
+    console.log('🟢 Showing payment section...');
     showToast("Proceeding to payment...", false);
+    
     setTimeout(() => {
+        console.log('🟢 Inside setTimeout - showing payment');
         showSection('payment');
+        console.log('🟢 Payment section shown');
+        
+        console.log('🟢 Loading saved cards...');
         loadSavedCards();
+        
+        console.log('🟢 Updating payment summary...');
         updatePaymentSummary();
+        
+        console.log('✅ All done! Payment page should be visible.');
+        
+        // Extra check - क्या payment elements exist करते हैं?
+        const paymentTotal = document.getElementById('paymentTotal');
+        if (paymentTotal) {
+            console.log('🟢 paymentTotal element found:', paymentTotal.textContent);
+        } else {
+            console.error('🔴 paymentTotal element NOT found!');
+        }
     }, 500);
 });
 
-// FIX: Update payment summary to show ONLY product prices (no fees)
+// updatePaymentSummary function में डीबग करो
 function updatePaymentSummary() {
-    let shippingData = JSON.parse(sessionStorage.getItem('checkoutShipping') || '{"totalShipping":0,"shippingBreakdown":[]}');
-    let totalShipping = shippingData.totalShipping || 0;
-    let shippingBreakdown = shippingData.shippingBreakdown || [];
+    console.log('🔵 updatePaymentSummary called');
     
-    // Calculate ONLY product prices - NO fees
+    // Safety Check
+    if (!document.getElementById('paymentTotal')) {
+        console.log('🔴 paymentTotal element not found - returning early');
+        return;
+    }
+    console.log('🟢 paymentTotal element found');
+    
     let subtotal = 0;
+    let totalGateway = 0;
+    let totalHandling = 0;
+    let totalShipping = 0;
+    
+    console.log('🟡 Cart items:', cart);
+    
+    // Calculate fees
     for (let item of cart) {
-        subtotal += item.price * item.qty;
+        let gatewayFee = item.price * GATEWAY_FEE_PERCENT;
+        let handlingFee = item.price * HANDLING_FEE_PERCENT;
+        let itemTotal = item.price + gatewayFee + handlingFee;
+        
+        subtotal += itemTotal * item.qty;
+        totalGateway += gatewayFee * item.qty;
+        totalHandling += handlingFee * item.qty;
+        
+        console.log(`🟡 Item: ${item.name}, Price: ${item.price}, Gateway: ${gatewayFee}, Handling: ${handlingFee}, Total: ${itemTotal}`);
     }
     
-    let total = subtotal + totalShipping;
+    // Get shipping
+    let shippingData = JSON.parse(sessionStorage.getItem('checkoutShipping') || '{"totalShipping":0,"shippingBreakdown":[]}');
+    totalShipping = shippingData.totalShipping || 0;
+    console.log('🟡 Total Shipping:', totalShipping);
     
-    let itemsHtml = cart.map(item => 
-        `<li>${item.name} x${item.qty} = ${getCurrencySymbol()}${convertPrice(item.price * item.qty)}</li>`
-    ).join('');
+    let totalPaid = subtotal + totalShipping;
+    console.log('🟢 Subtotal:', subtotal, 'Total Paid:', totalPaid);
     
-    let shippingHtml = shippingBreakdown.map(s => 
-        `<li>${s.product} (${s.seller}): ${s.shipping > 0 ? getCurrencySymbol() + convertPrice(s.shipping) : 'FREE'} x${s.qty}</li>`
-    ).join('');
+    // Update elements
+    const subtotalEl = document.getElementById('paymentSubtotal');
+    const shippingEl = document.getElementById('paymentShipping');
+    const feesEl = document.getElementById('paymentFees');
+    const totalEl = document.getElementById('paymentTotal');
+    const breakdownEl = document.getElementById('feeBreakdown');
     
-    document.getElementById('paymentSummaryContent').innerHTML = `
-        <h3>📦 Order Summary</h3>
-        <ul>${itemsHtml}</ul>
-        <h3>🚚 Shipping</h3>
-        <ul>${shippingHtml}</ul>
-        <hr>
-        <p><strong>Subtotal:</strong> ${getCurrencySymbol()}${convertPrice(subtotal)}</p>
-        <p><strong>Shipping:</strong> ${getCurrencySymbol()}${convertPrice(totalShipping)}</p>
-        <h3>💰 Total: ${getCurrencySymbol()}${convertPrice(total)}</h3>
-        <p><small>✅ No additional fees - exact product prices shown</small></p>
-    `;
+    if (subtotalEl) {
+        subtotalEl.textContent = getCurrencySymbol() + convertPrice(subtotal);
+        console.log('🟢 Subtotal updated:', subtotalEl.textContent);
+    }
+    
+    if (shippingEl) {
+        shippingEl.textContent = totalShipping > 0 ? 
+            getCurrencySymbol() + convertPrice(totalShipping) : 'FREE';
+        console.log('🟢 Shipping updated:', shippingEl.textContent);
+    }
+    
+    if (feesEl) {
+        let totalFees = totalGateway + totalHandling;
+        feesEl.textContent = getCurrencySymbol() + convertPrice(totalFees);
+        console.log('🟢 Fees updated:', feesEl.textContent);
+    }
+    
+    if (totalEl) {
+        totalEl.textContent = getCurrencySymbol() + convertPrice(totalPaid);
+        console.log('🟢 Total updated:', totalEl.textContent);
+    }
+    
+    if (breakdownEl) {
+        breakdownEl.innerHTML = `
+            <small>Gateway (3%): ${getCurrencySymbol()}${convertPrice(totalGateway)}</small><br>
+            <small>Maintenance (1.5%): ${getCurrencySymbol()}${convertPrice(totalHandling)}</small>
+        `;
+        console.log('🟢 Breakdown updated');
+    }
+    
+    console.log('✅ updatePaymentSummary completed successfully');
 }
 
-// FIX: Update the payNowBtn to show ONLY product prices in summary
-document.getElementById('payNowBtn')?.addEventListener('click', async function() {
-    const btn = this;
-    btn.disabled = true;
-    btn.textContent = '⏳ Processing...';
-    
-    try {
-        let cardNum = document.getElementById('cardNumber').value.replace(/\s/g, '');
-        let cardName = document.getElementById('cardHolderName').value;
-        let expiry = document.getElementById('expiryDate').value;
-        let cvv = document.getElementById('cvv').value;
-        
-        if (!cardNum || !cardName || !expiry || !cvv) {
-            showToast("Fill card details", true);
-            btn.disabled = false;
-            btn.textContent = 'Pay with Card (Dummy)';
-            return;
+// check karo ki payment section ka HTML correctly render ho raha hai
+function checkPaymentPageElements() {
+    console.log('🔍 Checking payment page elements:');
+    const elements = ['paymentSubtotal', 'paymentShipping', 'paymentFees', 'paymentTotal', 'feeBreakdown'];
+    elements.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            console.log(`✅ ${id} found`);
+        } else {
+            console.error(`❌ ${id} NOT found`);
         }
-        if (cardNum.length < 15) {
-            showToast("Invalid card", true);
-            btn.disabled = false;
-            btn.textContent = 'Pay with Card (Dummy)';
-            return;
-        }
-        if (cvv.length < 3) {
-            showToast("Invalid CVV", true);
-            btn.disabled = false;
-            btn.textContent = 'Pay with Card (Dummy)';
-            return;
-        }
-        
-        if (document.getElementById('saveCardCheckbox').checked) {
-            let existing = savedCards.findIndex(c => 
-                c.userEmail === "guest@globalbazaar.com" && c.cardNumber === cardNum
-            );
-            let cardData = {
-                userEmail: "guest@globalbazaar.com",
-                cardNumber: cardNum,
-                cardHolderName: cardName,
-                expiryDate: expiry
-            };
-            if (existing >= 0) savedCards[existing] = cardData;
-            else savedCards.push(cardData);
-            saveAllLocal();
-        }
-        
-        let shippingData = JSON.parse(sessionStorage.getItem('checkoutShipping') || '{"totalShipping":0,"shippingBreakdown":[]}');
-        let totalShipping = shippingData.totalShipping || 0;
-        let shippingBreakdown = shippingData.shippingBreakdown || [];
-        
-        // Calculate ONLY product prices - NO fees
-        let subtotal = 0;
-        for (let item of cart) {
-            subtotal += item.price * item.qty;
-        }
-        let totalUSD = subtotal + totalShipping;
-        
-        let tracking = "GB" + Date.now();
-        let cartCopy = [...cart];
-        
-        for (let item of cart) {
-            const seller = sellers.find(s => s.id == item.sellerId);
-            const commissionRate = getCategoryCommission(item.category || 'Electronics');
-            let gatewayFee = item.price * GATEWAY_FEE_PERCENT;
-            let handlingFee = item.price * HANDLING_FEE_PERCENT;
-            let commission = item.price * commissionRate;
-            // Use ONLY base price for order amount (no fees)
-            let itemTotal = item.price;
-            
-            let product = products.find(p => p.id == item.id);
-            
-            if (product) {
-                const newStock = product.stock - item.qty;
-                await db.collection("products").doc(product.id).update({
-                    stock: newStock
-                });
-                product.stock = newStock;
-                
-                if (newStock === 0) {
-                    addNotification(`Product ${product.name} is now SOLD OUT!`, 'info');
-                    sendTelegramMessage(`⚠️ Product ${product.name} out of stock.`);
-                }
-            }
-            
-            const itemShipping = shippingBreakdown.find(s => s.product === item.name)?.shipping || 0;
-            
-            let newOrder = {
-                id: Date.now() + Math.random(),
-                trackingNumber: tracking,
-                sellerId: item.sellerId,
-                sellerName: seller?.shopName || "GlobalBazaar",
-                buyerEmail: currentDelivery.email,
-                buyerName: currentDelivery.fullName,
-                buyerPhone: currentDelivery.phone || 'N/A',
-                productName: item.name,
-                category: item.category || 'Electronics',
-                amount: itemTotal, // ONLY product price, no fees
-                basePrice: item.price,
-                address: currentDelivery.fullAddress,
-                date: new Date().toLocaleString(),
-                status: "Processing",
-                qty: item.qty,
-                shippingCost: itemShipping,
-                shippingCharge: itemShipping,
-                commission: commission,
-                commissionRate: commissionRate,
-                gatewayFee: gatewayFee,
-                handlingFee: handlingFee,
-                trackingInfo: null,
-                buyerCountry: buyerCountry,
-                sellerEarning: item.price - commission
-            };
-            
-            orders.push(newOrder);
-            
-            platformEarnings += (commission * item.qty) + (gatewayFee * item.qty) + (handlingFee * item.qty);
-        }
-        
-        saveAllLocal();
-        
-        await sendTelegramMessage(`🛍️ NEW ORDER!\nOrder: ${tracking}\nCustomer: ${currentDelivery.fullName}\nPhone: ${currentDelivery.phone}\nAmount: ${getCurrencySymbol()}${convertPrice(totalUSD)}\nShipping: ${getCurrencySymbol()}${convertPrice(totalShipping)}`);
-        addNotification(`Order placed! #${tracking}`, 'order');
-        
-        cart = [];
-        saveAllLocal();
-        updateCartUI();
-        if (currentBuyer) await saveUserCart(currentBuyer.uid);
-        sessionStorage.removeItem('checkoutShipping');
-        
-        let last4 = cardNum.slice(-4);
-        // Show ONLY product prices in items
-        let itemsHtml = cartCopy.map(i => `<li>${i.name} x${i.qty} = ${getCurrencySymbol()}${convertPrice(i.price * i.qty)}</li>`).join('');
-        let shippingHtml = shippingBreakdown.map(s => 
-            `<li>${s.product} (${s.seller}): ${s.shipping > 0 ? getCurrencySymbol() + convertPrice(s.shipping) : 'FREE'} x${s.qty}</li>`
-        ).join('');
-        
-        // FIX: Show ONLY product price + shipping in summary - NO FEES
-        document.getElementById('orderSummaryContent').innerHTML = `
-            <p><strong>Order ID:</strong> ${tracking}</p>
-            <h3>📦 Items</h3>
-            <ul>${itemsHtml}</ul>
-            <h3>🚚 Shipping</h3>
-            <ul>${shippingHtml}</ul>
-            <h3>💰 Total Paid: ${getCurrencySymbol()}${convertPrice(totalUSD)}</h3>
-            <p><small>Includes ${getCurrencySymbol()}${convertPrice(totalShipping)} shipping</small></p>
-            <p><small>✅ Product prices shown exactly as listed on dashboard</small></p>
-            <h3>👤 Delivery Details</h3>
-            <p>${currentDelivery.fullName}<br>📞 ${currentDelivery.phone}<br>${currentDelivery.fullAddress}</p>
-            <h3>💳 Payment</h3>
-            <p>Card ending: ${last4}</p>
-            <p>🔮 We'll notify you when your order ships.</p>
-        `;
-        
-        document.getElementById('orderSummaryModal').style.display = 'block';
-        document.getElementById('cardNumber').value = '';
-        document.getElementById('cardHolderName').value = '';
-        document.getElementById('expiryDate').value = '';
-        document.getElementById('cvv').value = '';
-        
-        renderProducts();
-        btn.disabled = false;
-        btn.textContent = 'Pay with Card (Dummy)';
-        
-    } catch (error) {
-        console.error('Payment error:', error);
-        showToast('Payment failed: ' + error.message, true);
-        btn.disabled = false;
-        btn.textContent = 'Pay with Card (Dummy)';
-    }
-});
+    });
+}
 
-function loadSavedCards(){ let userCards = savedCards.filter(c => c.userEmail === "guest@globalbazaar.com"); if(userCards.length > 0){ document.getElementById('savedCardsSection').style.display = 'block'; document.getElementById('savedCardsList').innerHTML = userCards.map((card,idx) => `<div class="flex-between"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}">Use</button></div>`).join(''); document.querySelectorAll('.useSavedCardBtn').forEach(btn => btn.addEventListener('click', () => { let card = userCards[parseInt(btn.dataset.idx)]; document.getElementById('cardNumber').value = card.cardNumber; document.getElementById('cardHolderName').value = card.cardHolderName; document.getElementById('expiryDate').value = card.expiryDate; document.getElementById('cvv').value = ''; showToast("Card loaded", false); })); } }
+// Isko console में चलाओ:
+// checkPaymentPageElements();
 
 // ============================================================
 // PAYMENT
