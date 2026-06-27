@@ -2050,93 +2050,71 @@ let currentDelivery = null;
 // ============================================================
 // CHECKOUT
 // ============================================================
-document.getElementById('proceedToCheckoutBtn')?.addEventListener('click', () => {
-    if(cart.length === 0){ showToast("Cart empty",true); return; }
-    const user = auth.currentUser;
-    if (!user) {
-        sessionStorage.setItem('pendingCheckout', 'true');
-        sessionStorage.setItem('pendingCart', JSON.stringify(cart));
-        showToast("Please login to continue checkout", true);
-        document.getElementById('loginModal').style.display = 'block';
-        return;
-    }
-    showSection('checkout');
-    let savedAddr = savedAddresses.find(a => a.email === user.email);
-    if(savedAddr){ 
-        document.getElementById('deliveryFullName').value = savedAddr.fullName || '';
-        document.getElementById('deliveryPhone').value = savedAddr.phone || '';
-        document.getElementById('deliveryCountry').value = savedAddr.country || '';
-        document.getElementById('deliveryCity').value = savedAddr.city || '';
-        document.getElementById('deliveryPostcode').value = savedAddr.postcode || '';
-        document.getElementById('deliveryStreet').value = savedAddr.street || '';
-        document.getElementById('deliveryHouseNo').value = savedAddr.houseNo || '';
-        document.getElementById('saveAddressCheckbox').checked = true;
-    }
-});
-
-document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async function() {
-    const user = auth.currentUser;
-    if (!user) {
-        sessionStorage.setItem('pendingCheckout', 'true');
-        sessionStorage.setItem('pendingCart', JSON.stringify(cart));
-        showToast("Please login to continue", true);
-        document.getElementById('loginModal').style.display = 'block';
-        return;
-    }
-    let fn = document.getElementById('deliveryFullName').value;
-    let ph = document.getElementById('deliveryPhone').value;
-    let c = document.getElementById('deliveryCountry').value;
-    let ci = document.getElementById('deliveryCity').value;
-    let pc = document.getElementById('deliveryPostcode').value;
-    let st = document.getElementById('deliveryStreet').value;
-    if (!fn || !ph || !c || !ci || !pc || !st) {
-        showToast("Fill all fields!", true);
-        return;
-    }
-    buyerCountry = c;
-    localStorage.setItem('buyerCountry', buyerCountry);
-    currentDelivery = {
-        fullName: fn,
-        phone: ph,
-        country: c,
-        city: ci,
-        postcode: pc,
-        street: st,
-        houseNo: document.getElementById('deliveryHouseNo').value,
-        fullAddress: `${document.getElementById('deliveryHouseNo').value || ''}, ${st}, ${ci}, ${pc}, ${c}`,
-        email: user.email,
-        state: document.getElementById('deliveryState')?.value || ''
-    };
-    if (document.getElementById('saveAddressCheckbox').checked) {
-        let idx = savedAddresses.findIndex(a => a.email === user.email);
-        let addr = {
-            email: user.email,
-            fullName: fn,
-            phone: ph,
-            country: c,
-            city: ci,
-            postcode: pc,
-            street: st,
-            houseNo: document.getElementById('deliveryHouseNo').value,
-            state: document.getElementById('deliveryState')?.value || ''
-        };
-        if (idx >= 0) savedAddresses[idx] = addr;
-        else savedAddresses.push(addr);
-        saveAllLocal();
+function updatePaymentSummary() {
+    // Shipping data from sessionStorage
+    let shippingData = JSON.parse(sessionStorage.getItem('checkoutShipping') || '{"totalShipping":0,"shippingBreakdown":[]}');
+    let totalShipping = shippingData.totalShipping || 0;
+    let shippingBreakdown = shippingData.shippingBreakdown || [];
+    
+    // Calculate totals with fees
+    let subtotal = 0;
+    let totalGateway = 0;
+    let totalHandling = 0;
+    let totalCommission = 0;
+    
+    for (let item of cart) {
+        const commissionRate = getCategoryCommission(item.category || 'Electronics');
+        let gatewayFee = item.price * GATEWAY_FEE_PERCENT;
+        let handlingFee = item.price * HANDLING_FEE_PERCENT;
+        let commission = item.price * commissionRate;
+        let itemTotal = item.price + gatewayFee + handlingFee;
+        
+        subtotal += itemTotal * item.qty;
+        totalGateway += gatewayFee * item.qty;
+        totalHandling += handlingFee * item.qty;
+        totalCommission += commission * item.qty;
     }
     
-    // Calculate shipping at checkout
-    calculateShippingRealTime();
+    // Add shipping
+    let totalPaid = subtotal + totalShipping;
     
-    showToast("Proceeding to payment...", false);
-    setTimeout(() => {
-        showSection('payment');
-        loadSavedCards();
-        updatePaymentSummary();
-    }, 500);
-});
-
-function loadSavedCards(){ let userCards = savedCards.filter(c => c.userEmail === "guest@globalbazaar.com"); if(userCards.length > 0){ document.getElementById('savedCardsSection').style.display = 'block'; document.getElementById('savedCardsList').innerHTML = userCards.map((card,idx) => `<div class="flex-between"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}">Use</button></div>`).join(''); document.querySelectorAll('.useSavedCardBtn').forEach(btn => btn.addEventListener('click', () => { let card = userCards[parseInt(btn.dataset.idx)]; document.getElementById('cardNumber').value = card.cardNumber; document.getElementById('cardHolderName').value = card.cardHolderName; document.getElementById('expiryDate').value = card.expiryDate; document.getElementById('cvv').value = ''; showToast("Card loaded", false); })); } }
+    // Update UI
+    document.getElementById('paymentSubtotal').textContent = getCurrencySymbol() + convertPrice(subtotal);
+    document.getElementById('paymentShipping').textContent = getCurrencySymbol() + convertPrice(totalShipping);
+    document.getElementById('paymentTotal').textContent = getCurrencySymbol() + convertPrice(totalPaid);
+    
+    // Show fee breakdown if needed
+    let feeElement = document.getElementById('paymentFees');
+    if (feeElement) {
+        feeElement.innerHTML = `
+            <small>Gateway Fee (3%): ${getCurrencySymbol()}${convertPrice(totalGateway)} | 
+            Maintenance Fee (1.5%): ${getCurrencySymbol()}${convertPrice(totalHandling)}</small>
+        `;
+    }
+    
+    // Update items list in summary
+    let itemsHtml = cart.map(item => {
+        const gatewayFee = item.price * GATEWAY_FEE_PERCENT;
+        const handlingFee = item.price * HANDLING_FEE_PERCENT;
+        const itemTotal = (item.price + gatewayFee + handlingFee) * item.qty;
+        return `<li>${item.name} x${item.qty} = ${getCurrencySymbol()}${convertPrice(itemTotal)}</li>`;
+    }).join('');
+    
+    let itemsList = document.getElementById('paymentItemsList');
+    if (itemsList) {
+        itemsList.innerHTML = itemsHtml;
+    }
+    
+    // Update shipping breakdown
+    let shippingHtml = shippingBreakdown.map(s => 
+        `<li>${s.product} (${s.seller}): ${s.shipping > 0 ? getCurrencySymbol() + convertPrice(s.shipping) : 'FREE'} x${s.qty}</li>`
+    ).join('');
+    
+    let shippingList = document.getElementById('paymentShippingList');
+    if (shippingList) {
+        shippingList.innerHTML = shippingHtml;
+    }
+}
 
 // ============================================================
 // PAYMENT
