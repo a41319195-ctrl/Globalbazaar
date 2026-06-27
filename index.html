@@ -25,73 +25,82 @@
 <div class="drawer" id="drawer"><div class="drawer-header"><h2>GlobalBazaar 🌍</h2><p style="font-size:12px;">Multi‑Seller Hub</p></div><div class="dark-mode-menu-item" id="drawerDarkModeToggle">🌙 Dark Mode</div><div class="drawer-item" id="drawerBuyer">📦 My Orders</div><div class="drawer-item" id="drawerSeller">🏪 Seller Dashboard</div><div class="drawer-item" id="drawerMyShop">🏪 My Shop</div><div class="drawer-item" id="drawerAdmin">⚙️ Admin Panel <span id="adminPendingBadge" style="background:#ef4444; color:white; border-radius:20px; padding:2px 8px; font-size:12px; margin-left:8px; display:none;">0</span></div><div class="drawer-item" id="drawerCartPage">🛍️ My Cart</div><div class="drawer-item" id="drawerWishlist">❤️ Wishlist</div><div class="drawer-item" id="drawerSupport">📞 Support</div><div class="drawer-item" id="drawerLogout">🚪 Logout</div></div>
 <div class="container">
     <div id="buyerSection" class="section active"><div class="cat-scroll" id="catList"></div><div class="search-container"><input type="text" id="searchInput" placeholder="🔍 Search products..."></div><div class="product-grid" id="productsGrid"></div></div>
-    <div id="sellerSection" class="section"><div id="sellerRegisterBox" class="premium-card"><h2>🏪 Open Your Shop</h2><form id="sellerRegForm"><input type="file" id="sellerAvatar" accept="image/*" class="input"><input type="text" id="sellerFullName" placeholder="Full Legal Name" class="input" required><input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required><input type="email" id="sellerEmail" placeholder="Email" class="input" required><div class="phone-group"><div class="country-search-select" id="sellerCountrySearchContainer"><input type="text" id="sellerCountrySearch" placeholder="🔍 Search country..." autocomplete="off"><div class="country-dropdown-list" id="sellerCountryDropdown"></div><select id="sellerCountryCode" style="display:none;"></select></div><input type="tel" id="sellerPhone" placeholder="Phone Number" class="input" required></div><input type="password" id="sellerPassword" placeholder="Password" class="input" required><label style="font-weight:600; margin-top:10px;">🎂 Date of Birth</label><input type="date" id="sellerDob" class="input" required><h4>📍 Shop Address</h4><input type="text" id="sellerHouseNo" placeholder="House No." class="input" required><input type="text" id="sellerStreet" placeholder="Street" class="input" required><input type="text" id="sellerCity" placeholder="City" class="input" required><input type="text" id="sellerState" placeholder="State" class="input" required><input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required><select id="sellerCountryReg" class="input" required><option value="">Select Country</option></select>
-        
-        <!-- ========== SHIPPING ZONES SECTION ========== -->
-        <div class="shipping-zones-container" style="margin-top:20px; border-top:2px solid #e2e8f0; padding-top:20px;">
-            <h3 style="color:#1e293b;">🌍 Shipping Zones Configuration</h3>
-            <p style="color:#64748b; font-size:14px;">Configure shipping charges for different regions</p>
-            
-            <!-- Local Zone -->
-            <div style="background:#f8fafc; padding:16px; border-radius:12px; margin-top:12px; border:1px solid #e2e8f0;">
-                <h4>📍 Local Zone (Your Country)</h4>
-                <p style="color:#64748b; font-size:13px;">Your country will be auto-detected as local zone</p>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
-                    <div>
-                        <label style="font-size:13px; font-weight:600;">Shipping Charge (USD)</label>
-                        <input type="number" id="localShippingCharge" placeholder="e.g., 15" class="input" value="15" min="0">
+    
+    <!-- ============================================================ -->
+    <!-- SELLER SECTION - SHIPPING ZONES REMOVED -->
+    <!-- ============================================================ -->
+    <div id="sellerSection" class="section">
+        <div id="sellerRegisterBox" class="premium-card">
+            <h2>🏪 Open Your Shop</h2>
+            <form id="sellerRegForm">
+                <input type="file" id="sellerAvatar" accept="image/*" class="input">
+                <input type="text" id="sellerFullName" placeholder="Full Legal Name" class="input" required>
+                <input type="text" id="sellerShopName" placeholder="Shop Name" class="input" required>
+                <input type="email" id="sellerEmail" placeholder="Email" class="input" required>
+                
+                <div class="phone-group">
+                    <div class="country-search-select" id="sellerCountrySearchContainer">
+                        <input type="text" id="sellerCountrySearch" placeholder="🔍 Search country..." autocomplete="off">
+                        <div class="country-dropdown-list" id="sellerCountryDropdown"></div>
+                        <select id="sellerCountryCode" style="display:none;"></select>
                     </div>
-                    <div>
-                        <label style="font-size:13px; font-weight:600;">Free Shipping Above (USD)</label>
-                        <input type="number" id="localFreeAbove" placeholder="e.g., 100" class="input" value="100" min="0">
+                    <input type="tel" id="sellerPhone" placeholder="Phone Number" class="input" required>
+                </div>
+                
+                <input type="password" id="sellerPassword" placeholder="Password" class="input" required>
+                
+                <label style="font-weight:600; margin-top:10px;">🎂 Date of Birth</label>
+                <input type="date" id="sellerDob" class="input" required>
+                
+                <h4>📍 Shop Address</h4>
+                <input type="text" id="sellerHouseNo" placeholder="House No." class="input" required>
+                <input type="text" id="sellerStreet" placeholder="Street" class="input" required>
+                <input type="text" id="sellerCity" placeholder="City" class="input" required>
+                <input type="text" id="sellerState" placeholder="State" class="input" required>
+                <input type="text" id="sellerPincode" placeholder="PIN Code" class="input" required>
+                
+                <select id="sellerCountryReg" class="input" required>
+                    <option value="">Select Country</option>
+                </select>
+                
+                <!-- ============================================================ -->
+                <!-- KYC DOCUMENTS SECTION -->
+                <!-- ============================================================ -->
+                <div class="doc-section">
+                    <div class="doc-title">🌍 KYC Documents</div>
+                    <select id="sellerDocType" class="input" required>
+                        <option value="">Select Document Type</option>
+                        <option value="passport">📘 Passport</option>
+                        <option value="national_id">🆔 National ID Card</option>
+                        <option value="driving_license">🚗 Driving License</option>
+                        <option value="residence_permit">📄 Residence Permit</option>
+                    </select>
+                    <input type="text" id="sellerDocNumber" placeholder="Document Number" class="input" required>
+                    <input type="file" id="sellerDocImage" accept="image/*,application/pdf" class="input" required>
+                    
+                    <div class="kyc-preview-container" id="kycPreview">
+                        <div class="preview-label">📄 Document Preview:</div>
+                        <img id="kycPreviewImg" style="display:none;">
                     </div>
                 </div>
-            </div>
-            
-            <!-- Regional Zone -->
-            <div style="background:#f8fafc; padding:16px; border-radius:12px; margin-top:12px; border:1px solid #e2e8f0;">
-                <h4>🌏 Regional Zone</h4>
-                <p style="color:#64748b; font-size:13px;">Select countries in your region</p>
-                <div style="margin-top:10px;">
-                    <label style="font-size:13px; font-weight:600;">Select Regional Countries</label>
-                    <select id="regionalCountries" multiple style="width:100%; height:100px; padding:8px; border-radius:8px; border:1px solid #cbd5e1; margin-top:5px;"></select>
+                
+                <!-- ============================================================ -->
+                <!-- SELLER AGREEMENT - Shipping Zones REMOVED -->
+                <!-- ============================================================ -->
+                <div class="checkbox-group">
+                    <input type="checkbox" id="sellerAgreement" required>
+                    <label>I agree to <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label>
                 </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
-                    <div>
-                        <label style="font-size:13px; font-weight:600;">Shipping Charge (USD)</label>
-                        <input type="number" id="regionalShippingCharge" placeholder="e.g., 25" class="input" value="25" min="0">
-                    </div>
-                    <div>
-                        <label style="font-size:13px; font-weight:600;">Free Shipping Above (USD)</label>
-                        <input type="number" id="regionalFreeAbove" placeholder="e.g., 200" class="input" value="200" min="0">
-                    </div>
-                </div>
-            </div>
-            
-            <!-- International Zone -->
-            <div style="background:#f8fafc; padding:16px; border-radius:12px; margin-top:12px; border:1px solid #e2e8f0;">
-                <h4>🌐 International Zone</h4>
-                <p style="color:#64748b; font-size:13px;">All other countries not in local or regional zones</p>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
-                    <div>
-                        <label style="font-size:13px; font-weight:600;">Shipping Charge (USD)</label>
-                        <input type="number" id="internationalShippingCharge" placeholder="e.g., 40" class="input" value="40" min="0">
-                    </div>
-                    <div>
-                        <label style="font-size:13px; font-weight:600;">Free Shipping Above (USD)</label>
-                        <input type="number" id="internationalFreeAbove" placeholder="e.g., 300" class="input" value="300" min="0">
-                    </div>
-                </div>
-            </div>
+                
+                <button type="submit" class="btn-primary" id="sellerSubmitBtn">✅ Register Shop</button>
+            </form>
         </div>
-        <!-- ========== END SHIPPING ZONES SECTION ========== -->
-        
-        <div class="doc-section"><div class="doc-title">🌍 KYC Documents</div><select id="sellerDocType" class="input" required><option value="">Select Document Type</option><option value="passport">📘 Passport</option><option value="national_id">🆔 National ID Card</option><option value="driving_license">🚗 Driving License</option><option value="residence_permit">📄 Residence Permit</option></select><input type="text" id="sellerDocNumber" placeholder="Document Number" class="input" required><input type="file" id="sellerDocImage" accept="image/*,application/pdf" class="input" required>
-        <div class="kyc-preview-container" id="kycPreview">
-            <div class="preview-label">📄 Document Preview:</div>
-            <img id="kycPreviewImg" style="display:none;">
-        </div></div>
-        <div class="checkbox-group"><input type="checkbox" id="sellerAgreement" required><label>I agree to <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label></div><button type="submit" class="btn-primary" id="sellerSubmitBtn">✅ Register Shop</button></form></div><div id="sellerDashboard" style="display:none;"></div></div>
+        <div id="sellerDashboard" style="display:none;"></div>
+    </div>
+    <!-- ============================================================ -->
+    <!-- END SELLER SECTION -->
+    <!-- ============================================================ -->
+    
     <div id="profileSection" class="section"><div id="buyerProfilePanel" style="display:block;"><div class="premium-card"><div class="flex-between"><h2>👋 My Account</h2><span class="role-badge" id="userRoleBadge">Buyer</span></div></div>
         <div class="premium-card"><h3>📜 My Orders</h3>
             <!-- ========== ORDER HISTORY THREE-DOT MENU ========== -->
@@ -396,11 +405,16 @@ function closeOrderDetailsModal() {
     <span class="legal-link" onclick="showPrivacy()">Privacy</span> | 
     <span class="legal-link" onclick="showSupport()">Support</span> | 
     <span style="font-size:11px; color:#94a3b8;">📧 supportglobalbazaarshopco@gmail.com</span>
-</div><div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #ddd; font-size: 13px; color: #333; text-align: left;">
-        <p style="margin: 2px 0;"><strong>Owner:</strong> Amarulhak Miya Ansari</p>
-        <p style="margin: 2px 0;"><strong>Entity:</strong> Global Bazaar</p>
-        <p style="margin: 2px 0;"><strong>Status:</strong> Individual Entrepreneur</p>
-    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- FOUNDER INFO - UPDATED: Owner → Founder -->
+<!-- ============================================================ -->
+<div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #ddd; font-size: 13px; color: #333; text-align: left;">
+    <p style="margin: 2px 0;"><strong>Founder:</strong> Amarulhak Miya Ansari</p>
+    <p style="margin: 2px 0;"><strong>Entity:</strong> Global Bazaar</p>
+    <p style="margin: 2px 0;"><strong>Status:</strong> Individual Entrepreneur</p>
+</div>
 
 <script src="script.js"></script>
 </body>
