@@ -2051,42 +2051,50 @@ let currentDelivery = null;
 // CHECKOUT
 // ============================================================
 function updatePaymentSummary() {
-    // Shipping data from sessionStorage
-    let shippingData = JSON.parse(sessionStorage.getItem('checkoutShipping') || '{"totalShipping":0,"shippingBreakdown":[]}');
-    let totalShipping = shippingData.totalShipping || 0;
-    let shippingBreakdown = shippingData.shippingBreakdown || [];
-    
-    // Calculate totals with fees - SAME LOGIC AS payNowBtn
-    let subtotal = 0;
-    let totalGateway = 0;
-    let totalHandling = 0;
-    let totalCommission = 0;
-    
-    for (let item of cart) {
-        const commissionRate = getCategoryCommission(item.category || 'Electronics');
-        let gatewayFee = item.price * GATEWAY_FEE_PERCENT;
-        let handlingFee = item.price * HANDLING_FEE_PERCENT;
-        let commission = item.price * commissionRate;
-        let itemTotal = item.price + gatewayFee + handlingFee;
+    try {
+        let shippingData = JSON.parse(sessionStorage.getItem('checkoutShipping') || '{"totalShipping":0,"shippingBreakdown":[]}');
+        let totalShipping = shippingData.totalShipping || 0;
         
-        subtotal += itemTotal * item.qty;
-        totalGateway += gatewayFee * item.qty;
-        totalHandling += handlingFee * item.qty;
-        totalCommission += commission * item.qty;
-    }
-    
-    // Add shipping to get total
-    let totalPaid = subtotal + totalShipping;
-    
-    // Update UI - ONLY existing elements that you have in your HTML
-    document.getElementById('paymentSubtotal').textContent = getCurrencySymbol() + convertPrice(subtotal);
-    document.getElementById('paymentShipping').textContent = getCurrencySymbol() + convertPrice(totalShipping);
-    document.getElementById('paymentTotal').textContent = getCurrencySymbol() + convertPrice(totalPaid);
-    
-    // Update fee breakdown if element exists
-    let feeElement = document.getElementById('paymentFees');
-    if (feeElement) {
-        feeElement.textContent = `Gateway (3%): ${getCurrencySymbol()}${convertPrice(totalGateway)} | Maintenance (1.5%): ${getCurrencySymbol()}${convertPrice(totalHandling)}`;
+        let subtotal = 0;
+        let totalGateway = 0;
+        let totalHandling = 0;
+        
+        // Cart लूप सुरक्षित है
+        if (typeof cart !== 'undefined' && Array.isArray(cart)) {
+            for (let item of cart) {
+                // यह सुनिश्चित करें कि ये constants defined हैं, अगर नहीं हैं तो 0 ले लें
+                const gRate = (typeof GATEWAY_FEE_PERCENT !== 'undefined') ? GATEWAY_FEE_PERCENT : 0.03;
+                const hRate = (typeof HANDLING_FEE_PERCENT !== 'undefined') ? HANDLING_FEE_PERCENT : 0.015;
+                
+                let gatewayFee = item.price * gRate;
+                let handlingFee = item.price * hRate;
+                let itemTotal = item.price + gatewayFee + handlingFee;
+                
+                subtotal += itemTotal * item.qty;
+                totalGateway += gatewayFee * item.qty;
+                totalHandling += handlingFee * item.qty;
+            }
+        }
+        
+        let totalPaid = subtotal + totalShipping;
+        
+        // UI अपडेट (अब कोई एरर नहीं आएगा क्योंकि हम ID चेक कर रहे हैं)
+        const updateText = (id, val) => {
+            let el = document.getElementById(id);
+            if (el) el.textContent = val;
+        };
+        
+        updateText('paymentSubtotal', getCurrencySymbol() + convertPrice(subtotal));
+        updateText('paymentShipping', getCurrencySymbol() + convertPrice(totalShipping));
+        updateText('paymentTotal', getCurrencySymbol() + convertPrice(totalPaid));
+        
+        let feeElement = document.getElementById('paymentFees');
+        if (feeElement) {
+            feeElement.textContent = `Gateway (3%): ${getCurrencySymbol()}${convertPrice(totalGateway)} | Maintenance (1.5%): ${getCurrencySymbol()}${convertPrice(totalHandling)}`;
+        }
+        
+    } catch (err) {
+        console.error("Critical error in updatePaymentSummary:", err);
     }
 }
 
