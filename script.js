@@ -154,7 +154,7 @@ function calculateProductPrice(basePrice, category = 'Electronics') {
     };
 }
 
-function calculateFinalPriceWithCategory(basePrice, sellerId, buyerCountry, category, cartTotal = 0, sellerObj = null) {
+function calculateFinalPrice(basePrice, sellerId, buyerCountry, category, cartTotal = 0, sellerObj = null, shippingCharge = 0) {
     try {
         let seller = sellerObj;
         if (!seller && sellerId) {
@@ -164,48 +164,41 @@ function calculateFinalPriceWithCategory(basePrice, sellerId, buyerCountry, cate
         const commissionRate = getCategoryCommission(category);
         
         if (!seller || sellerId === 0 || sellerId === '0') {
-            let shippingCharge = 0;
-            if (buyerCountry === "SA" || buyerCountry === "Saudi Arabia") {
-                shippingCharge = cartTotal > 100 ? 0 : 15;
-            } else {
-                shippingCharge = cartTotal > 200 ? 0 : 25;
-            }
+            let shipping = shippingCharge || 0;
             
             let gatewayFee = basePrice * GATEWAY_FEE_PERCENT;
             let handlingFee = basePrice * HANDLING_FEE_PERCENT;
-            let total = basePrice + gatewayFee + handlingFee + shippingCharge;
+            let commission = basePrice * commissionRate;
+            let total = basePrice + gatewayFee + handlingFee + shipping;
             
             return {
                 total: total,
                 basePrice: basePrice,
-                shipping: shippingCharge,
-                commission: basePrice * commissionRate,
+                shipping: shipping,
+                commission: commission,
                 commissionRate: commissionRate,
                 gateway: gatewayFee,
                 handling: handlingFee,
-                sellerEarning: basePrice - (basePrice * commissionRate)
+                sellerEarning: basePrice - commission
             };
         }
         
-        const shippingCharge = getShippingCharge(
-            seller.shippingZones || setupShippingZonesForSeller(seller.country),
-            buyerCountry,
-            cartTotal
-        );
+        let shipping = shippingCharge || 0;
         
         let gatewayFee = basePrice * GATEWAY_FEE_PERCENT;
         let handlingFee = basePrice * HANDLING_FEE_PERCENT;
-        let total = basePrice + gatewayFee + handlingFee + shippingCharge;
+        let commission = basePrice * commissionRate;
+        let total = basePrice + gatewayFee + handlingFee + shipping;
         
         return {
             total: total,
             basePrice: basePrice,
-            shipping: shippingCharge,
-            commission: basePrice * commissionRate,
+            shipping: shipping,
+            commission: commission,
             commissionRate: commissionRate,
             gateway: gatewayFee,
             handling: handlingFee,
-            sellerEarning: basePrice - (basePrice * commissionRate)
+            sellerEarning: basePrice - commission
         };
         
     } catch (error) {
@@ -225,7 +218,7 @@ function calculateFinalPriceWithCategory(basePrice, sellerId, buyerCountry, cate
 }
 
 // ============================================================
-// SHIPPING ZONE SYSTEM
+// SHIPPING ZONE SYSTEM - WITH OPTIONAL FREE SHIPPING
 // ============================================================
 
 const SHIPPING_ZONES = {
@@ -285,17 +278,16 @@ function getCountryZone(countryName) {
 
 function getShippingCharge(sellerZones, buyerCountry, cartTotal = 0) {
     try {
+        // If no seller zones, use default
         if (!sellerZones || Object.keys(sellerZones).length === 0) {
-            if (buyerCountry === "SA" || buyerCountry === "Saudi Arabia") {
-                return cartTotal > 100 ? 0 : 15;
-            }
             return cartTotal > 200 ? 0 : 25;
         }
         
         let buyerZone = null;
         let zoneCharge = 25;
-        let freeAbove = Infinity;
+        let freeAbove = 0;
         
+        // Check LOCAL zone
         if (sellerZones.local && sellerZones.local.countries) {
             const localMatch = sellerZones.local.countries.some(c => 
                 c.toLowerCase() === buyerCountry.toLowerCase()
@@ -303,10 +295,11 @@ function getShippingCharge(sellerZones, buyerCountry, cartTotal = 0) {
             if (localMatch) {
                 buyerZone = 'local';
                 zoneCharge = parseFloat(sellerZones.local.charge) || 15;
-                freeAbove = parseFloat(sellerZones.local.freeAbove) || 100;
+                freeAbove = parseFloat(sellerZones.local.freeAbove) || 0;
             }
         }
         
+        // Check REGIONAL zone
         if (!buyerZone && sellerZones.regional && sellerZones.regional.countries) {
             const regionalMatch = sellerZones.regional.countries.some(c => 
                 c.toLowerCase() === buyerCountry.toLowerCase()
@@ -314,22 +307,26 @@ function getShippingCharge(sellerZones, buyerCountry, cartTotal = 0) {
             if (regionalMatch) {
                 buyerZone = 'regional';
                 zoneCharge = parseFloat(sellerZones.regional.charge) || 25;
-                freeAbove = parseFloat(sellerZones.regional.freeAbove) || 200;
+                freeAbove = parseFloat(sellerZones.regional.freeAbove) || 0;
             }
         }
         
+        // Check INTERNATIONAL zone
         if (!buyerZone && sellerZones.international) {
             buyerZone = 'international';
             zoneCharge = parseFloat(sellerZones.international.charge) || 40;
-            freeAbove = parseFloat(sellerZones.international.freeAbove) || 300;
+            freeAbove = parseFloat(sellerZones.international.freeAbove) || 0;
         }
         
+        // If no zone found, use default
         if (!buyerZone) {
             return cartTotal > 200 ? 0 : 25;
         }
         
-        if (cartTotal >= freeAbove && freeAbove > 0) {
-            return 0;
+        // ========== FREE SHIPPING CHECK - OPTIONAL ==========
+        // ✅ Only free if freeAbove > 0 AND cartTotal >= freeAbove
+        if (freeAbove > 0 && cartTotal >= freeAbove) {
+            return 0; // FREE SHIPPING
         }
         
         return zoneCharge;
@@ -388,48 +385,6 @@ function setupShippingZonesForSeller(country) {
 }
 
 // ============================================================
-// GLOBAL VARIABLES
-// ============================================================
-let products = [];
-let sellers = [];
-let currentSeller = null;
-let cart = JSON.parse(localStorage.getItem('gb_cart')) || [];
-let wishlist = JSON.parse(localStorage.getItem('gb_wishlist')) || [];
-let orders = JSON.parse(localStorage.getItem('gb_orders')) || [];
-let platformEarnings = parseFloat(localStorage.getItem('gb_platform_earnings')) || 0;
-let pendingWithdrawals = JSON.parse(localStorage.getItem('gb_pending_withdrawals')) || [];
-let savedCards = JSON.parse(localStorage.getItem('gb_saved_cards')) || [];
-let savedAddresses = JSON.parse(localStorage.getItem('gb_saved_addresses')) || [];
-let notifications = JSON.parse(localStorage.getItem('gb_notifications')) || [];
-let selectedCurrency = localStorage.getItem('selectedCurrency') || 'SAR';
-let buyerCountry = localStorage.getItem('buyerCountry') || 'SA';
-let sellerRevenueChart = null;
-let currentBuyer = null;
-let isAdminLoggedIn = false;
-let verificationCheckInterval = null;
-let currentCategory = "All";
-
-// ============================================================
-// TELEGRAM NOTIFICATIONS
-// ============================================================
-const TELEGRAM_BOT_TOKEN = "8328824652:AAE-b4o6DaFDa9WPtZfrOfM7SYGU9gUa9HQ";
-const TELEGRAM_CHAT_ID = "7111653640";
-async function sendTelegramMessage(msg) {
-    try {
-        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg, parse_mode: 'HTML' })
-        });
-    } catch(e) { console.error('Telegram error:', e); }
-}
-
-// ============================================================
-// SUPPORT CONTACT INFO
-// ============================================================
-const SUPPORT_EMAIL = "supportglobalbazaarshopco@gmail.com";
-const SUPPORT_WHATSAPP = "+9779811245373";
-
-// ============================================================
 // DEFAULT PRODUCTS - 6 CATEGORIES
 // ============================================================
 
@@ -483,7 +438,11 @@ async function seedProductsIfEmpty() {
                     commissionRate: calc.commissionRate,
                     sellerEarning: calc.sellerEarning,
                     platformRevenue: calc.platformRevenue,
-                    createdAt: new Date().toISOString()
+                    createdAt: new Date().toISOString(),
+                    shippingLocal: 0,
+                    shippingRegional: 0,
+                    shippingInternational: 0,
+                    shippingFreeAbove: 0
                 });
             }
             console.log("✅ Seeded default products");
@@ -497,6 +456,48 @@ async function seedProductsIfEmpty() {
         document.getElementById('debugMsg').innerHTML = '⚠️ Seed error: ' + e.message;
     }
 }
+
+// ============================================================
+// GLOBAL VARIABLES
+// ============================================================
+let products = [];
+let sellers = [];
+let currentSeller = null;
+let cart = JSON.parse(localStorage.getItem('gb_cart')) || [];
+let wishlist = JSON.parse(localStorage.getItem('gb_wishlist')) || [];
+let orders = JSON.parse(localStorage.getItem('gb_orders')) || [];
+let platformEarnings = parseFloat(localStorage.getItem('gb_platform_earnings')) || 0;
+let pendingWithdrawals = JSON.parse(localStorage.getItem('gb_pending_withdrawals')) || [];
+let savedCards = JSON.parse(localStorage.getItem('gb_saved_cards')) || [];
+let savedAddresses = JSON.parse(localStorage.getItem('gb_saved_addresses')) || [];
+let notifications = JSON.parse(localStorage.getItem('gb_notifications')) || [];
+let selectedCurrency = localStorage.getItem('selectedCurrency') || 'SAR';
+let buyerCountry = localStorage.getItem('buyerCountry') || 'SA';
+let sellerRevenueChart = null;
+let currentBuyer = null;
+let isAdminLoggedIn = false;
+let verificationCheckInterval = null;
+let currentCategory = "All";
+
+// ============================================================
+// TELEGRAM NOTIFICATIONS
+// ============================================================
+const TELEGRAM_BOT_TOKEN = "8328824652:AAE-b4o6DaFDa9WPtZfrOfM7SYGU9gUa9HQ";
+const TELEGRAM_CHAT_ID = "7111653640";
+async function sendTelegramMessage(msg) {
+    try {
+        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg, parse_mode: 'HTML' })
+        });
+    } catch(e) { console.error('Telegram error:', e); }
+}
+
+// ============================================================
+// SUPPORT CONTACT INFO
+// ============================================================
+const SUPPORT_EMAIL = "supportglobalbazaarshopco@gmail.com";
+const SUPPORT_WHATSAPP = "+9779811245373";
 
 // ============================================================
 // NOTIFICATIONS
@@ -930,12 +931,36 @@ function calculateShippingRealTime() {
     
     for (let item of cart) {
         const seller = sellers.find(s => s.id === item.sellerId);
+        const product = products.find(p => p.id === item.id);
+        
+        // Get shipping from product or fallback to seller zones
+        let sellerZones = null;
+        if (product && product.shippingLocal !== undefined) {
+            // Product has its own shipping settings
+            sellerZones = {
+                local: { 
+                    countries: [seller?.country || "SA"], 
+                    charge: product.shippingLocal || 0, 
+                    freeAbove: product.shippingFreeAbove || 0 
+                },
+                regional: { 
+                    countries: [], 
+                    charge: product.shippingRegional || 0, 
+                    freeAbove: product.shippingFreeAbove || 0 
+                },
+                international: { 
+                    countries: [], 
+                    charge: product.shippingInternational || 0, 
+                    freeAbove: product.shippingFreeAbove || 0 
+                }
+            };
+        } else {
+            // Fallback to seller zones
+            sellerZones = seller?.shippingZones || setupShippingZonesForSeller(seller?.country || "SA");
+        }
+        
         const itemTotal = item.price * item.qty;
-        const shipping = getShippingCharge(
-            seller?.shippingZones || setupShippingZonesForSeller(seller?.country || "SA"),
-            buyerCountry,
-            itemTotal
-        );
+        const shipping = getShippingCharge(sellerZones, buyerCountry, itemTotal);
         totalShipping += shipping * item.qty;
         shippingBreakdown.push({
             product: item.name,
@@ -979,12 +1004,21 @@ function updatePaymentSummary() {
     
     for (let item of cart) {
         const seller = sellers.find(s => s.id === item.sellerId);
+        const product = products.find(p => p.id === item.id);
+        
+        let sellerZones = null;
+        if (product && product.shippingLocal !== undefined) {
+            sellerZones = {
+                local: { countries: [seller?.country || "SA"], charge: product.shippingLocal || 0, freeAbove: product.shippingFreeAbove || 0 },
+                regional: { countries: [], charge: product.shippingRegional || 0, freeAbove: product.shippingFreeAbove || 0 },
+                international: { countries: [], charge: product.shippingInternational || 0, freeAbove: product.shippingFreeAbove || 0 }
+            };
+        } else {
+            sellerZones = seller?.shippingZones || setupShippingZonesForSeller(seller?.country || "SA");
+        }
+        
         const itemTotal = item.price * item.qty;
-        const shipping = getShippingCharge(
-            seller?.shippingZones || setupShippingZonesForSeller(seller?.country || "SA"),
-            buyerCountry,
-            itemTotal
-        );
+        const shipping = getShippingCharge(sellerZones, buyerCountry, itemTotal);
         subtotal += itemTotal;
         totalShipping += shipping * item.qty;
     }
@@ -1759,6 +1793,7 @@ function renderProductCard(p) {
             return '';
         }
         
+        // Calculate price: Base + 3% Gateway + 1.5% Handling
         let gatewayFee = p.price * GATEWAY_FEE_PERCENT;
         let handlingFee = p.price * HANDLING_FEE_PERCENT;
         let total = p.price + gatewayFee + handlingFee;
@@ -1952,7 +1987,22 @@ function addToCart(id){
     if(p.stock <= 0){ showToast("Out of stock!",true); return; }
     let existing = cart.find(i => i.id == id);
     if(existing){ if(existing.qty < p.stock) existing.qty++; else { showToast(`Only ${p.stock} in stock`,true); return; } }
-    else { cart.push({ id: p.id, name: p.name, price: p.price, sellerId: p.sellerId, sellerCountry: p.sellerCountry || "SA", qty: 1, image: p.mainImage, category: p.category }); }
+    else { 
+        cart.push({ 
+            id: p.id, 
+            name: p.name, 
+            price: p.price, 
+            sellerId: p.sellerId, 
+            sellerCountry: p.sellerCountry || "SA", 
+            qty: 1, 
+            image: p.mainImage, 
+            category: p.category,
+            shippingLocal: p.shippingLocal || 0,
+            shippingRegional: p.shippingRegional || 0,
+            shippingInternational: p.shippingInternational || 0,
+            shippingFreeAbove: p.shippingFreeAbove || 0
+        }); 
+    }
     saveAllLocal(); updateCartUI(); renderCartPage(); showToast("Added to cart", false); addNotification(`${p.name} added to cart`,'info');
     if (currentBuyer) saveUserCart(currentBuyer.uid);
 }
@@ -2050,46 +2100,49 @@ let currentDelivery = null;
 // ============================================================
 // CHECKOUT
 // ============================================================
-
-            
-        // सबसे पहले console में ये चेक करो:
-console.log('🟢 Cart items:', cart);
-console.log('🟢 Current Delivery:', currentDelivery);
-console.log('🟢 Shipping Data:', sessionStorage.getItem('checkoutShipping'));
-
-// अब confirmDeliveryBtn के क्लिक को डीबग करते हैं
-document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async function() {
-    console.log('🔵 Confirm Delivery Button Clicked');
-    
+document.getElementById('proceedToCheckoutBtn')?.addEventListener('click', () => {
+    if(cart.length === 0){ showToast("Cart empty",true); return; }
     const user = auth.currentUser;
-    console.log('🔵 Current User:', user);
-    
     if (!user) {
-        console.log('🔴 No user logged in');
+        sessionStorage.setItem('pendingCheckout', 'true');
+        sessionStorage.setItem('pendingCart', JSON.stringify(cart));
+        showToast("Please login to continue checkout", true);
+        document.getElementById('loginModal').style.display = 'block';
+        return;
+    }
+    showSection('checkout');
+    let savedAddr = savedAddresses.find(a => a.email === user.email);
+    if(savedAddr){ 
+        document.getElementById('deliveryFullName').value = savedAddr.fullName || '';
+        document.getElementById('deliveryPhone').value = savedAddr.phone || '';
+        document.getElementById('deliveryCountry').value = savedAddr.country || '';
+        document.getElementById('deliveryCity').value = savedAddr.city || '';
+        document.getElementById('deliveryPostcode').value = savedAddr.postcode || '';
+        document.getElementById('deliveryStreet').value = savedAddr.street || '';
+        document.getElementById('deliveryHouseNo').value = savedAddr.houseNo || '';
+        document.getElementById('saveAddressCheckbox').checked = true;
+    }
+});
+
+document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async function() {
+    const user = auth.currentUser;
+    if (!user) {
         sessionStorage.setItem('pendingCheckout', 'true');
         sessionStorage.setItem('pendingCart', JSON.stringify(cart));
         showToast("Please login to continue", true);
         document.getElementById('loginModal').style.display = 'block';
         return;
     }
-    
-    // Form fields collect करो
     let fn = document.getElementById('deliveryFullName').value;
     let ph = document.getElementById('deliveryPhone').value;
     let c = document.getElementById('deliveryCountry').value;
     let ci = document.getElementById('deliveryCity').value;
     let pc = document.getElementById('deliveryPostcode').value;
     let st = document.getElementById('deliveryStreet').value;
-    
-    console.log('🔵 Form Data:', { fn, ph, c, ci, pc, st });
-    
     if (!fn || !ph || !c || !ci || !pc || !st) {
-        console.log('🔴 Validation Failed - Missing fields');
         showToast("Fill all fields!", true);
         return;
     }
-    
-    // Delivery data save करो
     buyerCountry = c;
     localStorage.setItem('buyerCountry', buyerCountry);
     currentDelivery = {
@@ -2104,9 +2157,6 @@ document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async f
         email: user.email,
         state: document.getElementById('deliveryState')?.value || ''
     };
-    console.log('🟢 Delivery saved:', currentDelivery);
-    
-    // Address save करो
     if (document.getElementById('saveAddressCheckbox').checked) {
         let idx = savedAddresses.findIndex(a => a.email === user.email);
         let addr = {
@@ -2123,140 +2173,26 @@ document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async f
         if (idx >= 0) savedAddresses[idx] = addr;
         else savedAddresses.push(addr);
         saveAllLocal();
-        console.log('🟢 Address saved');
     }
     
-    // Shipping calculate करो
-    console.log('🟡 Calculating shipping...');
+    // Calculate shipping at checkout
     calculateShippingRealTime();
     
-    console.log('🟢 Showing payment section...');
     showToast("Proceeding to payment...", false);
-    
     setTimeout(() => {
-        console.log('🟢 Inside setTimeout - showing payment');
         showSection('payment');
-        console.log('🟢 Payment section shown');
-        
-        console.log('🟢 Loading saved cards...');
         loadSavedCards();
-        
-        console.log('🟢 Updating payment summary...');
         updatePaymentSummary();
-        
-        console.log('✅ All done! Payment page should be visible.');
-        
-        // Extra check - क्या payment elements exist करते हैं?
-        const paymentTotal = document.getElementById('paymentTotal');
-        if (paymentTotal) {
-            console.log('🟢 paymentTotal element found:', paymentTotal.textContent);
-        } else {
-            console.error('🔴 paymentTotal element NOT found!');
-        }
     }, 500);
 });
 
-// updatePaymentSummary function में डीबग करो
-function updatePaymentSummary() {
-    console.log('🔵 updatePaymentSummary called');
-    
-    // Safety Check
-    if (!document.getElementById('paymentTotal')) {
-        console.log('🔴 paymentTotal element not found - returning early');
-        return;
-    }
-    console.log('🟢 paymentTotal element found');
-    
-    let subtotal = 0;
-    let totalGateway = 0;
-    let totalHandling = 0;
-    let totalShipping = 0;
-    
-    console.log('🟡 Cart items:', cart);
-    
-    // Calculate fees
-    for (let item of cart) {
-        let gatewayFee = item.price * GATEWAY_FEE_PERCENT;
-        let handlingFee = item.price * HANDLING_FEE_PERCENT;
-        let itemTotal = item.price + gatewayFee + handlingFee;
-        
-        subtotal += itemTotal * item.qty;
-        totalGateway += gatewayFee * item.qty;
-        totalHandling += handlingFee * item.qty;
-        
-        console.log(`🟡 Item: ${item.name}, Price: ${item.price}, Gateway: ${gatewayFee}, Handling: ${handlingFee}, Total: ${itemTotal}`);
-    }
-    
-    // Get shipping
-    let shippingData = JSON.parse(sessionStorage.getItem('checkoutShipping') || '{"totalShipping":0,"shippingBreakdown":[]}');
-    totalShipping = shippingData.totalShipping || 0;
-    console.log('🟡 Total Shipping:', totalShipping);
-    
-    let totalPaid = subtotal + totalShipping;
-    console.log('🟢 Subtotal:', subtotal, 'Total Paid:', totalPaid);
-    
-    // Update elements
-    const subtotalEl = document.getElementById('paymentSubtotal');
-    const shippingEl = document.getElementById('paymentShipping');
-    const feesEl = document.getElementById('paymentFees');
-    const totalEl = document.getElementById('paymentTotal');
-    const breakdownEl = document.getElementById('feeBreakdown');
-    
-    if (subtotalEl) {
-        subtotalEl.textContent = getCurrencySymbol() + convertPrice(subtotal);
-        console.log('🟢 Subtotal updated:', subtotalEl.textContent);
-    }
-    
-    if (shippingEl) {
-        shippingEl.textContent = totalShipping > 0 ? 
-            getCurrencySymbol() + convertPrice(totalShipping) : 'FREE';
-        console.log('🟢 Shipping updated:', shippingEl.textContent);
-    }
-    
-    if (feesEl) {
-        let totalFees = totalGateway + totalHandling;
-        feesEl.textContent = getCurrencySymbol() + convertPrice(totalFees);
-        console.log('🟢 Fees updated:', feesEl.textContent);
-    }
-    
-    if (totalEl) {
-        totalEl.textContent = getCurrencySymbol() + convertPrice(totalPaid);
-        console.log('🟢 Total updated:', totalEl.textContent);
-    }
-    
-    if (breakdownEl) {
-        breakdownEl.innerHTML = `
-            <small>Gateway (3%): ${getCurrencySymbol()}${convertPrice(totalGateway)}</small><br>
-            <small>Maintenance (1.5%): ${getCurrencySymbol()}${convertPrice(totalHandling)}</small>
-        `;
-        console.log('🟢 Breakdown updated');
-    }
-    
-    console.log('✅ updatePaymentSummary completed successfully');
-}
-
-// check karo ki payment section ka HTML correctly render ho raha hai
-function checkPaymentPageElements() {
-    console.log('🔍 Checking payment page elements:');
-    const elements = ['paymentSubtotal', 'paymentShipping', 'paymentFees', 'paymentTotal', 'feeBreakdown'];
-    elements.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            console.log(`✅ ${id} found`);
-        } else {
-            console.error(`❌ ${id} NOT found`);
-        }
-    });
-}
-
-// Isko console में चलाओ:
-// checkPaymentPageElements();
+function loadSavedCards(){ let userCards = savedCards.filter(c => c.userEmail === "guest@globalbazaar.com"); if(userCards.length > 0){ document.getElementById('savedCardsSection').style.display = 'block'; document.getElementById('savedCardsList').innerHTML = userCards.map((card,idx) => `<div class="flex-between"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}">Use</button></div>`).join(''); document.querySelectorAll('.useSavedCardBtn').forEach(btn => btn.addEventListener('click', () => { let card = userCards[parseInt(btn.dataset.idx)]; document.getElementById('cardNumber').value = card.cardNumber; document.getElementById('cardHolderName').value = card.cardHolderName; document.getElementById('expiryDate').value = card.expiryDate; document.getElementById('cvv').value = ''; showToast("Card loaded", false); })); } }
 
 // ============================================================
 // PAYMENT
 // ============================================================
 
-        document.getElementById('payNowBtn')?.addEventListener('click', async function() {
+document.getElementById('payNowBtn')?.addEventListener('click', async function() {
     const btn = this;
     btn.disabled = true;
     btn.textContent = '⏳ Processing...';
@@ -2323,21 +2259,20 @@ function checkPaymentPageElements() {
             totalHandling += handlingFee * item.qty;
         }
         
-        // FIX: Add both gateway and handling fees to totalUSD along with shipping
-        totalUSD = totalUSD + totalShipping; // totalUSD already includes fees from the loop above
+        totalUSD += totalShipping;
         
         let tracking = "GB" + Date.now();
         let cartCopy = [...cart];
         
         for (let item of cart) {
-            const seller = sellers.find(s => s.id == item.sellerId);
+            const seller = sellers.find(s => s.id === item.sellerId);
             const commissionRate = getCategoryCommission(item.category || 'Electronics');
             let gatewayFee = item.price * GATEWAY_FEE_PERCENT;
             let handlingFee = item.price * HANDLING_FEE_PERCENT;
             let commission = item.price * commissionRate;
             let itemTotal = item.price + gatewayFee + handlingFee;
             
-            let product = products.find(p => p.id == item.id);
+            let product = products.find(p => p.id === item.id);
             
             if (product) {
                 const newStock = product.stock - item.qty;
@@ -2403,7 +2338,6 @@ function checkPaymentPageElements() {
             `<li>${s.product} (${s.seller}): ${s.shipping > 0 ? getCurrencySymbol() + convertPrice(s.shipping) : 'FREE'} x${s.qty}</li>`
         ).join('');
         
-        // FIX: Display total with all fees included in the summary
         document.getElementById('orderSummaryContent').innerHTML = `
             <p><strong>Order ID:</strong> ${tracking}</p>
             <h3>📦 Items</h3>
@@ -2412,7 +2346,7 @@ function checkPaymentPageElements() {
             <ul>${shippingHtml}</ul>
             <h3>💰 Total Paid: ${getCurrencySymbol()}${convertPrice(totalUSD)}</h3>
             <p><small>Includes ${getCurrencySymbol()}${convertPrice(totalShipping)} shipping</small></p>
-            <p><small>Gateway Fee (3%): ${getCurrencySymbol()}${convertPrice(totalGateway)} | Maintenance Fee (1.5%): ${getCurrencySymbol()}${convertPrice(totalHandling)} | Commission: ${getCurrencySymbol()}${convertPrice(totalCommission)}</small></p>
+            <p><small>Gateway: ${getCurrencySymbol()}${convertPrice(totalGateway)} | Maintenance: ${getCurrencySymbol()}${convertPrice(totalHandling)} | Commission: ${getCurrencySymbol()}${convertPrice(totalCommission)}</small></p>
             <h3>👤 Delivery Details</h3>
             <p>${currentDelivery.fullName}<br>📞 ${currentDelivery.phone}<br>${currentDelivery.fullAddress}</p>
             <h3>💳 Payment</h3>
@@ -2437,7 +2371,10 @@ function checkPaymentPageElements() {
         btn.textContent = 'Pay with Card (Dummy)';
     }
 });
-        
+
+function confirmOrderReceived(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Shipped"){ order.status = "Delivered"; saveAllLocal(); showToast("Order marked Delivered", false); renderBuyerOrders(); addNotification(`Order ${order.trackingNumber} delivered`,'order'); setTimeout(()=>{ let ord = orders.find(o => o.id === orderId); if(ord && ord.status === "Delivered"){ ord.status = "Completed"; let seller = sellers.find(s => s.id == ord.sellerId); if(seller){ let sellerEarning = ord.sellerEarning || (ord.basePrice - ord.commission); seller.earnings = (seller.earnings||0) + (sellerEarning * ord.qty); saveAllLocal(); showToast(`Payment released to seller`,false); if(currentSeller) renderSellerDashboard(); } } },5000); } else showToast("Order not shipped yet",true); }
+function cancelOrder(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Processing"){ let prod = products.find(p => p.name === order.productName && p.sellerId === order.sellerId); if(prod){ prod.stock += order.qty; saveAllLocal(); } order.status = "Cancelled"; saveAllLocal(); showToast("Order cancelled successfully",false); renderBuyerOrders(); renderProducts(); addNotification(`Order ${order.trackingNumber} cancelled`,'order'); if(currentSeller) renderSellerDashboard(); } else { showToast("Only orders in 'Processing' status can be cancelled",true); } }
+
 // ============================================================
 // MARK ORDER SHIPPED
 // ============================================================
@@ -2465,7 +2402,7 @@ function processWeeklyWithdrawals(){ let last = localStorage.getItem('gb_last_wi
 setInterval(processWeeklyWithdrawals, 3600000); processWeeklyWithdrawals();
 
 // ============================================================
-// SELLER REGISTRATION
+// SELLER REGISTRATION - SHIPPING ZONES REMOVED
 // ============================================================
 
 document.getElementById('sellerRegForm')?.addEventListener('submit', async function(e) {
@@ -2522,33 +2459,6 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
             return;
         }
         
-        let localCharge = parseFloat(document.getElementById('localShippingCharge')?.value) || 15;
-        let localFreeAbove = parseFloat(document.getElementById('localFreeAbove')?.value) || 100;
-        let regionalCharge = parseFloat(document.getElementById('regionalShippingCharge')?.value) || 25;
-        let regionalFreeAbove = parseFloat(document.getElementById('regionalFreeAbove')?.value) || 200;
-        let internationalCharge = parseFloat(document.getElementById('internationalShippingCharge')?.value) || 40;
-        let internationalFreeAbove = parseFloat(document.getElementById('internationalFreeAbove')?.value) || 300;
-        
-        let regionalCountries = [];
-        let internationalCountries = [];
-        
-        const regionalSelect = document.getElementById('regionalCountries');
-        const internationalSelect = document.getElementById('internationalCountries');
-        
-        if (regionalSelect) {
-            regionalCountries = Array.from(regionalSelect.selectedOptions || []).map(opt => opt.value);
-        }
-        
-        if (internationalSelect) {
-            internationalCountries = Array.from(internationalSelect.selectedOptions || []).map(opt => opt.value);
-        }
-        
-        const shippingZones = {
-            local: { countries: [sellerCountry], charge: localCharge, freeAbove: localFreeAbove },
-            regional: { countries: regionalCountries.length > 0 ? regionalCountries : [], charge: regionalCharge, freeAbove: regionalFreeAbove },
-            international: { countries: internationalCountries.length > 0 ? internationalCountries : [], charge: internationalCharge, freeAbove: internationalFreeAbove }
-        };
-        
         let avatarFile = document.getElementById('sellerAvatar').files[0];
         const email = document.getElementById('sellerEmail').value;
         const password = document.getElementById('sellerPassword').value;
@@ -2593,7 +2503,7 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
             avatar: avatarUrl,
             emailVerified: false,
             uid: user.uid,
-            shippingZones: shippingZones
+            shippingZones: null
         };
         
         await db.collection("sellers").doc(user.uid).set(newSeller);
@@ -2862,7 +2772,7 @@ function showOrderDetailsModal(order) {
 }
 
 // ============================================================
-// SELLER DASHBOARD
+// SELLER DASHBOARD - WITH SHIPPING IN PRODUCT PUBLISH
 // ============================================================
 
 function renderSellerDashboard() {
@@ -2930,26 +2840,6 @@ function renderSellerDashboard() {
     let kycText = seller.kycStatus === "pending" ? "⏳ KYC Pending - Wait for Admin" : 
                   (seller.kycStatus === "verified" ? "✅ KYC Verified" : "❌ KYC Rejected");
     
-    let shippingHtml = '';
-    if (seller.shippingZones) {
-        shippingHtml = `
-            <div style="margin-top:12px; padding:12px; background:#f1f5f9; border-radius:8px;">
-                <h4>🌍 Your Shipping Zones</h4>
-                <div style="font-size:13px;">
-                    <div><strong>📍 Local:</strong> ${seller.shippingZones.local?.countries?.join(', ') || 'Not set'} 
-                        - ${getCurrencySymbol()}${convertPrice(seller.shippingZones.local?.charge || 0)} 
-                        ${seller.shippingZones.local?.freeAbove ? `(Free above ${getCurrencySymbol()}${convertPrice(seller.shippingZones.local.freeAbove)})` : ''}</div>
-                    <div><strong>🌏 Regional:</strong> ${seller.shippingZones.regional?.countries?.join(', ') || 'Not set'} 
-                        - ${getCurrencySymbol()}${convertPrice(seller.shippingZones.regional?.charge || 0)}
-                        ${seller.shippingZones.regional?.freeAbove ? `(Free above ${getCurrencySymbol()}${convertPrice(seller.shippingZones.regional.freeAbove)})` : ''}</div>
-                    <div><strong>🌐 International:</strong> ${seller.shippingZones.international?.countries?.join(', ') || 'Not set'} 
-                        - ${getCurrencySymbol()}${convertPrice(seller.shippingZones.international?.charge || 0)}
-                        ${seller.shippingZones.international?.freeAbove ? `(Free above ${getCurrencySymbol()}${convertPrice(seller.shippingZones.international.freeAbove)})` : ''}</div>
-                </div>
-            </div>
-        `;
-    }
-    
     let topProducts = {};
     myOrders.forEach(o => {
         topProducts[o.productName] = (topProducts[o.productName] || 0) + o.qty;
@@ -2973,6 +2863,13 @@ function renderSellerDashboard() {
                                 `<span style="color:#10b981;">✅ ${p.stock} in stock</span>`
                             }
                             <span style="margin-left:8px; font-size:11px; color:#8b5cf6;">Commission: ${(commissionRate * 100).toFixed(0)}%</span>
+                        </div>
+                        <div style="font-size:10px; color:#64748b; margin-top:2px;">
+                            🚚 Local: ${getCurrencySymbol()}${convertPrice(p.shippingLocal || 0)} | 
+                            Regional: ${getCurrencySymbol()}${convertPrice(p.shippingRegional || 0)} | 
+                            International: ${getCurrencySymbol()}${convertPrice(p.shippingInternational || 0)} | 
+                            Free above: ${getCurrencySymbol()}${convertPrice(p.shippingFreeAbove || 0)}
+                            ${p.shippingFreeAbove > 0 ? `(Free above ${getCurrencySymbol()}${convertPrice(p.shippingFreeAbove)})` : '(No free shipping)'}
                         </div>
                     </div>
                 </div>
@@ -3100,7 +2997,6 @@ function renderSellerDashboard() {
                 <div>💰 Balance: <strong style="font-size:20px;">${getCurrencySymbol()}${convertPrice(seller.earnings)}</strong></div>
                 <button id="withdrawBtn" style="background:#10b981; color:white; border:none; padding:8px 20px; border-radius:25px; cursor:pointer; font-weight:600;">💸 Withdraw</button>
             </div>
-            ${shippingHtml}
         </div>
         
         <div class="chart-container"><h3>📊 Revenue</h3><canvas id="revenueChart"></canvas></div>
@@ -3122,6 +3018,34 @@ function renderSellerDashboard() {
                 <option value="Toys & Hobbies">Toys & Hobbies (15% Commission)</option>
             </select>
             <input type="number" id="prodStock" placeholder="Stock Quantity" class="input" required>
+            
+            <!-- ========== SHIPPING SETTINGS - 4 OPTIONS ========== -->
+            <div style="background:#f8fafc; padding:16px; border-radius:16px; margin-top:12px; border:1px solid #e2e8f0;">
+                <h4 style="margin-bottom:10px;">🚚 Shipping Settings</h4>
+                <p style="font-size:12px; color:#64748b; margin-bottom:10px;">Set shipping charges for different regions. Set 0 for free shipping in that zone.</p>
+                
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div>
+                        <label style="font-size:13px; font-weight:600;">📍 Local Zone</label>
+                        <input type="number" id="prodShippingLocal" placeholder="e.g., 15" class="input" value="0" min="0">
+                    </div>
+                    <div>
+                        <label style="font-size:13px; font-weight:600;">🌏 Regional Zone</label>
+                        <input type="number" id="prodShippingRegional" placeholder="e.g., 25" class="input" value="0" min="0">
+                    </div>
+                    <div>
+                        <label style="font-size:13px; font-weight:600;">🌐 International Zone</label>
+                        <input type="number" id="prodShippingInternational" placeholder="e.g., 40" class="input" value="0" min="0">
+                    </div>
+                    <div>
+                        <label style="font-size:13px; font-weight:600;">🎉 Free Shipping Above</label>
+                        <input type="number" id="prodShippingFreeAbove" placeholder="e.g., 200 (0 = No free shipping)" class="input" value="0" min="0">
+                        <p style="font-size:10px; color:#94a3b8; margin-top:2px;">💡 Set 0 for NO free shipping</p>
+                    </div>
+                </div>
+            </div>
+            <!-- ========== END SHIPPING SETTINGS ========== -->
+            
             <div style="background:#f8fafc; padding:16px; border-radius:16px; margin-top:12px; border:1px solid #e2e8f0;">
                 <h4 style="margin-bottom:10px;">📦 Product Details</h4>
                 <div style="margin-bottom:12px;">
@@ -3134,6 +3058,7 @@ function renderSellerDashboard() {
                     <div><label style="font-size:13px; font-weight:600;">Height (cm) *</label><input type="number" id="prodHeight" placeholder="e.g., 10" class="input" required min="1"></div>
                 </div>
             </div>
+            
             <label style="margin-top:12px; display:block;">Main Image (upload)</label>
             <input type="file" id="prodMainImg" accept="image/*" class="input" required>
             <label>Additional Images (optional, max 4)</label>
@@ -3182,6 +3107,12 @@ function renderSellerDashboard() {
             const cat = document.getElementById('prodCat').value;
             const stock = parseInt(document.getElementById('prodStock').value);
             const desc = document.getElementById('prodDesc').value;
+            
+            // Get shipping values
+            const shippingLocal = parseFloat(document.getElementById('prodShippingLocal').value) || 0;
+            const shippingRegional = parseFloat(document.getElementById('prodShippingRegional').value) || 0;
+            const shippingInternational = parseFloat(document.getElementById('prodShippingInternational').value) || 0;
+            const shippingFreeAbove = parseFloat(document.getElementById('prodShippingFreeAbove').value) || 0;
             
             if (!name) { showToast("Product name required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
             if (!price || price <= 0) { showToast("Valid price required", true); btn.disabled = false; btn.textContent = '📢 Publish'; return; }
@@ -3255,7 +3186,12 @@ function renderSellerDashboard() {
                 handlingFee: calc.handlingFee,
                 sellerEarning: calc.sellerEarning,
                 platformRevenue: calc.platformRevenue,
-                publicPrice: calc.publicPrice
+                publicPrice: calc.publicPrice,
+                // Shipping settings
+                shippingLocal: shippingLocal,
+                shippingRegional: shippingRegional,
+                shippingInternational: shippingInternational,
+                shippingFreeAbove: shippingFreeAbove
             };
             
             await db.collection("products").add(newProduct);
@@ -3273,6 +3209,10 @@ function renderSellerDashboard() {
             document.getElementById('prodLength').value = '';
             document.getElementById('prodWidth').value = '';
             document.getElementById('prodHeight').value = '';
+            document.getElementById('prodShippingLocal').value = '0';
+            document.getElementById('prodShippingRegional').value = '0';
+            document.getElementById('prodShippingInternational').value = '0';
+            document.getElementById('prodShippingFreeAbove').value = '0';
             
             renderSellerDashboard();
             renderProducts();
@@ -3313,7 +3253,7 @@ function renderSellerDashboard() {
 }
 
 // ============================================================
-// RENDER EDIT PRODUCT MODAL WITH RESTOCK
+// RENDER EDIT PRODUCT MODAL WITH RESTOCK + SHIPPING
 // ============================================================
 
 function renderEditProductModal(prod) {
@@ -3323,6 +3263,41 @@ function renderEditProductModal(prod) {
     document.getElementById('editProdCat').value = prod.category;
     document.getElementById('editProdStock').value = prod.stock;
     document.getElementById('editProdDesc').value = prod.description || '';
+    
+    // Add shipping fields to edit modal
+    let shippingHtml = `
+        <div style="background:#f8fafc; padding:12px; border-radius:12px; margin:10px 0;">
+            <h4 style="margin-bottom:8px;">🚚 Shipping Settings (0 = Free)</h4>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <div>
+                    <label style="font-size:12px; font-weight:600;">📍 Local</label>
+                    <input type="number" id="editProdShippingLocal" value="${prod.shippingLocal || 0}" class="input" style="padding:8px; margin-bottom:4px;" min="0">
+                </div>
+                <div>
+                    <label style="font-size:12px; font-weight:600;">🌏 Regional</label>
+                    <input type="number" id="editProdShippingRegional" value="${prod.shippingRegional || 0}" class="input" style="padding:8px; margin-bottom:4px;" min="0">
+                </div>
+                <div>
+                    <label style="font-size:12px; font-weight:600;">🌐 International</label>
+                    <input type="number" id="editProdShippingInternational" value="${prod.shippingInternational || 0}" class="input" style="padding:8px; margin-bottom:4px;" min="0">
+                </div>
+                <div>
+                    <label style="font-size:12px; font-weight:600;">🎉 Free Above (0 = No free shipping)</label>
+                    <input type="number" id="editProdShippingFreeAbove" value="${prod.shippingFreeAbove || 0}" class="input" style="padding:8px; margin-bottom:4px;" min="0">
+                    <p style="font-size:9px; color:#94a3b8;">0 = No free shipping</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Insert shipping section after stock section
+    const stockSection = document.querySelector('#editProductModal .modal-card .input#editProdStock')?.parentElement;
+    if (stockSection) {
+        // Add shipping section after stock
+        const shippingDiv = document.createElement('div');
+        shippingDiv.innerHTML = shippingHtml;
+        stockSection.after(shippingDiv);
+    }
     
     let currImgHtml = prod.images.map(img => 
         `<div style="display:inline-block; margin:4px;"><img src="${img}" width="60" style="border-radius:8px; border:2px solid #e2e8f0;"></div>`
@@ -3349,7 +3324,7 @@ function renderEditProductModal(prod) {
 }
 
 // ============================================================
-// UPDATE PRODUCT WITH RESTOCK
+// UPDATE PRODUCT WITH RESTOCK + SHIPPING
 // ============================================================
 
 document.getElementById('updateProductBtn')?.addEventListener('click', async function() {
@@ -3369,6 +3344,12 @@ document.getElementById('updateProductBtn')?.addEventListener('click', async fun
         let commissionRate = getCategoryCommission(category);
         const calc = calculateProductPrice(price, category);
         
+        // Get shipping values from edit modal
+        const shippingLocal = parseFloat(document.getElementById('editProdShippingLocal')?.value) || 0;
+        const shippingRegional = parseFloat(document.getElementById('editProdShippingRegional')?.value) || 0;
+        const shippingInternational = parseFloat(document.getElementById('editProdShippingInternational')?.value) || 0;
+        const shippingFreeAbove = parseFloat(document.getElementById('editProdShippingFreeAbove')?.value) || 0;
+        
         let updates = {
             name: document.getElementById('editProdName').value,
             price: price,
@@ -3381,7 +3362,11 @@ document.getElementById('updateProductBtn')?.addEventListener('click', async fun
             handlingFee: calc.handlingFee,
             sellerEarning: calc.sellerEarning,
             platformRevenue: calc.platformRevenue,
-            publicPrice: calc.publicPrice
+            publicPrice: calc.publicPrice,
+            shippingLocal: shippingLocal,
+            shippingRegional: shippingRegional,
+            shippingInternational: shippingInternational,
+            shippingFreeAbove: shippingFreeAbove
         };
         
         if (oldStock <= 0 && newStock > 0) {
@@ -3476,67 +3461,12 @@ document.getElementById('sellerDocImage')?.addEventListener('change', function(e
 });
 
 // ============================================================
-// POPULATE SHIPPING ZONES IN REGISTRATION FORM
+// POPULATE SHIPPING ZONES IN REGISTRATION FORM - REMOVED
 // ============================================================
 
 function populateShippingZones() {
-    try {
-        const sellerCountry = document.getElementById('sellerCountryReg')?.value;
-        if (!sellerCountry) return;
-        
-        const zoneKey = getCountryZone(sellerCountry);
-        const regionalSelect = document.getElementById('regionalCountries');
-        const internationalSelect = document.getElementById('internationalCountries');
-        
-        if (!regionalSelect || !internationalSelect) return;
-        
-        regionalSelect.innerHTML = '';
-        internationalSelect.innerHTML = '';
-        
-        const allCountries = [];
-        for (let zone of Object.values(SHIPPING_ZONES)) {
-            allCountries.push(...zone.countries);
-        }
-        
-        const uniqueCountries = [...new Set(allCountries)];
-        
-        if (zoneKey && SHIPPING_ZONES[zoneKey]) {
-            SHIPPING_ZONES[zoneKey].countries.forEach(country => {
-                if (country.toLowerCase() !== sellerCountry.toLowerCase()) {
-                    const opt = document.createElement('option');
-                    opt.value = country;
-                    opt.textContent = country;
-                    opt.selected = true;
-                    regionalSelect.appendChild(opt);
-                }
-            });
-        }
-        
-        uniqueCountries.forEach(country => {
-            if (country.toLowerCase() !== sellerCountry.toLowerCase()) {
-                const isRegional = SHIPPING_ZONES[zoneKey]?.countries.some(c => 
-                    c.toLowerCase() === country.toLowerCase()
-                );
-                if (!isRegional) {
-                    const opt = document.createElement('option');
-                    opt.value = country;
-                    opt.textContent = country;
-                    opt.selected = true;
-                    internationalSelect.appendChild(opt);
-                }
-            }
-        });
-        
-        document.getElementById('localShippingCharge').value = 15;
-        document.getElementById('localFreeAbove').value = 100;
-        document.getElementById('regionalShippingCharge').value = SHIPPING_ZONES[zoneKey]?.defaultCharge || 25;
-        document.getElementById('regionalFreeAbove').value = SHIPPING_ZONES[zoneKey]?.defaultFreeAbove || 200;
-        document.getElementById('internationalShippingCharge').value = 40;
-        document.getElementById('internationalFreeAbove').value = 300;
-        
-    } catch (error) {
-        console.error('Populate shipping zones error:', error);
-    }
+    // No longer needed - shipping zones moved to product publish
+    console.log('Shipping zones removed from registration');
 }
 
 // ============================================================
@@ -3709,12 +3639,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     updateFooterSupport();
     
-    // Country select for shipping zones
-    const countrySelect = document.getElementById('sellerCountryReg');
-    if (countrySelect) {
-        countrySelect.addEventListener('change', populateShippingZones);
-    }
-    
     // Real-time shipping calculation on country change
     const deliveryCountry = document.getElementById('deliveryCountry');
     if (deliveryCountry) {
@@ -3788,4 +3712,4 @@ updateCartUI();
 updateNotificationUI(); 
 updateAdminPendingBadge(); 
 updateAdminMenuBadges();
-document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 6 Categories | Dynamic Commission";
+document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 6 Categories | Free Shipping Optional";
