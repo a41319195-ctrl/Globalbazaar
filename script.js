@@ -130,11 +130,12 @@ function getCategoryCommission(category) {
 }
 
 // ============================================================
-// PRICE CALCULATION
+// PRICE CALCULATION - FIXED: SAME PRICE EVERYWHERE
 // ============================================================
 
 function calculateProductPrice(basePrice, category = 'Electronics') {
     const commissionRate = getCategoryCommission(category);
+    // Buyer pays: Base + 3% Gateway + 1.5% Maintenance
     const gatewayFee = basePrice * GATEWAY_FEE_PERCENT;
     const handlingFee = basePrice * HANDLING_FEE_PERCENT;
     const publicPrice = basePrice + gatewayFee + handlingFee;
@@ -154,71 +155,62 @@ function calculateProductPrice(basePrice, category = 'Electronics') {
     };
 }
 
-function calculateFinalPrice(basePrice, sellerId, buyerCountry, category, cartTotal = 0, sellerObj = null, shippingCharge = 0) {
+// ============================================================
+// SHIPPING ZONE SYSTEM - FIXED: DYNAMIC BASED ON SELLER & BUYER
+// ============================================================
+
+function getShippingChargeForProduct(product, buyerCountry, cartTotal = 0, seller = null) {
     try {
-        let seller = sellerObj;
-        if (!seller && sellerId) {
-            seller = sellers.find(s => s.id === sellerId);
+        if (!product) return 0;
+        
+        // Get seller country
+        const sellerCountry = seller?.country || product.sellerCountry || "SA";
+        
+        // Determine zone based on buyer country vs seller country
+        let zoneCharge = 0;
+        let freeAbove = 0;
+        let zoneType = 'international';
+        
+        // Check if buyer is in same country as seller (LOCAL)
+        if (buyerCountry === sellerCountry || 
+            buyerCountry.toLowerCase() === sellerCountry.toLowerCase()) {
+            zoneType = 'local';
+            zoneCharge = parseFloat(product.shippingLocal) || 0;
+            freeAbove = parseFloat(product.shippingFreeAbove) || 0;
+        }
+        // Check if buyer is in same region (REGIONAL) - using SHIPPING_ZONES
+        else if (seller && product.shippingRegional !== undefined) {
+            const sellerZone = getCountryZone(sellerCountry);
+            const buyerZone = getCountryZone(buyerCountry);
+            
+            if (sellerZone === buyerZone && sellerZone !== 'international') {
+                zoneType = 'regional';
+                zoneCharge = parseFloat(product.shippingRegional) || 0;
+                freeAbove = parseFloat(product.shippingFreeAbove) || 0;
+            }
         }
         
-        const commissionRate = getCategoryCommission(category);
-        
-        if (!seller || sellerId === 0 || sellerId === '0') {
-            let shipping = shippingCharge || 0;
-            
-            let gatewayFee = basePrice * GATEWAY_FEE_PERCENT;
-            let handlingFee = basePrice * HANDLING_FEE_PERCENT;
-            let commission = basePrice * commissionRate;
-            let total = basePrice + gatewayFee + handlingFee + shipping;
-            
-            return {
-                total: total,
-                basePrice: basePrice,
-                shipping: shipping,
-                commission: commission,
-                commissionRate: commissionRate,
-                gateway: gatewayFee,
-                handling: handlingFee,
-                sellerEarning: basePrice - commission
-            };
+        // If not local or regional, use INTERNATIONAL
+        if (zoneType === 'international') {
+            zoneCharge = parseFloat(product.shippingInternational) || 0;
+            freeAbove = parseFloat(product.shippingFreeAbove) || 0;
         }
         
-        let shipping = shippingCharge || 0;
+        // Check free shipping (optional - only if freeAbove > 0)
+        if (freeAbove > 0 && cartTotal >= freeAbove) {
+            return 0;
+        }
         
-        let gatewayFee = basePrice * GATEWAY_FEE_PERCENT;
-        let handlingFee = basePrice * HANDLING_FEE_PERCENT;
-        let commission = basePrice * commissionRate;
-        let total = basePrice + gatewayFee + handlingFee + shipping;
-        
-        return {
-            total: total,
-            basePrice: basePrice,
-            shipping: shipping,
-            commission: commission,
-            commissionRate: commissionRate,
-            gateway: gatewayFee,
-            handling: handlingFee,
-            sellerEarning: basePrice - commission
-        };
+        return zoneCharge;
         
     } catch (error) {
-        console.error('Price calculation error:', error);
-        let total = basePrice + (basePrice * 0.03) + (basePrice * 0.015);
-        return {
-            total: total,
-            basePrice: basePrice,
-            shipping: 0,
-            commission: basePrice * 0.10,
-            commissionRate: 0.10,
-            gateway: basePrice * 0.03,
-            handling: basePrice * 0.015,
-            sellerEarning: basePrice * 0.90
-        };
+        console.error('Shipping calculation error:', error);
+        return 0;
     }
 }
 
 // ============================================================
-// SHIPPING ZONE SYSTEM - WITH OPTIONAL FREE SHIPPING
+// SHIPPING ZONES FOR REGIONAL DETECTION
 // ============================================================
 
 const SHIPPING_ZONES = {
@@ -274,114 +266,6 @@ function getCountryZone(countryName) {
         }
     }
     return 'international';
-}
-
-function getShippingCharge(sellerZones, buyerCountry, cartTotal = 0) {
-    try {
-        // If no seller zones, use default
-        if (!sellerZones || Object.keys(sellerZones).length === 0) {
-            return cartTotal > 200 ? 0 : 25;
-        }
-        
-        let buyerZone = null;
-        let zoneCharge = 25;
-        let freeAbove = 0;
-        
-        // Check LOCAL zone
-        if (sellerZones.local && sellerZones.local.countries) {
-            const localMatch = sellerZones.local.countries.some(c => 
-                c.toLowerCase() === buyerCountry.toLowerCase()
-            );
-            if (localMatch) {
-                buyerZone = 'local';
-                zoneCharge = parseFloat(sellerZones.local.charge) || 15;
-                freeAbove = parseFloat(sellerZones.local.freeAbove) || 0;
-            }
-        }
-        
-        // Check REGIONAL zone
-        if (!buyerZone && sellerZones.regional && sellerZones.regional.countries) {
-            const regionalMatch = sellerZones.regional.countries.some(c => 
-                c.toLowerCase() === buyerCountry.toLowerCase()
-            );
-            if (regionalMatch) {
-                buyerZone = 'regional';
-                zoneCharge = parseFloat(sellerZones.regional.charge) || 25;
-                freeAbove = parseFloat(sellerZones.regional.freeAbove) || 0;
-            }
-        }
-        
-        // Check INTERNATIONAL zone
-        if (!buyerZone && sellerZones.international) {
-            buyerZone = 'international';
-            zoneCharge = parseFloat(sellerZones.international.charge) || 40;
-            freeAbove = parseFloat(sellerZones.international.freeAbove) || 0;
-        }
-        
-        // If no zone found, use default
-        if (!buyerZone) {
-            return cartTotal > 200 ? 0 : 25;
-        }
-        
-        // ========== FREE SHIPPING CHECK - OPTIONAL ==========
-        // ✅ Only free if freeAbove > 0 AND cartTotal >= freeAbove
-        if (freeAbove > 0 && cartTotal >= freeAbove) {
-            return 0; // FREE SHIPPING
-        }
-        
-        return zoneCharge;
-        
-    } catch (error) {
-        console.error('Shipping calculation error:', error);
-        return cartTotal > 200 ? 0 : 25;
-    }
-}
-
-function setupShippingZonesForSeller(country) {
-    try {
-        if (!country) {
-            return {
-                local: { countries: ["Saudi Arabia"], charge: 15, freeAbove: 100 },
-                regional: { countries: ["UAE", "Qatar", "Kuwait", "Bahrain", "Oman"], charge: 25, freeAbove: 200 },
-                international: { countries: [], charge: 40, freeAbove: 300 }
-            };
-        }
-        
-        const zoneKey = getCountryZone(country);
-        const zones = {
-            local: { countries: [country], charge: 15, freeAbove: 100 },
-            regional: { countries: [], charge: 25, freeAbove: 200 },
-            international: { countries: [], charge: 40, freeAbove: 300 }
-        };
-        
-        if (zoneKey && SHIPPING_ZONES[zoneKey]) {
-            const regionalCountries = SHIPPING_ZONES[zoneKey].countries.filter(c => 
-                c.toLowerCase() !== country.toLowerCase()
-            );
-            zones.regional.countries = regionalCountries;
-        }
-        
-        const allCountries = [];
-        for (let zone of Object.values(SHIPPING_ZONES)) {
-            allCountries.push(...zone.countries);
-        }
-        
-        const internationalCountries = allCountries.filter(c => 
-            c.toLowerCase() !== country.toLowerCase() && 
-            !zones.regional.countries.some(rc => rc.toLowerCase() === c.toLowerCase())
-        );
-        zones.international.countries = internationalCountries;
-        
-        return zones;
-        
-    } catch (error) {
-        console.error('Setup shipping zones error:', error);
-        return {
-            local: { countries: [country || "Saudi Arabia"], charge: 15, freeAbove: 100 },
-            regional: { countries: [], charge: 25, freeAbove: 200 },
-            international: { countries: [], charge: 40, freeAbove: 300 }
-        };
-    }
 }
 
 // ============================================================
@@ -910,7 +794,7 @@ function displayUserData(userData, type) {
 }
 
 // ============================================================
-// SHIPPING CALCULATION - REAL-TIME AT CHECKOUT
+// SHIPPING CALCULATION - REAL-TIME AT CHECKOUT - FIXED
 // ============================================================
 
 function calculateShippingRealTime() {
@@ -933,40 +817,18 @@ function calculateShippingRealTime() {
         const seller = sellers.find(s => s.id === item.sellerId);
         const product = products.find(p => p.id === item.id);
         
-        // Get shipping from product or fallback to seller zones
-        let sellerZones = null;
-        if (product && product.shippingLocal !== undefined) {
-            // Product has its own shipping settings
-            sellerZones = {
-                local: { 
-                    countries: [seller?.country || "SA"], 
-                    charge: product.shippingLocal || 0, 
-                    freeAbove: product.shippingFreeAbove || 0 
-                },
-                regional: { 
-                    countries: [], 
-                    charge: product.shippingRegional || 0, 
-                    freeAbove: product.shippingFreeAbove || 0 
-                },
-                international: { 
-                    countries: [], 
-                    charge: product.shippingInternational || 0, 
-                    freeAbove: product.shippingFreeAbove || 0 
-                }
-            };
-        } else {
-            // Fallback to seller zones
-            sellerZones = seller?.shippingZones || setupShippingZonesForSeller(seller?.country || "SA");
-        }
+        if (!product) continue;
         
-        const itemTotal = item.price * item.qty;
-        const shipping = getShippingCharge(sellerZones, buyerCountry, itemTotal);
+        // Calculate shipping using product settings
+        const shipping = getShippingChargeForProduct(product, buyerCountry, item.price * item.qty, seller);
+        
         totalShipping += shipping * item.qty;
         shippingBreakdown.push({
             product: item.name,
             seller: seller?.shopName || 'GlobalBazaar',
             shipping: shipping,
-            qty: item.qty
+            qty: item.qty,
+            zone: getZoneType(product, buyerCountry, seller)
         });
     }
     
@@ -982,7 +844,7 @@ function calculateShippingRealTime() {
             `;
         } else if (totalShipping > 0) {
             let breakdownHtml = shippingBreakdown.map(s => 
-                `<li style="font-size:12px; color:#64748b;">${s.product} (${s.seller}): ${s.shipping > 0 ? getCurrencySymbol() + convertPrice(s.shipping) : 'FREE'} x${s.qty}</li>`
+                `<li style="font-size:12px; color:#64748b;">${s.product} (${s.seller}): ${s.shipping > 0 ? getCurrencySymbol() + convertPrice(s.shipping) : 'FREE'} x${s.qty} [${s.zone || 'International'}]</li>`
             ).join('');
             
             shippingContainer.style.display = 'block';
@@ -998,6 +860,26 @@ function calculateShippingRealTime() {
     updatePaymentSummary();
 }
 
+function getZoneType(product, buyerCountry, seller) {
+    if (!product) return 'International';
+    
+    const sellerCountry = seller?.country || product.sellerCountry || "SA";
+    
+    if (buyerCountry === sellerCountry || 
+        buyerCountry.toLowerCase() === sellerCountry.toLowerCase()) {
+        return 'Local';
+    }
+    
+    const sellerZone = getCountryZone(sellerCountry);
+    const buyerZone = getCountryZone(buyerCountry);
+    
+    if (sellerZone === buyerZone && sellerZone !== 'international') {
+        return 'Regional';
+    }
+    
+    return 'International';
+}
+
 function updatePaymentSummary() {
     let subtotal = 0;
     let totalShipping = 0;
@@ -1006,20 +888,17 @@ function updatePaymentSummary() {
         const seller = sellers.find(s => s.id === item.sellerId);
         const product = products.find(p => p.id === item.id);
         
-        let sellerZones = null;
-        if (product && product.shippingLocal !== undefined) {
-            sellerZones = {
-                local: { countries: [seller?.country || "SA"], charge: product.shippingLocal || 0, freeAbove: product.shippingFreeAbove || 0 },
-                regional: { countries: [], charge: product.shippingRegional || 0, freeAbove: product.shippingFreeAbove || 0 },
-                international: { countries: [], charge: product.shippingInternational || 0, freeAbove: product.shippingFreeAbove || 0 }
-            };
-        } else {
-            sellerZones = seller?.shippingZones || setupShippingZonesForSeller(seller?.country || "SA");
-        }
+        if (!product) continue;
         
-        const itemTotal = item.price * item.qty;
-        const shipping = getShippingCharge(sellerZones, buyerCountry, itemTotal);
-        subtotal += itemTotal;
+        // Calculate subtotal: Base + 3% Gateway + 1.5% Handling
+        const gatewayFee = product.price * GATEWAY_FEE_PERCENT;
+        const handlingFee = product.price * HANDLING_FEE_PERCENT;
+        const itemTotal = product.price + gatewayFee + handlingFee;
+        
+        subtotal += itemTotal * item.qty;
+        
+        // Calculate shipping
+        const shipping = getShippingChargeForProduct(product, buyerCountry, product.price * item.qty, seller);
         totalShipping += shipping * item.qty;
     }
     
@@ -1776,7 +1655,7 @@ function loadAdminData() {
 }
 
 // ============================================================
-// RENDER PRODUCTS - FIXED
+// RENDER PRODUCTS - FIXED: SAME PRICE AS CART
 // ============================================================
 
 function renderProductCard(p) {
@@ -1793,6 +1672,7 @@ function renderProductCard(p) {
             return '';
         }
         
+        // ========== SAME PRICE AS CART ==========
         // Calculate price: Base + 3% Gateway + 1.5% Handling
         let gatewayFee = p.price * GATEWAY_FEE_PERCENT;
         let handlingFee = p.price * HANDLING_FEE_PERCENT;
@@ -2287,6 +2167,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                 }
             }
             
+            // Get shipping for this item from breakdown
             const itemShipping = shippingBreakdown.find(s => s.product === item.name)?.shipping || 0;
             
             let newOrder = {
@@ -2335,7 +2216,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         let last4 = cardNum.slice(-4);
         let itemsHtml = cartCopy.map(i => `<li>${i.name} x${i.qty} = ${getCurrencySymbol()}${convertPrice(i.price * i.qty)}</li>`).join('');
         let shippingHtml = shippingBreakdown.map(s => 
-            `<li>${s.product} (${s.seller}): ${s.shipping > 0 ? getCurrencySymbol() + convertPrice(s.shipping) : 'FREE'} x${s.qty}</li>`
+            `<li>${s.product} (${s.seller}): ${s.shipping > 0 ? getCurrencySymbol() + convertPrice(s.shipping) : 'FREE'} x${s.qty} [${s.zone || 'International'}]</li>`
         ).join('');
         
         document.getElementById('orderSummaryContent').innerHTML = `
@@ -2346,7 +2227,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             <ul>${shippingHtml}</ul>
             <h3>💰 Total Paid: ${getCurrencySymbol()}${convertPrice(totalUSD)}</h3>
             <p><small>Includes ${getCurrencySymbol()}${convertPrice(totalShipping)} shipping</small></p>
-            <p><small>Gateway: ${getCurrencySymbol()}${convertPrice(totalGateway)} | Maintenance: ${getCurrencySymbol()}${convertPrice(totalHandling)} | Commission: ${getCurrencySymbol()}${convertPrice(totalCommission)}</small></p>
+            <p><small>Gateway: ${getCurrencySymbol()}${convertPrice(totalGateway)} | Maintenance: ${getCurrencySymbol()}${convertPrice(totalHandling)}</small></p>
             <h3>👤 Delivery Details</h3>
             <p>${currentDelivery.fullName}<br>📞 ${currentDelivery.phone}<br>${currentDelivery.fullAddress}</p>
             <h3>💳 Payment</h3>
@@ -2402,7 +2283,7 @@ function processWeeklyWithdrawals(){ let last = localStorage.getItem('gb_last_wi
 setInterval(processWeeklyWithdrawals, 3600000); processWeeklyWithdrawals();
 
 // ============================================================
-// SELLER REGISTRATION - SHIPPING ZONES REMOVED
+// SELLER REGISTRATION - SHIPPING ZONES COMPLETELY REMOVED
 // ============================================================
 
 document.getElementById('sellerRegForm')?.addEventListener('submit', async function(e) {
@@ -2479,6 +2360,7 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
         let docImageUrl = await uploadCompressedImage(docImgFile, 'kyc');
         if (!docImageUrl) throw new Error("KYC document upload failed");
 
+        // ✅ NO SHIPPING ZONES IN REGISTRATION
         let newSeller = {
             fullName: document.getElementById('sellerFullName').value,
             shopName: document.getElementById('sellerShopName').value,
@@ -2502,8 +2384,7 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
             createdAt: new Date().toISOString(),
             avatar: avatarUrl,
             emailVerified: false,
-            uid: user.uid,
-            shippingZones: null
+            uid: user.uid
         };
         
         await db.collection("sellers").doc(user.uid).set(newSeller);
@@ -3022,25 +2903,28 @@ function renderSellerDashboard() {
             <!-- ========== SHIPPING SETTINGS - 4 OPTIONS ========== -->
             <div style="background:#f8fafc; padding:16px; border-radius:16px; margin-top:12px; border:1px solid #e2e8f0;">
                 <h4 style="margin-bottom:10px;">🚚 Shipping Settings</h4>
-                <p style="font-size:12px; color:#64748b; margin-bottom:10px;">Set shipping charges for different regions. Set 0 for free shipping in that zone.</p>
+                <p style="font-size:12px; color:#64748b; margin-bottom:10px;">Set shipping charges based on buyer's location. 0 = Free shipping in that zone.</p>
                 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                     <div>
-                        <label style="font-size:13px; font-weight:600;">📍 Local Zone</label>
+                        <label style="font-size:13px; font-weight:600;">📍 Local Zone (Same Country)</label>
                         <input type="number" id="prodShippingLocal" placeholder="e.g., 15" class="input" value="0" min="0">
+                        <p style="font-size:9px; color:#94a3b8;">0 = Free</p>
                     </div>
                     <div>
-                        <label style="font-size:13px; font-weight:600;">🌏 Regional Zone</label>
+                        <label style="font-size:13px; font-weight:600;">🌏 Regional Zone (Same Region)</label>
                         <input type="number" id="prodShippingRegional" placeholder="e.g., 25" class="input" value="0" min="0">
+                        <p style="font-size:9px; color:#94a3b8;">0 = Free</p>
                     </div>
                     <div>
-                        <label style="font-size:13px; font-weight:600;">🌐 International Zone</label>
+                        <label style="font-size:13px; font-weight:600;">🌐 International Zone (Rest of World)</label>
                         <input type="number" id="prodShippingInternational" placeholder="e.g., 40" class="input" value="0" min="0">
+                        <p style="font-size:9px; color:#94a3b8;">0 = Free</p>
                     </div>
                     <div>
                         <label style="font-size:13px; font-weight:600;">🎉 Free Shipping Above</label>
                         <input type="number" id="prodShippingFreeAbove" placeholder="e.g., 200 (0 = No free shipping)" class="input" value="0" min="0">
-                        <p style="font-size:10px; color:#94a3b8; margin-top:2px;">💡 Set 0 for NO free shipping</p>
+                        <p style="font-size:9px; color:#94a3b8;">💡 Set 0 for NO free shipping</p>
                     </div>
                 </div>
             </div>
@@ -3187,7 +3071,6 @@ function renderSellerDashboard() {
                 sellerEarning: calc.sellerEarning,
                 platformRevenue: calc.platformRevenue,
                 publicPrice: calc.publicPrice,
-                // Shipping settings
                 shippingLocal: shippingLocal,
                 shippingRegional: shippingRegional,
                 shippingInternational: shippingInternational,
@@ -3270,15 +3153,15 @@ function renderEditProductModal(prod) {
             <h4 style="margin-bottom:8px;">🚚 Shipping Settings (0 = Free)</h4>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
                 <div>
-                    <label style="font-size:12px; font-weight:600;">📍 Local</label>
+                    <label style="font-size:12px; font-weight:600;">📍 Local (Same Country)</label>
                     <input type="number" id="editProdShippingLocal" value="${prod.shippingLocal || 0}" class="input" style="padding:8px; margin-bottom:4px;" min="0">
                 </div>
                 <div>
-                    <label style="font-size:12px; font-weight:600;">🌏 Regional</label>
+                    <label style="font-size:12px; font-weight:600;">🌏 Regional (Same Region)</label>
                     <input type="number" id="editProdShippingRegional" value="${prod.shippingRegional || 0}" class="input" style="padding:8px; margin-bottom:4px;" min="0">
                 </div>
                 <div>
-                    <label style="font-size:12px; font-weight:600;">🌐 International</label>
+                    <label style="font-size:12px; font-weight:600;">🌐 International (Rest of World)</label>
                     <input type="number" id="editProdShippingInternational" value="${prod.shippingInternational || 0}" class="input" style="padding:8px; margin-bottom:4px;" min="0">
                 </div>
                 <div>
@@ -3293,7 +3176,6 @@ function renderEditProductModal(prod) {
     // Insert shipping section after stock section
     const stockSection = document.querySelector('#editProductModal .modal-card .input#editProdStock')?.parentElement;
     if (stockSection) {
-        // Add shipping section after stock
         const shippingDiv = document.createElement('div');
         shippingDiv.innerHTML = shippingHtml;
         stockSection.after(shippingDiv);
@@ -3344,7 +3226,6 @@ document.getElementById('updateProductBtn')?.addEventListener('click', async fun
         let commissionRate = getCategoryCommission(category);
         const calc = calculateProductPrice(price, category);
         
-        // Get shipping values from edit modal
         const shippingLocal = parseFloat(document.getElementById('editProdShippingLocal')?.value) || 0;
         const shippingRegional = parseFloat(document.getElementById('editProdShippingRegional')?.value) || 0;
         const shippingInternational = parseFloat(document.getElementById('editProdShippingInternational')?.value) || 0;
@@ -3461,12 +3342,13 @@ document.getElementById('sellerDocImage')?.addEventListener('change', function(e
 });
 
 // ============================================================
-// POPULATE SHIPPING ZONES IN REGISTRATION FORM - REMOVED
+// POPULATE SHIPPING ZONES - DISABLED (Registration se hata diya)
 // ============================================================
 
 function populateShippingZones() {
-    // No longer needed - shipping zones moved to product publish
+    // ❌ Shipping zones registration se remove kar diye gaye hain
     console.log('Shipping zones removed from registration');
+    return;
 }
 
 // ============================================================
