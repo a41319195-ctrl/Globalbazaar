@@ -40,21 +40,18 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 
 // ============================================================
-// PAYMENT SPLITTING CONFIGURATION - DYNAMIC SETTINGS
+// PAYMENT SPLIT SETTINGS - DYNAMIC
 // ============================================================
 
-// DEFAULT SETTINGS (Loaded from Firestore if available)
 const DEFAULT_SPLIT_SETTINGS = {
-    gatewayFeePercent: 0.03,      // 3% - Payment Gateway Fee
+    gatewayFeePercent: 0.03,      // 3% - Payment Gateway
     platformCommissionPercent: 0.15, // 15% - Platform Commission
     maintenanceFeePercent: 0.015,    // 1.5% - Maintenance Fee
     updatedAt: new Date().toISOString()
 };
 
-// Cached settings
 let splitSettings = { ...DEFAULT_SPLIT_SETTINGS };
 
-// Load settings from Firestore
 async function loadSplitSettings() {
     try {
         const doc = await db.collection("settings").doc("paymentSplit").get();
@@ -68,67 +65,59 @@ async function loadSplitSettings() {
             };
             console.log('✅ Split settings loaded:', splitSettings);
         } else {
-            // Create default settings if not exists
             await db.collection("settings").doc("paymentSplit").set(DEFAULT_SPLIT_SETTINGS);
             console.log('✅ Default split settings created');
         }
     } catch (error) {
         console.error('Error loading split settings:', error);
-        // Use defaults
         splitSettings = { ...DEFAULT_SPLIT_SETTINGS };
     }
 }
 
-// Get current split settings
 function getSplitSettings() {
     return { ...splitSettings };
 }
 
 // ============================================================
-// PAYMENT SPLIT CALCULATION ENGINE
+// PAYMENT SPLIT CALCULATION - DYNAMIC
 // ============================================================
 
-function calculatePaymentSplit(amount, shippingCost = 0, productBasePrice = 0) {
+function calculatePaymentSplit(totalAmount, shippingCost = 0, productBasePrice = 0, qty = 1) {
     const settings = getSplitSettings();
     
-    // Total amount = Product Price + Shipping
-    const totalAmount = amount + shippingCost;
+    // Total = Product Price + Shipping
+    const total = totalAmount + shippingCost;
+    const baseTotal = productBasePrice * qty;
     
-    // 1. Gateway Fee (3%)
-    const gatewayFee = totalAmount * settings.gatewayFeePercent;
+    // 1. Gateway Fee (3% of total)
+    const gatewayFee = total * settings.gatewayFeePercent;
     
-    // 2. Admin Fees (Platform Commission 15% + Maintenance 1.5%)
-    const platformCommission = totalAmount * settings.platformCommissionPercent;
-    const maintenanceFee = totalAmount * settings.maintenanceFeePercent;
-    const totalAdminFees = platformCommission + maintenanceFee;
+    // 2. Platform Commission (15% of base price)
+    const platformCommission = baseTotal * settings.platformCommissionPercent;
     
-    // 3. Seller Payout = Total - Gateway Fee - Admin Fees
-    const sellerPayout = totalAmount - gatewayFee - totalAdminFees;
+    // 3. Maintenance Fee (1.5% of total)
+    const maintenanceFee = total * settings.maintenanceFeePercent;
     
-    // 4. Platform Revenue (Admin gets both fees)
-    const platformRevenue = platformCommission + maintenanceFee;
+    // 4. Seller Payout = Total - All Fees
+    const sellerPayout = total - gatewayFee - platformCommission - maintenanceFee;
     
     return {
-        totalAmount: totalAmount,
-        productAmount: amount,
-        shippingCost: shippingCost,
+        totalAmount: total,
         gatewayFee: gatewayFee,
         gatewayFeePercent: settings.gatewayFeePercent,
         platformCommission: platformCommission,
         platformCommissionPercent: settings.platformCommissionPercent,
         maintenanceFee: maintenanceFee,
         maintenanceFeePercent: settings.maintenanceFeePercent,
-        totalAdminFees: totalAdminFees,
+        adminRevenue: platformCommission + maintenanceFee,
         sellerPayout: sellerPayout,
-        platformRevenue: platformRevenue,
-        // For logging
         splitBreakdown: {
-            totalAmount: totalAmount,
+            totalAmount: total,
             gatewayFeeDeducted: gatewayFee,
-            adminCommissionDeducted: totalAdminFees,
+            platformCommissionDeducted: platformCommission,
+            maintenanceFeeDeducted: maintenanceFee,
+            adminCommissionDeducted: platformCommission + maintenanceFee,
             finalSellerPayout: sellerPayout,
-            platformCommission: platformCommission,
-            maintenanceFee: maintenanceFee,
             settings: {
                 gatewayFeePercent: settings.gatewayFeePercent,
                 platformCommissionPercent: settings.platformCommissionPercent,
@@ -1393,7 +1382,6 @@ function renderBuyerOrders() {
     
     container.innerHTML = ordersHtml;
     
-    // ✅ FIXED: Correctly attach three-dot menu to each order card
     document.querySelectorAll('.order-card').forEach((card) => {
         const orderId = parseFloat(card.dataset.orderId);
         const order = activeOrders.find(o => o.id === orderId);
@@ -2490,7 +2478,113 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
     }
 });
 
-function confirmOrderReceived(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Shipped"){ order.status = "Delivered"; saveAllLocal(); showToast("Order marked Delivered", false); renderBuyerOrders(); addNotification(`Order ${order.trackingNumber} delivered`,'order'); setTimeout(()=>{ let ord = orders.find(o => o.id === orderId); if(ord && ord.status === "Delivered"){ ord.status = "Completed"; let seller = sellers.find(s => s.id == ord.sellerId); if(seller){ let sellerEarning = ord.sellerEarning || (ord.basePrice - ord.commission); seller.earnings = (seller.earnings||0) + (sellerEarning * ord.qty); saveAllLocal(); showToast(`Payment released to seller`,false); if(currentSeller) renderSellerDashboard(); } } },5000); } else showToast("Order not shipped yet",true); }
+// ============================================================
+// CONFIRM ORDER RECEIVED - FIXED: SELLER GETS PAYMENT
+// ============================================================
+
+function confirmOrderReceived(orderId) {
+    let order = orders.find(o => o.id === orderId);
+    if (order && order.status === "Shipped") {
+        order.status = "Delivered";
+        saveAllLocal();
+        showToast("Order marked Delivered", false);
+        renderBuyerOrders();
+        addNotification(`Order ${order.trackingNumber} delivered`, 'order');
+
+        setTimeout(async () => {
+            let ord = orders.find(o => o.id === orderId);
+            if (ord && ord.status === "Delivered") {
+                ord.status = "Completed";
+
+                let seller = sellers.find(s => s.id == ord.sellerId);
+                if (seller) {
+                    // ========== GET DYNAMIC SETTINGS ==========
+                    const settings = getSplitSettings();
+                    
+                    // ========== CALCULATE AMOUNTS ==========
+                    let basePrice = ord.basePrice || (ord.amount / ord.qty);
+                    let shippingCost = ord.shippingCost || 0;
+                    
+                    // Total = Product Price + Shipping
+                    let totalAmount = (basePrice * ord.qty) + shippingCost;
+                    
+                    // 1. Gateway Fee (3% of total)
+                    let gatewayFee = totalAmount * settings.gatewayFeePercent;
+                    
+                    // 2. Platform Commission (15% of base price)
+                    let platformCommission = (basePrice * ord.qty) * settings.platformCommissionPercent;
+                    
+                    // 3. Maintenance Fee (1.5% of total)
+                    let maintenanceFee = totalAmount * settings.maintenanceFeePercent;
+                    
+                    // 4. Seller Payout = Total - All Fees
+                    let sellerPayout = totalAmount - gatewayFee - platformCommission - maintenanceFee;
+                    
+                    try {
+                        // ========== UPDATE LOCAL SELLER ==========
+                        seller.earnings = (seller.earnings || 0) + sellerPayout;
+                        
+                        // ========== UPDATE FIRESTORE SELLER ==========
+                        const sellerRef = db.collection("sellers").doc(seller.id);
+                        await sellerRef.update({
+                            earnings: firebase.firestore.FieldValue.increment(sellerPayout)
+                        });
+                        
+                        // ========== UPDATE CURRENT SELLER ==========
+                        if (currentSeller && currentSeller.sellerId === seller.id) {
+                            currentSeller.earnings = seller.earnings;
+                            localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
+                        }
+                        
+                        // ========== UPDATE PLATFORM EARNINGS (Admin) ==========
+                        platformEarnings += platformCommission + maintenanceFee;
+                        localStorage.setItem('gb_platform_earnings', JSON.stringify(platformEarnings));
+                        
+                        // ========== SAVE SPLIT BREAKDOWN IN ORDER ==========
+                        ord.splitBreakdown = {
+                            totalAmount: totalAmount,
+                            gatewayFeeDeducted: gatewayFee,
+                            platformCommissionDeducted: platformCommission,
+                            maintenanceFeeDeducted: maintenanceFee,
+                            adminCommissionDeducted: platformCommission + maintenanceFee,
+                            finalSellerPayout: sellerPayout,
+                            settings: {
+                                gatewayFeePercent: settings.gatewayFeePercent,
+                                platformCommissionPercent: settings.platformCommissionPercent,
+                                maintenanceFeePercent: settings.maintenanceFeePercent
+                            }
+                        };
+                        
+                        // ========== SAVE ALL TO LOCAL STORAGE ==========
+                        saveAllLocal();
+                        
+                        // ========== SHOW SUCCESS MESSAGE ==========
+                        showToast(`💰 ${getCurrencySymbol()}${convertPrice(sellerPayout)} released to seller`, false);
+                        
+                        // ========== SEND TELEGRAM NOTIFICATION ==========
+                        sendTelegramMessage(`💰 Payment Released!\nOrder: ${ord.trackingNumber}\nSeller: ${seller.shopName}\nTotal: ${getCurrencySymbol()}${convertPrice(totalAmount)}\nGateway Fee: ${getCurrencySymbol()}${convertPrice(gatewayFee)}\nPlatform Commission: ${getCurrencySymbol()}${convertPrice(platformCommission)}\nMaintenance Fee: ${getCurrencySymbol()}${convertPrice(maintenanceFee)}\nSeller Payout: ${getCurrencySymbol()}${convertPrice(sellerPayout)}`);
+                        
+                        // ========== ADD NOTIFICATION ==========
+                        addNotification(`💰 Payment of ${getCurrencySymbol()}${convertPrice(sellerPayout)} released to ${seller.shopName}`, 'payment');
+                        
+                        // ========== REFRESH DASHBOARD ==========
+                        if (currentSeller) renderSellerDashboard();
+                        renderBuyerOrders();
+                        
+                    } catch (error) {
+                        console.error("Payment release failed:", error);
+                        showToast("⚠️ Payment processing failed. Please contact support.", true);
+                    }
+                } else {
+                    showToast("⚠️ Seller not found", true);
+                }
+            }
+        }, 5000);
+    } else {
+        showToast("Order not shipped yet", true);
+    }
+}
+
 function cancelOrder(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Processing"){ let prod = products.find(p => p.name === order.productName && p.sellerId === order.sellerId); if(prod){ prod.stock += order.qty; saveAllLocal(); } order.status = "Cancelled"; saveAllLocal(); showToast("Order cancelled successfully",false); renderBuyerOrders(); renderProducts(); addNotification(`Order ${order.trackingNumber} cancelled`,'order'); if(currentSeller) renderSellerDashboard(); } else { showToast("Only orders in 'Processing' status can be cancelled",true); } }
 
 // ============================================================
