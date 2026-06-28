@@ -2070,7 +2070,7 @@ document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async f
 function loadSavedCards(){ let userCards = savedCards.filter(c => c.userEmail === "guest@globalbazaar.com"); if(userCards.length > 0){ document.getElementById('savedCardsSection').style.display = 'block'; document.getElementById('savedCardsList').innerHTML = userCards.map((card,idx) => `<div class="flex-between"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}">Use</button></div>`).join(''); document.querySelectorAll('.useSavedCardBtn').forEach(btn => btn.addEventListener('click', () => { let card = userCards[parseInt(btn.dataset.idx)]; document.getElementById('cardNumber').value = card.cardNumber; document.getElementById('cardHolderName').value = card.cardHolderName; document.getElementById('expiryDate').value = card.expiryDate; document.getElementById('cvv').value = ''; showToast("Card loaded", false); })); } }
 
 // ============================================================
-// PAYMENT
+// PAYMENT - FIXED: CORRECT TOTALUSD AND SHIPPING DISPLAY
 // ============================================================
 
 document.getElementById('payNowBtn')?.addEventListener('click', async function() {
@@ -2118,11 +2118,35 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             saveAllLocal();
         }
         
-        let shippingData = JSON.parse(sessionStorage.getItem('checkoutShipping') || '{"totalShipping":0,"shippingBreakdown":[]}');
-        let totalShipping = shippingData.totalShipping || 0;
-        let shippingBreakdown = shippingData.shippingBreakdown || [];
+        // ========== CALCULATE TOTAL SHIPPING ==========
+        let totalShipping = 0;
+        let shippingBreakdown = [];
         
-        let totalUSD = 0;
+        for (let item of cart) {
+            const seller = sellers.find(s => s.id === item.sellerId);
+            const product = products.find(p => p.id === item.id);
+            
+            if (!product) continue;
+            
+            const shipping = getShippingChargeForProduct(product, buyerCountry, product.price * item.qty, seller);
+            const shippingTotal = shipping * item.qty;
+            
+            totalShipping += shippingTotal;
+            
+            const zoneType = getZoneType(product, buyerCountry, seller);
+            
+            shippingBreakdown.push({
+                product: item.name,
+                seller: seller?.shopName || 'GlobalBazaar',
+                shipping: shipping,
+                qty: item.qty,
+                zone: zoneType,
+                shippingTotal: shippingTotal
+            });
+        }
+        
+        // ========== CALCULATE ITEMS TOTAL ==========
+        let itemsTotalUSD = 0;
         let totalCommission = 0;
         let totalGateway = 0;
         let totalHandling = 0;
@@ -2134,17 +2158,19 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             let commission = item.price * commissionRate;
             let itemTotal = item.price + gatewayFee + handlingFee;
             
-            totalUSD += itemTotal * item.qty;
+            itemsTotalUSD += itemTotal * item.qty;
             totalCommission += commission * item.qty;
             totalGateway += gatewayFee * item.qty;
             totalHandling += handlingFee * item.qty;
         }
         
-        totalUSD += totalShipping;
+        // ========== TOTAL USD = ITEMS + SHIPPING ==========
+        const totalUSD = itemsTotalUSD + totalShipping;
         
         let tracking = "GB" + Date.now();
         let cartCopy = [...cart];
         
+        // Create orders
         for (let item of cart) {
             const seller = sellers.find(s => s.id === item.sellerId);
             const commissionRate = getCategoryCommission(item.category || 'Electronics');
@@ -2168,8 +2194,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                 }
             }
             
-            // Get shipping for this item from breakdown
-            const itemShipping = shippingBreakdown.find(s => s.product === item.name)?.shipping || 0;
+            const itemShipping = shippingBreakdown.find(s => s.product === item.name)?.shippingTotal || 0;
             
             let newOrder = {
                 id: Date.now() + Math.random(),
@@ -2195,7 +2220,10 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                 handlingFee: handlingFee,
                 trackingInfo: null,
                 buyerCountry: buyerCountry,
-                sellerEarning: item.price - commission
+                sellerEarning: item.price - commission,
+                totalShipping: totalShipping,
+                itemsTotal: itemsTotalUSD,
+                totalOrderAmount: totalUSD
             };
             
             orders.push(newOrder);
@@ -2205,7 +2233,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         
         saveAllLocal();
         
-        await sendTelegramMessage(`🛍️ NEW ORDER!\nOrder: ${tracking}\nCustomer: ${currentDelivery.fullName}\nPhone: ${currentDelivery.phone}\nAmount: ${getCurrencySymbol()}${convertPrice(totalUSD)}\nShipping: ${getCurrencySymbol()}${convertPrice(totalShipping)}`);
+        await sendTelegramMessage(`🛍️ NEW ORDER!\nOrder: ${tracking}\nCustomer: ${currentDelivery.fullName}\nPhone: ${currentDelivery.phone}\nTotal: ${getCurrencySymbol()}${convertPrice(totalUSD)}\nShipping: ${getCurrencySymbol()}${convertPrice(totalShipping)}`);
         addNotification(`Order placed! #${tracking}`, 'order');
         
         cart = [];
@@ -2215,52 +2243,75 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         sessionStorage.removeItem('checkoutShipping');
         
         let last4 = cardNum.slice(-4);
-        let itemsHtml = cartCopy.map(i => `<li>${i.name} x${i.qty} = ${getCurrencySymbol()}${convertPrice(i.price * i.qty)}</li>`).join('');
+        let itemsHtml = cartCopy.map(i => {
+            const gatewayFee = i.price * GATEWAY_FEE_PERCENT;
+            const handlingFee = i.price * HANDLING_FEE_PERCENT;
+            const itemTotal = i.price + gatewayFee + handlingFee;
+            const itemTotalWithQty = itemTotal * i.qty;
+            return `<li>${i.name} x${i.qty} = ${getCurrencySymbol()}${convertPrice(itemTotalWithQty)}</li>`;
+        }).join('');
+        
         let shippingHtml = shippingBreakdown.map(s => 
-            `<li>${s.product} (${s.seller}): ${s.shipping > 0 ? getCurrencySymbol() + convertPrice(s.shipping) : 'FREE'} x${s.qty} [${s.zone || 'International'}]</li>`
+            `<li>${s.product} (${s.seller}): ${s.shipping > 0 ? getCurrencySymbol() + convertPrice(s.shippingTotal) : 'FREE'} x${s.qty} [${s.zone || 'International'}]</li>`
         ).join('');
         
+        // ========== FIXED: ORDER SUMMARY WITH CORRECT CALCULATIONS ==========
         document.getElementById('orderSummaryContent').innerHTML = `
-    <div style="text-align:center; margin-bottom:20px;">
-        <span style="font-size:48px;">✅</span>
-        <h2 style="margin:5px 0;">Order Placed Successfully!</h2>
-        <p style="color:#64748b; font-size:14px;">Thank you for shopping with GlobalBazaar</p>
-    </div>
+            <div style="text-align:center; margin-bottom:20px;">
+                <span style="font-size:48px;">✅</span>
+                <h2 style="margin:5px 0;">Order Placed Successfully!</h2>
+                <p style="color:#64748b; font-size:14px;">Thank you for shopping with GlobalBazaar</p>
+            </div>
 
-    <div style="border:1px solid #e2e8f0; margin:15px 0;"></div>
+            <div style="border:1px solid #e2e8f0; margin:15px 0;"></div>
 
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; background:#f8fafc; padding:12px; border-radius:10px; margin-bottom:15px;">
-        <div><span style="color:#64748b;">📋 Order ID</span><br><strong>${tracking}</strong></div>
-        <div><span style="color:#64748b;">📅 Date</span><br><strong>${new Date().toLocaleString()}</strong></div>
-    </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; background:#f8fafc; padding:12px; border-radius:10px; margin-bottom:15px;">
+                <div><span style="color:#64748b;">📋 Order ID</span><br><strong>${tracking}</strong></div>
+                <div><span style="color:#64748b;">📅 Date</span><br><strong>${new Date().toLocaleString()}</strong></div>
+            </div>
 
-    <h3 style="margin:10px 0 8px 0; font-size:16px;">📦 Items</h3>
-    <ul style="list-style:none; padding:0; background:#f8fafc; border-radius:10px; padding:12px;">
-        ${itemsHtml}
-    </ul>
+            <h3 style="margin:10px 0 8px 0; font-size:16px;">📦 Items</h3>
+            <ul style="list-style:none; padding:0; background:#f8fafc; border-radius:10px; padding:12px;">
+                ${itemsHtml}
+            </ul>
 
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0; background:#fdfdfd; padding:12px; border:2px solid #bbf7d0; border-radius:10px;">
-        <div style="color:#64748b;">🚚 Shipping</div>
-        <div style="text-align:right;"><strong>${getCurrencySymbol()}${convertPrice(totalShipping)}</strong></div>
-        <div style="color:#64748b;">💰 Total Paid</div>
-        <div style="text-align:right;"><strong style="font-size:20px; color:#0f172a;">${getCurrencySymbol()}${convertPrice(totalUSD)}</strong></div>
-    </div>
+            <div style="background:#f1f5f9; padding:12px; border-radius:10px; margin-top:12px;">
+                <h4 style="margin:0 0 8px 0; font-size:14px;">🚚 Shipping Breakdown</h4>
+                <ul style="list-style:none; padding:0; margin:0; font-size:13px;">
+                    ${shippingHtml || '<li style="color:#64748b;">No shipping charges</li>'}
+                </ul>
+                <div style="border-top:1px solid #e2e8f0; margin-top:8px; padding-top:8px; font-weight:700; text-align:right;">
+                    Total Shipping: ${getCurrencySymbol()}${convertPrice(totalShipping)}
+                </div>
+            </div>
 
-    <div style="border:1px solid #e2e8f0; margin:15px 0;"></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0; background:#f0fdf4; padding:12px; border:2px solid #bbf7d0; border-radius:10px;">
+                <div style="color:#64748b;">💰 Items Total</div>
+                <div style="text-align:right;"><strong>${getCurrencySymbol()}${convertPrice(itemsTotalUSD)}</strong></div>
+                
+                <div style="color:#64748b;">🚚 Shipping Total</div>
+                <div style="text-align:right;"><strong>${getCurrencySymbol()}${convertPrice(totalShipping)}</strong></div>
+                
+                <div style="color:#0f172a; font-weight:700; font-size:18px; border-top:2px solid #e2e8f0; padding-top:8px;">Total Paid</div>
+                <div style="text-align:right; font-size:20px; font-weight:700; color:#0f172a; border-top:2px solid #e2e8f0; padding-top:8px;">
+                    ${getCurrencySymbol()}${convertPrice(totalUSD)}
+                </div>
+            </div>
 
-    <h3 style="margin:10px 0 8px 0; font-size:16px;">👤 Delivery Details</h3>
-    <div style="background:#fdfdfd; padding:12px; border-radius:10px; line-height:1.6;">
-        <strong>${currentDelivery.fullName}</strong><br>
-        📞 ${currentDelivery.phone}<br>
-        📍 ${currentDelivery.fullAddress}
-    </div>
+            <div style="border:1px solid #e2e8f0; margin:15px 0;"></div>
 
-    <div style="margin-top:12px; padding:12px; background:#dbeafe; border-radius:10px; text-align:center;">
-        💳 <strong>Payment:</strong> Card ending in ${last4}
-    </div>
-    <p style="text-align:center; margin-top:10px; font-size:14px; color:#64748b;">🔮 We'll notify you when your order ships.</p>
-`;
+            <h3 style="margin:10px 0 8px 0; font-size:16px;">👤 Delivery Details</h3>
+            <div style="background:#fdfdfd; padding:12px; border-radius:10px; line-height:1.6;">
+                <strong>${currentDelivery.fullName}</strong><br>
+                📞 ${currentDelivery.phone}<br>
+                📍 ${currentDelivery.fullAddress}
+            </div>
 
+            <div style="margin-top:12px; padding:12px; background:#dbeafe; border-radius:10px; text-align:center;">
+                💳 <strong>Payment:</strong> Card ending in ${last4}
+            </div>
+            <p style="text-align:center; margin-top:10px; font-size:14px; color:#64748b;">🔮 We'll notify you when your order ships.</p>
+        `;
         
         document.getElementById('orderSummaryModal').style.display = 'block';
         document.getElementById('cardNumber').value = '';
