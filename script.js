@@ -40,6 +40,105 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 
 // ============================================================
+// PAYMENT SPLITTING CONFIGURATION - DYNAMIC SETTINGS
+// ============================================================
+
+// DEFAULT SETTINGS (Loaded from Firestore if available)
+const DEFAULT_SPLIT_SETTINGS = {
+    gatewayFeePercent: 0.03,      // 3% - Payment Gateway Fee
+    platformCommissionPercent: 0.15, // 15% - Platform Commission
+    maintenanceFeePercent: 0.015,    // 1.5% - Maintenance Fee
+    updatedAt: new Date().toISOString()
+};
+
+// Cached settings
+let splitSettings = { ...DEFAULT_SPLIT_SETTINGS };
+
+// Load settings from Firestore
+async function loadSplitSettings() {
+    try {
+        const doc = await db.collection("settings").doc("paymentSplit").get();
+        if (doc.exists) {
+            const data = doc.data();
+            splitSettings = {
+                gatewayFeePercent: data.gatewayFeePercent || DEFAULT_SPLIT_SETTINGS.gatewayFeePercent,
+                platformCommissionPercent: data.platformCommissionPercent || DEFAULT_SPLIT_SETTINGS.platformCommissionPercent,
+                maintenanceFeePercent: data.maintenanceFeePercent || DEFAULT_SPLIT_SETTINGS.maintenanceFeePercent,
+                updatedAt: data.updatedAt || new Date().toISOString()
+            };
+            console.log('✅ Split settings loaded:', splitSettings);
+        } else {
+            // Create default settings if not exists
+            await db.collection("settings").doc("paymentSplit").set(DEFAULT_SPLIT_SETTINGS);
+            console.log('✅ Default split settings created');
+        }
+    } catch (error) {
+        console.error('Error loading split settings:', error);
+        // Use defaults
+        splitSettings = { ...DEFAULT_SPLIT_SETTINGS };
+    }
+}
+
+// Get current split settings
+function getSplitSettings() {
+    return { ...splitSettings };
+}
+
+// ============================================================
+// PAYMENT SPLIT CALCULATION ENGINE
+// ============================================================
+
+function calculatePaymentSplit(amount, shippingCost = 0, productBasePrice = 0) {
+    const settings = getSplitSettings();
+    
+    // Total amount = Product Price + Shipping
+    const totalAmount = amount + shippingCost;
+    
+    // 1. Gateway Fee (3%)
+    const gatewayFee = totalAmount * settings.gatewayFeePercent;
+    
+    // 2. Admin Fees (Platform Commission 15% + Maintenance 1.5%)
+    const platformCommission = totalAmount * settings.platformCommissionPercent;
+    const maintenanceFee = totalAmount * settings.maintenanceFeePercent;
+    const totalAdminFees = platformCommission + maintenanceFee;
+    
+    // 3. Seller Payout = Total - Gateway Fee - Admin Fees
+    const sellerPayout = totalAmount - gatewayFee - totalAdminFees;
+    
+    // 4. Platform Revenue (Admin gets both fees)
+    const platformRevenue = platformCommission + maintenanceFee;
+    
+    return {
+        totalAmount: totalAmount,
+        productAmount: amount,
+        shippingCost: shippingCost,
+        gatewayFee: gatewayFee,
+        gatewayFeePercent: settings.gatewayFeePercent,
+        platformCommission: platformCommission,
+        platformCommissionPercent: settings.platformCommissionPercent,
+        maintenanceFee: maintenanceFee,
+        maintenanceFeePercent: settings.maintenanceFeePercent,
+        totalAdminFees: totalAdminFees,
+        sellerPayout: sellerPayout,
+        platformRevenue: platformRevenue,
+        // For logging
+        splitBreakdown: {
+            totalAmount: totalAmount,
+            gatewayFeeDeducted: gatewayFee,
+            adminCommissionDeducted: totalAdminFees,
+            finalSellerPayout: sellerPayout,
+            platformCommission: platformCommission,
+            maintenanceFee: maintenanceFee,
+            settings: {
+                gatewayFeePercent: settings.gatewayFeePercent,
+                platformCommissionPercent: settings.platformCommissionPercent,
+                maintenanceFeePercent: settings.maintenanceFeePercent
+            }
+        }
+    };
+}
+
+// ============================================================
 // IMAGE COMPRESSION - DO NOT CHANGE
 // ============================================================
 function compressImage(file, maxSizeMB = 0.5, maxWidth = 1024, maxHeight = 1024) {
@@ -2070,7 +2169,7 @@ document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async f
 function loadSavedCards(){ let userCards = savedCards.filter(c => c.userEmail === "guest@globalbazaar.com"); if(userCards.length > 0){ document.getElementById('savedCardsSection').style.display = 'block'; document.getElementById('savedCardsList').innerHTML = userCards.map((card,idx) => `<div class="flex-between"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}">Use</button></div>`).join(''); document.querySelectorAll('.useSavedCardBtn').forEach(btn => btn.addEventListener('click', () => { let card = userCards[parseInt(btn.dataset.idx)]; document.getElementById('cardNumber').value = card.cardNumber; document.getElementById('cardHolderName').value = card.cardHolderName; document.getElementById('expiryDate').value = card.expiryDate; document.getElementById('cvv').value = ''; showToast("Card loaded", false); })); } }
 
 // ============================================================
-// PAYMENT - FIXED: CORRECT TOTALUSD AND SHIPPING DISPLAY
+// PAYMENT - WITH SPLIT PAYMENT SYSTEM
 // ============================================================
 
 document.getElementById('payNowBtn')?.addEventListener('click', async function() {
@@ -2167,10 +2266,18 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         // ========== TOTAL USD = ITEMS + SHIPPING ==========
         const totalUSD = itemsTotalUSD + totalShipping;
         
+        // ========== PAYMENT SPLIT CALCULATION ==========
+        // Calculate split using the split engine
+        const splitResult = calculatePaymentSplit(itemsTotalUSD, totalShipping);
+        
+        // Now process each item for orders
         let tracking = "GB" + Date.now();
         let cartCopy = [...cart];
+        let totalGatewayFeeDeducted = 0;
+        let totalAdminCommissionDeducted = 0;
+        let totalSellerPayout = 0;
         
-        // Create orders
+        // Create orders and apply split
         for (let item of cart) {
             const seller = sellers.find(s => s.id === item.sellerId);
             const commissionRate = getCategoryCommission(item.category || 'Electronics');
@@ -2196,6 +2303,18 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             
             const itemShipping = shippingBreakdown.find(s => s.product === item.name)?.shippingTotal || 0;
             
+            // Calculate split for this item
+            const itemSplit = calculatePaymentSplit(itemTotal, itemShipping);
+            
+            // Update seller earnings with split payout
+            if (seller) {
+                seller.earnings = (seller.earnings || 0) + itemSplit.sellerPayout;
+            }
+            
+            totalGatewayFeeDeducted += itemSplit.gatewayFee;
+            totalAdminCommissionDeducted += itemSplit.totalAdminFees;
+            totalSellerPayout += itemSplit.sellerPayout;
+            
             let newOrder = {
                 id: Date.now() + Math.random(),
                 trackingNumber: tracking,
@@ -2220,20 +2339,37 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                 handlingFee: handlingFee,
                 trackingInfo: null,
                 buyerCountry: buyerCountry,
-                sellerEarning: item.price - commission,
+                sellerEarning: itemSplit.sellerPayout, // Updated with split payout
                 totalShipping: totalShipping,
                 itemsTotal: itemsTotalUSD,
-                totalOrderAmount: totalUSD
+                totalOrderAmount: totalUSD,
+                // ========== SPLIT BREAKDOWN LOGGING ==========
+                splitBreakdown: {
+                    totalAmount: itemSplit.totalAmount,
+                    gatewayFeeDeducted: itemSplit.gatewayFee,
+                    adminCommissionDeducted: itemSplit.totalAdminFees,
+                    finalSellerPayout: itemSplit.sellerPayout,
+                    platformCommission: itemSplit.platformCommission,
+                    maintenanceFee: itemSplit.maintenanceFee,
+                    settings: {
+                        gatewayFeePercent: itemSplit.gatewayFeePercent,
+                        platformCommissionPercent: itemSplit.platformCommissionPercent,
+                        maintenanceFeePercent: itemSplit.maintenanceFeePercent
+                    }
+                }
             };
             
             orders.push(newOrder);
             
-            platformEarnings += (commission * item.qty) + (gatewayFee * item.qty) + (handlingFee * item.qty);
+            // Platform earnings: Admin gets both commissions
+            platformEarnings += itemSplit.totalAdminFees;
         }
         
         saveAllLocal();
         
-        await sendTelegramMessage(`🛍️ NEW ORDER!\nOrder: ${tracking}\nCustomer: ${currentDelivery.fullName}\nPhone: ${currentDelivery.phone}\nTotal: ${getCurrencySymbol()}${convertPrice(totalUSD)}\nShipping: ${getCurrencySymbol()}${convertPrice(totalShipping)}`);
+        // ========== SEND SPLIT DETAILS IN TELEGRAM ==========
+        await sendTelegramMessage(`🛍️ NEW ORDER!\nOrder: ${tracking}\nCustomer: ${currentDelivery.fullName}\nPhone: ${currentDelivery.phone}\n\n💰 PAYMENT SPLIT:\nTotal: ${getCurrencySymbol()}${convertPrice(totalUSD)}\nGateway Fee (3%): ${getCurrencySymbol()}${convertPrice(splitResult.gatewayFee)}\nAdmin Fees (15% + 1.5%): ${getCurrencySymbol()}${convertPrice(splitResult.totalAdminFees)}\nSeller Payout: ${getCurrencySymbol()}${convertPrice(splitResult.sellerPayout)}`);
+        
         addNotification(`Order placed! #${tracking}`, 'order');
         
         cart = [];
@@ -2255,7 +2391,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             `<li>${s.product} (${s.seller}): ${s.shipping > 0 ? getCurrencySymbol() + convertPrice(s.shippingTotal) : 'FREE'} x${s.qty} [${s.zone || 'International'}]</li>`
         ).join('');
         
-        // ========== FIXED: ORDER SUMMARY WITH CORRECT CALCULATIONS ==========
+        // ========== ORDER SUMMARY WITH SPLIT BREAKDOWN ==========
         document.getElementById('orderSummaryContent').innerHTML = `
             <div style="text-align:center; margin-bottom:20px;">
                 <span style="font-size:48px;">✅</span>
@@ -2285,7 +2421,30 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                 </div>
             </div>
 
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0; background:#f0fdf4; padding:12px; border:2px solid #bbf7d0; border-radius:10px;">
+            <!-- ========== PAYMENT SPLIT BREAKDOWN ========== -->
+            <div style="background:#f0fdf4; padding:12px; border-radius:10px; margin-top:12px; border:2px solid #bbf7d0;">
+                <h4 style="margin:0 0 8px 0; font-size:14px;">💰 Payment Split Breakdown</h4>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:13px;">
+                    <div style="color:#64748b;">Total Amount</div>
+                    <div style="text-align:right; font-weight:600;">${getCurrencySymbol()}${convertPrice(splitResult.totalAmount)}</div>
+                    
+                    <div style="color:#64748b;">Gateway Fee (${(splitResult.gatewayFeePercent * 100).toFixed(1)}%)</div>
+                    <div style="text-align:right; color:#ef4444;">- ${getCurrencySymbol()}${convertPrice(splitResult.gatewayFee)}</div>
+                    
+                    <div style="color:#64748b;">Platform Commission (${(splitResult.platformCommissionPercent * 100).toFixed(1)}%)</div>
+                    <div style="text-align:right; color:#8b5cf6;">- ${getCurrencySymbol()}${convertPrice(splitResult.platformCommission)}</div>
+                    
+                    <div style="color:#64748b;">Maintenance Fee (${(splitResult.maintenanceFeePercent * 100).toFixed(1)}%)</div>
+                    <div style="text-align:right; color:#8b5cf6;">- ${getCurrencySymbol()}${convertPrice(splitResult.maintenanceFee)}</div>
+                    
+                    <div style="color:#0f172a; font-weight:700; border-top:2px solid #e2e8f0; padding-top:6px;">Seller Payout</div>
+                    <div style="text-align:right; font-weight:700; color:#10b981; border-top:2px solid #e2e8f0; padding-top:6px;">
+                        ${getCurrencySymbol()}${convertPrice(splitResult.sellerPayout)}
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0; background:#f8fafc; padding:12px; border-radius:10px;">
                 <div style="color:#64748b;">💰 Items Total</div>
                 <div style="text-align:right;"><strong>${getCurrencySymbol()}${convertPrice(itemsTotalUSD)}</strong></div>
                 
@@ -2677,8 +2836,18 @@ function showOrderDetailsModal(order) {
                         Total: ${getCurrencySymbol()}${convertPrice(order.amount + (order.shippingCost || 0))}
                     </div>
                     <div style="font-size:12px; color:#64748b; margin-top:4px;">
-                        Seller Earning: ${getCurrencySymbol()}${convertPrice(order.sellerEarning || (order.basePrice - order.commission))}
+                        Seller Payout: ${getCurrencySymbol()}${convertPrice(order.sellerEarning || (order.basePrice - order.commission))}
                     </div>
+                    ${order.splitBreakdown ? `
+                        <div style="margin-top:10px; padding:10px; background:#f0fdf4; border-radius:8px; border:1px solid #bbf7d0;">
+                            <div style="font-weight:600; font-size:13px;">💰 Split Breakdown</div>
+                            <div style="font-size:12px; color:#64748b;">
+                                Gateway Fee: ${getCurrencySymbol()}${convertPrice(order.splitBreakdown.gatewayFeeDeducted)}<br>
+                                Admin Commission: ${getCurrencySymbol()}${convertPrice(order.splitBreakdown.adminCommissionDeducted)}<br>
+                                <strong style="color:#10b981;">Final Seller Payout: ${getCurrencySymbol()}${convertPrice(order.splitBreakdown.finalSellerPayout)}</strong>
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
                 
                 <h3 style="border-bottom:1px solid #e2e8f0; padding-bottom:8px; font-size:16px;">👤 Buyer Details</h3>
@@ -2871,7 +3040,12 @@ function renderSellerDashboard() {
                     </div>
                     ${o.shippingCost > 0 ? `<div style="font-size:12px; color:#64748b;">🚚 +${getCurrencySymbol()}${convertPrice(o.shippingCost)} shipping</div>` : 
                     `<div style="font-size:12px; color:#10b981;">🚚 Free Shipping</div>`}
-                    <div style="font-size:12px; color:#8b5cf6;">Your Earning: ${getCurrencySymbol()}${convertPrice(o.sellerEarning || (o.basePrice - o.commission))}</div>
+                    <div style="font-size:12px; color:#8b5cf6;">Your Payout: ${getCurrencySymbol()}${convertPrice(o.sellerEarning || (o.basePrice - o.commission))}</div>
+                    ${o.splitBreakdown ? `
+                        <div style="font-size:10px; color:#64748b; margin-top:4px; padding:4px; background:#f0fdf4; border-radius:4px;">
+                            💰 Split: Gateway ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.gatewayFeeDeducted)} | Admin ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.adminCommissionDeducted)}
+                        </div>
+                    ` : ''}
                 </div>
                 
                 <div style="background:#f0fdf4; padding:12px; border-radius:8px; border:1px solid #bbf7d0;">
@@ -3598,6 +3772,9 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('debugMsg').innerHTML = '🚀 Loading...';
     
     updateFooterSupport();
+    
+    // Load payment split settings
+    loadSplitSettings();
     
     // Real-time shipping calculation on country change
     const deliveryCountry = document.getElementById('deliveryCountry');
