@@ -1241,7 +1241,7 @@ function showMyOrdersPage() {
 }
 
 // ============================================================
-// RENDER BUYER ORDERS - WITH THREE-DOT MENU
+// RENDER BUYER ORDERS - WITH THREE-DOT MENU (FIXED)
 // ============================================================
 
 function renderBuyerOrders() {
@@ -1294,7 +1294,8 @@ function renderBuyerOrders() {
     
     container.innerHTML = ordersHtml;
     
-    document.querySelectorAll('.order-card').forEach((card, index) => {
+    // ✅ FIXED: Correctly attach three-dot menu to each order card
+    document.querySelectorAll('.order-card').forEach((card) => {
         const orderId = parseFloat(card.dataset.orderId);
         const order = activeOrders.find(o => o.id === orderId);
         if (order) {
@@ -2220,52 +2221,19 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         ).join('');
         
         document.getElementById('orderSummaryContent').innerHTML = `
-    <div style="text-align:center; margin-bottom:20px;">
-        <span style="font-size:48px;">✅</span>
-        <h2 style="margin:10px 0 5px 0; color:#10b981;">Order Placed Successfully!</h2>
-        <p style="color:#64748b; font-size:14px;">Thank you for shopping with GlobalBazaar</p>
-    </div>
-    
-    <hr style="border:1px solid #e2e8f0; margin:15px 0;">
-    
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; background:#f8fafc; padding:12px; border-radius:10px; margin-bottom:15px;">
-        <div><span style="color:#64748b;">📋 Order ID</span><br><strong>${tracking}</strong></div>
-        <div><span style="color:#64748b;">📅 Date</span><br><strong>${new Date().toLocaleString()}</strong></div>
-    </div>
-    
-    <h3 style="margin:10px 0 8px 0; font-size:16px;">📦 Items</h3>
-    <ul style="list-style:none; padding:0; background:#f8fafc; border-radius:10px; padding:12px;">
-        ${itemsHtml}
-    </ul>
-    
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0; background:#f0fdf4; padding:12px; border-radius:10px; border:2px solid #bbf7d0;">
-        <div><span style="color:#64748b;">🚚 Shipping</span><br><strong>${getCurrencySymbol()}${convertPrice(totalShipping)}</strong></div>
-        <div><span style="color:#64748b;">💰 Total Paid</span><br><strong style="font-size:20px; color:#10b981;">${getCurrencySymbol()}${convertPrice(totalUSD)}</strong></div>
-    </div>
-    
-    <hr style="border:1px solid #e2e8f0; margin:15px 0;">
-    
-    <h3 style="margin:10px 0 8px 0; font-size:16px;">👤 Delivery Details</h3>
-    <div style="background:#f8fafc; padding:12px; border-radius:10px; line-height:1.6;">
-        <strong>${currentDelivery.fullName}</strong><br>
-        📞 ${currentDelivery.phone}<br>
-        📍 ${currentDelivery.fullAddress}
-    </div>
-    
-    <div style="margin-top:12px; padding:12px; background:#dbeafe; border-radius:10px; text-align:center;">
-        💳 <strong>Payment:</strong> Card ending in ${last4}
-    </div>
-    
-    <div style="margin-top:15px; padding:12px; background:#fef3c7; border-radius:10px; text-align:center; border:1px solid #fcd34d;">
-        🔮 <strong>We'll notify you when your order ships!</strong>
-    </div>
-    
-    <button onclick="closeOrderSummary(); showSection('buyer');" 
-            style="width:100%; margin-top:15px; background:#3b82f6; color:white; border:none; padding:12px; border-radius:25px; font-size:16px; font-weight:600; cursor:pointer;">
-        🏠 Back to Shopping
-    </button>
-`;
-
+            <p><strong>Order ID:</strong> ${tracking}</p>
+            <h3>📦 Items</h3>
+            <ul>${itemsHtml}</ul>
+            <h3>🚚 Shipping</h3>
+            <ul>${shippingHtml}</ul>
+            <h3>💰 Total Paid: ${getCurrencySymbol()}${convertPrice(totalUSD)}</h3>
+            <p><small>Includes ${getCurrencySymbol()}${convertPrice(totalShipping)} shipping</small></p>
+            <p><small>Gateway: ${getCurrencySymbol()}${convertPrice(totalGateway)} | Maintenance: ${getCurrencySymbol()}${convertPrice(totalHandling)}</small></p>
+            <h3>👤 Delivery Details</h3>
+            <p>${currentDelivery.fullName}<br>📞 ${currentDelivery.phone}<br>${currentDelivery.fullAddress}</p>
+            <h3>💳 Payment</h3>
+            <p>Card ending: ${last4}</p>
+            <p>🔮 We'll notify you when your order ships.</p>
         `;
         
         document.getElementById('orderSummaryModal').style.display = 'block';
