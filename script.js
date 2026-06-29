@@ -41,22 +41,6 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 
 // ============================================================
-// FIX: CHECK IF FIREBASE IS WORKING
-// ============================================================
-async function checkFirebaseConnection() {
-    try {
-        await db.collection('products').limit(1).get();
-        console.log('✅ Firebase connected');
-        document.getElementById('debugMsg').innerHTML = '✅ Firebase connected';
-        return true;
-    } catch (error) {
-        console.error('❌ Firebase connection error:', error);
-        document.getElementById('debugMsg').innerHTML = '❌ Firebase connection error: ' + error.message;
-        return false;
-    }
-}
-
-// ============================================================
 // PAYMENT SPLIT SETTINGS - DYNAMIC
 // ============================================================
 
@@ -2079,8 +2063,9 @@ function renderCartPage() {
 let currentDelivery = null;
 
 // ============================================================
-// CHECKOUT
+// CHECKOUT - FIXED: calculateShippingRealTime (NOT calculateShippingTime)
 // ============================================================
+
 document.getElementById('proceedToCheckoutBtn')?.addEventListener('click', () => {
     if(cart.length === 0){ showToast("Cart empty",true); return; }
     const user = auth.currentUser;
@@ -2156,6 +2141,7 @@ document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async f
         saveAllLocal();
     }
     
+    // ========== FIXED: Sahi function call ==========
     calculateShippingRealTime();
     
     showToast("Proceeding to payment...", false);
@@ -2167,6 +2153,134 @@ document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async f
 });
 
 function loadSavedCards(){ let userCards = savedCards.filter(c => c.userEmail === "guest@globalbazaar.com"); if(userCards.length > 0){ document.getElementById('savedCardsSection').style.display = 'block'; document.getElementById('savedCardsList').innerHTML = userCards.map((card,idx) => `<div class="flex-between"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}">Use</button></div>`).join(''); document.querySelectorAll('.useSavedCardBtn').forEach(btn => btn.addEventListener('click', () => { let card = userCards[parseInt(btn.dataset.idx)]; document.getElementById('cardNumber').value = card.cardNumber; document.getElementById('cardHolderName').value = card.cardHolderName; document.getElementById('expiryDate').value = card.expiryDate; document.getElementById('cvv').value = ''; showToast("Card loaded", false); })); } }
+
+// ============================================================
+// SHIPPING CALCULATION - REAL-TIME AT CHECKOUT
+// ============================================================
+
+function calculateShippingRealTime() {
+    try {
+        const countrySelect = document.getElementById('deliveryCountry');
+        if (!countrySelect) return;
+        
+        const country = countrySelect.value;
+        if (!country) {
+            const container = document.getElementById('shippingCostContainer');
+            if (container) container.style.display = 'none';
+            return;
+        }
+        
+        buyerCountry = country;
+        localStorage.setItem('buyerCountry', buyerCountry);
+        
+        let totalShipping = 0;
+        let shippingBreakdown = [];
+        
+        for (let item of cart) {
+            const seller = sellers.find(s => s.id === item.sellerId);
+            const product = products.find(p => p.id === item.id);
+            
+            if (!product) continue;
+            
+            const shipping = getShippingChargeForProduct(product, buyerCountry, item.price * item.qty, seller);
+            const shippingTotal = shipping * item.qty;
+            
+            totalShipping += shippingTotal;
+            shippingBreakdown.push({
+                product: item.name,
+                seller: seller?.shopName || 'GlobalBazaar',
+                shipping: shipping,
+                qty: item.qty,
+                zone: getZoneType(product, buyerCountry, seller),
+                shippingTotal: shippingTotal
+            });
+        }
+        
+        const shippingContainer = document.getElementById('shippingCostContainer');
+        const shippingDisplay = document.getElementById('shippingCostDisplay');
+        
+        if (shippingContainer && shippingDisplay) {
+            if (totalShipping === 0 && shippingBreakdown.length > 0) {
+                shippingContainer.style.display = 'block';
+                shippingDisplay.innerHTML = `
+                    <strong>🎉 Free Shipping!</strong>
+                    <div style="font-size:13px; color:#10b981; margin-top:4px;">All items qualify for free shipping</div>
+                `;
+            } else if (totalShipping > 0) {
+                let breakdownHtml = shippingBreakdown.map(s => 
+                    `<li style="font-size:12px; color:#64748b;">${s.product} (${s.seller}): ${s.shipping > 0 ? getCurrencySymbol() + convertPrice(s.shipping) : 'FREE'} x${s.qty} [${s.zone || 'International'}]</li>`
+                ).join('');
+                
+                shippingContainer.style.display = 'block';
+                shippingDisplay.innerHTML = `
+                    <strong>Total Shipping: ${getCurrencySymbol()}${convertPrice(totalShipping)}</strong>
+                    <ul style="margin-top:6px; list-style:none; padding:0;">${breakdownHtml}</ul>
+                `;
+            } else {
+                shippingContainer.style.display = 'none';
+            }
+        }
+        
+        updatePaymentSummary();
+    } catch (error) {
+        console.error('calculateShippingRealTime error:', error);
+    }
+}
+
+function getZoneType(product, buyerCountry, seller) {
+    if (!product) return 'International';
+    
+    const sellerCountry = seller?.country || product.sellerCountry || "SA";
+    
+    if (buyerCountry === sellerCountry || 
+        buyerCountry.toLowerCase() === sellerCountry.toLowerCase()) {
+        return 'Local';
+    }
+    
+    const sellerZone = getCountryZone(sellerCountry);
+    const buyerZone = getCountryZone(buyerCountry);
+    
+    if (sellerZone === buyerZone && sellerZone !== 'international') {
+        return 'Regional';
+    }
+    
+    return 'International';
+}
+
+function updatePaymentSummary() {
+    try {
+        let subtotal = 0;
+        let totalShipping = 0;
+        
+        for (let item of cart) {
+            const seller = sellers.find(s => s.id === item.sellerId);
+            const product = products.find(p => p.id === item.id);
+            
+            if (!product) continue;
+            
+            const gatewayFee = product.price * GATEWAY_FEE_PERCENT;
+            const handlingFee = product.price * HANDLING_FEE_PERCENT;
+            const itemTotal = product.price + gatewayFee + handlingFee;
+            
+            subtotal += itemTotal * item.qty;
+            
+            const shipping = getShippingChargeForProduct(product, buyerCountry, product.price * item.qty, seller);
+            totalShipping += shipping * item.qty;
+        }
+        
+        const total = subtotal + totalShipping;
+        
+        const subtotalEl = document.getElementById('paymentSubtotal');
+        const shippingEl = document.getElementById('paymentShipping');
+        const totalEl = document.getElementById('paymentTotal');
+        
+        if (subtotalEl) subtotalEl.textContent = `${getCurrencySymbol()}${convertPrice(subtotal)}`;
+        if (shippingEl) shippingEl.textContent = `${getCurrencySymbol()}${convertPrice(totalShipping)}`;
+        if (totalEl) totalEl.textContent = `${getCurrencySymbol()}${convertPrice(total)}`;
+    } catch (error) {
+        console.error('updatePaymentSummary error:', error);
+    }
+}
 
 // ============================================================
 // PAYMENT - BUYER RECEIPT: SIRF ITEMS + SHIPPING = TOTAL
@@ -3017,19 +3131,16 @@ function renderSellerDashboard() {
     
     let myProducts = products.filter(p => p.sellerId == seller.id);
     
-    // ========== ONLY ACTIVE ORDERS (Processing, Shipped, Delivered) ==========
     let activeOrders = orders.filter(o => 
         o.sellerId == seller.id && 
         (o.status === "Processing" || o.status === "Shipped" || o.status === "Delivered")
     );
     
-    // ========== HISTORY ORDERS (Completed, Cancelled) ==========
     let historyOrders = orders.filter(o => 
         o.sellerId == seller.id && 
         (o.status === "Completed" || o.status === "Cancelled")
     );
     
-    // ========== CALCULATE PENDING AMOUNT ==========
     let pendingAmount = 0;
     let availableAmount = seller.earnings || 0;
     
@@ -3404,6 +3515,7 @@ function renderSellerDashboard() {
     
     document.getElementById('sellerDashboard').innerHTML = sellerDashboardHtml;
     
+    // ========== REVENUE CHART ==========
     let ctx = document.getElementById('revenueChart')?.getContext('2d');
     if (ctx) {
         try {
