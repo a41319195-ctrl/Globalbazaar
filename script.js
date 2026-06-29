@@ -89,9 +89,9 @@ function calculatePaymentSplit(totalAmount, shippingCost = 0, productBasePrice =
     const baseTotal = productBasePrice * qty;
     
     const gatewayFee = total * settings.gatewayFeePercent;
+    const platformCommission = baseTotal * settings.platformCommissionPercent;
     const maintenanceFee = total * settings.maintenanceFeePercent;
-    const platformCommission = total * settings.platformCommissionPercent;
-    const adminTotal = maintenanceFee + platformCommission;
+    const adminTotal = platformCommission + maintenanceFee;
     const sellerPayout = total - gatewayFee - adminTotal;
     
     return {
@@ -107,8 +107,8 @@ function calculatePaymentSplit(totalAmount, shippingCost = 0, productBasePrice =
         splitBreakdown: {
             totalAmount: total,
             gatewayFeeDeducted: gatewayFee,
-            maintenanceFeeDeducted: maintenanceFee,
             platformCommissionDeducted: platformCommission,
+            maintenanceFeeDeducted: maintenanceFee,
             adminCommissionDeducted: adminTotal,
             finalSellerPayout: sellerPayout,
             isReleased: false,
@@ -416,7 +416,6 @@ let wishlist = JSON.parse(localStorage.getItem('gb_wishlist')) || [];
 let orders = JSON.parse(localStorage.getItem('gb_orders')) || [];
 let platformEarnings = parseFloat(localStorage.getItem('gb_platform_earnings')) || 0;
 let pendingWithdrawals = JSON.parse(localStorage.getItem('gb_pending_withdrawals')) || [];
-let withdrawalHistory = JSON.parse(localStorage.getItem('gb_withdrawal_history')) || [];
 let savedCards = JSON.parse(localStorage.getItem('gb_saved_cards')) || [];
 let savedAddresses = JSON.parse(localStorage.getItem('gb_saved_addresses')) || [];
 let notifications = JSON.parse(localStorage.getItem('gb_notifications')) || [];
@@ -642,27 +641,15 @@ function setupOrderThreeDotMenu(orderCard, orderData) {
     const dropdown = document.createElement('div');
     dropdown.className = 'three-dot-dropdown';
     
-    if (orderData.status === "Completed" || orderData.status === "Cancelled") {
-        const historyBtn = document.createElement('button');
-        historyBtn.className = 'menu-item';
-        historyBtn.innerHTML = '📋 Move to History';
-        historyBtn.onclick = function(e) {
-            e.stopPropagation();
-            moveOrderToHistory(orderData);
-            closeAllThreeDotMenus();
-        };
-        dropdown.appendChild(historyBtn);
-    }
-    
-    const viewBtn = document.createElement('button');
-    viewBtn.className = 'menu-item';
-    viewBtn.innerHTML = '👁️ View Details';
-    viewBtn.onclick = function(e) {
+    const historyBtn = document.createElement('button');
+    historyBtn.className = 'menu-item';
+    historyBtn.innerHTML = '📋 Order History';
+    historyBtn.onclick = function(e) {
         e.stopPropagation();
-        showOrderDetailsModal(orderData);
+        moveOrderToHistory(orderData);
         closeAllThreeDotMenus();
     };
-    dropdown.appendChild(viewBtn);
+    dropdown.appendChild(historyBtn);
     
     document.addEventListener('click', function(e) {
         if (!wrapper.contains(e.target)) {
@@ -747,7 +734,6 @@ function moveOrderToHistory(order) {
     historyList.appendChild(historyCard);
     historyContainer.classList.add('show');
     renderBuyerOrders();
-    renderSellerDashboard();
     showToast(`Order ${movedOrder.trackingNumber} moved to history`, false);
 }
 
@@ -797,195 +783,195 @@ function renderOrderHistory() {
 }
 
 // ============================================================
-// ADMIN VIEW SYSTEM - FIXED: ID-Free with Lists
+// ADMIN VIEW SYSTEM - DYNAMIC
 // ============================================================
 
-function fetchUserData(userId, type) {
-    // For backward compatibility
-    if (type === 'buyer') {
-        loadAllBuyers();
-    } else if (type === 'seller') {
-        loadAllSellers();
+async function fetchUserData(userId, type) {
+    try {
+        showToast(`Loading ${type} data...`, false);
+        
+        let userData = null;
+        let collection = type === 'buyer' ? 'users' : 'sellers';
+        
+        const doc = await db.collection(collection).doc(userId).get();
+        if (doc.exists) {
+            userData = { id: doc.id, ...doc.data() };
+        } else {
+            const snapshot = await db.collection(collection).where('uid', '==', userId).get();
+            if (!snapshot.empty) {
+                userData = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
+            }
+        }
+        
+        if (!userData) {
+            showToast('User not found', true);
+            return;
+        }
+        
+        displayUserData(userData, type);
+        
+    } catch (error) {
+        console.error('Fetch user error:', error);
+        showToast('Error fetching user data: ' + error.message, true);
     }
 }
 
 function displayUserData(userData, type) {
-    // For backward compatibility
-}
-
-// Admin - View All Buyers
-document.getElementById('admin-buyer-list')?.addEventListener('click', function() {
-    loadAllBuyers();
-    document.getElementById('adminDropdownMenu').style.display = 'none';
-});
-
-// Admin - View All Sellers
-document.getElementById('admin-seller-list')?.addEventListener('click', function() {
-    loadAllSellers();
-    document.getElementById('adminDropdownMenu').style.display = 'none';
-});
-
-// Admin - Withdrawal History
-document.getElementById('admin-withdrawal-history')?.addEventListener('click', function() {
-    loadWithdrawalHistory();
-    document.getElementById('adminDropdownMenu').style.display = 'none';
-});
-
-function loadAllBuyers() {
     const container = document.getElementById('pendingKycList');
-    container.style.display = 'block';
-    container.innerHTML = '<p style="padding:20px; text-align:center;">Loading buyers...</p>';
+    if (!container) return;
     
-    db.collection("users").get().then(snapshot => {
-        let html = `<div style="margin-bottom:15px;"><strong>👥 All Buyers (${snapshot.size})</strong></div><div style="display:flex; flex-direction:column; gap:10px;">`;
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            html += `
-                <div style="background:#f8fafc; border-radius:12px; padding:12px; border-left:4px solid #3b82f6; cursor:pointer;" onclick='showBuyerOrders("${doc.id}")'>
-                    <div style="font-weight:600;">${data.name || 'Unknown'}</div>
-                    <div style="font-size:13px; color:#64748b;">📧 ${data.email || 'N/A'}</div>
-                    <div style="font-size:12px; color:#94a3b8;">📅 Joined: ${data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'N/A'}</div>
-                </div>
-            `;
-        });
-        html += '</div>';
-        container.innerHTML = html;
-    }).catch(error => {
-        container.innerHTML = '<p style="color:#dc2626;">Error loading buyers: ' + error.message + '</p>';
-    });
-}
-
-function loadAllSellers() {
-    const container = document.getElementById('pendingKycList');
-    container.style.display = 'block';
-    container.innerHTML = '<p style="padding:20px; text-align:center;">Loading sellers...</p>';
-    
-    db.collection("sellers").get().then(snapshot => {
-        let html = `<div style="margin-bottom:15px;"><strong>🏪 All Sellers (${snapshot.size})</strong></div><div style="display:flex; flex-direction:column; gap:10px;">`;
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const statusColor = data.kycStatus === 'verified' ? '#10b981' : data.kycStatus === 'pending' ? '#f59e0b' : '#ef4444';
-            html += `
-                <div style="background:#f8fafc; border-radius:12px; padding:12px; border-left:4px solid ${statusColor}; cursor:pointer;" onclick='showSellerDetails("${doc.id}")'>
-                    <div style="font-weight:600;">🏪 ${data.shopName || 'Unknown'}</div>
-                    <div style="font-size:13px; color:#64748b;">👤 ${data.fullName || 'N/A'}</div>
-                    <div style="font-size:13px; color:#64748b;">📧 ${data.email || 'N/A'}</div>
-                    <div style="font-size:12px; color:#94a3b8;">💰 Earnings: ${getCurrencySymbol()}${convertPrice(data.earnings || 0)} | KYC: <span style="color:${statusColor};">${data.kycStatus || 'pending'}</span></div>
-                </div>
-            `;
-        });
-        html += '</div>';
-        container.innerHTML = html;
-    }).catch(error => {
-        container.innerHTML = '<p style="color:#dc2626;">Error loading sellers: ' + error.message + '</p>';
-    });
-}
-
-function loadWithdrawalHistory() {
-    const container = document.getElementById('pendingWithdrawals');
-    container.style.display = 'block';
-    
-    const history = withdrawalHistory.length > 0 ? withdrawalHistory : [];
-    if (history.length === 0) {
-        container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">📭 No withdrawal history</div>';
-        return;
-    }
-    
-    let html = `<div style="margin-bottom:15px;"><strong>📜 Withdrawal History</strong></div><div style="display:flex; flex-direction:column; gap:10px;">`;
-    history.forEach(w => {
-        const statusColor = w.status === 'Approved' ? '#10b981' : w.status === 'Pending' ? '#f59e0b' : '#ef4444';
-        html += `
-            <div style="background:#f8fafc; border-radius:12px; padding:12px; border-left:4px solid ${statusColor};">
-                <div style="font-weight:600;">💰 ${getCurrencySymbol()}${convertPrice(w.amount)} - ${w.sellerName}</div>
-                <div style="font-size:13px; color:#64748b;">📅 ${w.date || 'N/A'}</div>
-                <div style="font-size:12px; color:${statusColor};">Status: ${w.status || 'Pending'}</div>
+    const html = `
+        <div style="background:white; border-radius:16px; padding:20px; margin-top:20px; border:2px solid #3b82f6;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px;">
+                <h3 style="margin:0;">👤 ${type === 'buyer' ? 'Buyer' : 'Seller'} Details</h3>
+                <button onclick="document.getElementById('pendingKycList').innerHTML = ''" style="background:#64748b; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer;">Close</button>
             </div>
-        `;
-    });
-    html += '</div>';
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                <div><strong>Name:</strong> ${userData.fullName || userData.name || 'N/A'}</div>
+                <div><strong>Email:</strong> ${userData.email || 'N/A'}</div>
+                <div><strong>Phone:</strong> ${userData.phone || 'N/A'}</div>
+                <div><strong>Country:</strong> ${userData.country || userData.sellerCountry || 'N/A'}</div>
+                ${type === 'seller' ? `
+                    <div><strong>Shop Name:</strong> ${userData.shopName || 'N/A'}</div>
+                    <div><strong>KYC Status:</strong> <span class="kyc-status ${userData.kycStatus || 'pending'}">${userData.kycStatus || 'N/A'}</span></div>
+                    <div><strong>Earnings:</strong> ${getCurrencySymbol()}${convertPrice(userData.earnings || 0)}</div>
+                    <div><strong>Total Sales:</strong> ${userData.totalSales || 0}</div>
+                ` : `
+                    <div><strong>Account Type:</strong> Buyer</div>
+                    <div><strong>Joined:</strong> ${userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : 'N/A'}</div>
+                `}
+            </div>
+            ${type === 'seller' && userData.shippingZones ? `
+                <div style="margin-top:15px; padding:12px; background:#f1f5f9; border-radius:8px;">
+                    <strong>🌍 Shipping Zones:</strong>
+                    <div style="font-size:13px; margin-top:5px;">
+                        <div>📍 Local: ${userData.shippingZones.local?.countries?.join(', ') || 'N/A'} - ${getCurrencySymbol()}${convertPrice(userData.shippingZones.local?.charge || 0)}</div>
+                        <div>🌏 Regional: ${userData.shippingZones.regional?.countries?.join(', ') || 'N/A'} - ${getCurrencySymbol()}${convertPrice(userData.shippingZones.regional?.charge || 0)}</div>
+                        <div>🌐 International: ${userData.shippingZones.international?.countries?.join(', ') || 'N/A'} - ${getCurrencySymbol()}${convertPrice(userData.shippingZones.international?.charge || 0)}</div>
+                    </div>
+                </div>
+            ` : ''}
+        </div>
+    `;
+    
     container.innerHTML = html;
 }
 
-function showBuyerOrders(userId) {
-    const container = document.getElementById('pendingKycList');
-    const userOrders = orders.filter(o => o.buyerEmail === userId || o.buyerId === userId);
-    
-    if (userOrders.length === 0) {
-        container.innerHTML += `<div style="margin-top:20px; padding:20px; background:#f8fafc; border-radius:12px;">No orders found for this buyer</div>`;
-        return;
-    }
-    
-    let html = `<div style="margin-top:20px; background:white; border-radius:12px; padding:15px; border:2px solid #3b82f6;">
-        <h4 style="margin:0 0 15px 0;">📦 Orders (${userOrders.length})</h4>`;
-    userOrders.forEach(o => {
-        html += `
-            <div style="border:1px solid #e2e8f0; padding:12px; border-radius:8px; margin-bottom:10px;">
-                <div style="display:flex; justify-content:space-between;">
-                    <strong>${o.trackingNumber}</strong>
-                    <span style="color:${o.status === 'Completed' ? '#10b981' : '#f59e0b'};">${o.status}</span>
-                </div>
-                <div style="font-size:13px; color:#64748b;">${o.productName} x${o.qty} - ${getCurrencySymbol()}${convertPrice(o.amount)}</div>
-                <div style="font-size:12px; color:#94a3b8;">📅 ${o.date}</div>
-                ${o.splitBreakdown ? `
-                    <div style="font-size:11px; color:#64748b; margin-top:4px;">
-                        💰 Gateway: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.gatewayFeeDeducted || 0)} | 
-                        Admin: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.adminCommissionDeducted || 0)} | 
-                        Seller: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.finalSellerPayout || 0)}
-                    </div>
-                ` : ''}
-            </div>
-        `;
-    });
-    html += '</div>';
-    container.innerHTML += html;
-}
+// ============================================================
+// SHIPPING CALCULATION - REAL-TIME AT CHECKOUT
+// ============================================================
 
-function showSellerDetails(sellerId) {
-    const container = document.getElementById('pendingKycList');
-    const seller = sellers.find(s => s.id === sellerId);
-    if (!seller) {
-        container.innerHTML += '<p style="color:#dc2626;">Seller not found</p>';
+function calculateShippingRealTime() {
+    const countrySelect = document.getElementById('deliveryCountry');
+    if (!countrySelect) return;
+    
+    const country = countrySelect.value;
+    if (!country) {
+        document.getElementById('shippingCostContainer').style.display = 'none';
         return;
     }
     
-    const sellerOrders = orders.filter(o => o.sellerId === sellerId);
+    buyerCountry = country;
+    localStorage.setItem('buyerCountry', buyerCountry);
     
-    let html = `
-        <div style="margin-top:20px; background:white; border-radius:12px; padding:15px; border:2px solid #8b5cf6;">
-            <h4 style="margin:0 0 15px 0;">🏪 ${seller.shopName || 'Unknown Seller'}</h4>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
-                <div><strong>Name:</strong> ${seller.fullName || 'N/A'}</div>
-                <div><strong>Email:</strong> ${seller.email || 'N/A'}</div>
-                <div><strong>Phone:</strong> ${seller.phone || 'N/A'}</div>
-                <div><strong>Country:</strong> ${seller.country || 'N/A'}</div>
-                <div><strong>KYC:</strong> <span style="color:${seller.kycStatus === 'verified' ? '#10b981' : '#f59e0b'};">${seller.kycStatus || 'pending'}</span></div>
-                <div><strong>Earnings:</strong> ${getCurrencySymbol()}${convertPrice(seller.earnings || 0)}</div>
-            </div>
-            <h5>📦 Orders (${sellerOrders.length})</h5>`;
+    let totalShipping = 0;
+    let shippingBreakdown = [];
     
-    if (sellerOrders.length === 0) {
-        html += '<p style="color:#94a3b8;">No orders yet</p>';
-    } else {
-        sellerOrders.forEach(o => {
-            html += `
-                <div style="border:1px solid #e2e8f0; padding:10px; border-radius:6px; margin-bottom:8px;">
-                    <div style="display:flex; justify-content:space-between;">
-                        <strong>${o.trackingNumber}</strong>
-                        <span style="color:${o.status === 'Completed' ? '#10b981' : '#f59e0b'};">${o.status}</span>
-                    </div>
-                    <div style="font-size:13px; color:#64748b;">${o.productName} x${o.qty} - ${getCurrencySymbol()}${convertPrice(o.amount)}</div>
-                    ${o.splitBreakdown ? `
-                        <div style="font-size:11px; color:#64748b; margin-top:4px;">
-                            💰 Seller Payout: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.finalSellerPayout || 0)} | 
-                            Released: ${o.splitBreakdown.isReleased ? '✅' : '⏳'}
-                        </div>
-                    ` : ''}
-                </div>
-            `;
+    for (let item of cart) {
+        const seller = sellers.find(s => s.id === item.sellerId);
+        const product = products.find(p => p.id === item.id);
+        
+        if (!product) continue;
+        
+        const shipping = getShippingChargeForProduct(product, buyerCountry, item.price * item.qty, seller);
+        
+        totalShipping += shipping * item.qty;
+        shippingBreakdown.push({
+            product: item.name,
+            seller: seller?.shopName || 'GlobalBazaar',
+            shipping: shipping,
+            qty: item.qty,
+            zone: getZoneType(product, buyerCountry, seller)
         });
     }
-    html += '</div>';
-    container.innerHTML += html;
+    
+    const shippingContainer = document.getElementById('shippingCostContainer');
+    const shippingDisplay = document.getElementById('shippingCostDisplay');
+    
+    if (shippingContainer && shippingDisplay) {
+        if (totalShipping === 0 && shippingBreakdown.length > 0) {
+            shippingContainer.style.display = 'block';
+            shippingDisplay.innerHTML = `
+                <strong>🎉 Free Shipping!</strong>
+                <div style="font-size:13px; color:#10b981; margin-top:4px;">All items qualify for free shipping</div>
+            `;
+        } else if (totalShipping > 0) {
+            let breakdownHtml = shippingBreakdown.map(s => 
+                `<li style="font-size:12px; color:#64748b;">${s.product} (${s.seller}): ${s.shipping > 0 ? getCurrencySymbol() + convertPrice(s.shipping) : 'FREE'} x${s.qty} [${s.zone || 'International'}]</li>`
+            ).join('');
+            
+            shippingContainer.style.display = 'block';
+            shippingDisplay.innerHTML = `
+                <strong>Total Shipping: ${getCurrencySymbol()}${convertPrice(totalShipping)}</strong>
+                <ul style="margin-top:6px; list-style:none; padding:0;">${breakdownHtml}</ul>
+            `;
+        } else {
+            shippingContainer.style.display = 'none';
+        }
+    }
+    
+    updatePaymentSummary();
+}
+
+function getZoneType(product, buyerCountry, seller) {
+    if (!product) return 'International';
+    
+    const sellerCountry = seller?.country || product.sellerCountry || "SA";
+    
+    if (buyerCountry === sellerCountry || 
+        buyerCountry.toLowerCase() === sellerCountry.toLowerCase()) {
+        return 'Local';
+    }
+    
+    const sellerZone = getCountryZone(sellerCountry);
+    const buyerZone = getCountryZone(buyerCountry);
+    
+    if (sellerZone === buyerZone && sellerZone !== 'international') {
+        return 'Regional';
+    }
+    
+    return 'International';
+}
+
+function updatePaymentSummary() {
+    let subtotal = 0;
+    let totalShipping = 0;
+    
+    for (let item of cart) {
+        const seller = sellers.find(s => s.id === item.sellerId);
+        const product = products.find(p => p.id === item.id);
+        
+        if (!product) continue;
+        
+        const gatewayFee = product.price * GATEWAY_FEE_PERCENT;
+        const handlingFee = product.price * HANDLING_FEE_PERCENT;
+        const itemTotal = product.price + gatewayFee + handlingFee;
+        
+        subtotal += itemTotal * item.qty;
+        
+        const shipping = getShippingChargeForProduct(product, buyerCountry, product.price * item.qty, seller);
+        totalShipping += shipping * item.qty;
+    }
+    
+    const total = subtotal + totalShipping;
+    
+    const subtotalEl = document.getElementById('paymentSubtotal');
+    const shippingEl = document.getElementById('paymentShipping');
+    const totalEl = document.getElementById('paymentTotal');
+    
+    if (subtotalEl) subtotalEl.textContent = `${getCurrencySymbol()}${convertPrice(subtotal)}`;
+    if (shippingEl) shippingEl.textContent = `${getCurrencySymbol()}${convertPrice(totalShipping)}`;
+    if (totalEl) totalEl.textContent = `${getCurrencySymbol()}${convertPrice(total)}`;
 }
 
 // ============================================================
@@ -1525,21 +1511,6 @@ document.querySelectorAll('.admin-menu-item[data-section]').forEach(item => {
     });
 });
 
-document.getElementById('admin-buyer-list')?.addEventListener('click', function() {
-    loadAllBuyers();
-    document.getElementById('adminDropdownMenu').style.display = 'none';
-});
-
-document.getElementById('admin-seller-list')?.addEventListener('click', function() {
-    loadAllSellers();
-    document.getElementById('adminDropdownMenu').style.display = 'none';
-});
-
-document.getElementById('admin-withdrawal-history')?.addEventListener('click', function() {
-    loadWithdrawalHistory();
-    document.getElementById('adminDropdownMenu').style.display = 'none';
-});
-
 document.getElementById('admin-buyer-view')?.addEventListener('click', function() {
     const userId = prompt('Enter Buyer User ID or Email:');
     if (userId) {
@@ -1702,17 +1673,7 @@ function loadWithdrawalsList() {
     container.querySelectorAll('.approveBtn').forEach(btn => {
         btn.addEventListener('click', async () => {
             let w = pendingWithdrawals.find(w => w.id === parseInt(btn.dataset.id));
-            if(w){
-                w.status = 'Approved';
-                withdrawalHistory.push({ ...w, approvedAt: new Date().toISOString() });
-                pendingWithdrawals = pendingWithdrawals.filter(pw => pw.id !== w.id);
-                saveAllLocal();
-                showToast(`✅ Approved ${getCurrencySymbol()}${convertPrice(w.amount)}`, false);
-                await sendTelegramMessage(`💰 Withdrawal Approved: ${w.sellerName} - ${getCurrencySymbol()}${convertPrice(w.amount)}`);
-                addNotification(`Withdrawal approved for ${w.sellerName}`, 'payment');
-                loadWithdrawalsList();
-                updateAdminMenuBadges();
-            }
+            if(w){ w.status = 'Approved'; saveAllLocal(); showToast(`Approved ${getCurrencySymbol()}${convertPrice(w.amount)}`, false); await sendTelegramMessage(`💰 Withdrawal Approved: ${w.sellerName} - ${getCurrencySymbol()}${convertPrice(w.amount)}`); addNotification(`Withdrawal approved for ${w.sellerName}`, 'payment'); loadWithdrawalsList(); }
         });
     });
 }
@@ -2253,9 +2214,14 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         // ========== CALCULATE SELLER PAYOUT (Hidden from buyer) ==========
         const settings = getSplitSettings();
         let totalGatewayFee = totalUSD * settings.gatewayFeePercent;
+        let totalPlatformCommission = 0;
         let totalMaintenanceFee = totalUSD * settings.maintenanceFeePercent;
-        let totalPlatformCommission = totalUSD * settings.platformCommissionPercent;
-        let totalAdminFees = totalMaintenanceFee + totalPlatformCommission;
+        
+        for (let item of cart) {
+            totalPlatformCommission += (item.price * item.qty) * settings.platformCommissionPercent;
+        }
+        
+        let totalAdminFees = totalPlatformCommission + totalMaintenanceFee;
         let totalSellerPayout = totalUSD - totalGatewayFee - totalAdminFees;
         
         let tracking = "GB" + Date.now();
@@ -2286,6 +2252,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             
             const itemShipping = shippingBreakdown.find(s => s.product === item.name)?.shippingTotal || 0;
             
+            // Calculate split for this item
             const itemSplit = calculatePaymentSplit(itemTotal, itemShipping, item.price, item.qty);
             
             let newOrder = {
@@ -2312,16 +2279,18 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                 handlingFee: handlingFee,
                 trackingInfo: null,
                 buyerCountry: buyerCountry,
+                // ========== SELLER EARNING = 0 (PENDING) ==========
                 sellerEarning: 0,
                 pendingSellerPayout: itemSplit.sellerPayout,
                 totalShipping: totalShipping,
                 itemsTotal: itemsTotalUSD,
                 totalOrderAmount: totalUSD,
+                // ========== SPLIT BREAKDOWN (For admin only) ==========
                 splitBreakdown: {
                     totalAmount: itemSplit.totalAmount,
                     gatewayFeeDeducted: itemSplit.gatewayFee,
-                    maintenanceFeeDeducted: itemSplit.maintenanceFee,
                     platformCommissionDeducted: itemSplit.platformCommission,
+                    maintenanceFeeDeducted: itemSplit.maintenanceFee,
                     adminCommissionDeducted: itemSplit.adminTotal,
                     finalSellerPayout: itemSplit.sellerPayout,
                     isReleased: false,
@@ -2340,7 +2309,8 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         
         saveAllLocal();
         
-        await sendTelegramMessage(`🛍️ NEW ORDER!\nOrder: ${tracking}\nCustomer: ${currentDelivery.fullName}\nPhone: ${currentDelivery.phone}\nTotal: ${getCurrencySymbol()}${convertPrice(totalUSD)}\n\n💰 Split:\nGateway: ${getCurrencySymbol()}${convertPrice(totalGatewayFee)}\nMaintenance: ${getCurrencySymbol()}${convertPrice(totalMaintenanceFee)}\nCommission: ${getCurrencySymbol()}${convertPrice(totalPlatformCommission)}\nSeller Payout (Pending): ${getCurrencySymbol()}${convertPrice(totalSellerPayout)}`);
+        // ========== SEND TELEGRAM ==========
+        await sendTelegramMessage(`🛍️ NEW ORDER!\nOrder: ${tracking}\nCustomer: ${currentDelivery.fullName}\nPhone: ${currentDelivery.phone}\nTotal: ${getCurrencySymbol()}${convertPrice(totalUSD)}\n\n💰 Split Details:\nGateway Fee: ${getCurrencySymbol()}${convertPrice(totalGatewayFee)}\nPlatform Commission: ${getCurrencySymbol()}${convertPrice(totalPlatformCommission)}\nMaintenance Fee: ${getCurrencySymbol()}${convertPrice(totalMaintenanceFee)}\nSeller Payout (Pending): ${getCurrencySymbol()}${convertPrice(totalSellerPayout)}`);
         
         addNotification(`Order placed! #${tracking}`, 'order');
         
@@ -2352,6 +2322,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         
         let last4 = cardNum.slice(-4);
         
+        // ========== ITEMS HTML ==========
         let itemsHtml = cartCopy.map(i => {
             const gatewayFee = i.price * GATEWAY_FEE_PERCENT;
             const handlingFee = i.price * HANDLING_FEE_PERCENT;
@@ -2364,6 +2335,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             `<li>${s.product} (${s.seller}): ${s.shipping > 0 ? getCurrencySymbol() + convertPrice(s.shippingTotal) : 'FREE'} x${s.qty}</li>`
         ).join('');
         
+        // ========== BUYER RECEIPT - SIRF ITEMS + SHIPPING = TOTAL ==========
         document.getElementById('orderSummaryContent').innerHTML = `
             <div style="text-align:center; margin-bottom:20px;">
                 <span style="font-size:48px;">✅</span>
@@ -2393,6 +2365,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                 </div>
             </div>
 
+            <!-- ========== SIRF TOTAL - KOI COMMISSION NAHI ========== -->
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0; background:#f0fdf4; padding:12px; border:2px solid #bbf7d0; border-radius:10px;">
                 <div style="color:#64748b;">💰 Items Total</div>
                 <div style="text-align:right;"><strong>${getCurrencySymbol()}${convertPrice(itemsTotalUSD)}</strong></div>
@@ -2459,6 +2432,7 @@ function confirmOrderReceived(orderId) {
 
                 let seller = sellers.find(s => s.id == ord.sellerId);
                 if (seller) {
+                    // ========== GET PENDING PAYOUT ==========
                     let sellerPayout = ord.pendingSellerPayout || ord.splitBreakdown?.finalSellerPayout || 0;
                     
                     if (sellerPayout === 0 && ord.splitBreakdown) {
@@ -2469,36 +2443,42 @@ function confirmOrderReceived(orderId) {
                         const settings = getSplitSettings();
                         let totalAmount = (ord.basePrice * ord.qty) + (ord.shippingCost || 0);
                         let gatewayFee = totalAmount * settings.gatewayFeePercent;
+                        let platformCommission = (ord.basePrice * ord.qty) * settings.platformCommissionPercent;
                         let maintenanceFee = totalAmount * settings.maintenanceFeePercent;
-                        let platformCommission = totalAmount * settings.platformCommissionPercent;
-                        sellerPayout = totalAmount - gatewayFee - maintenanceFee - platformCommission;
+                        sellerPayout = totalAmount - gatewayFee - platformCommission - maintenanceFee;
                     }
                     
                     try {
+                        // ========== UPDATE SELLER EARNINGS (Now available for withdrawal) ==========
                         seller.earnings = (seller.earnings || 0) + sellerPayout;
                         
+                        // Update Firestore
                         const sellerRef = db.collection("sellers").doc(seller.id);
                         await sellerRef.update({
                             earnings: firebase.firestore.FieldValue.increment(sellerPayout)
                         });
                         
+                        // Update currentSeller
                         if (currentSeller && currentSeller.sellerId === seller.id) {
                             currentSeller.earnings = seller.earnings;
                             localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
                         }
                         
+                        // ========== UPDATE ORDER ==========
                         ord.sellerEarning = sellerPayout;
                         ord.splitBreakdown.isReleased = true;
                         ord.splitBreakdown.finalSellerPayout = sellerPayout;
                         
                         saveAllLocal();
                         
+                        // ========== SHOW SUCCESS ==========
                         showToast(`💰 ${getCurrencySymbol()}${convertPrice(sellerPayout)} is now AVAILABLE FOR WITHDRAWAL!`, false);
                         
                         sendTelegramMessage(`💰 Payment Released!\nOrder: ${ord.trackingNumber}\nSeller: ${seller.shopName}\nAmount: ${getCurrencySymbol()}${convertPrice(sellerPayout)}\nStatus: AVAILABLE FOR WITHDRAWAL ✅`);
                         
                         addNotification(`💰 ${getCurrencySymbol()}${convertPrice(sellerPayout)} is now available for withdrawal in ${seller.shopName}`, 'payment');
                         
+                        // ========== REFRESH DASHBOARD ==========
                         if (currentSeller) renderSellerDashboard();
                         renderBuyerOrders();
                         
@@ -2516,7 +2496,7 @@ function confirmOrderReceived(orderId) {
     }
 }
 
-function cancelOrder(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Processing"){ let prod = products.find(p => p.name === order.productName && p.sellerId === order.sellerId); if(prod){ prod.stock += order.qty; saveAllLocal(); } order.status = "Cancelled"; saveAllLocal(); showToast("Order cancelled successfully",false); renderBuyerOrders(); renderProducts(); renderSellerDashboard(); addNotification(`Order ${order.trackingNumber} cancelled`,'order'); if(currentSeller) renderSellerDashboard(); } else { showToast("Only orders in 'Processing' status can be cancelled",true); } }
+function cancelOrder(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Processing"){ let prod = products.find(p => p.name === order.productName && p.sellerId === order.sellerId); if(prod){ prod.stock += order.qty; saveAllLocal(); } order.status = "Cancelled"; saveAllLocal(); showToast("Order cancelled successfully",false); renderBuyerOrders(); renderProducts(); addNotification(`Order ${order.trackingNumber} cancelled`,'order'); if(currentSeller) renderSellerDashboard(); } else { showToast("Only orders in 'Processing' status can be cancelled",true); } }
 
 // ============================================================
 // MARK ORDER SHIPPED
@@ -2540,53 +2520,7 @@ function markOrderShipped(orderId, trackingNum) {
     }
 }
 
-// ============================================================
-// REQUEST WITHDRAWAL - FIXED
-// ============================================================
-
-function requestWithdrawal(sellerId){ 
-    let seller = sellers.find(s => s.id == sellerId); 
-    if(seller && seller.earnings > 0){ 
-        let withdrawAmount = seller.earnings;
-        
-        let newWithdrawal = { 
-            id: Date.now(), 
-            sellerId: seller.id, 
-            sellerName: seller.shopName, 
-            amount: withdrawAmount, 
-            date: new Date().toLocaleString(), 
-            status: "Pending" 
-        }; 
-        
-        pendingWithdrawals.push(newWithdrawal);
-        
-        seller.earnings = 0;
-        
-        const sellerRef = db.collection("sellers").doc(seller.id);
-        sellerRef.update({
-            earnings: 0
-        }).then(() => {
-            console.log('✅ Seller earnings reset to 0 in Firestore');
-        }).catch(err => {
-            console.error('Error updating seller earnings:', err);
-        });
-        
-        if (currentSeller && currentSeller.sellerId === seller.id) {
-            currentSeller.earnings = 0;
-            localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
-        }
-        
-        saveAllLocal(); 
-        showToast(`💰 Withdrawal request of ${getCurrencySymbol()}${convertPrice(withdrawAmount)} submitted!`, false); 
-        renderSellerDashboard(); 
-        sendTelegramMessage(`💰 Withdrawal Request: ${seller.shopName} - ${getCurrencySymbol()}${convertPrice(withdrawAmount)}`); 
-        addNotification(`Withdrawal request for ${getCurrencySymbol()}${convertPrice(withdrawAmount)} submitted`, 'payment');
-        updateAdminMenuBadges();
-    } else { 
-        showToast("No balance available for withdrawal", true); 
-    } 
-}
-
+function requestWithdrawal(sellerId){ let seller = sellers.find(s => s.id == sellerId); if(seller && seller.earnings > 0){ let newWithdrawal = { id: Date.now(), sellerId: seller.id, sellerName: seller.shopName, amount: seller.earnings, date: new Date().toLocaleString(), status: "Pending" }; pendingWithdrawals.push(newWithdrawal); seller.earnings = 0; saveAllLocal(); showToast("Withdrawal request submitted",false); renderSellerDashboard(); sendTelegramMessage(`💰 Withdrawal Request: ${seller.shopName} - ${getCurrencySymbol()}${convertPrice(newWithdrawal.amount)}`); addNotification(`Withdrawal request for ${getCurrencySymbol()}${convertPrice(newWithdrawal.amount)}`,'payment'); } else showToast("No balance",true); }
 function processWeeklyWithdrawals(){ let last = localStorage.getItem('gb_last_withdrawal'); let now = new Date(); let day = now.getDay(); if((day===1||day===5) && (!last || new Date(last).getDate() !== now.getDate())){ pendingWithdrawals.forEach(w => { if(w.status === "Pending") w.status = "Approved"; }); saveAllLocal(); localStorage.setItem('gb_last_withdrawal', now.toString()); } }
 setInterval(processWeeklyWithdrawals, 3600000); processWeeklyWithdrawals();
 
@@ -2910,12 +2844,10 @@ function showOrderDetailsModal(order) {
                     </div>
                     ${order.splitBreakdown ? `
                         <div style="margin-top:10px; padding:10px; background:#f0fdf4; border-radius:8px; border:1px solid #bbf7d0;">
-                            <div style="font-weight:600; font-size:13px;">💰 Split Breakdown</div>
+                            <div style="font-weight:600; font-size:13px;">💰 Split Breakdown (Admin View)</div>
                             <div style="font-size:12px; color:#64748b;">
                                 Gateway Fee: ${getCurrencySymbol()}${convertPrice(order.splitBreakdown.gatewayFeeDeducted)}<br>
-                                Maintenance Fee: ${getCurrencySymbol()}${convertPrice(order.splitBreakdown.maintenanceFeeDeducted || 0)}<br>
-                                Platform Commission: ${getCurrencySymbol()}${convertPrice(order.splitBreakdown.platformCommissionDeducted || 0)}<br>
-                                Admin Total: ${getCurrencySymbol()}${convertPrice(order.splitBreakdown.adminCommissionDeducted || 0)}<br>
+                                Admin Commission: ${getCurrencySymbol()}${convertPrice(order.splitBreakdown.adminCommissionDeducted)}<br>
                                 <strong style="color:#10b981;">Final Seller Payout: ${getCurrencySymbol()}${convertPrice(order.splitBreakdown.finalSellerPayout)}</strong><br>
                                 <span style="color:${order.splitBreakdown.isReleased ? '#10b981' : '#f59e0b'};">Status: ${order.splitBreakdown.isReleased ? '✅ Released' : '⏳ Pending'}</span>
                             </div>
@@ -2973,15 +2905,11 @@ function showOrderDetailsModal(order) {
 }
 
 // ============================================================
-// SELLER DASHBOARD - FIXED: With Chart.js Error Handling
+// SELLER DASHBOARD - WITH PENDING AMOUNT
 // ============================================================
 
 function renderSellerDashboard() {
-    if (!currentSeller?.sellerId) {
-        console.log('No seller logged in');
-        return;
-    }
-    
+    if (!currentSeller?.sellerId) return;
     let seller = sellers.find(s => s.id === currentSeller.sellerId);
     if (!seller) {
         const stored = localStorage.getItem('gb_current_seller');
@@ -3015,48 +2943,43 @@ function renderSellerDashboard() {
     }
     
     let myProducts = products.filter(p => p.sellerId == seller.id);
+    let myOrders = orders.filter(o => o.sellerId == seller.id);
     
-    let activeOrders = orders.filter(o => 
-        o.sellerId == seller.id && 
-        (o.status === "Processing" || o.status === "Shipped" || o.status === "Delivered")
-    );
-    
-    let historyOrders = orders.filter(o => 
-        o.sellerId == seller.id && 
-        (o.status === "Completed" || o.status === "Cancelled")
-    );
-    
+    // ========== CALCULATE PENDING AMOUNT ==========
     let pendingAmount = 0;
     let availableAmount = seller.earnings || 0;
     
-    activeOrders.forEach(o => {
-        let pendingPayout = o.pendingSellerPayout || o.splitBreakdown?.finalSellerPayout || 0;
-        if (pendingPayout > 0) {
-            pendingAmount += pendingPayout;
-        } else {
-            const settings = getSplitSettings();
-            let totalAmount = (o.basePrice * o.qty) + (o.shippingCost || 0);
-            let gatewayFee = totalAmount * settings.gatewayFeePercent;
-            let maintenanceFee = totalAmount * settings.maintenanceFeePercent;
-            let platformCommission = totalAmount * settings.platformCommissionPercent;
-            let calculatedPayout = totalAmount - gatewayFee - maintenanceFee - platformCommission;
-            pendingAmount += calculatedPayout;
+    myOrders.forEach(o => {
+        // Processing, Shipped, Delivered = PENDING
+        if (o.status === "Processing" || o.status === "Shipped" || o.status === "Delivered") {
+            let pendingPayout = o.pendingSellerPayout || o.splitBreakdown?.finalSellerPayout || 0;
+            if (pendingPayout > 0) {
+                pendingAmount += pendingPayout;
+            } else {
+                const settings = getSplitSettings();
+                let totalAmount = (o.basePrice * o.qty) + (o.shippingCost || 0);
+                let gatewayFee = totalAmount * settings.gatewayFeePercent;
+                let platformCommission = (o.basePrice * o.qty) * settings.platformCommissionPercent;
+                let maintenanceFee = totalAmount * settings.maintenanceFeePercent;
+                let calculatedPayout = totalAmount - gatewayFee - platformCommission - maintenanceFee;
+                pendingAmount += calculatedPayout;
+            }
         }
     });
     
+    // ========== TOTAL AMOUNT = AVAILABLE + PENDING ==========
     let totalAmount = availableAmount + pendingAmount;
     
-    const totalOrders = activeOrders.length + historyOrders.length;
-    const processingOrders = activeOrders.filter(o => o.status === "Processing").length;
-    const shippedOrders = activeOrders.filter(o => o.status === "Shipped").length;
-    const deliveredOrders = activeOrders.filter(o => o.status === "Delivered").length;
-    const completedOrders = historyOrders.filter(o => o.status === "Completed").length;
-    const cancelledOrders = historyOrders.filter(o => o.status === "Cancelled").length;
+    const totalOrders = myOrders.length;
+    const processingOrders = myOrders.filter(o => o.status === "Processing").length;
+    const shippedOrders = myOrders.filter(o => o.status === "Shipped").length;
+    const deliveredOrders = myOrders.filter(o => o.status === "Delivered" || o.status === "Completed").length;
     
-    let monthlyRevenue = {};
-    historyOrders.forEach(o => {
-        if (o.status === "Completed") {
+    let totalSales = 0, monthlyRevenue = {};
+    myOrders.forEach(o => {
+        if (o.status === "Completed" || o.status === "Delivered") {
             let earning = (o.sellerEarning || (o.basePrice - o.commission)) * o.qty;
+            totalSales += earning;
             let date = new Date(o.date);
             let my = `${date.getMonth()+1}/${date.getFullYear()}`;
             monthlyRevenue[my] = (monthlyRevenue[my] || 0) + earning;
@@ -3076,7 +2999,7 @@ function renderSellerDashboard() {
                   (seller.kycStatus === "verified" ? "✅ KYC Verified" : "❌ KYC Rejected");
     
     let topProducts = {};
-    orders.filter(o => o.sellerId == seller.id).forEach(o => {
+    myOrders.forEach(o => {
         topProducts[o.productName] = (topProducts[o.productName] || 0) + o.qty;
     });
     let topList = Object.entries(topProducts).sort((a, b) => b[1] - a[1]).slice(0, 5);
@@ -3120,7 +3043,7 @@ function renderSellerDashboard() {
         `;
     }).join('');
     
-    let activeOrdersHtml = activeOrders.map(o => `
+    let ordersHtml = myOrders.map(o => `
         <div style="border:1px solid #e2e8f0; padding:16px; border-radius:12px; margin-bottom:12px; background:white;">
             <div style="display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:10px;">
                 <div>
@@ -3148,7 +3071,10 @@ function renderSellerDashboard() {
                     ${o.shippingCost > 0 ? `<div style="font-size:12px; color:#64748b;">🚚 +${getCurrencySymbol()}${convertPrice(o.shippingCost)} shipping</div>` : 
                     `<div style="font-size:12px; color:#10b981;">🚚 Free Shipping</div>`}
                     <div style="font-size:12px; color:#8b5cf6; margin-top:4px; font-weight:bold;">
-                        ⏳ Payout: ${getCurrencySymbol()}${convertPrice(o.pendingSellerPayout || 0)} (Pending)
+                        ${o.status === "Completed" ? 
+                            `✅ Payout: ${getCurrencySymbol()}${convertPrice(o.sellerEarning || 0)} (Available)` : 
+                            `⏳ Payout: ${getCurrencySymbol()}${convertPrice(o.pendingSellerPayout || 0)} (Pending - Waiting for buyer confirmation)`
+                        }
                     </div>
                 </div>
                 
@@ -3175,79 +3101,40 @@ function renderSellerDashboard() {
                     <button class="shipBtn" data-id="${o.id}" style="background:#3b82f6; color:white; border:none; padding:8px 16px; border-radius:20px; cursor:pointer; font-weight:500;">
                         📦 Mark Shipped
                     </button>
+                    <button onclick='showOrderDetailsModal(${JSON.stringify(o).replace(/'/g, "&#39;")})' style="background:#8b5cf6; color:white; border:none; padding:8px 16px; border-radius:20px; cursor:pointer; font-weight:500;">
+                        👁️ View Order
+                    </button>
                 ` : ''}
-                <button onclick='showOrderDetailsModal(${JSON.stringify(o).replace(/'/g, "&#39;")})' style="background:#8b5cf6; color:white; border:none; padding:8px 16px; border-radius:20px; cursor:pointer; font-weight:500;">
-                    👁️ View Order
-                </button>
                 ${o.status === "Shipped" ? `
+                    <button onclick='showOrderDetailsModal(${JSON.stringify(o).replace(/'/g, "&#39;")})' style="background:#8b5cf6; color:white; border:none; padding:8px 16px; border-radius:20px; cursor:pointer; font-weight:500;">
+                        👁️ View Order
+                    </button>
                     <span style="background:#dbeafe; color:#1e40af; padding:8px 16px; border-radius:20px; font-size:13px;">
                         ⏳ Waiting for buyer confirmation
                     </span>
                 ` : ''}
                 ${o.status === "Delivered" ? `
+                    <button onclick='showOrderDetailsModal(${JSON.stringify(o).replace(/'/g, "&#39;")})' style="background:#8b5cf6; color:white; border:none; padding:8px 16px; border-radius:20px; cursor:pointer; font-weight:500;">
+                        👁️ View Order
+                    </button>
                     <span style="background:#fef3c7; color:#92400e; padding:8px 16px; border-radius:20px; font-size:13px;">
                         ⏳ Payment releasing in 5 seconds...
+                    </span>
+                ` : ''}
+                ${o.status === "Completed" ? `
+                    <button onclick='showOrderDetailsModal(${JSON.stringify(o).replace(/'/g, "&#39;")})' style="background:#8b5cf6; color:white; border:none; padding:8px 16px; border-radius:20px; cursor:pointer; font-weight:500;">
+                        👁️ View Order
+                    </button>
+                    <span style="background:#d1fae5; color:#065f46; padding:8px 16px; border-radius:20px; font-size:13px;">
+                        ✅ Payment Released - Available for Withdrawal
                     </span>
                 ` : ''}
             </div>
         </div>
     `).join('');
     
-    if (activeOrdersHtml === '') {
-        activeOrdersHtml = '<p style="text-align:center; padding:20px; color:#64748b;">No active orders</p>';
-    }
-    
-    let historyOrdersHtml = historyOrders.map(o => `
-        <div style="border:1px solid #e2e8f0; padding:16px; border-radius:12px; margin-bottom:12px; background:#f8fafc; opacity:0.8;">
-            <div style="display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:10px;">
-                <div>
-                    <strong style="font-size:16px;">🔖 ${o.trackingNumber}</strong>
-                    <span style="background:${o.status === 'Cancelled' ? '#fee2e2' : '#d1fae5'}; 
-                                   color:${o.status === 'Cancelled' ? '#dc2626' : '#065f46'}; 
-                                   padding:2px 12px; border-radius:20px; font-size:12px; margin-left:10px;">
-                        ${o.status}
-                    </span>
-                </div>
-                <div style="font-size:13px; color:#64748b;">
-                    📅 ${o.date}
-                </div>
-            </div>
-            
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:12px;">
-                <div style="background:white; padding:12px; border-radius:8px;">
-                    <div style="font-weight:600; color:#475569; font-size:13px;">📦 Product</div>
-                    <div style="font-size:15px; font-weight:500;">${o.productName}</div>
-                    <div style="color:#64748b; font-size:13px;">Qty: ${o.qty} × ${getCurrencySymbol()}${convertPrice(o.amount/o.qty)}</div>
-                    <div style="font-weight:600; color:#1e293b; font-size:15px; margin-top:4px;">
-                        Total: ${getCurrencySymbol()}${convertPrice(o.amount * o.qty)}
-                    </div>
-                    ${o.sellerEarning > 0 ? 
-                        `<div style="font-size:12px; color:#10b981; margin-top:4px;">✅ Payout: ${getCurrencySymbol()}${convertPrice(o.sellerEarning)} (Released)</div>` : 
-                        `<div style="font-size:12px; color:#64748b; margin-top:4px;">⏳ No payout</div>`
-                    }
-                </div>
-                
-                <div style="background:white; padding:12px; border-radius:8px;">
-                    <div style="font-weight:600; color:#475569; font-size:13px;">👤 Buyer</div>
-                    <div style="font-weight:500;">${o.buyerName}</div>
-                    <div style="color:#64748b; font-size:13px;">📧 ${o.buyerEmail || 'N/A'}</div>
-                </div>
-            </div>
-            
-            <div style="margin-top:12px; padding-top:12px; border-top:1px solid #e2e8f0; display:flex; gap:8px; flex-wrap:wrap;">
-                <button onclick='showOrderDetailsModal(${JSON.stringify(o).replace(/'/g, "&#39;")})' style="background:#8b5cf6; color:white; border:none; padding:8px 16px; border-radius:20px; cursor:pointer; font-weight:500;">
-                    👁️ View Order
-                </button>
-            </div>
-        </div>
-    `).join('');
-    
-    if (historyOrdersHtml === '') {
-        historyOrdersHtml = '<p style="text-align:center; padding:20px; color:#64748b;">No order history</p>';
-    }
-    
     let sellerDashboardHtml = `
-        <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:12px; margin-bottom:20px;">
+        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; margin-bottom:20px;">
             <div style="background:#3b82f6; color:white; padding:15px; border-radius:12px; text-align:center;">
                 <div style="font-size:28px; font-weight:bold;">${totalOrders}</div>
                 <div style="font-size:12px; opacity:0.9;">📦 Total Orders</div>
@@ -3262,11 +3149,7 @@ function renderSellerDashboard() {
             </div>
             <div style="background:#10b981; color:white; padding:15px; border-radius:12px; text-align:center;">
                 <div style="font-size:28px; font-weight:bold;">${deliveredOrders}</div>
-                <div style="font-size:12px; opacity:0.9;">📦 Delivered</div>
-            </div>
-            <div style="background:#8b5cf6; color:white; padding:15px; border-radius:12px; text-align:center;">
-                <div style="font-size:28px; font-weight:bold;">${completedOrders}</div>
-                <div style="font-size:12px; opacity:0.9;">✅ Completed</div>
+                <div style="font-size:12px; opacity:0.9;">✅ Delivered/Completed</div>
             </div>
         </div>
         
@@ -3282,20 +3165,24 @@ function renderSellerDashboard() {
                 </div>
             </div>
             
+            <!-- ========== BALANCE SECTION - 3 CARDS ========== -->
             <div style="margin-top:12px; padding-top:12px; border-top:1px solid #e2e8f0;">
                 <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+                    <!-- Available for Withdrawal -->
                     <div style="background:#f0fdf4; padding:15px; border-radius:12px; text-align:center; border:2px solid #bbf7d0;">
                         <div style="font-size:11px; color:#64748b;">💰 Available for Withdrawal</div>
                         <div style="font-size:22px; font-weight:700; color:#10b981;">${getCurrencySymbol()}${convertPrice(availableAmount)}</div>
-                        <div style="font-size:10px; color:#94a3b8;">✅ Released</div>
+                        <div style="font-size:10px; color:#94a3b8;">✅ Released by admin</div>
                     </div>
                     
+                    <!-- Pending Payment -->
                     <div style="background:#fef3c7; padding:15px; border-radius:12px; text-align:center; border:2px solid #fbbf24;">
                         <div style="font-size:11px; color:#64748b;">⏳ Pending Payment</div>
                         <div style="font-size:22px; font-weight:700; color:#f59e0b;">${getCurrencySymbol()}${convertPrice(pendingAmount)}</div>
                         <div style="font-size:10px; color:#94a3b8;">⏳ Waiting for buyer confirmation</div>
                     </div>
                     
+                    <!-- Total Earnings -->
                     <div style="background:#e0e7ff; padding:15px; border-radius:12px; text-align:center; border:2px solid #818cf8;">
                         <div style="font-size:11px; color:#64748b;">📊 Total Earnings</div>
                         <div style="font-size:22px; font-weight:700; color:#4f46e5;">${getCurrencySymbol()}${convertPrice(totalAmount)}</div>
@@ -3303,7 +3190,8 @@ function renderSellerDashboard() {
                     </div>
                 </div>
                 
-                <div style="margin-top:12px; display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
+                <!-- Withdraw Button -->
+                <div style="margin-top:12px; display:flex; justify-content:center;">
                     <button id="withdrawBtn" style="background:#10b981; color:white; border:none; padding:10px 30px; border-radius:25px; cursor:pointer; font-weight:600; ${availableAmount <= 0 ? 'opacity:0.5; cursor:not-allowed;' : ''}" 
                         ${availableAmount <= 0 ? 'disabled' : ''}>
                         💸 Withdraw Available Balance (${getCurrencySymbol()}${convertPrice(availableAmount)})
@@ -3313,10 +3201,7 @@ function renderSellerDashboard() {
             </div>
         </div>
         
-        <div class="chart-container">
-            <h3>📊 Revenue</h3>
-            <canvas id="revenueChart"></canvas>
-        </div>
+        <div class="chart-container"><h3>📊 Revenue</h3><canvas id="revenueChart"></canvas></div>
         
         <div class="premium-card">
             <h3>📈 Top Products</h3>
@@ -3391,78 +3276,29 @@ function renderSellerDashboard() {
         </div>
         
         <div class="premium-card">
-            <h3>📦 Active Orders (${activeOrders.length})</h3>
-            <div id="activeOrdersList">${activeOrdersHtml}</div>
-        </div>
-        
-        <div class="premium-card" style="border-left:4px solid #8b5cf6;">
-            <h3>📜 Order History (${historyOrders.length}) <span style="font-size:12px; color:#64748b;">(Completed/Cancelled)</span></h3>
-            <div id="historyOrdersList">${historyOrdersHtml}</div>
+            <h3>📦 Orders (${totalOrders})</h3>
+            <div id="ordersList">${ordersHtml}</div>
         </div>
     `;
     
     document.getElementById('sellerDashboard').innerHTML = sellerDashboardHtml;
     
-    // ========== REVENUE CHART - WITH ERROR HANDLING ==========
-    try {
-        let ctx = document.getElementById('revenueChart')?.getContext('2d');
-        if (ctx) {
-            if (typeof Chart !== 'undefined') {
-                if (sellerRevenueChart) sellerRevenueChart.destroy();
-                sellerRevenueChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: chartLabels,
-                        datasets: [{
-                            label: 'Revenue',
-                            data: chartData.map(v => parseFloat(convertPrice(v))),
-                            backgroundColor: '#3b82f6'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
-                        }
-                    }
-                });
-            } else {
-                console.warn('Chart.js not loaded, showing fallback');
-                const chartContainer = document.querySelector('.chart-container');
-                if (chartContainer) {
-                    chartContainer.innerHTML = `
-                        <h3>📊 Revenue</h3>
-                        <div style="padding:15px; background:#f8fafc; border-radius:8px;">
-                            <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-                                ${chartLabels.map((label, i) => `
-                                    <div style="padding:10px; background:white; border-radius:8px; min-width:60px; text-align:center; border:1px solid #e2e8f0;">
-                                        <div style="font-weight:700; font-size:16px; color:#3b82f6;">${getCurrencySymbol()}${chartData[i].toFixed(2)}</div>
-                                        <div style="font-size:11px; color:#64748b;">${label}</div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    `;
-                }
+    let ctx = document.getElementById('revenueChart')?.getContext('2d');
+    if (ctx) {
+        if (sellerRevenueChart) sellerRevenueChart.destroy();
+        sellerRevenueChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Revenue',
+                    data: chartData.map(v => parseFloat(convertPrice(v))),
+                    backgroundColor: '#3b82f6'
+                }]
             }
-        }
-    } catch (error) {
-        console.error('Chart error:', error);
-        const chartContainer = document.querySelector('.chart-container');
-        if (chartContainer) {
-            chartContainer.innerHTML = `
-                <h3>📊 Revenue</h3>
-                <div style="padding:15px; background:#fef3c7; border-radius:8px; border:1px solid #fbbf24;">
-                    <p style="color:#92400e; text-align:center;">⚠️ Chart unavailable. Please ensure Chart.js is loaded.</p>
-                    <p style="color:#92400e; text-align:center; font-size:12px;">Add: &lt;script src="https://cdn.jsdelivr.net/npm/chart.js"&gt;&lt;/script&gt;</p>
-                </div>
-            `;
-        }
+        });
     }
     
-    // ========== EVENT LISTENERS ==========
     document.getElementById('publishBtn')?.addEventListener('click', async function() {
         const btn = this;
         btn.disabled = true;
@@ -3624,7 +3460,7 @@ function renderSellerDashboard() {
 }
 
 // ============================================================
-// RENDER EDIT PRODUCT MODAL
+// RENDER EDIT PRODUCT MODAL WITH RESTOCK + SHIPPING
 // ============================================================
 
 function renderEditProductModal(prod) {
@@ -3692,7 +3528,7 @@ function renderEditProductModal(prod) {
 }
 
 // ============================================================
-// UPDATE PRODUCT
+// UPDATE PRODUCT WITH RESTOCK + SHIPPING
 // ============================================================
 
 document.getElementById('updateProductBtn')?.addEventListener('click', async function() {
@@ -3939,7 +3775,6 @@ function saveAllLocal(){
     localStorage.setItem('gb_orders', JSON.stringify(orders));
     localStorage.setItem('gb_platform_earnings', JSON.stringify(platformEarnings));
     localStorage.setItem('gb_pending_withdrawals', JSON.stringify(pendingWithdrawals));
-    localStorage.setItem('gb_withdrawal_history', JSON.stringify(withdrawalHistory));
     localStorage.setItem('gb_saved_cards', JSON.stringify(savedCards));
     localStorage.setItem('gb_saved_addresses', JSON.stringify(savedAddresses));
     localStorage.setItem('gb_notifications', JSON.stringify(notifications));
