@@ -31,6 +31,7 @@ const firebaseConfig = {
 try {
     firebase.initializeApp(firebaseConfig);
     console.log('✅ Firebase initialized');
+    document.getElementById('debugMsg').innerHTML = '✅ Firebase initialized';
 } catch(e) {
     console.error('Firebase init error:', e);
     document.getElementById('debugMsg').innerHTML = 'Firebase init error: ' + e.message;
@@ -38,6 +39,22 @@ try {
 
 const db = firebase.firestore();
 const auth = firebase.auth();
+
+// ============================================================
+// FIX: CHECK IF FIREBASE IS WORKING
+// ============================================================
+async function checkFirebaseConnection() {
+    try {
+        await db.collection('products').limit(1).get();
+        console.log('✅ Firebase connected');
+        document.getElementById('debugMsg').innerHTML = '✅ Firebase connected';
+        return true;
+    } catch (error) {
+        console.error('❌ Firebase connection error:', error);
+        document.getElementById('debugMsg').innerHTML = '❌ Firebase connection error: ' + error.message;
+        return false;
+    }
+}
 
 // ============================================================
 // PAYMENT SPLIT SETTINGS - DYNAMIC
@@ -64,13 +81,16 @@ async function loadSplitSettings() {
                 updatedAt: data.updatedAt || new Date().toISOString()
             };
             console.log('✅ Split settings loaded:', splitSettings);
+            document.getElementById('debugMsg').innerHTML = '✅ Split settings loaded';
         } else {
             await db.collection("settings").doc("paymentSplit").set(DEFAULT_SPLIT_SETTINGS);
             console.log('✅ Default split settings created');
+            document.getElementById('debugMsg').innerHTML = '✅ Default split settings created';
         }
     } catch (error) {
         console.error('Error loading split settings:', error);
         splitSettings = { ...DEFAULT_SPLIT_SETTINGS };
+        document.getElementById('debugMsg').innerHTML = '⚠️ Using default split settings';
     }
 }
 
@@ -79,29 +99,24 @@ function getSplitSettings() {
 }
 
 // ============================================================
-// PAYMENT SPLIT CALCULATION - FIXED: Order: Gateway(3%) -> Maintenance(1.5%) -> Commission(15%)
+// PAYMENT SPLIT CALCULATION - FIXED: Gateway(3%) -> Maintenance(1.5%) -> Commission(15%)
 // ============================================================
 
 function calculatePaymentSplit(totalAmount, shippingCost = 0, productBasePrice = 0, qty = 1) {
     const settings = getSplitSettings();
     
-    // Total = Product Price + Shipping
     const total = totalAmount + shippingCost;
     const baseTotal = productBasePrice * qty;
     
-    // 1. Gateway Fee (3% of total) - First deduction
     const gatewayFee = total * settings.gatewayFeePercent;
     const afterGateway = total - gatewayFee;
     
-    // 2. Maintenance Fee (1.5% of total) - Second deduction
     const maintenanceFee = total * settings.maintenanceFeePercent;
     const afterMaintenance = afterGateway - maintenanceFee;
     
-    // 3. Platform Commission (15% of total) - Third deduction
     const platformCommission = total * settings.platformCommissionPercent;
     const afterCommission = afterMaintenance - platformCommission;
     
-    // 4. Seller Payout = Remaining amount
     const sellerPayout = afterCommission;
     const adminTotal = maintenanceFee + platformCommission;
     
@@ -613,7 +628,7 @@ document.getElementById('currencySelect').value=selectedCurrency;
 document.getElementById('currencySelect').addEventListener('change',(e)=>{ selectedCurrency=e.target.value; localStorage.setItem('selectedCurrency',selectedCurrency); renderProducts(); updateCartUI(); renderCartPage(); if(currentSeller) renderSellerDashboard(); showToast(`Currency: ${selectedCurrency}`,false); });
 
 // ============================================================
-// THREE-DOT DROPDOWN MENU SYSTEM - UPDATED WITH HISTORY BUTTON
+// THREE-DOT DROPDOWN MENU SYSTEM
 // ============================================================
 
 function toggleThreeDotMenu(btn) {
@@ -653,7 +668,6 @@ function setupOrderThreeDotMenu(orderCard, orderData) {
     const dropdown = document.createElement('div');
     dropdown.className = 'three-dot-dropdown';
     
-    // ========== HISTORY BUTTON - Move Completed/Cancelled orders to history ==========
     if (orderData.status === "Completed" || orderData.status === "Cancelled") {
         const historyBtn = document.createElement('button');
         historyBtn.className = 'menu-item';
@@ -666,7 +680,6 @@ function setupOrderThreeDotMenu(orderCard, orderData) {
         dropdown.appendChild(historyBtn);
     }
     
-    // View Order Details
     const viewBtn = document.createElement('button');
     viewBtn.className = 'menu-item';
     viewBtn.innerHTML = '👁️ View Details';
@@ -709,7 +722,7 @@ function setupOrderThreeDotMenu(orderCard, orderData) {
 }
 
 // ============================================================
-// ORDER HISTORY SYSTEM - AUTO MOVE COMPLETED/CANCELLED ORDERS
+// ORDER HISTORY SYSTEM
 // ============================================================
 
 function moveOrderToHistory(order) {
@@ -748,7 +761,6 @@ function moveOrderToHistory(order) {
                 <div class="label">📦 Product</div>
                 <div class="value">${movedOrder.productName} x${movedOrder.qty}</div>
                 <div class="value">${getCurrencySymbol()}${convertPrice(movedOrder.amount)}</div>
-                ${movedOrder.sellerEarning > 0 ? `<div class="value" style="color:#10b981;">✅ Payout: ${getCurrencySymbol()}${convertPrice(movedOrder.sellerEarning)}</div>` : ''}
             </div>
             <div class="buyer-info">
                 <div class="label">👤 Buyer</div>
@@ -796,7 +808,6 @@ function renderOrderHistory() {
                     <div class="label">📦 Product</div>
                     <div class="value">${order.productName} x${order.qty}</div>
                     <div class="value">${getCurrencySymbol()}${convertPrice(order.amount)}</div>
-                    ${order.sellerEarning > 0 ? `<div class="value" style="color:#10b981;">✅ Payout: ${getCurrencySymbol()}${convertPrice(order.sellerEarning)}</div>` : ''}
                 </div>
                 <div class="buyer-info">
                     <div class="label">👤 Buyer</div>
@@ -812,28 +823,24 @@ function renderOrderHistory() {
 }
 
 // ============================================================
-// ADMIN VIEW SYSTEM - ID-FREE WITH DIRECT LISTS
+// ADMIN VIEW SYSTEM - ID-FREE
 // ============================================================
 
-// Admin - View All Buyers (ID-Free)
 document.getElementById('admin-buyer-list')?.addEventListener('click', function() {
     loadAllBuyers();
     document.getElementById('adminDropdownMenu').style.display = 'none';
 });
 
-// Admin - View All Sellers (ID-Free)
 document.getElementById('admin-seller-list')?.addEventListener('click', function() {
     loadAllSellers();
     document.getElementById('adminDropdownMenu').style.display = 'none';
 });
 
-// Admin - Withdrawal History
 document.getElementById('admin-withdrawal-history')?.addEventListener('click', function() {
     loadWithdrawalHistory();
     document.getElementById('adminDropdownMenu').style.display = 'none';
 });
 
-// Old ID-based views (keep for backward compatibility)
 document.getElementById('admin-buyer-view')?.addEventListener('click', function() {
     const userId = prompt('Enter Buyer User ID or Email:');
     if (userId) {
@@ -851,7 +858,6 @@ document.getElementById('admin-seller-view')?.addEventListener('click', function
 });
 
 function fetchUserData(userId, type) {
-    // For backward compatibility
     if (type === 'buyer') {
         loadAllBuyers();
     } else if (type === 'seller') {
@@ -859,9 +865,7 @@ function fetchUserData(userId, type) {
     }
 }
 
-function displayUserData(userData, type) {
-    // For backward compatibility
-}
+function displayUserData(userData, type) {}
 
 function loadAllBuyers() {
     const container = document.getElementById('pendingKycList');
@@ -1348,14 +1352,13 @@ function showMyOrdersPage() {
 }
 
 // ============================================================
-// RENDER BUYER ORDERS - Only Active Orders (Processing, Shipped, Delivered)
+// RENDER BUYER ORDERS
 // ============================================================
 
 function renderBuyerOrders() {
     const user = auth.currentUser;
     if (!user) return;
     
-    // Only show active orders
     let activeOrders = orders.filter(o => 
         o.buyerEmail === user.email && 
         o.status !== 'Cancelled' && 
@@ -1705,7 +1708,6 @@ function loadWithdrawalsList() {
         btn.addEventListener('click', async () => {
             let w = pendingWithdrawals.find(w => w.id === parseInt(btn.dataset.id));
             if(w){
-                // ========== AUTO MOVE TO HISTORY ON APPROVE ==========
                 w.status = 'Approved';
                 withdrawalHistory.push({ ...w, approvedAt: new Date().toISOString() });
                 pendingWithdrawals = pendingWithdrawals.filter(pw => pw.id !== w.id);
@@ -2289,7 +2291,6 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             
             const itemShipping = shippingBreakdown.find(s => s.product === item.name)?.shippingTotal || 0;
             
-            // Calculate split for this item - FIXED: Gateway 3% -> Maintenance 1.5% -> Commission 15%
             const itemSplit = calculatePaymentSplit(itemTotal, itemShipping, item.price, item.qty);
             
             let newOrder = {
@@ -2316,13 +2317,11 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                 handlingFee: handlingFee,
                 trackingInfo: null,
                 buyerCountry: buyerCountry,
-                // ========== SELLER EARNING = 0 (PENDING) ==========
                 sellerEarning: 0,
                 pendingSellerPayout: itemSplit.sellerPayout,
                 totalShipping: totalShipping,
                 itemsTotal: itemsTotalUSD,
                 totalOrderAmount: totalUSD,
-                // ========== SPLIT BREAKDOWN ==========
                 splitBreakdown: {
                     totalAmount: itemSplit.totalAmount,
                     gatewayFeeDeducted: itemSplit.gatewayFee,
@@ -2346,7 +2345,6 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         
         saveAllLocal();
         
-        // ========== SEND TELEGRAM ==========
         await sendTelegramMessage(`🛍️ NEW ORDER!\nOrder: ${tracking}\nCustomer: ${currentDelivery.fullName}\nPhone: ${currentDelivery.phone}\nTotal: ${getCurrencySymbol()}${convertPrice(totalUSD)}\n\n💰 Split:\nGateway: ${getCurrencySymbol()}${convertPrice(totalGatewayFee)}\nMaintenance: ${getCurrencySymbol()}${convertPrice(totalMaintenanceFee)}\nCommission: ${getCurrencySymbol()}${convertPrice(totalPlatformCommission)}\nSeller Payout (Pending): ${getCurrencySymbol()}${convertPrice(totalSellerPayout)}`);
         
         addNotification(`Order placed! #${tracking}`, 'order');
@@ -2359,7 +2357,6 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         
         let last4 = cardNum.slice(-4);
         
-        // ========== ITEMS HTML ==========
         let itemsHtml = cartCopy.map(i => {
             const gatewayFee = i.price * GATEWAY_FEE_PERCENT;
             const handlingFee = i.price * HANDLING_FEE_PERCENT;
@@ -2372,7 +2369,6 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             `<li>${s.product} (${s.seller}): ${s.shipping > 0 ? getCurrencySymbol() + convertPrice(s.shippingTotal) : 'FREE'} x${s.qty}</li>`
         ).join('');
         
-        // ========== BUYER RECEIPT - SIRF ITEMS + SHIPPING = TOTAL ==========
         document.getElementById('orderSummaryContent').innerHTML = `
             <div style="text-align:center; margin-bottom:20px;">
                 <span style="font-size:48px;">✅</span>
@@ -2402,7 +2398,6 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                 </div>
             </div>
 
-            <!-- ========== SIRF TOTAL - KOI COMMISSION NAHI ========== -->
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0; background:#f0fdf4; padding:12px; border:2px solid #bbf7d0; border-radius:10px;">
                 <div style="color:#64748b;">💰 Items Total</div>
                 <div style="text-align:right;"><strong>${getCurrencySymbol()}${convertPrice(itemsTotalUSD)}</strong></div>
@@ -2469,7 +2464,6 @@ function confirmOrderReceived(orderId) {
 
                 let seller = sellers.find(s => s.id == ord.sellerId);
                 if (seller) {
-                    // ========== GET PENDING PAYOUT ==========
                     let sellerPayout = ord.pendingSellerPayout || ord.splitBreakdown?.finalSellerPayout || 0;
                     
                     if (sellerPayout === 0 && ord.splitBreakdown) {
@@ -2486,36 +2480,30 @@ function confirmOrderReceived(orderId) {
                     }
                     
                     try {
-                        // ========== UPDATE SELLER EARNINGS ==========
                         seller.earnings = (seller.earnings || 0) + sellerPayout;
                         
-                        // Update Firestore
                         const sellerRef = db.collection("sellers").doc(seller.id);
                         await sellerRef.update({
                             earnings: firebase.firestore.FieldValue.increment(sellerPayout)
                         });
                         
-                        // Update currentSeller
                         if (currentSeller && currentSeller.sellerId === seller.id) {
                             currentSeller.earnings = seller.earnings;
                             localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
                         }
                         
-                        // ========== UPDATE ORDER ==========
                         ord.sellerEarning = sellerPayout;
                         ord.splitBreakdown.isReleased = true;
                         ord.splitBreakdown.finalSellerPayout = sellerPayout;
                         
                         saveAllLocal();
                         
-                        // ========== SHOW SUCCESS ==========
                         showToast(`💰 ${getCurrencySymbol()}${convertPrice(sellerPayout)} is now AVAILABLE FOR WITHDRAWAL!`, false);
                         
                         sendTelegramMessage(`💰 Payment Released!\nOrder: ${ord.trackingNumber}\nSeller: ${seller.shopName}\nAmount: ${getCurrencySymbol()}${convertPrice(sellerPayout)}\nStatus: AVAILABLE FOR WITHDRAWAL ✅`);
                         
                         addNotification(`💰 ${getCurrencySymbol()}${convertPrice(sellerPayout)} is now available for withdrawal in ${seller.shopName}`, 'payment');
                         
-                        // ========== REFRESH DASHBOARD ==========
                         if (currentSeller) renderSellerDashboard();
                         renderBuyerOrders();
                         
@@ -2533,7 +2521,7 @@ function confirmOrderReceived(orderId) {
     }
 }
 
-function cancelOrder(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Processing"){ let prod = products.find(p => p.name === order.productName && p.sellerId === order.sellerId); if(prod){ prod.stock += order.qty; saveAllLocal(); } order.status = "Cancelled"; // Auto move to history saveAllLocal(); showToast("Order cancelled successfully",false); renderBuyerOrders(); renderProducts(); renderSellerDashboard(); addNotification(`Order ${order.trackingNumber} cancelled`,'order'); if(currentSeller) renderSellerDashboard(); } else { showToast("Only orders in 'Processing' status can be cancelled",true); } }
+function cancelOrder(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Processing"){ let prod = products.find(p => p.name === order.productName && p.sellerId === order.sellerId); if(prod){ prod.stock += order.qty; saveAllLocal(); } order.status = "Cancelled"; saveAllLocal(); showToast("Order cancelled successfully",false); renderBuyerOrders(); renderProducts(); renderSellerDashboard(); addNotification(`Order ${order.trackingNumber} cancelled`,'order'); if(currentSeller) renderSellerDashboard(); } else { showToast("Only orders in 'Processing' status can be cancelled",true); } }
 
 // ============================================================
 // MARK ORDER SHIPPED
@@ -2577,10 +2565,8 @@ function requestWithdrawal(sellerId){
         
         pendingWithdrawals.push(newWithdrawal);
         
-        // ========== FIX: Immediately deduct from seller earnings ==========
         seller.earnings = 0;
         
-        // Update Firestore immediately
         const sellerRef = db.collection("sellers").doc(seller.id);
         sellerRef.update({
             earnings: 0
@@ -2590,7 +2576,6 @@ function requestWithdrawal(sellerId){
             console.error('Error updating seller earnings:', err);
         });
         
-        // Update currentSeller
         if (currentSeller && currentSeller.sellerId === seller.id) {
             currentSeller.earnings = 0;
             localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
@@ -2993,7 +2978,7 @@ function showOrderDetailsModal(order) {
 }
 
 // ============================================================
-// SELLER DASHBOARD - Only Active Orders + History + Pending Amount
+// SELLER DASHBOARD - Only Active Orders + History
 // ============================================================
 
 function renderSellerDashboard() {
@@ -3072,7 +3057,6 @@ function renderSellerDashboard() {
     const completedOrders = historyOrders.filter(o => o.status === "Completed").length;
     const cancelledOrders = historyOrders.filter(o => o.status === "Cancelled").length;
     
-    // ========== REVENUE CHART ==========
     let monthlyRevenue = {};
     historyOrders.forEach(o => {
         if (o.status === "Completed") {
@@ -3095,14 +3079,12 @@ function renderSellerDashboard() {
     let kycText = seller.kycStatus === "pending" ? "⏳ KYC Pending - Wait for Admin" : 
                   (seller.kycStatus === "verified" ? "✅ KYC Verified" : "❌ KYC Rejected");
     
-    // ========== TOP PRODUCTS ==========
     let topProducts = {};
     orders.filter(o => o.sellerId == seller.id).forEach(o => {
         topProducts[o.productName] = (topProducts[o.productName] || 0) + o.qty;
     });
     let topList = Object.entries(topProducts).sort((a, b) => b[1] - a[1]).slice(0, 5);
     
-    // ========== PRODUCT LIST ==========
     let prodListHtml = myProducts.map(p => {
         const isSoldOut = p.stock <= 0;
         const commissionRate = getCategoryCommission(p.category);
@@ -3142,7 +3124,6 @@ function renderSellerDashboard() {
         `;
     }).join('');
     
-    // ========== ACTIVE ORDERS HTML ==========
     let activeOrdersHtml = activeOrders.map(o => `
         <div style="border:1px solid #e2e8f0; padding:16px; border-radius:12px; margin-bottom:12px; background:white;">
             <div style="display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:10px;">
@@ -3220,7 +3201,6 @@ function renderSellerDashboard() {
         activeOrdersHtml = '<p style="text-align:center; padding:20px; color:#64748b;">No active orders</p>';
     }
     
-    // ========== HISTORY ORDERS HTML ==========
     let historyOrdersHtml = historyOrders.map(o => `
         <div style="border:1px solid #e2e8f0; padding:16px; border-radius:12px; margin-bottom:12px; background:#f8fafc; opacity:0.8;">
             <div style="display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:10px;">
@@ -3270,7 +3250,6 @@ function renderSellerDashboard() {
         historyOrdersHtml = '<p style="text-align:center; padding:20px; color:#64748b;">No order history</p>';
     }
     
-    // ========== DASHBOARD HTML ==========
     let sellerDashboardHtml = `
         <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:12px; margin-bottom:20px;">
             <div style="background:#3b82f6; color:white; padding:15px; border-radius:12px; text-align:center;">
@@ -3307,24 +3286,20 @@ function renderSellerDashboard() {
                 </div>
             </div>
             
-            <!-- ========== BALANCE SECTION - 3 CARDS ========== -->
             <div style="margin-top:12px; padding-top:12px; border-top:1px solid #e2e8f0;">
                 <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
-                    <!-- Available for Withdrawal -->
                     <div style="background:#f0fdf4; padding:15px; border-radius:12px; text-align:center; border:2px solid #bbf7d0;">
                         <div style="font-size:11px; color:#64748b;">💰 Available for Withdrawal</div>
                         <div style="font-size:22px; font-weight:700; color:#10b981;">${getCurrencySymbol()}${convertPrice(availableAmount)}</div>
                         <div style="font-size:10px; color:#94a3b8;">✅ Released</div>
                     </div>
                     
-                    <!-- Pending Payment -->
                     <div style="background:#fef3c7; padding:15px; border-radius:12px; text-align:center; border:2px solid #fbbf24;">
                         <div style="font-size:11px; color:#64748b;">⏳ Pending Payment</div>
                         <div style="font-size:22px; font-weight:700; color:#f59e0b;">${getCurrencySymbol()}${convertPrice(pendingAmount)}</div>
                         <div style="font-size:10px; color:#94a3b8;">⏳ Waiting for buyer confirmation</div>
                     </div>
                     
-                    <!-- Total Earnings -->
                     <div style="background:#e0e7ff; padding:15px; border-radius:12px; text-align:center; border:2px solid #818cf8;">
                         <div style="font-size:11px; color:#64748b;">📊 Total Earnings</div>
                         <div style="font-size:22px; font-weight:700; color:#4f46e5;">${getCurrencySymbol()}${convertPrice(totalAmount)}</div>
@@ -3416,13 +3391,11 @@ function renderSellerDashboard() {
             <div id="myProductsList">${prodListHtml}</div>
         </div>
         
-        <!-- ========== ACTIVE ORDERS SECTION ========== -->
         <div class="premium-card">
             <h3>📦 Active Orders (${activeOrders.length})</h3>
             <div id="activeOrdersList">${activeOrdersHtml}</div>
         </div>
         
-        <!-- ========== ORDER HISTORY SECTION ========== -->
         <div class="premium-card" style="border-left:4px solid #8b5cf6;">
             <h3>📜 Order History (${historyOrders.length}) <span style="font-size:12px; color:#64748b;">(Completed/Cancelled)</span></h3>
             <div id="historyOrdersList">${historyOrdersHtml}</div>
@@ -3431,24 +3404,54 @@ function renderSellerDashboard() {
     
     document.getElementById('sellerDashboard').innerHTML = sellerDashboardHtml;
     
-    // ========== REVENUE CHART ==========
     let ctx = document.getElementById('revenueChart')?.getContext('2d');
     if (ctx) {
-        if (sellerRevenueChart) sellerRevenueChart.destroy();
-        sellerRevenueChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: chartLabels,
-                datasets: [{
-                    label: 'Revenue',
-                    data: chartData.map(v => parseFloat(convertPrice(v))),
-                    backgroundColor: '#3b82f6'
-                }]
+        try {
+            if (typeof Chart !== 'undefined') {
+                if (sellerRevenueChart) sellerRevenueChart.destroy();
+                sellerRevenueChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: chartLabels,
+                        datasets: [{
+                            label: 'Revenue',
+                            data: chartData.map(v => parseFloat(convertPrice(v))),
+                            backgroundColor: '#3b82f6'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            } else {
+                console.warn('Chart.js not loaded, showing fallback');
+                const chartContainer = document.querySelector('.chart-container');
+                if (chartContainer) {
+                    chartContainer.innerHTML = `
+                        <h3>📊 Revenue</h3>
+                        <div style="padding:15px; background:#f8fafc; border-radius:8px;">
+                            <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                                ${chartLabels.map((label, i) => `
+                                    <div style="padding:10px; background:white; border-radius:8px; min-width:60px; text-align:center; border:1px solid #e2e8f0;">
+                                        <div style="font-weight:700; font-size:16px; color:#3b82f6;">${getCurrencySymbol()}${chartData[i].toFixed(2)}</div>
+                                        <div style="font-size:11px; color:#64748b;">${label}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
             }
-        });
+        } catch (error) {
+            console.error('Chart error:', error);
+        }
     }
     
-    // ========== EVENT LISTENERS ==========
     document.getElementById('publishBtn')?.addEventListener('click', async function() {
         const btn = this;
         btn.disabled = true;
@@ -3775,10 +3778,6 @@ function renderBuyerWishlist(){ let w = products.filter(p => wishlist.includes(p
 document.getElementById('refreshAdminBtn')?.addEventListener('click', loadAdminData);
 window.viewSellerDocument = function(docImage, docType, sellerName){ if(docImage && docImage.startsWith('http')){ window.open(docImage, '_blank'); } else { alert(`No image available for ${sellerName}`); } };
 
-// ============================================================
-// KYC DOCUMENT VALIDATION
-// ============================================================
-
 function validateKYCFileType(file) {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
     if (!allowedTypes.includes(file.type)) {
@@ -3813,18 +3812,10 @@ document.getElementById('sellerDocImage')?.addEventListener('change', function(e
     }
 });
 
-// ============================================================
-// POPULATE SHIPPING ZONES - DISABLED
-// ============================================================
-
 function populateShippingZones() {
     console.log('Shipping zones removed from registration');
     return;
 }
-
-// ============================================================
-// BACKWARD COMPATIBILITY - MIGRATE OLD SELLERS
-// ============================================================
 
 async function migrateOldSellers() {
     try {
