@@ -1322,7 +1322,7 @@ async function loadUserCart(userId) {
 }
 
 // ============================================================
-// SHOW MY ORDERS PAGE (FIXED - ADDED FUNCTION)
+// SHOW MY ORDERS PAGE
 // ============================================================
 
 function showMyOrdersPage() {
@@ -1380,7 +1380,7 @@ function renderBuyerOrders() {
                         <div class="label">📅 Order Details</div>
                         <div class="value">Date: ${o.date}</div>
                         <div class="value">${o.trackingInfo ? `📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}` : ''}</div>
-                        ${o.status === "Shipped" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981; color:white; border:none; padding:4px 12px; border-radius:16px; cursor:pointer; font-size:11px;">✅ Received</button>` : ''}
+                        ${o.status === "Shipped" || o.status === "Delivered" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981; color:white; border:none; padding:4px 12px; border-radius:16px; cursor:pointer; font-size:11px;">✅ Received</button>` : ''}
                         ${o.status === "Processing" ? `<button class="cancelOrderBtn" data-id="${o.id}" style="background:#dc2626; color:white; border:none; padding:4px 12px; border-radius:16px; cursor:pointer; font-size:11px;">❌ Cancel</button>` : ''}
                     </div>
                 </div>
@@ -1415,53 +1415,40 @@ function confirmOrderReceived(orderId) {
     
     let order = orders.find(o => o.id === orderId);
 
-    // Validation checks
     if (!order) {
         showToast("⚠️ Order not found", true);
         return;
     }
 
-    if (order.status !== "Delivered") {
-        showToast("⚠️ Only 'Delivered' orders can be confirmed", true);
+    if (order.status !== "Shipped" && order.status !== "Delivered") {
+        showToast("⚠️ Only 'Shipped' or 'Delivered' orders can be confirmed", true);
         return;
     }
 
-    // Check if payment already released (prevent double payment)
     if (order.splitBreakdown?.isReleased) {
         showToast("⚠️ Payment already released for this order", true);
         return;
     }
 
     try {
-        // ============================================================
-        // STEP 1: INSTANTLY update order status
-        // ============================================================
         order.status = "Completed";
         order.isBuyerConfirmed = true;
         order.confirmedAt = new Date().toISOString();
         order.paymentReleasedAt = new Date().toISOString();
         
-        // ============================================================
-        // STEP 2: Find seller
-        // ============================================================
         let seller = sellers.find(s => s.id === order.sellerId);
         if (!seller) {
             showToast("⚠️ Seller not found", true);
             return;
         }
 
-        // ============================================================
-        // STEP 3: Calculate seller payout
-        // ============================================================
         let sellerPayout = 0;
         
-        // Try to get from existing data
         if (order.pendingSellerPayout) {
             sellerPayout = order.pendingSellerPayout;
         } else if (order.splitBreakdown?.finalSellerPayout) {
             sellerPayout = order.splitBreakdown.finalSellerPayout;
         } else {
-            // Calculate from scratch
             sellerPayout = calculateSellerPayout(order);
         }
 
@@ -1470,68 +1457,39 @@ function confirmOrderReceived(orderId) {
             return;
         }
 
-        // ============================================================
-        // STEP 4: INSTANTLY add money to seller's earnings
-        // ============================================================
         seller.earnings = (seller.earnings || 0) + sellerPayout;
         
-        // ============================================================
-        // STEP 5: INSTANTLY update Firestore
-        // ============================================================
         db.collection("sellers").doc(seller.id).update({
             earnings: firebase.firestore.FieldValue.increment(sellerPayout),
-            lastPayoutAt: new Date().toISOString(),
-            totalPayoutReceived: firebase.firestore.FieldValue.increment(sellerPayout)
+            lastPayoutAt: new Date().toISOString()
         }).then(() => {
             console.log('✅ Firestore updated - Payment released instantly');
         }).catch(err => {
             console.error('Firestore update error:', err);
         });
 
-        // ============================================================
-        // STEP 6: Update order with payment info
-        // ============================================================
         order.sellerEarning = sellerPayout;
         order.splitBreakdown.isReleased = true;
         order.splitBreakdown.releasedAt = new Date().toISOString();
         order.splitBreakdown.finalSellerPayout = sellerPayout;
         
-        // ============================================================
-        // STEP 7: Update current seller (if logged in)
-        // ============================================================
         if (currentSeller && currentSeller.sellerId === seller.id) {
             currentSeller.earnings = seller.earnings;
             localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
         }
         
-        // ============================================================
-        // STEP 8: Save everything locally
-        // ============================================================
         saveAllLocal();
         
-        // ============================================================
-        // STEP 9: Show SUCCESS message
-        // ============================================================
         showToast('💰 ' + getCurrencySymbol() + convertPrice(sellerPayout) + ' PAYMENT RELEASED INSTANTLY!', false);
         
-        // ============================================================
-        // STEP 10: Send Telegram notification
-        // ============================================================
         sendTelegramMessage(`💰 PAYMENT RELEASED INSTANTLY!\n` +
                            `📦 Order: ${order.trackingNumber}\n` +
                            `🏪 Seller: ${seller.shopName}\n` +
                            `💰 Amount: ${getCurrencySymbol()}${convertPrice(sellerPayout)}\n` +
-                           `⏱️ Released: ${new Date().toLocaleTimeString()}\n` +
                            `✅ Status: AVAILABLE FOR WITHDRAWAL NOW!`);
         
-        // ============================================================
-        // STEP 11: Add notification
-        // ============================================================
         addNotification(`💰 ${getCurrencySymbol()}${convertPrice(sellerPayout)} INSTANTLY released to ${seller.shopName}`, 'payment');
         
-        // ============================================================
-        // STEP 12: Refresh UI instantly
-        // ============================================================
         renderBuyerOrders();
         renderSellerDashboard();
         
@@ -1544,36 +1502,24 @@ function confirmOrderReceived(orderId) {
 }
 
 // ============================================================
-// CALCULATE SELLER PAYOUT (Helper Function)
+// CALCULATE SELLER PAYOUT
 // ============================================================
 
 function calculateSellerPayout(order) {
     try {
         const settings = getSplitSettings();
         
-        // Calculate total amount
         let baseTotal = (order.basePrice || 0) * (order.qty || 1);
         let shippingCost = order.shippingCost || 0;
         let totalAmount = baseTotal + shippingCost;
         
-        // Calculate fees
         let gatewayFee = totalAmount * settings.gatewayFeePercent;
         let maintenanceFee = totalAmount * settings.maintenanceFeePercent;
         let platformCommission = totalAmount * settings.platformCommissionPercent;
         
-        // Calculate seller payout
         let sellerPayout = totalAmount - gatewayFee - maintenanceFee - platformCommission;
         
-        // Round to 2 decimal places
         sellerPayout = Math.round(sellerPayout * 100) / 100;
-        
-        console.log('💰 Payout Calculation:', {
-            totalAmount,
-            gatewayFee,
-            maintenanceFee,
-            platformCommission,
-            sellerPayout
-        });
         
         return sellerPayout;
     } catch (error) {
@@ -1608,7 +1554,7 @@ function cancelOrder(orderId) {
 }
 
 // ============================================================
-// REQUEST WITHDRAWAL - FIXED: Only deduct requested amount
+// REQUEST WITHDRAWAL - ONLY DEDUCT REQUESTED AMOUNT
 // ============================================================
 
 function requestWithdrawal(sellerId) {
@@ -1620,7 +1566,6 @@ function requestWithdrawal(sellerId) {
     
     let withdrawAmount = parseFloat(document.getElementById('withdrawAmountInput').value);
 
-    // Validation
     if (seller.earnings <= 0) {
         showToast("No balance available for withdrawal", true);
         return;
@@ -1636,7 +1581,6 @@ function requestWithdrawal(sellerId) {
         return;
     }
 
-    // ✅ Create withdrawal request
     let newWithdrawal = {
         id: Date.now(),
         sellerId: seller.id,
@@ -1649,10 +1593,8 @@ function requestWithdrawal(sellerId) {
 
     pendingWithdrawals.push(newWithdrawal);
 
-    // ✅ ONLY deduct requested amount
     seller.earnings -= withdrawAmount;
 
-    // ✅ Update Firestore
     db.collection("sellers").doc(seller.id).update({
         earnings: seller.earnings,
         totalWithdrawn: firebase.firestore.FieldValue.increment(withdrawAmount)
@@ -1660,7 +1602,6 @@ function requestWithdrawal(sellerId) {
         console.error('Error updating balance:', err);
     });
 
-    // ✅ Update current seller
     if (currentSeller && currentSeller.sellerId === seller.id) {
         currentSeller.earnings = seller.earnings;
         localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
@@ -1668,10 +1609,8 @@ function requestWithdrawal(sellerId) {
 
     saveAllLocal();
     
-    // ✅ Show success
     showToast(`💰 ${getCurrencySymbol()}${convertPrice(withdrawAmount)} Withdrawal Request Submitted!`, false);
     
-    // ✅ Notifications
     sendTelegramMessage(`💰 WITHDRAWAL REQUEST\n` +
                        `🏪 Seller: ${seller.shopName}\n` +
                        `💰 Amount: ${getCurrencySymbol()}${convertPrice(withdrawAmount)}\n` +
@@ -1680,21 +1619,40 @@ function requestWithdrawal(sellerId) {
     
     addNotification(`💰 ${getCurrencySymbol()}${convertPrice(withdrawAmount)} withdrawal requested`, 'payment');
     
-    // ✅ Refresh dashboard
     renderSellerDashboard();
     updateAdminMenuBadges();
 }
 
 // ============================================================
-// FIRESTORE LISTENERS (FIXED - With cleanup)
+// MARK ORDER SHIPPED
+// ============================================================
+
+function markOrderShipped(orderId, trackingNum) {
+    let order = orders.find(o => o.id === orderId);
+    if (order && order.status === "Processing") {
+        order.status = "Shipped";
+        order.trackingInfo = { trackingNumber: trackingNum };
+        saveAllLocal();
+        
+        addNotification(`📦 Your order ${order.trackingNumber} has been shipped! Tracking: ${trackingNum}`, 'order');
+        sendTelegramMessage(`📦 Order Shipped: ${order.trackingNumber}\nProduct: ${order.productName}\nBuyer: ${order.buyerName}\nTracking: ${trackingNum}`);
+        
+        showToast(`✅ Order Shipped! Tracking: ${trackingNum}`, false);
+        renderSellerDashboard();
+        renderBuyerOrders();
+    } else {
+        showToast("Order not found or already shipped", true);
+    }
+}
+
+// ============================================================
+// FIRESTORE LISTENERS WITH CLEANUP
 // ============================================================
 
 function setupFirestoreListeners() {
-    // Cleanup old listeners
     if (productsUnsubscribe) productsUnsubscribe();
     if (sellersUnsubscribe) sellersUnsubscribe();
     
-    // Products listener
     productsUnsubscribe = db.collection("products").onSnapshot(snapshot => {
         try {
             products = [];
@@ -1714,7 +1672,6 @@ function setupFirestoreListeners() {
         document.getElementById('debugMsg').innerHTML = '⚠️ Products listener error: ' + error.message;
     });
     
-    // Sellers listener
     sellersUnsubscribe = db.collection("sellers").onSnapshot(snapshot => {
         try {
             sellers = [];
@@ -1723,7 +1680,6 @@ function setupFirestoreListeners() {
             });
             console.log('👤 Sellers loaded:', sellers.length);
             
-            // Update current seller if exists
             if (currentSeller) {
                 const freshSeller = sellers.find(s => s.id === currentSeller.sellerId);
                 if (freshSeller) {
@@ -1756,37 +1712,11 @@ function setupFirestoreListeners() {
     });
 }
 
-// ============================================================
-// CLEANUP ON PAGE UNLOAD
-// ============================================================
-
 window.addEventListener('beforeunload', () => {
     if (productsUnsubscribe) productsUnsubscribe();
     if (sellersUnsubscribe) sellersUnsubscribe();
     if (verificationCheckInterval) clearInterval(verificationCheckInterval);
 });
-
-// ============================================================
-// MARK ORDER SHIPPED
-// ============================================================
-
-function markOrderShipped(orderId, trackingNum) {
-    let order = orders.find(o => o.id === orderId);
-    if (order && order.status === "Processing") {
-        order.status = "Shipped";
-        order.trackingInfo = { trackingNumber: trackingNum };
-        saveAllLocal();
-        
-        addNotification(`📦 Your order ${order.trackingNumber} has been shipped! Tracking: ${trackingNum}`, 'order');
-        sendTelegramMessage(`📦 Order Shipped: ${order.trackingNumber}\nProduct: ${order.productName}\nBuyer: ${order.buyerName}\nTracking: ${trackingNum}`);
-        
-        showToast(`✅ Order Shipped! Tracking: ${trackingNum}`, false);
-        renderSellerDashboard();
-        renderBuyerOrders();
-    } else {
-        showToast("Order not found or already shipped", true);
-    }
-}
 
 // ============================================================
 // SELLER REGISTRATION
@@ -2104,7 +2034,7 @@ function showOrderDetailsModal(order) {
                         Total: ${getCurrencySymbol()}${convertPrice(order.amount + (order.shippingCost || 0))}
                     </div>
                     <div style="font-size:12px; color:#64748b; margin-top:4px;">
-                        ${order.sellerEarning > 0 ? `✅ Seller Payout: ${getCurrencySymbol()}${convertPrice(order.sellerEarning)} (Available for Withdrawal)` : `⏳ Seller Payout: Pending (Waiting for delivery confirmation)`}
+                        ${order.sellerEarning > 0 ? `✅ Seller Payout: ${getCurrencySymbol()}${convertPrice(order.sellerEarning)} (Available for Withdrawal)` : `⏳ Seller Payout: Pending (Waiting for buyer confirmation)`}
                     </div>
                     ${order.splitBreakdown ? `
                         <div style="margin-top:10px; padding:10px; background:#f0fdf4; border-radius:8px; border:1px solid #bbf7d0;">
@@ -2171,7 +2101,7 @@ function showOrderDetailsModal(order) {
 }
 
 // ============================================================
-// SELLER DASHBOARD - With Instant Withdraw
+// SELLER DASHBOARD - COMPLETE FIXED VERSION
 // ============================================================
 
 function renderSellerDashboard() {
@@ -2373,13 +2303,8 @@ function renderSellerDashboard() {
                 <button onclick='showOrderDetailsModal(${JSON.stringify(o).replace(/'/g, "&#39;")})' style="background:#8b5cf6; color:white; border:none; padding:8px 16px; border-radius:20px; cursor:pointer; font-weight:500;">
                     👁️ View Order
                 </button>
-                ${o.status === "Shipped" ? `
-                    <span style="background:#dbeafe; color:#1e40af; padding:8px 16px; border-radius:20px; font-size:13px;">
-                        ⏳ Waiting for buyer confirmation
-                    </span>
-                ` : ''}
-                ${o.status === "Delivered" ? `
-                    <span style="background:#fef3c7; color:#92400e; padding:8px 16px; border-radius:20px; font-size:13px;">
+                ${o.status === "Shipped" || o.status === "Delivered" ? `
+                    <span style="background:#fef3c7; color:#92400e; padding:8px 16px; border-radius:20px; font-size:13px; font-weight:500;">
                         ⏳ Waiting for buyer to click "Received"
                     </span>
                 ` : ''}
@@ -2480,20 +2405,20 @@ function renderSellerDashboard() {
                 <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
                     <div style="background:#f0fdf4; padding:15px; border-radius:12px; text-align:center; border:2px solid #bbf7d0;">
                         <div style="font-size:11px; color:#64748b;">💰 Available for Withdrawal</div>
-                        <div style="font-size:22px; font-weight:700; color:#10b981;">${getCurrencySymbol()}${convertPrice(availableAmount)}</div>
+                        <div style="font-size:22px; font-weight:700; color:#10b981;">${getCurrencySymbol()}${convertPrice(availableAmount || 0)}</div>
                         <div style="font-size:10px; color:#94a3b8;">✅ Released</div>
                     </div>
                     
                     <div style="background:#fef3c7; padding:15px; border-radius:12px; text-align:center; border:2px solid #fbbf24;">
                         <div style="font-size:11px; color:#64748b;">⏳ Pending Payment</div>
-                        <div style="font-size:22px; font-weight:700; color:#f59e0b;">${getCurrencySymbol()}${convertPrice(pendingAmount)}</div>
+                        <div style="font-size:22px; font-weight:700; color:#f59e0b;">${getCurrencySymbol()}${convertPrice(pendingAmount || 0)}</div>
                         <div style="font-size:10px; color:#94a3b8;">⏳ Waiting for buyer confirmation</div>
                     </div>
                     
                     <div style="background:#e0e7ff; padding:15px; border-radius:12px; text-align:center; border:2px solid #818cf8;">
                         <div style="font-size:11px; color:#64748b;">📊 Total Earnings</div>
-                        <div style="font-size:22px; font-weight:700; color:#4f46e5;">${getCurrencySymbol()}${convertPrice(totalAmount)}</div>
-                        <div style="font-size:10px; color:#94a3b8;">${availableAmount > 0 ? '✅ ' + getCurrencySymbol() + convertPrice(availableAmount) + ' available' : '⏳ All pending'}</div>
+                        <div style="font-size:22px; font-weight:700; color:#4f46e5;">${getCurrencySymbol()}${convertPrice(totalAmount || 0)}</div>
+                        <div style="font-size:10px; color:#94a3b8;">${(availableAmount || 0) > 0 ? '✅ ' + getCurrencySymbol() + convertPrice(availableAmount) + ' available' : '⏳ All pending'}</div>
                     </div>
                 </div>
                 
@@ -2511,8 +2436,8 @@ function renderSellerDashboard() {
                         </button>
                     </div>
                     <div style="margin-top:8px; font-size:14px; color:#64748b;">
-                        Available: ${getCurrencySymbol()}${convertPrice(availableAmount)}
-                        ${availableAmount === 0 ? '<span style="color: #ef4444; margin-left: 10px;">⚠️ No balance to withdraw</span>' : ''}
+                        Available: ${getCurrencySymbol()}${convertPrice(availableAmount || 0)}
+                        ${(availableAmount || 0) === 0 ? '<span style="color: #ef4444; margin-left: 10px;">⚠️ No balance to withdraw</span>' : ''}
                     </div>
                 </div>
                 ${pendingAmount > 0 ? `<p style="text-align:center; font-size:12px; color:#94a3b8; margin-top:4px;">⏳ ${getCurrencySymbol()}${convertPrice(pendingAmount)} pending - Will be available after buyer confirms delivery</p>` : ''}
@@ -2606,7 +2531,7 @@ function renderSellerDashboard() {
     
     document.getElementById('sellerDashboard').innerHTML = sellerDashboardHtml;
     
-    // ========== REVENUE CHART ==========
+    // Revenue Chart
     let ctx = document.getElementById('revenueChart')?.getContext('2d');
     if (ctx) {
         try {
@@ -2655,6 +2580,7 @@ function renderSellerDashboard() {
         }
     }
     
+    // Publish Product
     document.getElementById('publishBtn')?.addEventListener('click', async function() {
         const btn = this;
         btn.disabled = true;
@@ -2830,7 +2756,7 @@ function renderSellerDashboard() {
 }
 
 // ============================================================
-// RENDER EDIT PRODUCT MODAL WITH RESTOCK + SHIPPING
+// RENDER EDIT PRODUCT MODAL
 // ============================================================
 
 function renderEditProductModal(prod) {
@@ -2898,7 +2824,7 @@ function renderEditProductModal(prod) {
 }
 
 // ============================================================
-// UPDATE PRODUCT WITH RESTOCK + SHIPPING
+// UPDATE PRODUCT
 // ============================================================
 
 document.getElementById('updateProductBtn')?.addEventListener('click', async function() {
@@ -3110,10 +3036,6 @@ function showTerms() {
 
 function showSection(section){ document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.getElementById(section+"Section").classList.add('active'); }
 
-// ============================================================
-// DRAWER CLICK HANDLERS
-// ============================================================
-
 document.getElementById('drawerBuyer')?.addEventListener('click', () => { 
     showMyOrdersPage(); 
     closeDrawer(); 
@@ -3258,10 +3180,6 @@ document.getElementById('loginModal')?.addEventListener('click', (e) => {
     }
 });
 
-// ============================================================
-// UPDATE FOOTER SUPPORT INFO - DYNAMIC
-// ============================================================
-
 function updateFooterSupport() {
     const footer = document.querySelector('.footer-legal');
     if (footer) {
@@ -3275,7 +3193,7 @@ function updateFooterSupport() {
 }
 
 // ============================================================
-// RENDER PRODUCTS (FIXED - Better error handling)
+// RENDER PRODUCTS
 // ============================================================
 
 function renderProducts() {
@@ -3609,7 +3527,7 @@ function renderCartPage() {
 let currentDelivery = null;
 
 // ============================================================
-// CHECKOUT - FIXED: calculateShippingRealTime (CORRECT)
+// CHECKOUT
 // ============================================================
 
 document.getElementById('proceedToCheckoutBtn')?.addEventListener('click', () => {
@@ -3687,7 +3605,6 @@ document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async f
         saveAllLocal();
     }
     
-    // ========== FIXED: Correct function call ==========
     calculateShippingRealTime();
     
     showToast("Proceeding to payment...", false);
@@ -3699,10 +3616,6 @@ document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async f
 });
 
 function loadSavedCards(){ let userCards = savedCards.filter(c => c.userEmail === "user.email"); if(userCards.length > 0){ document.getElementById('savedCardsSection').style.display = 'block'; document.getElementById('savedCardsList').innerHTML = userCards.map((card,idx) => `<div class="flex-between"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}">Use</button></div>`).join(''); document.querySelectorAll('.useSavedCardBtn').forEach(btn => btn.addEventListener('click', () => { let card = userCards[parseInt(btn.dataset.idx)]; document.getElementById('cardNumber').value = card.cardNumber; document.getElementById('cardHolderName').value = card.cardHolderName; document.getElementById('expiryDate').value = card.expiryDate; document.getElementById('cvv').value = ''; showToast("Card loaded", false); })); } }
-
-// ============================================================
-// SHIPPING CALCULATION - REAL-TIME AT CHECKOUT (FIXED)
-// ============================================================
 
 function calculateShippingRealTime() {
     try {
@@ -3829,7 +3742,7 @@ function updatePaymentSummary() {
 }
 
 // ============================================================
-// PAYMENT - BUYER RECEIPT
+// PAYMENT
 // ============================================================
 
 document.getElementById('payNowBtn')?.addEventListener('click', async function() {
@@ -3877,7 +3790,6 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             saveAllLocal();
         }
         
-        // Calculate shipping
         let totalShipping = 0;
         let shippingBreakdown = [];
         
@@ -3901,7 +3813,6 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             });
         }
         
-        // Calculate items total
         let itemsTotalUSD = 0;
         
         for (let item of cart) {
@@ -3912,10 +3823,8 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             itemsTotalUSD += itemTotal * item.qty;
         }
         
-        // Total = Items + Shipping
         const totalUSD = itemsTotalUSD + totalShipping;
         
-        // Calculate seller payout (Hidden from buyer)
         const settings = getSplitSettings();
         let totalGatewayFee = totalUSD * settings.gatewayFeePercent;
         let totalMaintenanceFee = totalUSD * settings.maintenanceFeePercent;
@@ -3926,7 +3835,6 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         let tracking = "GB" + Date.now();
         let cartCopy = [...cart];
         
-        // Create orders
         for (let item of cart) {
             const seller = sellers.find(s => s.id === item.sellerId);
             const commissionRate = getCategoryCommission(item.category || 'Electronics');
@@ -4105,7 +4013,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
 });
 
 // ============================================================
-// ADMIN - ENHANCED WITH HISTORY BUTTON
+// ADMIN
 // ============================================================
 
 document.getElementById('adminMenuBtn')?.addEventListener('click', function(e) {
@@ -4140,10 +4048,6 @@ document.querySelectorAll('.admin-menu-item[data-section]').forEach(item => {
         document.getElementById('adminDropdownMenu').style.display = 'none';
     });
 });
-
-// ============================================================
-// PENDING SELLERS - KYC
-// ============================================================
 
 function loadPendingSellers() {
     const pending = sellers.filter(s => s.kycStatus === 'pending');
@@ -4435,7 +4339,6 @@ document.addEventListener('DOMContentLoaded', function() {
         closeOrderDetails.addEventListener('click', closeOrderDetailsModal);
     }
     
-    // Setup Firestore listeners
     setupFirestoreListeners();
     
     document.getElementById('debugMsg').innerHTML = '✅ GlobalBazaar Ready!';
