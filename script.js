@@ -2662,52 +2662,68 @@ function markOrderShipped(orderId, trackingNum) {
 // ============================================================
 // REQUEST WITHDRAWAL - FIXED: Balance becomes $0 immediately
 // ============================================================
+function requestWithdrawal(sellerId) {
+    let seller = sellers.find(s => s.id == sellerId);
+    
+    // इनपुट बॉक्स से वैल्यू लें
+    let inputVal = document.getElementById('withdrawAmountInput').value;
+    let withdrawAmount = parseFloat(inputVal);
 
-function requestWithdrawal(sellerId){ 
-    let seller = sellers.find(s => s.id == sellerId); 
-    if(seller && seller.earnings > 0){ 
-        let withdrawAmount = seller.earnings;
-        
-        let newWithdrawal = { 
-            id: Date.now(), 
-            sellerId: seller.id, 
-            sellerName: seller.shopName, 
-            amount: withdrawAmount, 
-            date: new Date().toLocaleString(), 
-            status: "Pending" 
-        }; 
-        
-        pendingWithdrawals.push(newWithdrawal);
-        
-        seller.earnings = 0;
-        
-        const sellerRef = db.collection("sellers").doc(seller.id);
-        sellerRef.update({
-            earnings: 0
-        }).then(() => {
-            console.log('✅ Seller earnings reset to 0 in Firestore');
-        }).catch(err => {
-            console.error('Error updating seller earnings:', err);
-        });
-        
-        if (currentSeller && currentSeller.sellerId === seller.id) {
-            currentSeller.earnings = 0;
-            localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
-        }
-        
-        saveAllLocal(); 
-        showToast(`💰 Withdrawal request of ${getCurrencySymbol()}${convertPrice(withdrawAmount)} submitted!`, false); 
-        renderSellerDashboard(); 
-        sendTelegramMessage(`💰 Withdrawal Request: ${seller.shopName} - ${getCurrencySymbol()}${convertPrice(withdrawAmount)}`); 
-        addNotification(`Withdrawal request for ${getCurrencySymbol()}${convertPrice(withdrawAmount)} submitted`, 'payment');
-        updateAdminMenuBadges();
-    } else { 
-        showToast("No balance available for withdrawal", true); 
-    } 
+    // वैलिडेशन चेक
+    if (!seller || seller.earnings <= 0) {
+        showToast("No balance available for withdrawal", true);
+        return;
+    }
+
+    if (isNaN(withdrawAmount) || withdrawAmount <= 0) {
+        showToast("Please enter a valid amount!", true);
+        return;
+    }
+
+    // यहाँ चेक करें कि कहीं सेलर बैलेंस से ज्यादा तो नहीं निकाल रहा
+    if (withdrawAmount > seller.earnings) {
+        showToast("Error: You cannot withdraw more than your available balance!", true);
+        return;
+    }
+
+    // विड्रॉल रिक्वेस्ट ऑब्जेक्ट
+    let newWithdrawal = {
+        id: Date.now(),
+        sellerId: seller.id,
+        sellerName: seller.shopName,
+        amount: withdrawAmount, // अब यहाँ इनपुट वाली वैल्यू जाएगी
+        date: new Date().toLocaleString(),
+        status: "Pending"
+    };
+
+    pendingWithdrawals.push(newWithdrawal);
+
+    // केवल विड्रॉल किया हुआ अमाउंट घटाएं (पूरा बैलेंस 0 नहीं करेंगे)
+    seller.earnings -= withdrawAmount;
+
+    const sellerRef = db.collection("sellers").doc(seller.id);
+    sellerRef.update({
+        earnings: seller.earnings // अपडेटेड बैलेंस सेव करें
+    }).then(() => {
+        console.log('✅ Balance updated in Firestore');
+    }).catch(err => {
+        console.error('Error updating balance:', err);
+    });
+
+    if (currentSeller && currentSeller.sellerId === seller.id) {
+        currentSeller.earnings = seller.earnings;
+        localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
+    }
+
+    saveAllLocal();
+    showToast(`💰 Withdrawal request of ${getCurrencySymbol()}${convertPrice(withdrawAmount)} submitted!`, false);
+    renderSellerDashboard();
+    // अपडेटेड नोटिफिकेशन
+    sendTelegramMessage(`💰 Withdrawal Request: ${seller.shopName} - ${getCurrencySymbol()}${convertPrice(withdrawAmount)}`);
+    addNotification(`Withdrawal request of ${getCurrencySymbol()}${convertPrice(withdrawAmount)} submitted`, 'payment');
+    updateAdminMenuBadges();
 }
 
-function processWeeklyWithdrawals(){ let last = localStorage.getItem('gb_last_withdrawal'); let now = new Date(); let day = now.getDay(); if((day===1||day===5) && (!last || new Date(last).getDate() !== now.getDate())){ pendingWithdrawals.forEach(w => { if(w.status === "Pending") w.status = "Approved"; }); saveAllLocal(); localStorage.setItem('gb_last_withdrawal', now.toString()); } }
-setInterval(processWeeklyWithdrawals, 3600000); processWeeklyWithdrawals();
 
 // ============================================================
 // SELLER REGISTRATION
