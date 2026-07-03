@@ -3435,10 +3435,13 @@ function renderSellerDashboard() {
                 </div>
                 
                 <div style="margin-top:12px; display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
-                    <button id="withdrawBtn" style="background:#10b981; color:white; border:none; padding:10px 30px; border-radius:25px; cursor:pointer; font-weight:600; ${availableAmount <= 0 ? 'opacity:0.5; cursor:not-allowed;' : ''}" 
-                        ${availableAmount <= 0 ? 'disabled' : ''}>
-                        💸 Withdraw Available Balance (${getCurrencySymbol()}${convertPrice(availableAmount)})
-                    </button>
+                    <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 10px;">
+    <input type="number" id="withdrawAmountInput" placeholder="Enter amount to withdraw" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+    <button id="withdrawBtn" style="background: #10b981; color: white; border: none; padding: 10px 30px; border-radius: 25px; cursor: pointer; font-weight: 600;">
+        Withdraw Now
+    </button>
+</div>
+
                 </div>
                 ${pendingAmount > 0 ? `<p style="text-align:center; font-size:12px; color:#94a3b8; margin-top:4px;">⏳ ${getCurrencySymbol()}${convertPrice(pendingAmount)} pending - Will be available after buyer confirms delivery</p>` : ''}
             </div>
@@ -3730,14 +3733,22 @@ function renderSellerDashboard() {
             if (track) markOrderShipped(parseFloat(btn.dataset.id), track);
         });
     });
-    
     document.getElementById('withdrawBtn')?.addEventListener('click', () => {
-        if (availableAmount > 0) {
-            requestWithdrawal(seller.id);
-        } else {
-            showToast("No balance available for withdrawal", true);
-        }
-    });
+    let amount = parseFloat(document.getElementById('withdrawAmountInput').value);
+    
+    if (isNaN(amount) || amount <= 0) {
+        showToast("Please enter a valid amount", true);
+        return;
+    }
+    
+    if (amount > availableAmount) {
+        showToast("Insufficient balance", true);
+        return;
+    }
+
+    requestWithdrawal(seller.id, amount); 
+});
+
 }
 
 // ============================================================
