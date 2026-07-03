@@ -2621,19 +2621,42 @@ function confirmOrderReceived(orderId) {
                         if (currentSeller) renderSellerDashboard();
                         renderBuyerOrders();
                         
-                    } catch (error) {
-                        console.error("Payment release failed:", error);
-                        showToast("⚠️ Payment processing failed. Please contact support.", true);
-                    }
-                } else {
-                    showToast("⚠️ Seller not found", true);
-                }
+                    function confirmOrderReceived(orderId) {
+    let order = orders.find(o => o.id === orderId);
+
+    // सिर्फ 'Delivered' ऑर्डर का ही पेमेंट रिलीज होगा
+    if (order && order.status === "Delivered") {
+        try {
+            order.status = "Completed";
+            order.isBuyerConfirmed = true; 
+            
+            let seller = sellers.find(s => s.id === order.sellerId);
+            if (seller) {
+                let sellerPayout = order.pendingSellerPayout || order.splitBreakdown?.finalSellerPayout || 0;
+
+                seller.earnings = (seller.earnings || 0) + sellerPayout;
+                db.collection("sellers").doc(seller.id).update({
+                    earnings: firebase.firestore.FieldValue.increment(sellerPayout)
+                });
+
+                order.sellerEarning = sellerPayout;
+                order.splitBreakdown.isReleased = true;
+                
+                saveAllLocal();
+                showToast('✅ Payment released: ' + getCurrencySymbol() + convertPrice(sellerPayout), false);
+                renderBuyerOrders();
+            } else {
+                showToast("⚠️ Seller not found", true);
             }
-        }, 20000);
+        } catch (error) {
+            console.error("Payment release failed:", error);
+            showToast("⚠️ Payment processing failed. Please contact support.", true);
+        }
     } else {
-        showToast("Order not shipped yet", true);
+        showToast("⚠️ Order not valid for confirmation", true);
     }
 }
+
 
 function cancelOrder(orderId){ let order = orders.find(o => o.id === orderId); if(order && order.status === "Processing"){ let prod = products.find(p => p.name === order.productName && p.sellerId === order.sellerId); if(prod){ prod.stock += order.qty; saveAllLocal(); } order.status = "Cancelled"; saveAllLocal(); showToast("Order cancelled successfully",false); renderBuyerOrders(); renderProducts(); renderSellerDashboard(); addNotification(`Order ${order.trackingNumber} cancelled`,'order'); if(currentSeller) renderSellerDashboard(); } else { showToast("Only orders in 'Processing' status can be cancelled",true); } }
 
