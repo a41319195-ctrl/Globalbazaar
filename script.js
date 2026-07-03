@@ -2642,9 +2642,9 @@ function confirmOrderReceived(orderId) {
                 order.sellerEarning = sellerPayout;
                 order.splitBreakdown.isReleased = true;
                 
-                saveAllLocal();
+                saveAllLocal();//
                 showToast('✅ Payment released: ' + getCurrencySymbol() + convertPrice(sellerPayout), false);
-                renderBuyerOrders();
+                renderBuyerOrders();//
             } else {
                 showToast("⚠️ Seller not found", true);
             }
