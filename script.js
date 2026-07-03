@@ -2567,7 +2567,7 @@ function confirmOrderReceived(orderId) {
     if (order && order.status === "Shipped") {
         order.status = "Delivered";
         saveAllLocal();
-        showToast("✅ Order marked Delivered! Payment will be available in 5 seconds.", false);
+        showToast("✅ Order marked Delivered! Payment will be available in 20 seconds.", false);
         renderBuyerOrders();
         addNotification(`Order ${order.trackingNumber} delivered`, 'order');
 
@@ -2629,7 +2629,7 @@ function confirmOrderReceived(orderId) {
                     showToast("⚠️ Seller not found", true);
                 }
             }
-        }, 5000);
+        }, 20000);
     } else {
         showToast("Order not shipped yet", true);
     }
