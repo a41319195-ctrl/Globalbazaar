@@ -1571,7 +1571,7 @@ function loadPayoutHistory() {
 }
 
 // ============================================================
-// LOAD PENDING SELLERS (KYC)
+// LOAD PENDING SELLERS (KYC) - FIXED: LIVE DATA FROM FIRESTORE
 // ============================================================
 
 function loadPendingSellers() {
@@ -1614,7 +1614,7 @@ function loadPendingSellers() {
                         <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
                             <span style="font-size:11px; padding:2px 10px; border-radius:10px; background:#fef3c7; color:#92400e;">⏳ Pending</span>
                             <div style="display:flex; gap:4px; flex-wrap:wrap;">
-                                <button onclick="forceApproveSeller('${sellerId}')" style="background:#10b981; color:white; border:none; padding:4px 10px; border-radius:12px; font-size:10px; cursor:pointer;">✅ Approve</button>
+                                <button onclick="approveSeller('${sellerId}')" style="background:#10b981; color:white; border:none; padding:4px 10px; border-radius:12px; font-size:10px; cursor:pointer;">✅ Approve</button>
                                 <button onclick="rejectSeller('${sellerId}')" style="background:#ef4444; color:white; border:none; padding:4px 10px; border-radius:12px; font-size:10px; cursor:pointer;">❌ Reject</button>
                                 ${data.docImage ? `
                                     <button onclick="window.open('${data.docImage}', '_blank')" style="background:#3b82f6; color:white; border:none; padding:4px 10px; border-radius:12px; font-size:10px; cursor:pointer;">📄 View</button>
@@ -1634,13 +1634,66 @@ function loadPendingSellers() {
         container.innerHTML = `
             <div style="padding:20px; text-align:center; color:#dc2626; background:#fef2f2; border-radius:12px;">
                 ❌ Error loading pending sellers: ${error.message}
+                <br><br>
+                <button onclick="loadPendingSellers()" style="background:#3b82f6; color:white; border:none; padding:8px 20px; border-radius:20px; cursor:pointer;">🔄 Retry</button>
             </div>
         `;
     });
 }
 
 // ============================================================
-// REJECT SELLER
+// APPROVE SELLER - FIXED: Refreshes list after approval
+// ============================================================
+
+async function approveSeller(sellerId) {
+    if (!isAdminLoggedIn) {
+        showToast("❌ Please login as admin first!", true);
+        return;
+    }
+    
+    try {
+        const sellerRef = db.collection("sellers").doc(sellerId);
+        const sellerDoc = await sellerRef.get();
+        
+        if (!sellerDoc.exists) {
+            showToast("❌ Seller not found!", true);
+            return;
+        }
+        
+        const sellerData = sellerDoc.data();
+        
+        if (sellerData.kycStatus === 'verified') {
+            showToast("⚠️ This seller is already verified!", true);
+            return;
+        }
+        
+        await sellerRef.update({
+            kycStatus: 'verified',
+            verifiedAt: new Date().toISOString()
+        });
+        
+        showToast("✅ Seller approved successfully!", false);
+        addNotification(`✅ KYC approved: ${sellerData.shopName}`, 'info');
+        await sendTelegramMessage(`✅ KYC Approved: ${sellerData.shopName}`);
+        
+        // Refresh sellers list
+        const snapshot = await db.collection("sellers").get();
+        sellers = [];
+        snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
+        
+        updateAdminMenuBadges();
+        updateAdminPendingBadge();
+        loadPendingSellers(); // ✅ Refresh pending list
+        loadAllSellers(); // ✅ Refresh all sellers list
+        
+    } catch (error) {
+        console.error("Approve error:", error);
+        showToast("❌ Error: " + error.message, true);
+    }
+}
+
+// ============================================================
+// REJECT SELLER - FIXED: Refreshes list after rejection
 // ============================================================
 
 async function rejectSeller(sellerId) {
@@ -1649,52 +1702,45 @@ async function rejectSeller(sellerId) {
         return;
     }
     
-    showConfirmModal(
-        '❌ Reject Seller?',
-        'This will reject this seller\'s KYC. The seller will be notified.',
-        async () => {
-            try {
-                const sellerRef = db.collection("sellers").doc(sellerId);
-                const sellerDoc = await sellerRef.get();
-                
-                if (!sellerDoc.exists) {
-                    showToast("❌ Seller not found!", true);
-                    return;
-                }
-                
-                const sellerData = sellerDoc.data();
-                
-                if (sellerData.kycStatus === 'rejected') {
-                    showToast("⚠️ This seller is already rejected!", true);
-                    return;
-                }
-                
-                await sellerRef.update({
-                    kycStatus: 'rejected',
-                    rejectedAt: new Date().toISOString(),
-                    rejectedBy: 'Admin'
-                });
-                
-                showToast("❌ Seller rejected successfully!", false);
-                addNotification(`❌ KYC rejected: ${sellerData.shopName}`, 'info');
-                await sendTelegramMessage(`❌ KYC REJECTED: ${sellerData.shopName}\nBy: Admin`);
-                
-                // Refresh
-                const snapshot = await db.collection("sellers").get();
-                sellers = [];
-                snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
-                
-                updateAdminPendingBadge();
-                updateAdminMenuBadges();
-                loadPendingSellers();
-                loadAllSellers();
-                
-            } catch (error) {
-                console.error("Reject error:", error);
-                showToast("❌ Error: " + error.message, true);
-            }
+    try {
+        const sellerRef = db.collection("sellers").doc(sellerId);
+        const sellerDoc = await sellerRef.get();
+        
+        if (!sellerDoc.exists) {
+            showToast("❌ Seller not found!", true);
+            return;
         }
-    );
+        
+        const sellerData = sellerDoc.data();
+        
+        if (sellerData.kycStatus === 'rejected') {
+            showToast("⚠️ This seller is already rejected!", true);
+            return;
+        }
+        
+        await sellerRef.update({
+            kycStatus: 'rejected',
+            rejectedAt: new Date().toISOString()
+        });
+        
+        showToast("❌ Seller rejected!", false);
+        addNotification(`❌ KYC rejected: ${sellerData.shopName}`, 'info');
+        await sendTelegramMessage(`❌ KYC Rejected: ${sellerData.shopName}`);
+        
+        // Refresh sellers list
+        const snapshot = await db.collection("sellers").get();
+        sellers = [];
+        snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
+        
+        updateAdminMenuBadges();
+        updateAdminPendingBadge();
+        loadPendingSellers(); // ✅ Refresh pending list
+        loadAllSellers(); // ✅ Refresh all sellers list
+        
+    } catch (error) {
+        console.error("Reject error:", error);
+        showToast("❌ Error: " + error.message, true);
+    }
 }
 
 // ============================================================
@@ -1940,6 +1986,7 @@ document.addEventListener('click', function(e) {
         menu.style.display = 'none';
     }
 });
+
 // ============================================================
 // ADMIN MENU ITEMS CLICK
 // ============================================================
@@ -1964,6 +2011,7 @@ document.querySelectorAll('.admin-menu-item[data-section]').forEach(item => {
         document.getElementById('adminDropdownMenu').style.display = 'none';
     });
 });
+
 // ============================================================
 // SHOW BUYER ORDERS - IMPROVED
 // ============================================================
