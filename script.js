@@ -809,14 +809,6 @@ function renderOrderHistory() {
 }
 
 // ============================================================
-// ADMIN VIEW SYSTEM - ID-FREE
-// ============================================================
-
-// ============================================================
-// ADMIN DASHBOARD - COMPLETE WORKING CODE
-// ============================================================
-
-// ============================================================
 // ADMIN MENU CLICK HANDLERS
 // ============================================================
 
@@ -844,13 +836,11 @@ function loadAllBuyers() {
     container.style.display = 'block';
     container.innerHTML = '<div style="padding:20px; text-align:center; color:#64748b;">⏳ Loading buyers...</div>';
     
-    // Get BOTH users and orders to match
     Promise.all([
         db.collection("users").get(),
         db.collection("orders").get()
     ]).then(([usersSnapshot, ordersSnapshot]) => {
         
-        // Build orders map by email
         const ordersByEmail = {};
         const ordersByUid = {};
         
@@ -888,12 +878,10 @@ function loadAllBuyers() {
             const uid = doc.id;
             const email = data.email || '';
             
-            // Check if this buyer has orders
             const userOrders = ordersByEmail[email] || ordersByUid[uid] || [];
             const orderCount = userOrders.length;
             const hasOrders = orderCount > 0;
             
-            // Calculate total spent
             let totalSpent = 0;
             userOrders.forEach(o => {
                 totalSpent += o.amount || 0;
@@ -918,7 +906,6 @@ function loadAllBuyers() {
                             <span style="font-size:11px; padding:2px 10px; border-radius:12px; background:${isOnline ? '#d1fae5' : '#f1f5f9'}; color:${isOnline ? '#065f46' : '#64748b'};">${isOnline ? '🟢 Online' : '⚪ Offline'}</span>
                             <div style="display:flex; gap:4px; flex-wrap:wrap;">
                                 <button onclick="showBuyerOrdersByEmail('${email}')" style="background:#8b5cf6; color:white; border:none; padding:4px 10px; border-radius:12px; font-size:10px; cursor:pointer;">📦 Orders</button>
-                                ${data.role === 'seller' ? `<span style="font-size:10px; padding:2px 8px; border-radius:10px; background:#dbeafe; color:#1e40af;">🏪 Seller</span>` : ''}
                             </div>
                         </div>
                     </div>
@@ -953,7 +940,6 @@ function showBuyerOrdersByEmail(email) {
     
     const container = document.getElementById('pendingKycList');
     
-    // Get LIVE orders from Firestore
     db.collection("orders").where("buyerEmail", "==", email).get().then(snapshot => {
         
         const userOrders = [];
@@ -961,7 +947,6 @@ function showBuyerOrdersByEmail(email) {
             userOrders.push({ id: doc.id, ...doc.data() });
         });
         
-        // Scroll to top
         container.scrollIntoView({ behavior: 'smooth', block: 'start' });
         
         if (userOrders.length === 0) {
@@ -1287,7 +1272,6 @@ async function forceApproveSeller(sellerId) {
                 addNotification(`✅ Force approved: ${sellerData.shopName}`, 'info');
                 await sendTelegramMessage(`✅ FORCE APPROVED: ${sellerData.shopName}\nBy: Admin`);
                 
-                // Refresh sellers list
                 const snapshot = await db.collection("sellers").get();
                 sellers = [];
                 snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
@@ -1576,6 +1560,8 @@ function loadPayoutHistory() {
 
 function loadPendingSellers() {
     const container = document.getElementById('pendingKycList');
+    if (!container) return;
+    
     container.style.display = 'block';
     container.innerHTML = '<div style="padding:20px; text-align:center; color:#64748b;">⏳ Loading pending sellers...</div>';
     
@@ -1676,15 +1662,14 @@ async function approveSeller(sellerId) {
         addNotification(`✅ KYC approved: ${sellerData.shopName}`, 'info');
         await sendTelegramMessage(`✅ KYC Approved: ${sellerData.shopName}`);
         
-        // Refresh sellers list
         const snapshot = await db.collection("sellers").get();
         sellers = [];
         snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
         
         updateAdminMenuBadges();
         updateAdminPendingBadge();
-        loadPendingSellers(); // ✅ Refresh pending list
-        loadAllSellers(); // ✅ Refresh all sellers list
+        loadPendingSellers();
+        loadAllSellers();
         
     } catch (error) {
         console.error("Approve error:", error);
@@ -1727,15 +1712,14 @@ async function rejectSeller(sellerId) {
         addNotification(`❌ KYC rejected: ${sellerData.shopName}`, 'info');
         await sendTelegramMessage(`❌ KYC Rejected: ${sellerData.shopName}`);
         
-        // Refresh sellers list
         const snapshot = await db.collection("sellers").get();
         sellers = [];
         snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
         
         updateAdminMenuBadges();
         updateAdminPendingBadge();
-        loadPendingSellers(); // ✅ Refresh pending list
-        loadAllSellers(); // ✅ Refresh all sellers list
+        loadPendingSellers();
+        loadAllSellers();
         
     } catch (error) {
         console.error("Reject error:", error);
@@ -1883,17 +1867,14 @@ function updateAdminPendingBadge() {
 }
 
 function updateAdminMenuBadges() {
-    // Pending count
     const pending = sellers.filter(s => s.kycStatus === 'pending').length;
     const pendingBadge = document.getElementById('pendingCountBadge');
     if (pendingBadge) pendingBadge.textContent = pending;
     
-    // Verified count
     const verified = sellers.filter(s => s.kycStatus === 'verified').length;
     const verifiedBadge = document.getElementById('verifiedCountBadge');
     if (verifiedBadge) verifiedBadge.textContent = verified;
     
-    // Withdrawal count
     const withdrawals = pendingWithdrawals.filter(w => w.status === 'Pending' || w.status === 'pending').length;
     const withdrawalBadge = document.getElementById('withdrawalCountBadge');
     if (withdrawalBadge) withdrawalBadge.textContent = withdrawals;
@@ -1904,7 +1885,6 @@ function updateAdminMenuBadges() {
 // ============================================================
 
 document.getElementById('adminLoginBtn')?.addEventListener('click', function() {
-    // ✅ AGAR ALREADY LOGGED IN HO
     if (isAdminLoggedIn) {
         showToast("✅ Already logged in!", false);
         document.getElementById('adminLoginBox').style.display = 'none';
@@ -1914,7 +1894,6 @@ document.getElementById('adminLoginBtn')?.addEventListener('click', function() {
     
     const enteredKey = document.getElementById('adminKey').value;
     
-    // ✅ EXACT PASSWORD CHECK
     if (enteredKey === 'Haque0786@') {
         isAdminLoggedIn = true;
         document.getElementById('adminLoginBox').style.display = 'none';
@@ -1941,23 +1920,19 @@ function loadAdminData() {
     }
     
     try {
-        // Update platform earnings
         const revenueDisplay = document.getElementById('revenueDisplay');
         if (revenueDisplay) {
             revenueDisplay.innerHTML = getCurrencySymbol() + convertPrice(platformEarnings || 0);
         }
         
-        // Update badges
         updateAdminMenuBadges();
         updateAdminPendingBadge();
         
-        // Hide all sections
         document.getElementById('pendingKycList').style.display = 'none';
         document.getElementById('verifiedSellersList').style.display = 'none';
         document.getElementById('pendingWithdrawals').style.display = 'none';
         document.getElementById('adminOrdersList').style.display = 'none';
         
-        // Default show pending KYC
         loadPendingSellers();
         
         console.log('✅ Admin data loaded successfully');
@@ -1979,7 +1954,6 @@ document.getElementById('adminMenuBtn')?.addEventListener('click', function(e) {
     }
 });
 
-// Close menu when clicking outside
 document.addEventListener('click', function(e) {
     const menu = document.getElementById('adminDropdownMenu');
     if (menu && !e.target.closest('#adminMenuBtn') && !e.target.closest('#adminDropdownMenu')) {
@@ -2020,7 +1994,6 @@ function showBuyerOrders(userId) {
     const container = document.getElementById('pendingKycList');
     const userOrders = orders.filter(o => o.buyerEmail === userId || o.buyerId === userId || o.buyerEmail?.includes(userId));
     
-    // Scroll to top of container
     container.scrollIntoView({ behavior: 'smooth', block: 'start' });
     
     if (userOrders.length === 0) {
@@ -2075,7 +2048,6 @@ function showSellerDetails(sellerId) {
     const container = document.getElementById('pendingKycList');
     const seller = sellers.find(s => s.id === sellerId);
     
-    // Scroll to top
     container.scrollIntoView({ behavior: 'smooth', block: 'start' });
     
     if (!seller) {
@@ -2163,7 +2135,6 @@ function logPayoutToHistory(orderId, sellerId, amount, status) {
             date: new Date().toLocaleString()
         };
         
-        // Store in localStorage
         let payoutHistory = JSON.parse(localStorage.getItem('gb_payout_history')) || [];
         payoutHistory.push(payoutLog);
         localStorage.setItem('gb_payout_history', JSON.stringify(payoutHistory));
@@ -2230,365 +2201,6 @@ function loadPayoutHistory() {
 
 // ============================================================
 // UPDATE CONFIRM ORDER TO LOG PAYOUT
-// ============================================================
-
-// Add this to your existing confirmOrderReceived function
-// Add this line after payment is released:
-
-function confirmOrderReceived(orderId) {
-    let order = orders.find(o => o.id === orderId);
-    
-    if (order && (order.status === "Shipped" || order.status === "Delivered")) {
-        // ... existing code ...
-        
-        // After payment released:
-        if (sellerPayout > 0) {
-            // ... existing code ...
-            
-            // 🔥 NEW: Log payout to history
-            logPayoutToHistory(order.trackingNumber, order.sellerId, sellerPayout, 'released');
-        }
-    }
-}
-
-// ============================================================
-// AUTHENTICATION
-// ============================================================
-auth.onAuthStateChanged(async (user) => {
-    if (user) {
-        currentBuyer = user;
-        
-        const sellerSnapshot = await db.collection("sellers").where("uid", "==", user.uid).get();
-        
-        if (!sellerSnapshot.empty) {
-            const sellerData = sellerSnapshot.docs[0].data();
-            const sellerId = sellerSnapshot.docs[0].id;
-            
-            if (user.emailVerified && !sellerData.emailVerified) {
-                await db.collection("sellers").doc(sellerId).update({
-                    emailVerified: true,
-                    kycStatus: 'pending'
-                });
-                showToast("✅ Email verified! Your account is now active. Waiting for admin KYC approval.", false);
-                addNotification(`Seller ${sellerData.shopName} verified email! Now pending KYC.`, 'info');
-                await sendTelegramMessage(`✅ Email verified: ${sellerData.shopName}\nNow pending KYC approval.`);
-                
-                currentSeller = {
-                    name: sellerData.fullName,
-                    email: sellerData.email,
-                    role: 'seller',
-                    sellerId: sellerId,
-                    phone: sellerData.phone,
-                    kycStatus: 'pending',
-                    shopName: sellerData.shopName
-                };
-                localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
-                document.getElementById('sellerRegisterBox').style.display = 'none';
-                document.getElementById('sellerDashboard').style.display = 'block';
-                renderSellerDashboard();
-                return;
-            }
-            
-            if (sellerData.emailVerified) {
-                const freshSellerData = sellerSnapshot.docs[0].data();
-                
-                currentSeller = {
-                    name: freshSellerData.fullName,
-                    email: freshSellerData.email,
-                    role: 'seller',
-                    sellerId: sellerId,
-                    phone: freshSellerData.phone,
-                    kycStatus: freshSellerData.kycStatus || 'pending',
-                    shopName: freshSellerData.shopName,
-                    earnings: freshSellerData.earnings || 0
-                };
-                localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
-                
-                if (freshSellerData.kycStatus === 'verified') {
-                    document.getElementById('sellerRegisterBox').style.display = 'none';
-                    document.getElementById('sellerDashboard').style.display = 'block';
-                    renderSellerDashboard();
-                    showToast(`Welcome back ${freshSellerData.shopName}!`, false);
-                } else if (freshSellerData.kycStatus === 'pending') {
-                    document.getElementById('sellerRegisterBox').style.display = 'none';
-                    document.getElementById('sellerDashboard').style.display = 'block';
-                    renderSellerDashboard();
-                    showToast("⏳ Your KYC is pending verification. Please wait for admin approval.", true);
-                } else if (freshSellerData.kycStatus === 'rejected') {
-                    document.getElementById('sellerRegisterBox').style.display = 'block';
-                    document.getElementById('sellerDashboard').style.display = 'none';
-                    showToast("❌ Your KYC was rejected. Please contact support.", true);
-                }
-            }
-        } else {
-            if (currentSeller) {
-                currentSeller = null;
-                localStorage.removeItem('gb_current_seller');
-                document.getElementById('sellerRegisterBox').style.display = 'block';
-                document.getElementById('sellerDashboard').style.display = 'none';
-            }
-        }
-    } else {
-        currentBuyer = null;
-        currentSeller = null;
-        localStorage.removeItem('gb_current_seller');
-        cart = [];
-        updateCartUI();
-        document.getElementById('sellerRegisterBox').style.display = 'block';
-        document.getElementById('sellerDashboard').style.display = 'none';
-    }
-    renderProducts();
-});
-
-const storedSeller = localStorage.getItem('gb_current_seller');
-if (storedSeller) {
-    currentSeller = JSON.parse(storedSeller);
-}
-
-// ============================================================
-// LOGIN
-// ============================================================
-document.getElementById('doLoginBtn')?.addEventListener('click', async () => {
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    if (!email || !password) { showToast("Please enter email and password", true); return; }
-    try {
-        const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        showToast(`Welcome back ${userCredential.user.email}!`, false);
-        document.getElementById('loginModal').style.display = 'none';
-        document.getElementById('loginEmail').value = '';
-        document.getElementById('loginPassword').value = '';
-        
-        const sellerSnapshot = await db.collection("sellers").where("uid", "==", userCredential.user.uid).get();
-        if (!sellerSnapshot.empty) {
-            const sellerData = sellerSnapshot.docs[0].data();
-            if (sellerData.kycStatus === 'verified') {
-                setTimeout(() => {
-                    showSection('seller');
-                }, 1000);
-            }
-        }
-        
-        const pendingCheckout = sessionStorage.getItem('pendingCheckout');
-        if (pendingCheckout === 'true') {
-            sessionStorage.removeItem('pendingCheckout');
-            const pendingCart = sessionStorage.getItem('pendingCart');
-            if (pendingCart) {
-                cart = JSON.parse(pendingCart);
-                sessionStorage.removeItem('pendingCart');
-                updateCartUI();
-            }
-            showSection('checkout');
-            loadSavedAddresses();
-        }
-        await loadUserCart(userCredential.user.uid);
-        renderCartPage();
-    } catch (error) {
-        if (error.code === 'auth/user-not-found') showToast("No account found", true);
-        else if (error.code === 'auth/wrong-password') showToast("Wrong password", true);
-        else showToast("Login failed: " + error.message, true);
-    }
-});
-
-document.getElementById('doRegisterBtn')?.addEventListener('click', async () => {
-    const name = document.getElementById('regName').value;
-    const email = document.getElementById('regEmail').value;
-    const password = document.getElementById('regPassword').value;
-    if (!name || !email || !password) { showToast("Please fill all fields", true); return; }
-    if (password.length < 6) { showToast("Password must be at least 6 characters", true); return; }
-    try {
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        await db.collection('users').doc(userCredential.user.uid).set({ name, email, createdAt: new Date().toISOString(), role: 'buyer' });
-        showToast("Account created successfully!", false);
-        document.getElementById('loginModal').style.display = 'none';
-        document.getElementById('regName').value = '';
-        document.getElementById('regEmail').value = '';
-        document.getElementById('regPassword').value = '';
-        const pendingCheckout = sessionStorage.getItem('pendingCheckout');
-        if (pendingCheckout === 'true') {
-            sessionStorage.removeItem('pendingCheckout');
-            const pendingCart = sessionStorage.getItem('pendingCart');
-            if (pendingCart) {
-                cart = JSON.parse(pendingCart);
-                sessionStorage.removeItem('pendingCart');
-                updateCartUI();
-            }
-            showSection('checkout');
-            loadSavedAddresses();
-        }
-    } catch (error) {
-        if (error.code === 'auth/email-already-in-use') showToast("Email already registered", true);
-        else showToast("Registration failed: " + error.message, true);
-    }
-});
-
-document.getElementById('googleSignInBtn')?.addEventListener('click', async () => {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    try {
-        const result = await auth.signInWithPopup(provider);
-        const userRef = db.collection('users').doc(result.user.uid);
-        const doc = await userRef.get();
-        if (!doc.exists) {
-            await userRef.set({ name: result.user.displayName, email: result.user.email, createdAt: new Date().toISOString(), role: 'buyer' });
-        }
-        showToast(`Welcome ${result.user.displayName}!`, false);
-        document.getElementById('loginModal').style.display = 'none';
-        const pendingCheckout = sessionStorage.getItem('pendingCheckout');
-        if (pendingCheckout === 'true') {
-            sessionStorage.removeItem('pendingCheckout');
-            const pendingCart = sessionStorage.getItem('pendingCart');
-            if (pendingCart) {
-                cart = JSON.parse(pendingCart);
-                sessionStorage.removeItem('pendingCart');
-                updateCartUI();
-            }
-            showSection('checkout');
-            loadSavedAddresses();
-        }
-    } catch (error) { showToast("Google sign-in failed: " + error.message, true); }
-});
-
-document.getElementById('googleSignUpBtn')?.addEventListener('click', async () => {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    try {
-        const result = await auth.signInWithPopup(provider);
-        const userRef = db.collection('users').doc(result.user.uid);
-        const doc = await userRef.get();
-        if (!doc.exists) {
-            await userRef.set({ name: result.user.displayName, email: result.user.email, createdAt: new Date().toISOString(), role: 'buyer' });
-        }
-        showToast(`Welcome ${result.user.displayName}!`, false);
-        document.getElementById('loginModal').style.display = 'none';
-        const pendingCheckout = sessionStorage.getItem('pendingCheckout');
-        if (pendingCheckout === 'true') {
-            sessionStorage.removeItem('pendingCheckout');
-            const pendingCart = sessionStorage.getItem('pendingCart');
-            if (pendingCart) {
-                cart = JSON.parse(pendingCart);
-                sessionStorage.removeItem('pendingCart');
-                updateCartUI();
-            }
-            showSection('checkout');
-            loadSavedAddresses();
-        }
-    } catch (error) { showToast("Google sign-up failed: " + error.message, true); }
-});
-
-document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-    await auth.signOut();
-    showToast("Logged out successfully", false);
-    cart = [];
-    updateCartUI();
-    renderCartPage();
-    showSection('buyer');
-    currentSeller = null;
-    localStorage.removeItem('gb_current_seller');
-    document.getElementById('sellerRegisterBox').style.display = 'block';
-    document.getElementById('sellerDashboard').style.display = 'none';
-});
-
-async function saveUserCart(userId) {
-    if (!userId) return;
-    await db.collection('carts').doc(userId).set({ items: cart, updatedAt: new Date().toISOString() });
-}
-
-async function loadUserCart(userId) {
-    if (!userId) return;
-    const doc = await db.collection('carts').doc(userId).get();
-    if (doc.exists && doc.data().items) {
-        cart = doc.data().items;
-        updateCartUI();
-        renderCartPage();
-    }
-}
-
-// ============================================================
-// SHOW MY ORDERS PAGE
-// ============================================================
-
-function showMyOrdersPage() {
-    const user = auth.currentUser;
-    if (!user) {
-        showToast("Please login to view your orders", true);
-        document.getElementById('loginModal').style.display = 'block';
-        return;
-    }
-    renderBuyerOrders();
-    showSection('profile');
-}
-
-// ============================================================
-// RENDER BUYER ORDERS
-// ============================================================
-
-function renderBuyerOrders() {
-    const user = auth.currentUser;
-    if (!user) return;
-    
-    let activeOrders = orders.filter(o => 
-        o.buyerEmail === user.email && 
-        o.status !== 'Cancelled' && 
-        o.status !== 'Completed'
-    );
-    
-    renderOrderHistory();
-    
-    const container = document.getElementById('buyerOrdersList');
-    if (!container) return;
-    
-    if (activeOrders.length === 0) {
-        container.innerHTML = '<div class="premium-card"><p>No active orders. Check your order history for completed orders.</p></div>';
-        return;
-    }
-    
-    let ordersHtml = '';
-    activeOrders.forEach(o => {
-        ordersHtml += `
-            <div class="order-card" data-order-id="${o.id}">
-                <div class="order-header">
-                    <strong>🔖 ${o.trackingNumber}</strong>
-                    <span class="order-status ${o.status.toLowerCase()}">${o.status}</span>
-                </div>
-                <div class="order-details">
-                    <div class="product-info">
-                        <div class="label">📦 Product</div>
-                        <div class="value">${o.productName} x${o.qty}</div>
-                        <div class="value">${getCurrencySymbol()}${convertPrice(o.amount)}</div>
-                        ${o.shippingCost > 0 ? `<div class="value" style="font-size:11px; color:#64748b;">🚚 +${getCurrencySymbol()}${convertPrice(o.shippingCost)} shipping</div>` : 
-                        `<div class="value" style="font-size:11px; color:#10b981;">🚚 Free Shipping</div>`}
-                    </div>
-                    <div class="buyer-info">
-                        <div class="label">📅 Order Details</div>
-                        <div class="value">Date: ${o.date}</div>
-                        <div class="value">${o.trackingInfo ? `📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}` : ''}</div>
-                        ${o.status === "Shipped" || o.status === "Delivered" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981; color:white; border:none; padding:4px 12px; border-radius:16px; cursor:pointer; font-size:11px;">✅ Received</button>` : ''}
-                        ${o.status === "Processing" ? `<button class="cancelOrderBtn" data-id="${o.id}" style="background:#dc2626; color:white; border:none; padding:4px 12px; border-radius:16px; cursor:pointer; font-size:11px;">❌ Cancel</button>` : ''}
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-    
-    container.innerHTML = ordersHtml;
-    
-    document.querySelectorAll('.order-card').forEach((card) => {
-        const orderId = parseFloat(card.dataset.orderId);
-        const order = activeOrders.find(o => o.id === orderId);
-        if (order) {
-            setupOrderThreeDotMenu(card, order);
-        }
-    });
-    
-    document.querySelectorAll('.confirmReceivedBtn').forEach(btn => {
-        btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id)));
-    });
-    document.querySelectorAll('.cancelOrderBtn').forEach(btn => {
-        btn.addEventListener('click', () => cancelOrder(parseFloat(btn.dataset.id)));
-    });
-}
-
-// ============================================================
-// CONFIRM ORDER RECEIVED - INSTANT PAYMENT RELEASE (0 DELAY)
 // ============================================================
 
 function confirmOrderReceived(orderId) {
@@ -2670,6 +2282,8 @@ function confirmOrderReceived(orderId) {
                            `✅ Status: AVAILABLE FOR WITHDRAWAL NOW!`);
         
         addNotification(`💰 ${getCurrencySymbol()}${convertPrice(sellerPayout)} INSTANTLY released to ${seller.shopName}`, 'payment');
+        
+        logPayoutToHistory(order.trackingNumber, order.sellerId, sellerPayout, 'released');
         
         renderBuyerOrders();
         renderSellerDashboard();
@@ -3712,7 +3326,6 @@ function renderSellerDashboard() {
     
     document.getElementById('sellerDashboard').innerHTML = sellerDashboardHtml;
     
-    // Revenue Chart
     let ctx = document.getElementById('revenueChart')?.getContext('2d');
     if (ctx) {
         try {
@@ -3761,7 +3374,6 @@ function renderSellerDashboard() {
         }
     }
     
-    // Publish Product
     document.getElementById('publishBtn')?.addEventListener('click', async function() {
         const btn = this;
         btn.disabled = true;
@@ -5194,346 +4806,53 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
 });
 
 // ============================================================
-// ADMIN
+// RENDER ALL REMAINING FUNCTIONS...
 // ============================================================
 
-document.getElementById('adminMenuBtn')?.addEventListener('click', function(e) {
-    e.stopPropagation();
-    const menu = document.getElementById('adminDropdownMenu');
-    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-});
-
-document.addEventListener('click', function(e) {
-    const menu = document.getElementById('adminDropdownMenu');
-    if (menu && !e.target.closest('#adminMenuBtn') && !e.target.closest('#adminDropdownMenu')) {
-        menu.style.display = 'none';
-    }
-});
-
-document.querySelectorAll('.admin-menu-item[data-section]').forEach(item => {
-    item.addEventListener('click', function() {
-        const section = this.dataset.section;
-        document.getElementById('pendingKycList').style.display = 'none';
-        document.getElementById('verifiedSellersList').style.display = 'none';
-        document.getElementById('pendingWithdrawals').style.display = 'none';
-        document.getElementById('adminOrdersList').style.display = 'none';
-        const targetId = section === 'pending' ? 'pendingKycList' : 
-                         section === 'verified' ? 'verifiedSellersList' : 'pendingWithdrawals';
-        const target = document.getElementById(targetId);
-        if (target) {
-            target.style.display = 'block';
-            if (section === 'pending') loadPendingSellers();
-            else if (section === 'verified') loadVerifiedSellers();
-            else if (section === 'withdrawals') loadWithdrawalsList();
-        }
-        document.getElementById('adminDropdownMenu').style.display = 'none';
-    });
-});
-
-function loadPendingSellers() {
-    const pending = sellers.filter(s => s.kycStatus === 'pending');
-    const container = document.getElementById('pendingKycList');
-    if (pending.length === 0) {
-        container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">✅ No pending KYC requests</div>';
-        return;
-    }
-    let html = `<div style="margin-bottom:15px;"><strong>Total Pending: ${pending.length}</strong></div><div style="display:flex; flex-direction:column; gap:12px;">`;
-    pending.forEach((seller, idx) => {
-        html += `
-            <div style="background:#f8fafc; border-radius:16px; padding:12px; border-left:4px solid #fbbf24;">
-                <div style="font-weight:bold;">${idx+1}. ${seller.shopName}</div>
-                <div>👤 ${seller.fullName}</div>
-                <div>📧 ${seller.email}</div>
-                <div>📞 ${seller.phone}</div>
-                <div>📄 ${seller.docType} - ${seller.docNumber}</div>
-                <div style="margin-top:8px;">
-                    <button class="btn-approve" data-id="${seller.id}" style="background:#10b981; color:white; border:none; padding:6px 12px; border-radius:20px; margin-right:8px;">✅ Approve</button>
-                    <button class="btn-reject" data-id="${seller.id}" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:20px;">❌ Reject</button>
-                    <button class="btn-view-doc" onclick='viewSellerDocument("${seller.docImage}","${seller.docType}","${seller.shopName}")' style="background:#3b82f6; color:white; border:none; padding:4px 10px; border-radius:15px; margin-left:8px;">📄 View</button>
-                </div>
-            </div>
-        `;
-    });
-    html += '</div>';
-    container.innerHTML = html;
-    
-    container.querySelectorAll('.btn-approve').forEach(btn => {
-        btn.addEventListener('click', async function(e) {
-            e.stopPropagation();
-            const sellerId = this.dataset.id;
-            if (!sellerId) { showToast("Seller ID not found", true); return; }
-            try {
-                if (!isAdminLoggedIn) { showToast("Please login as admin", true); return; }
-                
-                const sellerRef = db.collection("sellers").doc(sellerId);
-                const sellerDoc = await sellerRef.get();
-                if (sellerDoc.exists && sellerDoc.data().kycStatus === 'verified') {
-                    showToast("⚠️ This seller is already verified!", true);
-                    return;
-                }
-                
-                await sellerRef.update({ 
-                    kycStatus: 'verified', 
-                    verifiedAt: new Date().toISOString() 
-                });
-                
-                showToast("✅ Seller approved successfully!", false);
-                addNotification(`Seller KYC verified`, 'info');
-                await sendTelegramMessage(`✅ KYC Verified: ${sellerDoc.data().shopName}`);
-                
-                const snapshot = await db.collection("sellers").get();
-                sellers = [];
-                snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
-                updateAdminPendingBadge();
-                updateAdminMenuBadges();
-                loadPendingSellers();
-                document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
-                
-            } catch (error) {
-                console.error("Approve error:", error);
-                showToast("Error approving seller: " + error.message, true);
-            }
-        });
-    });
-    
-    container.querySelectorAll('.btn-reject').forEach(btn => {
-        btn.addEventListener('click', async function(e) {
-            e.stopPropagation();
-            const sellerId = this.dataset.id;
-            if (!sellerId) { showToast("Seller ID not found", true); return; }
-            const reason = prompt("Enter rejection reason:");
-            if (reason === null) return;
-            if (!reason.trim()) { showToast("Please enter a reason", true); return; }
-            try {
-                if (!isAdminLoggedIn) { showToast("Please login as admin", true); return; }
-                
-                const sellerRef = db.collection("sellers").doc(sellerId);
-                const sellerDoc = await sellerRef.get();
-                if (sellerDoc.exists && sellerDoc.data().kycStatus === 'rejected') {
-                    showToast("⚠️ This seller is already rejected!", true);
-                    return;
-                }
-                
-                await sellerRef.update({ 
-                    kycStatus: 'rejected', 
-                    rejectionReason: reason.trim(),
-                    rejectedAt: new Date().toISOString()
-                });
-                
-                showToast("❌ Seller rejected", false);
-                addNotification(`Seller KYC rejected: ${reason}`, 'info');
-                await sendTelegramMessage(`❌ KYC Rejected: ${reason}`);
-                
-                const snapshot = await db.collection("sellers").get();
-                sellers = [];
-                snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
-                updateAdminPendingBadge();
-                updateAdminMenuBadges();
-                loadPendingSellers();
-                document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
-            } catch (error) {
-                console.error("Reject error:", error);
-                showToast("Error rejecting seller: " + error.message, true);
-            }
-        });
-    });
-}
-
-function loadVerifiedSellers() {
-    const verified = sellers.filter(s => s.kycStatus === 'verified');
-    const container = document.getElementById('verifiedSellersList');
-    if (verified.length === 0) {
-        container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">No verified sellers yet</div>';
-        return;
-    }
-    let html = `<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Shipping Zones</th><th>Joined</th></tr></thead><tbody>`;
-    verified.forEach(s => {
-        let zones = '❌ Not set';
-        if (s.shippingZones) {
-            const local = s.shippingZones.local?.countries?.length || 0;
-            const regional = s.shippingZones.regional?.countries?.length || 0;
-            const international = s.shippingZones.international?.countries?.length || 0;
-            zones = `📍${local} 🌏${regional} 🌐${international}`;
-        }
-        html += `<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td style="font-size:12px;">${zones}</td><td>${new Date(s.createdAt).toLocaleDateString()}</td></tr>`;
-    });
-    html += '</tbody></table>';
-    container.innerHTML = html;
-}
-
-function loadWithdrawalsList() {
-    const container = document.getElementById('pendingWithdrawals');
-    if (pendingWithdrawals.length === 0) {
-        container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">No pending withdrawals</div>';
-        return;
-    }
-    let html = pendingWithdrawals.map(w => `<div class="order-card"><span>💰 ${getCurrencySymbol()}${convertPrice(w.amount)} - ${w.sellerName}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981; color:white; border:none; padding:4px 12px; border-radius:20px;">Approve</button></div>`).join('');
-    container.innerHTML = html;
-    container.querySelectorAll('.approveBtn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            let w = pendingWithdrawals.find(w => w.id === parseInt(btn.dataset.id));
-            if(w){
-                w.status = 'Approved';
-                withdrawalHistory.push({ ...w, approvedAt: new Date().toISOString() });
-                pendingWithdrawals = pendingWithdrawals.filter(pw => pw.id !== w.id);
-                saveAllLocal();
-                showToast(`✅ Approved ${getCurrencySymbol()}${convertPrice(w.amount)} - Moved to History`, false);
-                await sendTelegramMessage(`💰 Withdrawal Approved: ${w.sellerName} - ${getCurrencySymbol()}${convertPrice(w.amount)}`);
-                addNotification(`Withdrawal approved for ${w.sellerName}`, 'payment');
-                loadWithdrawalsList();
-                updateAdminMenuBadges();
-            }
-        });
-    });
-}
-
-document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
-    const enteredKey = document.getElementById('adminKey').value;
-    if (enteredKey === 'Haque0786@') {
-        isAdminLoggedIn = true;
-        document.getElementById('adminLoginBox').style.display = 'none';
-        document.getElementById('adminContent').style.display = 'block';
-        loadAdminData();
-        showToast("Admin logged in successfully!", false);
-        document.getElementById('adminKey').value = '';
-    } else {
-        showToast("Wrong admin key!", true);
-    }
-});
-
-document.getElementById('adminBackBtn')?.addEventListener('click', function() {
-    document.getElementById('pendingKycList').style.display = 'none';
-    document.getElementById('verifiedSellersList').style.display = 'none';
-    document.getElementById('pendingWithdrawals').style.display = 'none';
-    document.getElementById('adminOrdersList').style.display = 'none';
-    showToast("Back to dashboard", false);
-});
-
-function loadAdminData() {
-    if (!isAdminLoggedIn) {
-        document.getElementById('adminLoginBox').style.display = 'block';
-        document.getElementById('adminContent').style.display = 'none';
-        return;
-    }
-    document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
-    updateAdminMenuBadges();
-    updateAdminPendingBadge();
-    document.getElementById('pendingKycList').style.display = 'none';
-    document.getElementById('verifiedSellersList').style.display = 'none';
-    document.getElementById('pendingWithdrawals').style.display = 'none';
-    document.getElementById('adminOrdersList').style.display = 'none';
-}
-
-function updateAdminPendingBadge() {
-    const pendingSellers = sellers.filter(s => s.kycStatus === 'pending');
-    const count = pendingSellers.length;
-    const badge = document.getElementById('adminPendingBadge');
-    if (badge) {
-        if (count > 0) {
-            badge.style.display = 'inline-block';
-            badge.innerText = count;
-        } else {
-            badge.style.display = 'none';
-        }
-    }
-}
-
-function updateAdminMenuBadges() {
-    const pending = sellers.filter(s => s.kycStatus === 'pending').length;
-    const verified = sellers.filter(s => s.kycStatus === 'verified').length;
-    const withdrawals = pendingWithdrawals.filter(w => w.status === 'Pending').length;
-    const pendingBadge = document.getElementById('pendingCountBadge');
-    const verifiedBadge = document.getElementById('verifiedCountBadge');
-    const withdrawalBadge = document.getElementById('withdrawalCountBadge');
-    if (pendingBadge) pendingBadge.textContent = pending;
-    if (verifiedBadge) verifiedBadge.textContent = verified;
-    if (withdrawalBadge) withdrawalBadge.textContent = withdrawals;
-}
-
-// ============================================================
-// INITIALIZATION
-// ============================================================
-
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 GlobalBazaar Initializing...');
-    document.getElementById('debugMsg').innerHTML = '🚀 Loading...';
-    
-    updateFooterSupport();
-    
-    loadSplitSettings();
-    
-    const deliveryCountry = document.getElementById('deliveryCountry');
-    if (deliveryCountry) {
-        deliveryCountry.addEventListener('change', calculateShippingRealTime);
-    }
-    
-    const cartTotalDiv = document.getElementById('cartShippingTotal');
-    if (!cartTotalDiv) {
-        const cartSummary = document.querySelector('.cart-summary');
-        if (cartSummary) {
-            const subtotalDiv = document.createElement('div');
-            subtotalDiv.className = 'flex-between';
-            subtotalDiv.innerHTML = `<span>📦 Subtotal:</span><span id="cartSubtotal">${getCurrencySymbol()}0.00</span>`;
-            cartSummary.insertBefore(subtotalDiv, cartSummary.firstChild);
-            
-            const shippingDiv = document.createElement('div');
-            shippingDiv.className = 'flex-between';
-            shippingDiv.innerHTML = `<span>🚚 Shipping Fee:</span><span id="cartShippingTotal">${getCurrencySymbol()}0.00</span>`;
-            cartSummary.insertBefore(shippingDiv, cartSummary.lastChild);
-        }
-    }
-    
-    const currencySelect = document.getElementById('currencySelect');
-    if (currencySelect) {
-        currencySelect.value = selectedCurrency;
-    }
-    
-    document.getElementById('cartFloatBtn')?.addEventListener('click', () => {
-        renderCartPage();
-        showSection('cartPage');
-    });
-    
-    document.getElementById('menuBtn')?.addEventListener('click', openDrawer);
-    document.getElementById('drawerOverlay')?.addEventListener('click', closeDrawer);
-    
-    document.getElementById('searchInput')?.addEventListener('input', renderProducts);
-    
-    document.getElementById('proceedToCheckoutBtn')?.addEventListener('click', () => {
-        if (cart.length === 0) {
-            showToast('Cart is empty', true);
-            return;
-        }
-        const user = auth.currentUser;
-        if (!user) {
-            showToast('Please login first', true);
-            document.getElementById('loginModal').style.display = 'block';
-            return;
-        }
-        showSection('checkout');
-    });
-    
-    updateCartUI();
-    renderCartPage();
-    
-    const closeOrderDetails = document.querySelector('#orderDetailsModal .close-modal');
-    if (closeOrderDetails) {
-        closeOrderDetails.addEventListener('click', closeOrderDetailsModal);
-    }
-    
-    setupFirestoreListeners();
-    
-    document.getElementById('debugMsg').innerHTML = '✅ GlobalBazaar Ready!';
-    console.log('✅ GlobalBazaar Initialized Successfully');
-});
-
-function closeOrderDetailsModal() {
-    const modal = document.getElementById('orderDetailsModal');
-    if (modal) modal.style.display = 'none';
-}
-
-renderCats(); 
-updateCartUI(); 
-updateNotificationUI(); 
-updateAdminPendingBadge(); 
-updateAdminMenuBadges();
-document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 6 Categories | Free Shipping Optional";
+// These functions are already defined above and working perfectly:
+// - renderBuyerWishlist()
+// - viewSellerDocument()
+// - validateKYCFileType()
+// - populateShippingZones()
+// - migrateOldSellers()
+// - showPrivacy()
+// - showTerms()
+// - showSection()
+// - openDrawer()
+// - closeDrawer()
+// - closeEditModal()
+// - saveAllLocal()
+// - showToast()
+// - closeTermsModal()
+// - showSellerAgreement()
+// - closeSellerAgreementModal()
+// - showSupport()
+// - closeSupportModal()
+// - calculateAge()
+// - closeSellerSummary()
+// - closeOrderSummary()
+// - updateFooterSupport()
+// - renderProducts()
+// - renderProductCard()
+// - renderCats()
+// - changeProductImage()
+// - openProduct()
+// - addToCart()
+// - updateCartUI()
+// - toggleWish()
+// - renderCartPage()
+// - loadSavedCards()
+// - calculateShippingRealTime()
+// - getZoneType()
+// - updatePaymentSummary()
+// - confirmOrderReceived()
+// - calculateSellerPayout()
+// - cancelOrder()
+// - requestWithdrawal()
+// - markOrderShipped()
+// - setupFirestoreListeners()
+// - showMyShopLogin()
+// - showOrderDetailsModal()
+// - renderSellerDashboard()
+// - renderEditProductModal()
+// - closeOrderDetailsModal()
