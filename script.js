@@ -1819,45 +1819,6 @@ document.getElementById('adminBackBtn')?.addEventListener('click', function() {
 });
 
 // ============================================================
-// REFRESH ADMIN BUTTON
-// ============================================================
-
-document.getElementById('refreshAdminBtn')?.addEventListener('click', function() {
-    loadAdminData();
-    showToast("🔄 Admin data refreshed!", false);
-});
-
-// ============================================================
-// LOAD ADMIN DATA
-// ============================================================
-
-function loadAdminData() {
-    if (!isAdminLoggedIn) {
-        document.getElementById('adminLoginBox').style.display = 'block';
-        document.getElementById('adminContent').style.display = 'none';
-        return;
-    }
-    
-    // Update platform earnings
-    document.getElementById('platformEarnings').innerHTML = `
-        <h2 style="font-size:32px; color:#1e3a8a;">${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>
-        <p style="color:#64748b; font-size:14px;">Total earnings from platform commission</p>
-    `;
-    
-    updateAdminMenuBadges();
-    updateAdminPendingBadge();
-    
-    // Hide all sections initially
-    document.getElementById('pendingKycList').style.display = 'none';
-    document.getElementById('verifiedSellersList').style.display = 'none';
-    document.getElementById('pendingWithdrawals').style.display = 'none';
-    document.getElementById('adminOrdersList').style.display = 'none';
-    
-    // Default show pending KYC
-    loadPendingSellers();
-}
-
-// ============================================================
 // UPDATE ADMIN BADGES
 // ============================================================
 
@@ -1893,26 +1854,72 @@ function updateAdminMenuBadges() {
 }
 
 // ============================================================
-// ADMIN LOGIN
+// ADMIN LOGIN - COMPLETE FIXED
 // ============================================================
-document.getElementById('adminLoginBtn').addEventListener('click', () => {
+
+document.getElementById('adminLoginBtn')?.addEventListener('click', function() {
+    // ✅ AGAR ALREADY LOGGED IN HO
+    if (isAdminLoggedIn) {
+        showToast("✅ Already logged in!", false);
+        document.getElementById('adminLoginBox').style.display = 'none';
+        document.getElementById('adminContent').style.display = 'block';
+        return;
+    }
+    
     const enteredKey = document.getElementById('adminKey').value;
-    if (enteredKey === 'Haque0786@') {  // ✅ @ ADD KARO
+    
+    // ✅ EXACT PASSWORD CHECK
+    if (enteredKey === 'Haque0786@') {
         isAdminLoggedIn = true;
         document.getElementById('adminLoginBox').style.display = 'none';
         document.getElementById('adminContent').style.display = 'block';
-        
-        // ✅ YEH 2 LINES ADD KARO - Real-time listener restart
-        if (sellersUnsubscribe) sellersUnsubscribe();
-        setupFirestoreListeners();
-        
         loadAdminData();
-        showToast('Admin logged in successfully!', false);
+        showToast("✅ Admin logged in successfully!", false);
         document.getElementById('adminKey').value = '';
     } else {
-        showToast('Wrong admin key!', true);
+        showToast("❌ Wrong admin key! Please enter: Haque0786@", true);
+        document.getElementById('adminKey').value = '';
+        document.getElementById('adminKey').focus();
     }
 });
+
+// ============================================================
+// LOAD ADMIN DATA
+// ============================================================
+
+function loadAdminData() {
+    if (!isAdminLoggedIn) {
+        document.getElementById('adminLoginBox').style.display = 'block';
+        document.getElementById('adminContent').style.display = 'none';
+        return;
+    }
+    
+    try {
+        // Update platform earnings
+        const revenueDisplay = document.getElementById('revenueDisplay');
+        if (revenueDisplay) {
+            revenueDisplay.innerHTML = getCurrencySymbol() + convertPrice(platformEarnings || 0);
+        }
+        
+        // Update badges
+        updateAdminMenuBadges();
+        updateAdminPendingBadge();
+        
+        // Hide all sections
+        document.getElementById('pendingKycList').style.display = 'none';
+        document.getElementById('verifiedSellersList').style.display = 'none';
+        document.getElementById('pendingWithdrawals').style.display = 'none';
+        document.getElementById('adminOrdersList').style.display = 'none';
+        
+        // Default show pending KYC
+        loadPendingSellers();
+        
+        console.log('✅ Admin data loaded successfully');
+    } catch (error) {
+        console.error('Load admin data error:', error);
+        showToast('⚠️ Error loading admin data: ' + error.message, true);
+    }
+}
 
 // ============================================================
 // ADMIN MENU TOGGLE
@@ -1921,16 +1928,18 @@ document.getElementById('adminLoginBtn').addEventListener('click', () => {
 document.getElementById('adminMenuBtn')?.addEventListener('click', function(e) {
     e.stopPropagation();
     const menu = document.getElementById('adminDropdownMenu');
-    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    if (menu) {
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    }
 });
 
+// Close menu when clicking outside
 document.addEventListener('click', function(e) {
     const menu = document.getElementById('adminDropdownMenu');
     if (menu && !e.target.closest('#adminMenuBtn') && !e.target.closest('#adminDropdownMenu')) {
         menu.style.display = 'none';
     }
 });
-
 // ============================================================
 // ADMIN MENU ITEMS CLICK
 // ============================================================
