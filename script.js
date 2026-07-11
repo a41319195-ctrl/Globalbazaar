@@ -812,6 +812,14 @@ function renderOrderHistory() {
 // ADMIN VIEW SYSTEM - ID-FREE
 // ============================================================
 
+// ============================================================
+// ADMIN DASHBOARD - COMPLETE FIXED VERSION
+// ============================================================
+
+// ============================================================
+// ADMIN MENU CLICK HANDLERS
+// ============================================================
+
 document.getElementById('admin-buyer-list')?.addEventListener('click', function() {
     loadAllBuyers();
     document.getElementById('adminDropdownMenu').style.display = 'none';
@@ -827,246 +835,627 @@ document.getElementById('admin-withdrawal-history')?.addEventListener('click', f
     document.getElementById('adminDropdownMenu').style.display = 'none';
 });
 
-document.getElementById('admin-buyer-view')?.addEventListener('click', function() {
-    const userId = prompt('Enter Buyer User ID or Email:');
-    if (userId) {
-        fetchUserData(userId, 'buyer');
-    }
-    document.getElementById('adminDropdownMenu').style.display = 'none';
-});
-
-document.getElementById('admin-seller-view')?.addEventListener('click', function() {
-    const userId = prompt('Enter Seller Shop Name or Email:');
-    if (userId) {
-        fetchUserData(userId, 'seller');
-    }
-    document.getElementById('adminDropdownMenu').style.display = 'none';
-});
-
-function fetchUserData(userId, type) {
-    if (type === 'buyer') {
-        loadAllBuyers();
-    } else if (type === 'seller') {
-        loadAllSellers();
-    }
-}
-
-function displayUserData(userData, type) {}
+// ============================================================
+// LOAD ALL BUYERS - WITHOUT PROMPT
+// ============================================================
 
 function loadAllBuyers() {
     const container = document.getElementById('pendingKycList');
     container.style.display = 'block';
-    container.innerHTML = '<p style="padding:20px; text-align:center;">Loading buyers...</p>';
+    container.innerHTML = '<div style="padding:20px; text-align:center; color:#64748b;">⏳ Loading buyers...</div>';
     
     db.collection("users").get().then(snapshot => {
-        let html = `<div style="margin-bottom:15px;"><strong>👥 All Buyers (${snapshot.size})</strong></div><div style="display:flex; flex-direction:column; gap:10px;">`;
+        if (snapshot.empty) {
+            container.innerHTML = `
+                <div style="padding:30px; text-align:center; background:#f8fafc; border-radius:12px;">
+                    <p style="font-size:18px;">👥 No buyers found</p>
+                    <p style="color:#94a3b8; font-size:14px;">No users have registered yet.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = `
+            <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <strong style="font-size:16px;">👥 All Buyers (${snapshot.size})</strong>
+                <button onclick="loadAllBuyers()" style="background:#3b82f6; color:white; border:none; padding:6px 14px; border-radius:20px; font-size:12px; cursor:pointer;">🔄 Refresh</button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px;">`;
+        
         snapshot.forEach(doc => {
             const data = doc.data();
+            const isOnline = data.lastActive ? (Date.now() - new Date(data.lastActive).getTime() < 600000) : false;
             html += `
-                <div style="background:#f8fafc; border-radius:12px; padding:12px; border-left:4px solid #3b82f6; cursor:pointer;" onclick='showBuyerOrders("${doc.id}")'>
-                    <div style="font-weight:600;">${data.name || 'Unknown'}</div>
-                    <div style="font-size:13px; color:#64748b;">📧 ${data.email || 'N/A'}</div>
-                    <div style="font-size:12px; color:#94a3b8;">📅 Joined: ${data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'N/A'}</div>
+                <div style="background:white; border-radius:12px; padding:14px; border-left:4px solid #3b82f6; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                        <div>
+                            <div style="font-weight:600; font-size:15px;">${data.name || 'Unknown'}</div>
+                            <div style="font-size:13px; color:#64748b;">📧 ${data.email || 'N/A'}</div>
+                            <div style="font-size:12px; color:#94a3b8;">📅 Joined: ${data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'N/A'}</div>
+                        </div>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                            <span style="font-size:11px; padding:2px 10px; border-radius:12px; background:${isOnline ? '#d1fae5' : '#f1f5f9'}; color:${isOnline ? '#065f46' : '#64748b'};">${isOnline ? '🟢 Online' : '⚪ Offline'}</span>
+                            <button onclick="showBuyerOrders('${doc.id}')" style="background:#8b5cf6; color:white; border:none; padding:4px 12px; border-radius:15px; font-size:11px; cursor:pointer;">📦 Orders</button>
+                        </div>
+                    </div>
                 </div>
             `;
         });
+        
         html += '</div>';
         container.innerHTML = html;
     }).catch(error => {
-        container.innerHTML = '<p style="color:#dc2626;">Error loading buyers: ' + error.message + '</p>';
+        container.innerHTML = `
+            <div style="padding:20px; text-align:center; color:#dc2626; background:#fef2f2; border-radius:12px;">
+                ❌ Error loading buyers: ${error.message}
+            </div>
+        `;
     });
 }
+
+// ============================================================
+// LOAD ALL SELLERS - WITHOUT PROMPT
+// ============================================================
 
 function loadAllSellers() {
     const container = document.getElementById('pendingKycList');
     container.style.display = 'block';
-    container.innerHTML = '<p style="padding:20px; text-align:center;">Loading sellers...</p>';
+    container.innerHTML = '<div style="padding:20px; text-align:center; color:#64748b;">⏳ Loading sellers...</div>';
     
     db.collection("sellers").get().then(snapshot => {
-        let html = `<div style="margin-bottom:15px;"><strong>🏪 All Sellers (${snapshot.size})</strong></div><div style="display:flex; flex-direction:column; gap:10px;">`;
+        if (snapshot.empty) {
+            container.innerHTML = `
+                <div style="padding:30px; text-align:center; background:#f8fafc; border-radius:12px;">
+                    <p style="font-size:18px;">🏪 No sellers found</p>
+                    <p style="color:#94a3b8; font-size:14px;">No sellers have registered yet.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = `
+            <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <strong style="font-size:16px;">🏪 All Sellers (${snapshot.size})</strong>
+                <button onclick="loadAllSellers()" style="background:#3b82f6; color:white; border:none; padding:6px 14px; border-radius:20px; font-size:12px; cursor:pointer;">🔄 Refresh</button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px;">`;
+        
         snapshot.forEach(doc => {
             const data = doc.data();
             const statusColor = data.kycStatus === 'verified' ? '#10b981' : data.kycStatus === 'pending' ? '#f59e0b' : '#ef4444';
+            const statusText = data.kycStatus === 'verified' ? '✅ Verified' : data.kycStatus === 'pending' ? '⏳ Pending' : '❌ Rejected';
+            
             html += `
-                <div style="background:#f8fafc; border-radius:12px; padding:12px; border-left:4px solid ${statusColor}; cursor:pointer;" onclick='showSellerDetails("${doc.id}")'>
-                    <div style="font-weight:600;">🏪 ${data.shopName || 'Unknown'}</div>
-                    <div style="font-size:13px; color:#64748b;">👤 ${data.fullName || 'N/A'}</div>
-                    <div style="font-size:13px; color:#64748b;">📧 ${data.email || 'N/A'}</div>
-                    <div style="font-size:12px; color:#94a3b8;">💰 Earnings: ${getCurrencySymbol()}${convertPrice(data.earnings || 0)} | KYC: <span style="color:${statusColor};">${data.kycStatus || 'pending'}</span></div>
+                <div style="background:white; border-radius:12px; padding:14px; border-left:4px solid ${statusColor}; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                        <div style="flex:1; min-width:150px;">
+                            <div style="font-weight:600; font-size:15px;">🏪 ${data.shopName || 'Unknown'}</div>
+                            <div style="font-size:13px; color:#64748b;">👤 ${data.fullName || 'N/A'}</div>
+                            <div style="font-size:13px; color:#64748b;">📧 ${data.email || 'N/A'}</div>
+                            <div style="font-size:12px; color:#94a3b8;">💰 Earnings: ${getCurrencySymbol()}${convertPrice(data.earnings || 0)}</div>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
+                            <span style="font-size:12px; padding:2px 12px; border-radius:12px; background:${statusColor}20; color:${statusColor};">${statusText}</span>
+                            <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                                <button onclick="showSellerDetails('${doc.id}')" style="background:#8b5cf6; color:white; border:none; padding:4px 10px; border-radius:12px; font-size:10px; cursor:pointer;">👁️ View</button>
+                                ${data.kycStatus === 'pending' ? `
+                                    <button onclick="forceApproveSeller('${doc.id}')" style="background:#10b981; color:white; border:none; padding:4px 10px; border-radius:12px; font-size:10px; cursor:pointer;">✅ Force Approve</button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             `;
         });
+        
         html += '</div>';
         container.innerHTML = html;
     }).catch(error => {
-        container.innerHTML = '<p style="color:#dc2626;">Error loading sellers: ' + error.message + '</p>';
+        container.innerHTML = `
+            <div style="padding:20px; text-align:center; color:#dc2626; background:#fef2f2; border-radius:12px;">
+                ❌ Error loading sellers: ${error.message}
+            </div>
+        `;
     });
 }
+
+// ============================================================
+// FORCE APPROVE SELLER - NEW FEATURE
+// ============================================================
+
+async function forceApproveSeller(sellerId) {
+    if (!isAdminLoggedIn) {
+        showToast("❌ Please login as admin first!", true);
+        return;
+    }
+    
+    // Confirm with mobile-friendly modal instead of prompt
+    showConfirmModal(
+        '✅ Force Approve Seller?',
+        'This will instantly approve this seller\'s KYC without any review. Are you sure?',
+        async () => {
+            try {
+                const sellerRef = db.collection("sellers").doc(sellerId);
+                const sellerDoc = await sellerRef.get();
+                
+                if (!sellerDoc.exists) {
+                    showToast("❌ Seller not found!", true);
+                    return;
+                }
+                
+                const sellerData = sellerDoc.data();
+                
+                if (sellerData.kycStatus === 'verified') {
+                    showToast("⚠️ This seller is already verified!", true);
+                    return;
+                }
+                
+                await sellerRef.update({
+                    kycStatus: 'verified',
+                    verifiedAt: new Date().toISOString(),
+                    forceApproved: true,
+                    forceApprovedBy: 'Admin'
+                });
+                
+                showToast("✅ Seller force approved successfully!", false);
+                addNotification(`✅ Force approved: ${sellerData.shopName}`, 'info');
+                await sendTelegramMessage(`✅ FORCE APPROVED: ${sellerData.shopName}\nBy: Admin`);
+                
+                // Refresh sellers list
+                const snapshot = await db.collection("sellers").get();
+                sellers = [];
+                snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
+                
+                updateAdminPendingBadge();
+                updateAdminMenuBadges();
+                loadAllSellers();
+                loadPendingSellers();
+                
+            } catch (error) {
+                console.error("Force approve error:", error);
+                showToast("❌ Error: " + error.message, true);
+            }
+        }
+    );
+}
+
+// ============================================================
+// CONFIRM MODAL - Mobile Friendly (Replaces prompt)
+// ============================================================
+
+function showConfirmModal(title, message, onConfirm) {
+    // Remove existing modal if any
+    const existing = document.querySelector('.confirm-modal-overlay');
+    if (existing) existing.remove();
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'confirm-modal-overlay';
+    overlay.style.cssText = `
+        position:fixed; top:0; left:0; width:100%; height:100%; 
+        background:rgba(0,0,0,0.5); z-index:999999; 
+        display:flex; justify-content:center; align-items:center;
+        backdrop-filter:blur(4px);
+    `;
+    
+    overlay.innerHTML = `
+        <div style="background:white; border-radius:20px; padding:24px; max-width:400px; width:90%; margin:20px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <h3 style="margin:0 0 10px 0; font-size:20px; color:#1e293b;">${title}</h3>
+            <p style="margin:0 0 20px 0; font-size:15px; color:#475569; line-height:1.5;">${message}</p>
+            <div style="display:flex; gap:10px;">
+                <button onclick="this.closest('.confirm-modal-overlay').remove()" 
+                        style="flex:1; padding:12px; border:2px solid #e2e8f0; background:white; border-radius:12px; font-size:15px; font-weight:600; color:#64748b; cursor:pointer;">
+                    ❌ Cancel
+                </button>
+                <button id="confirmActionBtn" 
+                        style="flex:1; padding:12px; border:none; background:#10b981; border-radius:12px; font-size:15px; font-weight:600; color:white; cursor:pointer;">
+                    ✅ Confirm
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    document.getElementById('confirmActionBtn').addEventListener('click', function() {
+        overlay.remove();
+        if (onConfirm) onConfirm();
+    });
+    
+    overlay.addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.remove();
+        }
+    });
+}
+
+// ============================================================
+// LOAD WITHDRAWAL HISTORY - WITH PAYOUT LOGGING
+// ============================================================
 
 function loadWithdrawalHistory() {
     const container = document.getElementById('pendingWithdrawals');
     container.style.display = 'block';
+    container.innerHTML = '<div style="padding:20px; text-align:center; color:#64748b;">⏳ Loading withdrawal history...</div>';
     
-    const history = withdrawalHistory.length > 0 ? withdrawalHistory : [];
-    if (history.length === 0) {
-        container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">📭 No withdrawal history</div>';
+    // Combine pending and history for complete view
+    let allWithdrawals = [];
+    
+    // Add pending withdrawals
+    pendingWithdrawals.forEach(w => {
+        allWithdrawals.push({
+            ...w,
+            source: 'pending'
+        });
+    });
+    
+    // Add history withdrawals
+    withdrawalHistory.forEach(w => {
+        allWithdrawals.push({
+            ...w,
+            source: 'history'
+        });
+    });
+    
+    // Sort by date (newest first)
+    allWithdrawals.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    if (allWithdrawals.length === 0) {
+        container.innerHTML = `
+            <div style="padding:30px; text-align:center; background:#f8fafc; border-radius:12px;">
+                <p style="font-size:18px;">📭 No withdrawal history</p>
+                <p style="color:#94a3b8; font-size:14px;">No withdrawals have been requested yet.</p>
+            </div>
+        `;
         return;
     }
     
-    let html = `<div style="margin-bottom:15px;"><strong>📜 Withdrawal History</strong></div><div style="display:flex; flex-direction:column; gap:10px;">`;
-    history.forEach(w => {
-        const statusColor = w.status === 'Approved' ? '#10b981' : w.status === 'Pending' ? '#f59e0b' : '#ef4444';
+    let html = `
+        <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <strong style="font-size:16px;">📜 Withdrawal History (${allWithdrawals.length})</strong>
+            <button onclick="loadWithdrawalHistory()" style="background:#3b82f6; color:white; border:none; padding:6px 14px; border-radius:20px; font-size:12px; cursor:pointer;">🔄 Refresh</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px;">`;
+    
+    let totalApproved = 0;
+    let totalPending = 0;
+    
+    allWithdrawals.forEach(w => {
+        const isPending = w.status === 'Pending' || w.status === 'pending';
+        const isApproved = w.status === 'Approved' || w.status === 'approved';
+        const isRejected = w.status === 'Rejected' || w.status === 'rejected';
+        
+        const statusColor = isApproved ? '#10b981' : isPending ? '#f59e0b' : '#ef4444';
+        const statusIcon = isApproved ? '✅' : isPending ? '⏳' : '❌';
+        
+        if (isApproved) totalApproved += w.amount || 0;
+        if (isPending) totalPending += w.amount || 0;
+        
         html += `
-            <div style="background:#f8fafc; border-radius:12px; padding:12px; border-left:4px solid ${statusColor};">
-                <div style="font-weight:600;">💰 ${getCurrencySymbol()}${convertPrice(w.amount)} - ${w.sellerName}</div>
-                <div style="font-size:13px; color:#64748b;">📅 ${w.date || 'N/A'}</div>
-                <div style="font-size:12px; color:${statusColor};">Status: ${w.status || 'Pending'}</div>
+            <div style="background:white; border-radius:12px; padding:14px; border-left:4px solid ${statusColor}; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                    <div>
+                        <div style="font-weight:600; font-size:15px;">💰 ${getCurrencySymbol()}${convertPrice(w.amount || 0)}</div>
+                        <div style="font-size:13px; color:#64748b;">🏪 ${w.sellerName || 'Unknown'}</div>
+                        <div style="font-size:12px; color:#94a3b8;">📅 ${w.date || 'N/A'}</div>
+                    </div>
+                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+                        <span style="font-size:12px; padding:2px 12px; border-radius:12px; background:${statusColor}20; color:${statusColor};">
+                            ${statusIcon} ${w.status || 'Pending'}
+                        </span>
+                        ${isPending ? `
+                            <button onclick="approveWithdrawal('${w.id}')" style="background:#10b981; color:white; border:none; padding:4px 12px; border-radius:12px; font-size:11px; cursor:pointer;">✅ Approve</button>
+                        ` : ''}
+                        ${w.approvedAt ? `
+                            <span style="font-size:10px; color:#94a3b8;">✅ Approved: ${new Date(w.approvedAt).toLocaleString()}</span>
+                        ` : ''}
+                    </div>
+                </div>
             </div>
         `;
     });
-    html += '</div>';
+    
+    // Summary stats
+    html += `
+        </div>
+        <div style="margin-top:15px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div style="background:#f0fdf4; padding:12px; border-radius:12px; text-align:center; border:2px solid #bbf7d0;">
+                <div style="font-size:11px; color:#64748b;">✅ Total Approved</div>
+                <div style="font-size:20px; font-weight:700; color:#10b981;">${getCurrencySymbol()}${convertPrice(totalApproved)}</div>
+            </div>
+            <div style="background:#fef3c7; padding:12px; border-radius:12px; text-align:center; border:2px solid #fbbf24;">
+                <div style="font-size:11px; color:#64748b;">⏳ Total Pending</div>
+                <div style="font-size:20px; font-weight:700; color:#f59e0b;">${getCurrencySymbol()}${convertPrice(totalPending)}</div>
+            </div>
+        </div>
+    `;
+    
     container.innerHTML = html;
 }
 
-function showBuyerOrders(userId) {
-    const container = document.getElementById('pendingKycList');
-    const userOrders = orders.filter(o => o.buyerEmail === userId || o.buyerId === userId);
-    
-    if (userOrders.length === 0) {
-        container.innerHTML += `<div style="margin-top:20px; padding:20px; background:#f8fafc; border-radius:12px;">No orders found for this buyer</div>`;
+// ============================================================
+// APPROVE WITHDRAWAL - WITH LOGGING
+// ============================================================
+
+async function approveWithdrawal(withdrawalId) {
+    if (!isAdminLoggedIn) {
+        showToast("❌ Please login as admin first!", true);
         return;
     }
     
-    let html = `<div style="margin-top:20px; background:white; border-radius:12px; padding:15px; border:2px solid #3b82f6;">
-        <h4 style="margin:0 0 15px 0;">📦 Orders (${userOrders.length})</h4>`;
+    showConfirmModal(
+        '✅ Approve Withdrawal?',
+        'This will approve this withdrawal request. The seller will be notified.',
+        async () => {
+            try {
+                let w = pendingWithdrawals.find(w => w.id === withdrawalId || w.id == withdrawalId);
+                if (!w) {
+                    showToast("❌ Withdrawal not found!", true);
+                    return;
+                }
+                
+                // Update status
+                w.status = 'Approved';
+                w.approvedAt = new Date().toISOString();
+                
+                // Move to history
+                withdrawalHistory.push({ ...w });
+                pendingWithdrawals = pendingWithdrawals.filter(pw => pw.id !== w.id && pw.id != w.id);
+                
+                saveAllLocal();
+                
+                showToast(`✅ Approved ${getCurrencySymbol()}${convertPrice(w.amount)}`, false);
+                await sendTelegramMessage(`💰 Withdrawal Approved: ${w.sellerName} - ${getCurrencySymbol()}${convertPrice(w.amount)}`);
+                addNotification(`💰 Withdrawal approved for ${w.sellerName}`, 'payment');
+                
+                // Refresh
+                loadWithdrawalHistory();
+                updateAdminMenuBadges();
+                renderSellerDashboard();
+                
+            } catch (error) {
+                console.error("Withdrawal approval error:", error);
+                showToast("❌ Error: " + error.message, true);
+            }
+        }
+    );
+}
+
+// ============================================================
+// SHOW BUYER ORDERS - IMPROVED
+// ============================================================
+
+function showBuyerOrders(userId) {
+    const container = document.getElementById('pendingKycList');
+    const userOrders = orders.filter(o => o.buyerEmail === userId || o.buyerId === userId || o.buyerEmail?.includes(userId));
+    
+    // Scroll to top of container
+    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    if (userOrders.length === 0) {
+        container.innerHTML += `
+            <div style="margin-top:15px; padding:20px; background:#f8fafc; border-radius:12px; text-align:center;">
+                <p style="color:#64748b;">📭 No orders found for this buyer</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = `
+        <div style="margin-top:15px; background:white; border-radius:16px; padding:16px; border:2px solid #3b82f6; box-shadow:0 2px 8px rgba(59,130,246,0.1);">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                <h4 style="margin:0; font-size:16px;">📦 Orders (${userOrders.length})</h4>
+                <button onclick="document.getElementById('pendingKycList').innerHTML = document.getElementById('pendingKycList').innerHTML.replace(/<div style="margin-top:15px;.*?<\/div>/, '')" 
+                        style="background:#ef4444; color:white; border:none; padding:4px 12px; border-radius:15px; font-size:11px; cursor:pointer;">✕ Close</button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px;">`;
+    
     userOrders.forEach(o => {
+        const statusColor = o.status === 'Completed' ? '#10b981' : o.status === 'Processing' ? '#f59e0b' : o.status === 'Shipped' ? '#3b82f6' : '#ef4444';
         html += `
-            <div style="border:1px solid #e2e8f0; padding:12px; border-radius:8px; margin-bottom:10px;">
-                <div style="display:flex; justify-content:space-between;">
-                    <strong>${o.trackingNumber}</strong>
-                    <span style="color:${o.status === 'Completed' ? '#10b981' : '#f59e0b'};">${o.status}</span>
+            <div style="border:1px solid #e2e8f0; padding:12px; border-radius:10px; background:#f8fafc;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+                    <strong style="font-size:14px;">🔖 ${o.trackingNumber}</strong>
+                    <span style="font-size:12px; padding:2px 10px; border-radius:12px; background:${statusColor}20; color:${statusColor};">${o.status}</span>
                 </div>
-                <div style="font-size:13px; color:#64748b;">${o.productName} x${o.qty} - ${getCurrencySymbol()}${convertPrice(o.amount)}</div>
-                <div style="font-size:12px; color:#94a3b8;">📅 ${o.date}</div>
+                <div style="font-size:13px; color:#475569; margin-top:4px;">${o.productName} x${o.qty} - ${getCurrencySymbol()}${convertPrice(o.amount)}</div>
+                <div style="font-size:11px; color:#94a3b8;">📅 ${o.date}</div>
                 ${o.splitBreakdown ? `
-                    <div style="font-size:11px; color:#64748b; margin-top:4px;">
+                    <div style="font-size:10px; color:#64748b; margin-top:4px; padding-top:4px; border-top:1px solid #e2e8f0;">
                         💰 Gateway: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.gatewayFeeDeducted || 0)} | 
                         Admin: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.adminCommissionDeducted || 0)} | 
                         Seller: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.finalSellerPayout || 0)}
+                        ${o.splitBreakdown.isReleased ? ' ✅ Released' : ' ⏳ Pending'}
                     </div>
                 ` : ''}
             </div>
         `;
     });
-    html += '</div>';
+    
+    html += '</div></div>';
     container.innerHTML += html;
 }
+
+// ============================================================
+// SHOW SELLER DETAILS - IMPROVED
+// ============================================================
 
 function showSellerDetails(sellerId) {
     const container = document.getElementById('pendingKycList');
     const seller = sellers.find(s => s.id === sellerId);
+    
+    // Scroll to top
+    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
     if (!seller) {
-        container.innerHTML += '<p style="color:#dc2626;">Seller not found</p>';
+        container.innerHTML += `
+            <div style="margin-top:15px; padding:20px; background:#fef2f2; border-radius:12px; text-align:center;">
+                <p style="color:#dc2626;">❌ Seller not found</p>
+            </div>
+        `;
         return;
     }
     
     const sellerOrders = orders.filter(o => o.sellerId === sellerId);
+    const statusColor = seller.kycStatus === 'verified' ? '#10b981' : seller.kycStatus === 'pending' ? '#f59e0b' : '#ef4444';
     
     let html = `
-        <div style="margin-top:20px; background:white; border-radius:12px; padding:15px; border:2px solid #8b5cf6;">
-            <h4 style="margin:0 0 15px 0;">🏪 ${seller.shopName || 'Unknown Seller'}</h4>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
-                <div><strong>Name:</strong> ${seller.fullName || 'N/A'}</div>
-                <div><strong>Email:</strong> ${seller.email || 'N/A'}</div>
-                <div><strong>Phone:</strong> ${seller.phone || 'N/A'}</div>
-                <div><strong>Country:</strong> ${seller.country || 'N/A'}</div>
-                <div><strong>KYC:</strong> <span style="color:${seller.kycStatus === 'verified' ? '#10b981' : '#f59e0b'};">${seller.kycStatus || 'pending'}</span></div>
-                <div><strong>Earnings:</strong> ${getCurrencySymbol()}${convertPrice(seller.earnings || 0)}</div>
+        <div style="margin-top:15px; background:white; border-radius:16px; padding:16px; border:2px solid #8b5cf6; box-shadow:0 2px 8px rgba(139,92,246,0.1);">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                <h4 style="margin:0; font-size:16px;">🏪 ${seller.shopName || 'Unknown Seller'}</h4>
+                <button onclick="this.closest('div[style*="margin-top:15px"]').remove()" 
+                        style="background:#ef4444; color:white; border:none; padding:4px 12px; border-radius:15px; font-size:11px; cursor:pointer;">✕ Close</button>
             </div>
-            <h5>📦 Orders (${sellerOrders.length})</h5>`;
+            
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; background:#f8fafc; padding:12px; border-radius:10px;">
+                <div><strong style="font-size:12px; color:#64748b;">Name:</strong> <span style="font-size:13px;">${seller.fullName || 'N/A'}</span></div>
+                <div><strong style="font-size:12px; color:#64748b;">Email:</strong> <span style="font-size:13px;">${seller.email || 'N/A'}</span></div>
+                <div><strong style="font-size:12px; color:#64748b;">Phone:</strong> <span style="font-size:13px;">${seller.phone || 'N/A'}</span></div>
+                <div><strong style="font-size:12px; color:#64748b;">Country:</strong> <span style="font-size:13px;">${seller.country || 'N/A'}</span></div>
+                <div><strong style="font-size:12px; color:#64748b;">KYC:</strong> <span style="font-size:13px; color:${statusColor};">${seller.kycStatus || 'pending'}</span></div>
+                <div><strong style="font-size:12px; color:#64748b;">Earnings:</strong> <span style="font-size:13px; font-weight:600;">${getCurrencySymbol()}${convertPrice(seller.earnings || 0)}</span></div>
+            </div>
+            
+            ${seller.docImage ? `
+                <button onclick="window.open('${seller.docImage}', '_blank')" 
+                        style="background:#3b82f6; color:white; border:none; padding:8px 16px; border-radius:12px; font-size:13px; cursor:pointer; width:100%; margin-bottom:12px;">
+                    📄 View KYC Document
+                </button>
+            ` : ''}
+            
+            <h5 style="margin:8px 0 10px 0; font-size:14px;">📦 Orders (${sellerOrders.length})</h5>
+            <div style="display:flex; flex-direction:column; gap:6px; max-height:300px; overflow-y:auto;">`;
     
     if (sellerOrders.length === 0) {
-        html += '<p style="color:#94a3b8;">No orders yet</p>';
+        html += '<p style="color:#94a3b8; text-align:center; padding:10px;">No orders yet</p>';
     } else {
-        sellerOrders.forEach(o => {
+        sellerOrders.slice(0, 20).forEach(o => {
+            const statusColor = o.status === 'Completed' ? '#10b981' : o.status === 'Processing' ? '#f59e0b' : o.status === 'Shipped' ? '#3b82f6' : '#ef4444';
             html += `
-                <div style="border:1px solid #e2e8f0; padding:10px; border-radius:6px; margin-bottom:8px;">
-                    <div style="display:flex; justify-content:space-between;">
-                        <strong>${o.trackingNumber}</strong>
-                        <span style="color:${o.status === 'Completed' ? '#10b981' : '#f59e0b'};">${o.status}</span>
+                <div style="border:1px solid #e2e8f0; padding:10px; border-radius:8px; background:#f8fafc;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;">
+                        <strong style="font-size:12px;">🔖 ${o.trackingNumber}</strong>
+                        <span style="font-size:10px; padding:2px 8px; border-radius:10px; background:${statusColor}20; color:${statusColor};">${o.status}</span>
                     </div>
-                    <div style="font-size:13px; color:#64748b;">${o.productName} x${o.qty} - ${getCurrencySymbol()}${convertPrice(o.amount)}</div>
+                    <div style="font-size:12px; color:#475569;">${o.productName} x${o.qty} - ${getCurrencySymbol()}${convertPrice(o.amount)}</div>
                     ${o.splitBreakdown ? `
-                        <div style="font-size:11px; color:#64748b; margin-top:4px;">
-                            💰 Seller Payout: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.finalSellerPayout || 0)} | 
-                            Released: ${o.splitBreakdown.isReleased ? '✅' : '⏳'}
+                        <div style="font-size:10px; color:#64748b; margin-top:2px;">
+                            💰 Payout: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.finalSellerPayout || 0)} 
+                            ${o.splitBreakdown.isReleased ? '✅ Released' : '⏳ Pending'}
                         </div>
                     ` : ''}
                 </div>
             `;
         });
+        if (sellerOrders.length > 20) {
+            html += `<p style="text-align:center; font-size:11px; color:#94a3b8; margin:4px 0;">+ ${sellerOrders.length - 20} more orders</p>`;
+        }
     }
-    html += '</div>';
+    
+    html += '</div></div>';
     container.innerHTML += html;
 }
 
 // ============================================================
-// EMAIL VERIFICATION MODAL FUNCTIONS
+// PAYOUT HISTORY LOGGING - NEW FEATURE
 // ============================================================
-function showVerifyModal() {
-    document.getElementById('verifyModal').style.display = 'flex';
-    startVerificationCheck();
-}
 
-function enableResend() {
-    const checkbox = document.getElementById('checkSpam');
-    const btn = document.getElementById('resendBtn');
-    if(checkbox.checked) {
-        btn.disabled = false;
-        btn.className = 'resend-btn active';
-    } else {
-        btn.disabled = true;
-        btn.className = 'resend-btn';
+function logPayoutToHistory(orderId, sellerId, amount, status) {
+    try {
+        const payoutLog = {
+            id: Date.now(),
+            orderId: orderId,
+            sellerId: sellerId,
+            amount: amount,
+            status: status || 'released',
+            timestamp: new Date().toISOString(),
+            date: new Date().toLocaleString()
+        };
+        
+        // Store in localStorage
+        let payoutHistory = JSON.parse(localStorage.getItem('gb_payout_history')) || [];
+        payoutHistory.push(payoutLog);
+        localStorage.setItem('gb_payout_history', JSON.stringify(payoutHistory));
+        
+        console.log('📊 Payout logged:', payoutLog);
+    } catch (error) {
+        console.error('Payout logging error:', error);
     }
 }
 
-async function resendEmail() {
-    const user = auth.currentUser;
-    if (user) {
-        try {
-            await user.sendEmailVerification();
-            alert("✅ Verification link resent! Please check your inbox and spam folder.");
-        } catch (error) {
-            alert("❌ Error sending email: " + error.message);
+function loadPayoutHistory() {
+    const container = document.getElementById('pendingWithdrawals');
+    container.style.display = 'block';
+    
+    let payoutHistory = JSON.parse(localStorage.getItem('gb_payout_history')) || [];
+    
+    if (payoutHistory.length === 0) {
+        container.innerHTML = `
+            <div style="padding:30px; text-align:center; background:#f8fafc; border-radius:12px;">
+                <p style="font-size:18px;">📊 No payout history</p>
+                <p style="color:#94a3b8; font-size:14px;">No payouts have been released yet.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = `
+        <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <strong style="font-size:16px;">📊 Payout History (${payoutHistory.length})</strong>
+            <button onclick="loadPayoutHistory()" style="background:#3b82f6; color:white; border:none; padding:6px 14px; border-radius:20px; font-size:12px; cursor:pointer;">🔄 Refresh</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px;">`;
+    
+    let totalPayouts = 0;
+    
+    payoutHistory.slice().reverse().forEach(log => {
+        totalPayouts += log.amount || 0;
+        html += `
+            <div style="background:white; border-radius:12px; padding:12px; border-left:4px solid #10b981; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                    <div>
+                        <div style="font-weight:600;">💰 ${getCurrencySymbol()}${convertPrice(log.amount || 0)}</div>
+                        <div style="font-size:12px; color:#64748b;">📦 Order: ${log.orderId || 'N/A'}</div>
+                        <div style="font-size:11px; color:#94a3b8;">📅 ${log.date || log.timestamp || 'N/A'}</div>
+                    </div>
+                    <div>
+                        <span style="font-size:11px; padding:2px 10px; border-radius:10px; background:#d1fae5; color:#065f46;">${log.status || 'Released'}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += `
+        </div>
+        <div style="margin-top:12px; padding:12px; background:#f0fdf4; border-radius:12px; text-align:center; border:2px solid #bbf7d0;">
+            <div style="font-size:11px; color:#64748b;">💰 Total Payouts Released</div>
+            <div style="font-size:22px; font-weight:700; color:#10b981;">${getCurrencySymbol()}${convertPrice(totalPayouts)}</div>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
+// ============================================================
+// UPDATE CONFIRM ORDER TO LOG PAYOUT
+// ============================================================
+
+// Add this to your existing confirmOrderReceived function
+// Add this line after payment is released:
+
+function confirmOrderReceived(orderId) {
+    let order = orders.find(o => o.id === orderId);
+    
+    if (order && (order.status === "Shipped" || order.status === "Delivered")) {
+        // ... existing code ...
+        
+        // After payment released:
+        if (sellerPayout > 0) {
+            // ... existing code ...
+            
+            // 🔥 NEW: Log payout to history
+            logPayoutToHistory(order.trackingNumber, order.sellerId, sellerPayout, 'released');
         }
-    } else {
-        alert("Please login first.");
-    }
-}
-
-function checkEmailVerificationStatus() {
-    const user = auth.currentUser;
-    if (user) {
-        user.reload().then(() => {
-            if (user.emailVerified) {
-                document.getElementById('verifyModal').style.display = 'none';
-                stopVerificationCheck();
-                showToast("✅ Email verified! You can now access your shop.", false);
-                showMyShopLogin();
-            }
-        }).catch(err => console.error('Reload error:', err));
-    }
-}
-
-function startVerificationCheck() {
-    if (verificationCheckInterval) clearInterval(verificationCheckInterval);
-    verificationCheckInterval = setInterval(checkEmailVerificationStatus, 5000);
-}
-
-function stopVerificationCheck() {
-    if (verificationCheckInterval) {
-        clearInterval(verificationCheckInterval);
-        verificationCheckInterval = null;
     }
 }
 
