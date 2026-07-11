@@ -1895,18 +1895,22 @@ function updateAdminMenuBadges() {
 // ============================================================
 // ADMIN LOGIN
 // ============================================================
-
-document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
+document.getElementById('adminLoginBtn').addEventListener('click', () => {
     const enteredKey = document.getElementById('adminKey').value;
-    if (enteredKey === 'Haque0786@') {
+    if (enteredKey === 'Haque0786@') {  // ✅ @ ADD KARO
         isAdminLoggedIn = true;
         document.getElementById('adminLoginBox').style.display = 'none';
         document.getElementById('adminContent').style.display = 'block';
+        
+        // ✅ YEH 2 LINES ADD KARO - Real-time listener restart
+        if (sellersUnsubscribe) sellersUnsubscribe();
+        setupFirestoreListeners();
+        
         loadAdminData();
-        showToast("✅ Admin logged in successfully!", false);
+        showToast('Admin logged in successfully!', false);
         document.getElementById('adminKey').value = '';
     } else {
-        showToast("❌ Wrong admin key!", true);
+        showToast('Wrong admin key!', true);
     }
 });
 
