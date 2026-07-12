@@ -5410,7 +5410,7 @@ document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 6 Categori
 // 🔥 EMERGENCY FIX - FORCE PRODUCTS LOAD
 // ============================================================
 
-(function forceLoadProducts() {
+function forceLoadProducts() {
     console.log('🚀 Force loading products...');
     document.getElementById('debugMsg').innerHTML = '🔄 Loading products...';
     
@@ -5441,22 +5441,18 @@ document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 6 Categori
         console.log('⚠️ No products in Firestore, using defaults...');
         document.getElementById('debugMsg').innerHTML = '⚠️ Using default products...';
         
-        // Add default products to Firestore
         const defaults = [
-            { name: "Wireless Headphones Pro", price: 89.99, category: "Electronics", stock: 15, mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA", description: "Premium wireless headphones", createdAt: new Date().toISOString() },
-            { name: "Smart Watch Series 8", price: 199.99, category: "Electronics", stock: 8, mainImage: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA", description: "Advanced smart watch", createdAt: new Date().toISOString() },
-            { name: "Bluetooth Speaker X3", price: 49.99, category: "Electronics", stock: 20, mainImage: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA", description: "Portable waterproof speaker", createdAt: new Date().toISOString() },
-            { name: "Classic Cotton T-Shirt", price: 24.99, category: "Fashion", stock: 30, mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA", description: "100% combed cotton", createdAt: new Date().toISOString() },
-            { name: "Running Shoes Air Max", price: 79.99, category: "Fashion", stock: 12, mainImage: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA", description: "Lightweight running shoes", createdAt: new Date().toISOString() }
+            { name: "Wireless Headphones Pro", price: 89.99, category: "Electronics", stock: 15, mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
+            { name: "Smart Watch Series 8", price: 199.99, category: "Electronics", stock: 8, mainImage: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
+            { name: "Bluetooth Speaker X3", price: 49.99, category: "Electronics", stock: 20, mainImage: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
+            { name: "Classic Cotton T-Shirt", price: 24.99, category: "Fashion", stock: 30, mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
+            { name: "Running Shoes Air Max", price: 79.99, category: "Fashion", stock: 12, mainImage: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" }
         ];
         
-        // Set products array
         products = defaults.map((p, i) => ({ id: i + 1, ...p }));
         
-        // Add to Firestore
         Promise.all(defaults.map(p => db.collection("products").add(p))).then(() => {
             console.log('✅ Default products added to Firestore');
-            document.getElementById('debugMsg').innerHTML = '✅ Products seeded!';
         }).catch(err => {
             console.error('❌ Error seeding products:', err);
         });
@@ -5469,13 +5465,12 @@ document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 6 Categori
         console.error('❌ Force load error:', error);
         document.getElementById('debugMsg').innerHTML = '❌ Error: ' + error.message;
         
-        // Fallback - use default products
         const defaults = [
-            { id: 1, name: "Wireless Headphones Pro", price: 89.99, category: "Electronics", stock: 15, mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA", description: "Premium wireless headphones" },
-            { id: 2, name: "Smart Watch Series 8", price: 199.99, category: "Electronics", stock: 8, mainImage: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA", description: "Advanced smart watch" },
-            { id: 3, name: "Bluetooth Speaker X3", price: 49.99, category: "Electronics", stock: 20, mainImage: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA", description: "Portable waterproof speaker" },
-            { id: 4, name: "Classic Cotton T-Shirt", price: 24.99, category: "Fashion", stock: 30, mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA", description: "100% combed cotton" },
-            { id: 5, name: "Running Shoes Air Max", price: 79.99, category: "Fashion", stock: 12, mainImage: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA", description: "Lightweight running shoes" }
+            { id: 1, name: "Wireless Headphones Pro", price: 89.99, category: "Electronics", stock: 15, mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
+            { id: 2, name: "Smart Watch Series 8", price: 199.99, category: "Electronics", stock: 8, mainImage: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
+            { id: 3, name: "Bluetooth Speaker X3", price: 49.99, category: "Electronics", stock: 20, mainImage: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
+            { id: 4, name: "Classic Cotton T-Shirt", price: 24.99, category: "Fashion", stock: 30, mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
+            { id: 5, name: "Running Shoes Air Max", price: 79.99, category: "Fashion", stock: 12, mainImage: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" }
         ];
         
         products = defaults;
@@ -5483,15 +5478,23 @@ document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 6 Categori
         renderCats();
         document.getElementById('debugMsg').innerHTML = '⚠️ Using fallback products';
     });
-})();
+}
+
+// Call the function
+setTimeout(function() {
+    forceLoadProducts();
+}, 500);
 
 // Also fix renderProducts if grid is empty
 setTimeout(function() {
     const grid = document.getElementById('productsGrid');
-    if (grid && grid.innerHTML.trim() === '' || grid.innerHTML.includes('No products')) {
-        console.log('🔄 Re-rendering products...');
-        renderProducts();
-        renderCats();
-        document.getElementById('debugMsg').innerHTML = '✅ Products re-rendered!';
+    if (grid) {
+        console.log('🔄 Checking grid...');
+        if (grid.innerHTML.trim() === '' || grid.innerHTML.includes('No products')) {
+            console.log('🔄 Re-rendering products...');
+            renderProducts();
+            renderCats();
+            document.getElementById('debugMsg').innerHTML = '✅ Products re-rendered!';
+        }
     }
-}, 2000);
+}, 3000);
