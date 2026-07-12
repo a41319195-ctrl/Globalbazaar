@@ -809,36 +809,720 @@ function renderOrderHistory() {
 }
 
 // ============================================================
-// SHOW MY ORDERS PAGE - FIXED
+// ADMIN - COMPLETE FIXED CODE
 // ============================================================
 
-function showMyOrdersPage() {
-    const user = auth.currentUser;
-    if (!user) {
-        showToast("Please login to view your orders", true);
-        document.getElementById('loginModal').style.display = 'block';
+let isAdminLoggedIn = false;
+
+// ============================================================
+// ADMIN LOGIN - FIXED
+// ============================================================
+
+document.getElementById('adminLoginBtn')?.addEventListener('click', function() {
+    if (isAdminLoggedIn) {
+        showToast("✅ Already logged in!", false);
+        document.getElementById('adminLoginBox').style.display = 'none';
+        document.getElementById('adminContent').style.display = 'block';
         return;
     }
-    renderBuyerOrders();
-    showSection('profile');
+    
+    const enteredKey = document.getElementById('adminKey').value;
+    
+    if (enteredKey === 'Haque0786@') {
+        isAdminLoggedIn = true;
+        document.getElementById('adminLoginBox').style.display = 'none';
+        document.getElementById('adminContent').style.display = 'block';
+        loadAdminData();
+        showToast("✅ Admin logged in successfully!", false);
+        document.getElementById('adminKey').value = '';
+    } else {
+        showToast("❌ Wrong admin key! Please enter: Haque0786@", true);
+        document.getElementById('adminKey').value = '';
+        document.getElementById('adminKey').focus();
+    }
+});
+
+// ============================================================
+// ADMIN MENU TOGGLE - FIXED WITH Z-INDEX
+// ============================================================
+
+document.getElementById('adminMenuBtn')?.addEventListener('click', function(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    const menu = document.getElementById('adminDropdownMenu');
+    if (!menu) {
+        console.error('Admin dropdown menu not found!');
+        return;
+    }
+    
+    // ✅ FIX: z-index 9999
+    menu.style.zIndex = '9999';
+    
+    if (menu.style.display === 'block') {
+        menu.style.display = 'none';
+    } else {
+        menu.style.display = 'block';
+    }
+});
+
+// Close menu when clicking outside
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('adminDropdownMenu');
+    const btn = document.getElementById('adminMenuBtn');
+    if (menu && btn) {
+        if (!btn.contains(e.target) && !menu.contains(e.target)) {
+            menu.style.display = 'none';
+        }
+    }
+});
+
+// ============================================================
+// LOAD ADMIN DATA
+// ============================================================
+
+function loadAdminData() {
+    if (!isAdminLoggedIn) {
+        document.getElementById('adminLoginBox').style.display = 'block';
+        document.getElementById('adminContent').style.display = 'none';
+        return;
+    }
+    
+    try {
+        const revenueDisplay = document.getElementById('revenueDisplay');
+        if (revenueDisplay) {
+            revenueDisplay.innerHTML = getCurrencySymbol() + convertPrice(platformEarnings || 0);
+        }
+        
+        updateAdminMenuBadges();
+        updateAdminPendingBadge();
+        
+        document.getElementById('pendingKycList').style.display = 'none';
+        document.getElementById('verifiedSellersList').style.display = 'none';
+        document.getElementById('pendingWithdrawals').style.display = 'none';
+        document.getElementById('adminOrdersList').style.display = 'none';
+        document.getElementById('payoutHistoryList').style.display = 'none';
+        
+        loadPendingSellers();
+        
+        console.log('✅ Admin data loaded successfully');
+    } catch (error) {
+        console.error('Load admin data error:', error);
+        showToast('⚠️ Error loading admin data: ' + error.message, true);
+    }
 }
 
 // ============================================================
-// ADMIN MENU CLICK HANDLERS
+// UPDATE ADMIN BADGES
 // ============================================================
 
-document.getElementById('admin-buyer-list')?.addEventListener('click', function() {
-    loadAllBuyers();
-    document.getElementById('adminDropdownMenu').style.display = 'none';
-});
+function updateAdminPendingBadge() {
+    const pendingSellers = sellers.filter(s => s.kycStatus === 'pending');
+    const count = pendingSellers.length;
+    const badge = document.getElementById('adminPendingBadge');
+    if (badge) {
+        if (count > 0) {
+            badge.style.display = 'inline-block';
+            badge.innerText = count;
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+}
 
-document.getElementById('admin-seller-list')?.addEventListener('click', function() {
-    loadAllSellers();
-    document.getElementById('adminDropdownMenu').style.display = 'none';
+function updateAdminMenuBadges() {
+    const pending = sellers.filter(s => s.kycStatus === 'pending').length;
+    const pendingBadge = document.getElementById('pendingCountBadge');
+    if (pendingBadge) pendingBadge.textContent = pending;
+    
+    const verified = sellers.filter(s => s.kycStatus === 'verified').length;
+    const verifiedBadge = document.getElementById('verifiedCountBadge');
+    if (verifiedBadge) verifiedBadge.textContent = verified;
+    
+    const withdrawals = pendingWithdrawals.filter(w => w.status === 'Pending' || w.status === 'pending').length;
+    const withdrawalBadge = document.getElementById('withdrawalCountBadge');
+    if (withdrawalBadge) withdrawalBadge.textContent = withdrawals;
+    
+    // Orders count
+    const ordersCount = orders.length || 0;
+    const ordersBadge = document.getElementById('ordersCountBadge');
+    if (ordersBadge) ordersBadge.textContent = ordersCount;
+}
+
+// ============================================================
+// LOAD ORDERS LIST - NEW FEATURE
+// ============================================================
+
+function loadOrdersList() {
+    const container = document.getElementById('adminOrdersList');
+    if (!container) return;
+    
+    container.style.display = 'block';
+    container.innerHTML = '<div style="padding:20px; text-align:center; color:#64748b;">⏳ Loading orders...</div>';
+    
+    // ✅ LIVE DATA FROM FIRESTORE
+    db.collection("orders").orderBy("date", "desc").get().then(snapshot => {
+        if (snapshot.empty) {
+            container.innerHTML = `
+                <div style="padding:30px; text-align:center; background:#f8fafc; border-radius:12px;">
+                    <p style="font-size:18px;">📭 No orders found</p>
+                    <p style="color:#94a3b8; font-size:14px;">No orders have been placed yet.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = `
+            <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <strong style="font-size:16px;">📦 All Orders (${snapshot.size})</strong>
+                <button onclick="loadOrdersList()" style="background:#3b82f6; color:white; border:none; padding:6px 14px; border-radius:20px; font-size:12px; cursor:pointer;">🔄 Refresh</button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px; max-height:500px; overflow-y:auto;">`;
+        
+        let totalRevenue = 0;
+        let totalSellerPayout = 0;
+        let totalAdminFees = 0;
+        
+        snapshot.forEach(doc => {
+            const order = { id: doc.id, ...doc.data() };
+            totalRevenue += order.amount || 0;
+            totalSellerPayout += order.splitBreakdown?.finalSellerPayout || 0;
+            totalAdminFees += order.splitBreakdown?.adminCommissionDeducted || 0;
+            
+            const statusColor = order.status === 'Completed' ? '#10b981' : 
+                               order.status === 'Processing' ? '#f59e0b' : 
+                               order.status === 'Shipped' ? '#3b82f6' : '#ef4444';
+            
+            html += `
+                <div style="background:white; border-radius:12px; padding:14px; border-left:4px solid ${statusColor}; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                        <div style="flex:1; min-width:150px;">
+                            <div style="font-weight:600; font-size:15px;">🔖 ${order.trackingNumber || 'N/A'}</div>
+                            <div style="font-size:13px; color:#64748b;">📦 ${order.productName || 'Unknown'} x${order.qty || 1}</div>
+                            <div style="font-size:13px; color:#64748b;">💰 ${getCurrencySymbol()}${convertPrice(order.amount || 0)}</div>
+                            <div style="font-size:12px; color:#64748b;">👤 ${order.buyerName || 'Unknown'}</div>
+                            <div style="font-size:11px; color:#94a3b8;">📅 ${order.date || 'N/A'}</div>
+                        </div>
+                        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+                            <span style="font-size:12px; padding:2px 12px; border-radius:12px; background:${statusColor}20; color:${statusColor};">${order.status || 'Unknown'}</span>
+                            ${order.splitBreakdown ? `
+                                <div style="font-size:10px; color:#64748b; text-align:right;">
+                                    💰 Seller: ${getCurrencySymbol()}${convertPrice(order.splitBreakdown.finalSellerPayout || 0)}
+                                    ${order.splitBreakdown.isReleased ? ' ✅' : ' ⏳'}
+                                </div>
+                            ` : ''}
+                            <button onclick="showOrderDetailsModal(${JSON.stringify(order).replace(/'/g, "&#39;")})" 
+                                    style="background:#8b5cf6; color:white; border:none; padding:2px 10px; border-radius:12px; font-size:10px; cursor:pointer;">👁️ View</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        // Summary
+        html += `
+            </div>
+            <div style="margin-top:15px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+                <div style="background:#f0fdf4; padding:12px; border-radius:12px; text-align:center; border:2px solid #bbf7d0;">
+                    <div style="font-size:11px; color:#64748b;">💰 Total Revenue</div>
+                    <div style="font-size:20px; font-weight:700; color:#10b981;">${getCurrencySymbol()}${convertPrice(totalRevenue)}</div>
+                </div>
+                <div style="background:#dbeafe; padding:12px; border-radius:12px; text-align:center; border:2px solid #93c5fd;">
+                    <div style="font-size:11px; color:#64748b;">🏪 Seller Payout</div>
+                    <div style="font-size:20px; font-weight:700; color:#1e40af;">${getCurrencySymbol()}${convertPrice(totalSellerPayout)}</div>
+                </div>
+                <div style="background:#fef3c7; padding:12px; border-radius:12px; text-align:center; border:2px solid #fbbf24;">
+                    <div style="font-size:11px; color:#64748b;">🏛️ Admin Fees</div>
+                    <div style="font-size:20px; font-weight:700; color:#92400e;">${getCurrencySymbol()}${convertPrice(totalAdminFees)}</div>
+                </div>
+            </div>
+        `;
+        
+        container.innerHTML = html;
+        
+        // Hide loading
+        document.getElementById('adminDropdownMenu').style.display = 'none';
+        
+    }).catch(error => {
+        console.error("Load orders error:", error);
+        container.innerHTML = `
+            <div style="padding:20px; text-align:center; color:#dc2626; background:#fef2f2; border-radius:12px;">
+                ❌ Error loading orders: ${error.message}
+                <br><br>
+                <button onclick="loadOrdersList()" style="background:#3b82f6; color:white; border:none; padding:8px 20px; border-radius:20px; cursor:pointer;">🔄 Retry</button>
+            </div>
+        `;
+    });
+}
+
+// ============================================================
+// LOAD PAYOUT HISTORY - CLEAN VERSION
+// ============================================================
+
+function loadPayoutHistory() {
+    const container = document.getElementById('payoutHistoryList');
+    if (!container) return;
+    
+    container.style.display = 'block';
+    container.innerHTML = '<div style="padding:20px; text-align:center; color:#64748b;">⏳ Loading payout history...</div>';
+    
+    // ✅ Get all completed orders with released payments
+    db.collection("orders").where("status", "==", "Completed").get().then(snapshot => {
+        const payouts = [];
+        let totalPayouts = 0;
+        
+        snapshot.forEach(doc => {
+            const order = { id: doc.id, ...doc.data() };
+            if (order.splitBreakdown?.isReleased && order.splitBreakdown?.finalSellerPayout > 0) {
+                payouts.push({
+                    sellerId: order.sellerId,
+                    sellerName: order.sellerName || 'Unknown Seller',
+                    orderId: order.trackingNumber || order.id,
+                    amount: order.splitBreakdown.finalSellerPayout,
+                    productName: order.productName || 'Unknown',
+                    date: order.paymentReleasedAt || order.date || new Date().toISOString(),
+                    buyerName: order.buyerName || 'Unknown'
+                });
+                totalPayouts += order.splitBreakdown.finalSellerPayout;
+            }
+        });
+        
+        // Sort by date (newest first)
+        payouts.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        if (payouts.length === 0) {
+            container.innerHTML = `
+                <div style="padding:30px; text-align:center; background:#f8fafc; border-radius:12px;">
+                    <p style="font-size:18px;">📊 No payout history</p>
+                    <p style="color:#94a3b8; font-size:14px;">No payouts have been released yet.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = `
+            <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <strong style="font-size:16px;">📊 Payout History (${payouts.length})</strong>
+                <button onclick="loadPayoutHistory()" style="background:#3b82f6; color:white; border:none; padding:6px 14px; border-radius:20px; font-size:12px; cursor:pointer;">🔄 Refresh</button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px; max-height:500px; overflow-y:auto;">`;
+        
+        payouts.forEach(p => {
+            html += `
+                <div style="background:white; border-radius:12px; padding:14px; border-left:4px solid #10b981; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                        <div style="flex:1; min-width:150px;">
+                            <div style="font-weight:600; font-size:15px;">💰 ${getCurrencySymbol()}${convertPrice(p.amount)}</div>
+                            <div style="font-size:13px; color:#64748b;">🏪 ${p.sellerName}</div>
+                            <div style="font-size:13px; color:#64748b;">📦 ${p.productName}</div>
+                            <div style="font-size:12px; color:#64748b;">👤 ${p.buyerName}</div>
+                            <div style="font-size:11px; color:#94a3b8;">📅 ${new Date(p.date).toLocaleString()}</div>
+                        </div>
+                        <div>
+                            <span style="font-size:11px; padding:2px 10px; border-radius:10px; background:#d1fae5; color:#065f46;">✅ Released</span>
+                            <div style="font-size:10px; color:#64748b; margin-top:4px;">📦 ${p.orderId}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+            </div>
+            <div style="margin-top:15px; padding:12px; background:#f0fdf4; border-radius:12px; text-align:center; border:2px solid #bbf7d0;">
+                <div style="font-size:11px; color:#64748b;">💰 Total Payouts Released</div>
+                <div style="font-size:24px; font-weight:700; color:#10b981;">${getCurrencySymbol()}${convertPrice(totalPayouts)}</div>
+            </div>
+        `;
+        
+        container.innerHTML = html;
+        
+        // Close menu
+        document.getElementById('adminDropdownMenu').style.display = 'none';
+        
+    }).catch(error => {
+        console.error("Load payout history error:", error);
+        container.innerHTML = `
+            <div style="padding:20px; text-align:center; color:#dc2626; background:#fef2f2; border-radius:12px;">
+                ❌ Error loading payout history: ${error.message}
+                <br><br>
+                <button onclick="loadPayoutHistory()" style="background:#3b82f6; color:white; border:none; padding:8px 20px; border-radius:20px; cursor:pointer;">🔄 Retry</button>
+            </div>
+        `;
+    });
+}
+
+// ============================================================
+// ADMIN MENU ITEMS CLICK - CLEANED WITH NEW FEATURES
+// ============================================================
+
+document.querySelectorAll('.admin-menu-item[data-section]').forEach(item => {
+    item.addEventListener('click', function() {
+        const section = this.dataset.section;
+        
+        // Hide all
+        document.getElementById('pendingKycList').style.display = 'none';
+        document.getElementById('verifiedSellersList').style.display = 'none';
+        document.getElementById('pendingWithdrawals').style.display = 'none';
+        document.getElementById('adminOrdersList').style.display = 'none';
+        document.getElementById('payoutHistoryList').style.display = 'none';
+        
+        // Show selected
+        const targetMap = {
+            'pending': 'pendingKycList',
+            'verified': 'verifiedSellersList',
+            'withdrawals': 'pendingWithdrawals',
+            'orders': 'adminOrdersList',
+            'payouts': 'payoutHistoryList'
+        };
+        
+        const targetId = targetMap[section];
+        const target = document.getElementById(targetId);
+        if (target) {
+            target.style.display = 'block';
+            
+            // Load data based on section
+            if (section === 'pending') loadPendingSellers();
+            else if (section === 'verified') loadVerifiedSellers();
+            else if (section === 'withdrawals') loadWithdrawalsList();
+            else if (section === 'orders') loadOrdersList();
+            else if (section === 'payouts') loadPayoutHistory();
+        }
+        
+        // Close menu
+        document.getElementById('adminDropdownMenu').style.display = 'none';
+    });
 });
 
 // ============================================================
-// LOAD ALL BUYERS - LIVE DATA FROM FIRESTORE
+// LOAD PENDING SELLERS (KYC) - LIVE DATA
+// ============================================================
+
+function loadPendingSellers() {
+    const container = document.getElementById('pendingKycList');
+    if (!container) return;
+    
+    container.style.display = 'block';
+    container.innerHTML = '<div style="padding:20px; text-align:center; color:#64748b;">⏳ Loading pending sellers...</div>';
+    
+    db.collection("sellers").where("kycStatus", "==", "pending").get().then(snapshot => {
+        if (snapshot.empty) {
+            container.innerHTML = `
+                <div style="padding:30px; text-align:center; background:#f8fafc; border-radius:12px;">
+                    <p style="font-size:18px;">✅ No pending KYC requests</p>
+                    <p style="color:#94a3b8; font-size:14px;">All sellers have been verified.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = `
+            <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <strong style="font-size:16px;">⏳ Pending KYC (${snapshot.size})</strong>
+                <button onclick="loadPendingSellers()" style="background:#3b82f6; color:white; border:none; padding:6px 14px; border-radius:20px; font-size:12px; cursor:pointer;">🔄 Refresh</button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px;">`;
+        
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const sellerId = doc.id;
+            
+            html += `
+                <div style="background:white; border-radius:12px; padding:14px; border-left:4px solid #f59e0b; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                        <div style="flex:1; min-width:150px;">
+                            <div style="font-weight:600; font-size:15px;">🏪 ${data.shopName || 'Unknown'}</div>
+                            <div style="font-size:13px; color:#64748b;">👤 ${data.fullName || 'N/A'}</div>
+                            <div style="font-size:13px; color:#64748b;">📧 ${data.email || 'N/A'}</div>
+                            <div style="font-size:12px; color:#94a3b8;">📄 ${data.docType || 'N/A'} - ${data.docNumber || 'N/A'}</div>
+                            <div style="font-size:11px; color:#94a3b8;">📅 Joined: ${data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'N/A'}</div>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
+                            <span style="font-size:11px; padding:2px 10px; border-radius:10px; background:#fef3c7; color:#92400e;">⏳ Pending</span>
+                            <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                                <button onclick="approveSeller('${sellerId}')" style="background:#10b981; color:white; border:none; padding:4px 10px; border-radius:12px; font-size:10px; cursor:pointer;">✅ Approve</button>
+                                <button onclick="rejectSeller('${sellerId}')" style="background:#ef4444; color:white; border:none; padding:4px 10px; border-radius:12px; font-size:10px; cursor:pointer;">❌ Reject</button>
+                                ${data.docImage ? `
+                                    <button onclick="window.open('${data.docImage}', '_blank')" style="background:#3b82f6; color:white; border:none; padding:4px 10px; border-radius:12px; font-size:10px; cursor:pointer;">📄 View</button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        container.innerHTML = html;
+        
+        document.getElementById('adminDropdownMenu').style.display = 'none';
+        
+    }).catch(error => {
+        console.error("Load pending sellers error:", error);
+        container.innerHTML = `
+            <div style="padding:20px; text-align:center; color:#dc2626; background:#fef2f2; border-radius:12px;">
+                ❌ Error loading pending sellers: ${error.message}
+                <br><br>
+                <button onclick="loadPendingSellers()" style="background:#3b82f6; color:white; border:none; padding:8px 20px; border-radius:20px; cursor:pointer;">🔄 Retry</button>
+            </div>
+        `;
+    });
+}
+
+// ============================================================
+// APPROVE SELLER
+// ============================================================
+
+async function approveSeller(sellerId) {
+    if (!isAdminLoggedIn) {
+        showToast("❌ Please login as admin first!", true);
+        return;
+    }
+    
+    try {
+        const sellerRef = db.collection("sellers").doc(sellerId);
+        const sellerDoc = await sellerRef.get();
+        
+        if (!sellerDoc.exists) {
+            showToast("❌ Seller not found!", true);
+            return;
+        }
+        
+        const sellerData = sellerDoc.data();
+        
+        if (sellerData.kycStatus === 'verified') {
+            showToast("⚠️ This seller is already verified!", true);
+            return;
+        }
+        
+        await sellerRef.update({
+            kycStatus: 'verified',
+            verifiedAt: new Date().toISOString()
+        });
+        
+        showToast("✅ Seller approved successfully!", false);
+        addNotification(`✅ KYC approved: ${sellerData.shopName}`, 'info');
+        await sendTelegramMessage(`✅ KYC Approved: ${sellerData.shopName}`);
+        
+        const snapshot = await db.collection("sellers").get();
+        sellers = [];
+        snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
+        
+        updateAdminMenuBadges();
+        updateAdminPendingBadge();
+        loadPendingSellers();
+        loadAllSellers();
+        
+    } catch (error) {
+        console.error("Approve error:", error);
+        showToast("❌ Error: " + error.message, true);
+    }
+}
+
+// ============================================================
+// REJECT SELLER
+// ============================================================
+
+async function rejectSeller(sellerId) {
+    if (!isAdminLoggedIn) {
+        showToast("❌ Please login as admin first!", true);
+        return;
+    }
+    
+    try {
+        const sellerRef = db.collection("sellers").doc(sellerId);
+        const sellerDoc = await sellerRef.get();
+        
+        if (!sellerDoc.exists) {
+            showToast("❌ Seller not found!", true);
+            return;
+        }
+        
+        const sellerData = sellerDoc.data();
+        
+        if (sellerData.kycStatus === 'rejected') {
+            showToast("⚠️ This seller is already rejected!", true);
+            return;
+        }
+        
+        await sellerRef.update({
+            kycStatus: 'rejected',
+            rejectedAt: new Date().toISOString()
+        });
+        
+        showToast("❌ Seller rejected!", false);
+        addNotification(`❌ KYC rejected: ${sellerData.shopName}`, 'info');
+        await sendTelegramMessage(`❌ KYC Rejected: ${sellerData.shopName}`);
+        
+        const snapshot = await db.collection("sellers").get();
+        sellers = [];
+        snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
+        
+        updateAdminMenuBadges();
+        updateAdminPendingBadge();
+        loadPendingSellers();
+        loadAllSellers();
+        
+    } catch (error) {
+        console.error("Reject error:", error);
+        showToast("❌ Error: " + error.message, true);
+    }
+}
+
+// ============================================================
+// LOAD VERIFIED SELLERS
+// ============================================================
+
+function loadVerifiedSellers() {
+    const container = document.getElementById('verifiedSellersList');
+    container.style.display = 'block';
+    container.innerHTML = '<div style="padding:20px; text-align:center; color:#64748b;">⏳ Loading verified sellers...</div>';
+    
+    db.collection("sellers").where("kycStatus", "==", "verified").get().then(snapshot => {
+        if (snapshot.empty) {
+            container.innerHTML = `
+                <div style="padding:30px; text-align:center; background:#f8fafc; border-radius:12px;">
+                    <p style="font-size:18px;">✅ No verified sellers</p>
+                    <p style="color:#94a3b8; font-size:14px;">No sellers have been verified yet.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = `
+            <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <strong style="font-size:16px;">✅ Verified Sellers (${snapshot.size})</strong>
+                <button onclick="loadVerifiedSellers()" style="background:#3b82f6; color:white; border:none; padding:6px 14px; border-radius:20px; font-size:12px; cursor:pointer;">🔄 Refresh</button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px;">`;
+        
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            
+            html += `
+                <div style="background:white; border-radius:12px; padding:14px; border-left:4px solid #10b981; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                        <div style="flex:1; min-width:150px;">
+                            <div style="font-weight:600; font-size:15px;">🏪 ${data.shopName || 'Unknown'}</div>
+                            <div style="font-size:13px; color:#64748b;">👤 ${data.fullName || 'N/A'}</div>
+                            <div style="font-size:13px; color:#64748b;">📧 ${data.email || 'N/A'}</div>
+                            <div style="font-size:12px; color:#94a3b8;">💰 Earnings: ${getCurrencySymbol()}${convertPrice(data.earnings || 0)}</div>
+                            <div style="font-size:11px; color:#94a3b8;">📅 Verified: ${data.verifiedAt ? new Date(data.verifiedAt).toLocaleDateString() : 'N/A'}</div>
+                        </div>
+                        <div>
+                            <span style="font-size:11px; padding:2px 10px; border-radius:10px; background:#d1fae5; color:#065f46;">✅ Verified</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        container.innerHTML = html;
+        
+        document.getElementById('adminDropdownMenu').style.display = 'none';
+        
+    }).catch(error => {
+        console.error("Load verified sellers error:", error);
+        container.innerHTML = `
+            <div style="padding:20px; text-align:center; color:#dc2626; background:#fef2f2; border-radius:12px;">
+                ❌ Error loading verified sellers: ${error.message}
+            </div>
+        `;
+    });
+}
+
+// ============================================================
+// LOAD WITHDRAWALS LIST (PENDING)
+// ============================================================
+
+function loadWithdrawalsList() {
+    const container = document.getElementById('pendingWithdrawals');
+    container.style.display = 'block';
+    
+    const pending = pendingWithdrawals.filter(w => w.status === 'Pending' || w.status === 'pending');
+    
+    if (pending.length === 0) {
+        container.innerHTML = `
+            <div style="padding:30px; text-align:center; background:#f8fafc; border-radius:12px;">
+                <p style="font-size:18px;">✅ No pending withdrawals</p>
+                <p style="color:#94a3b8; font-size:14px;">All withdrawal requests have been processed.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = `
+        <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <strong style="font-size:16px;">💰 Pending Withdrawals (${pending.length})</strong>
+            <button onclick="loadWithdrawalsList()" style="background:#3b82f6; color:white; border:none; padding:6px 14px; border-radius:20px; font-size:12px; cursor:pointer;">🔄 Refresh</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px;">`;
+    
+    pending.forEach(w => {
+        html += `
+            <div style="background:white; border-radius:12px; padding:14px; border-left:4px solid #f59e0b; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                    <div>
+                        <div style="font-weight:600; font-size:15px;">💰 ${getCurrencySymbol()}${convertPrice(w.amount || 0)}</div>
+                        <div style="font-size:13px; color:#64748b;">🏪 ${w.sellerName || 'Unknown'}</div>
+                        <div style="font-size:12px; color:#94a3b8;">📅 ${w.date || 'N/A'}</div>
+                    </div>
+                    <div>
+                        <button onclick="approveWithdrawal('${w.id}')" style="background:#10b981; color:white; border:none; padding:6px 16px; border-radius:20px; font-size:12px; cursor:pointer;">✅ Approve</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+    
+    document.getElementById('adminDropdownMenu').style.display = 'none';
+}
+
+// ============================================================
+// APPROVE WITHDRAWAL
+// ============================================================
+
+async function approveWithdrawal(withdrawalId) {
+    if (!isAdminLoggedIn) {
+        showToast("❌ Please login as admin first!", true);
+        return;
+    }
+    
+    try {
+        let w = pendingWithdrawals.find(w => w.id === withdrawalId || w.id == withdrawalId);
+        if (!w) {
+            showToast("❌ Withdrawal not found!", true);
+            return;
+        }
+        
+        w.status = 'Approved';
+        w.approvedAt = new Date().toISOString();
+        
+        withdrawalHistory.push({ ...w });
+        pendingWithdrawals = pendingWithdrawals.filter(pw => pw.id !== w.id && pw.id != w.id);
+        
+        saveAllLocal();
+        
+        showToast(`✅ Approved ${getCurrencySymbol()}${convertPrice(w.amount)}`, false);
+        await sendTelegramMessage(`💰 Withdrawal Approved: ${w.sellerName} - ${getCurrencySymbol()}${convertPrice(w.amount)}`);
+        addNotification(`💰 Withdrawal approved for ${w.sellerName}`, 'payment');
+        
+        loadWithdrawalsList();
+        updateAdminMenuBadges();
+        renderSellerDashboard();
+        
+    } catch (error) {
+        console.error("Withdrawal approval error:", error);
+        showToast("❌ Error: " + error.message, true);
+    }
+}
+
+// ============================================================
+// LOAD ALL BUYERS
 // ============================================================
 
 function loadAllBuyers() {
@@ -915,7 +1599,7 @@ function loadAllBuyers() {
                         <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
                             <span style="font-size:11px; padding:2px 10px; border-radius:12px; background:${isOnline ? '#d1fae5' : '#f1f5f9'}; color:${isOnline ? '#065f46' : '#64748b'};">${isOnline ? '🟢 Online' : '⚪ Offline'}</span>
                             <div style="display:flex; gap:4px; flex-wrap:wrap;">
-                                <button onclick="showBuyerOrdersWithPayout('${email}')" style="background:#8b5cf6; color:white; border:none; padding:4px 10px; border-radius:12px; font-size:10px; cursor:pointer;">📦 Orders</button>
+                                <button onclick="showBuyerOrdersByEmail('${email}')" style="background:#8b5cf6; color:white; border:none; padding:4px 10px; border-radius:12px; font-size:10px; cursor:pointer;">📦 Orders</button>
                             </div>
                         </div>
                     </div>
@@ -925,6 +1609,8 @@ function loadAllBuyers() {
         
         html += '</div>';
         container.innerHTML = html;
+        
+        document.getElementById('adminDropdownMenu').style.display = 'none';
         
     }).catch(error => {
         console.error("Load buyers error:", error);
@@ -939,100 +1625,7 @@ function loadAllBuyers() {
 }
 
 // ============================================================
-// SHOW BUYER ORDERS WITH PAYOUT - REAL-TIME
-// ============================================================
-
-function showBuyerOrdersWithPayout(email) {
-    if (!email) {
-        showToast("❌ No email found", true);
-        return;
-    }
-    
-    const container = document.getElementById('pendingKycList');
-    
-    db.collection("orders").where("buyerEmail", "==", email).get().then(snapshot => {
-        const userOrders = [];
-        let totalSpent = 0;
-        let totalPayout = 0;
-        let totalAdminFees = 0;
-        
-        snapshot.forEach(doc => {
-            const order = { id: doc.id, ...doc.data() };
-            userOrders.push(order);
-            totalSpent += order.amount || 0;
-            totalPayout += order.splitBreakdown?.finalSellerPayout || 0;
-            totalAdminFees += order.splitBreakdown?.adminCommissionDeducted || 0;
-        });
-        
-        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        
-        if (userOrders.length === 0) {
-            container.innerHTML += `
-                <div style="margin-top:15px; padding:20px; background:#f8fafc; border-radius:12px; text-align:center;">
-                    <p style="color:#64748b;">📭 No orders found for ${email}</p>
-                </div>
-            `;
-            return;
-        }
-        
-        let html = `
-            <div style="margin-top:15px; background:white; border-radius:16px; padding:16px; border:2px solid #3b82f6; box-shadow:0 2px 8px rgba(59,130,246,0.1);">
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
-                    <h4 style="margin:0; font-size:16px;">📦 Orders for ${email} (${userOrders.length})</h4>
-                    <button onclick="this.closest('div[style*="margin-top:15px"]').remove()" 
-                            style="background:#ef4444; color:white; border:none; padding:4px 12px; border-radius:15px; font-size:11px; cursor:pointer;">✕ Close</button>
-                </div>
-                
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px;">
-                    <div style="background:#f0fdf4; padding:10px; border-radius:8px; text-align:center; border:1px solid #bbf7d0;">
-                        <div style="font-size:10px; color:#64748b;">💰 Total Spent</div>
-                        <div style="font-size:16px; font-weight:700; color:#10b981;">${getCurrencySymbol()}${convertPrice(totalSpent)}</div>
-                    </div>
-                    <div style="background:#dbeafe; padding:10px; border-radius:8px; text-align:center; border:1px solid #93c5fd;">
-                        <div style="font-size:10px; color:#64748b;">🏪 Seller Payout</div>
-                        <div style="font-size:16px; font-weight:700; color:#1e40af;">${getCurrencySymbol()}${convertPrice(totalPayout)}</div>
-                    </div>
-                    <div style="background:#fef3c7; padding:10px; border-radius:8px; text-align:center; border:1px solid #fbbf24;">
-                        <div style="font-size:10px; color:#64748b;">🏛️ Admin Fees</div>
-                        <div style="font-size:16px; font-weight:700; color:#92400e;">${getCurrencySymbol()}${convertPrice(totalAdminFees)}</div>
-                    </div>
-                </div>
-                
-                <div style="display:flex; flex-direction:column; gap:8px; max-height:400px; overflow-y:auto;">`;
-        
-        userOrders.forEach(o => {
-            const statusColor = o.status === 'Completed' ? '#10b981' : o.status === 'Processing' ? '#f59e0b' : o.status === 'Shipped' ? '#3b82f6' : '#ef4444';
-            html += `
-                <div style="border:1px solid #e2e8f0; padding:12px; border-radius:10px; background:#f8fafc;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-                        <strong style="font-size:14px;">🔖 ${o.trackingNumber || 'N/A'}</strong>
-                        <span style="font-size:12px; padding:2px 10px; border-radius:12px; background:${statusColor}20; color:${statusColor};">${o.status || 'Unknown'}</span>
-                    </div>
-                    <div style="font-size:13px; color:#475569; margin-top:4px;">${o.productName || 'Unknown'} x${o.qty || 1}</div>
-                    <div style="font-size:13px; color:#475569;">💰 ${getCurrencySymbol()}${convertPrice(o.amount || 0)}</div>
-                    <div style="font-size:11px; color:#94a3b8;">📅 ${o.date || 'N/A'}</div>
-                    ${o.splitBreakdown ? `
-                        <div style="font-size:10px; color:#64748b; margin-top:4px; padding-top:4px; border-top:1px solid #e2e8f0;">
-                            💰 Seller Payout: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.finalSellerPayout || 0)}
-                            ${o.splitBreakdown.isReleased ? ' ✅ Released' : ' ⏳ Pending'}
-                            | Admin: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.adminCommissionDeducted || 0)}
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-        });
-        
-        html += '</div></div>';
-        container.innerHTML += html;
-        
-    }).catch(error => {
-        console.error("Load buyer orders error:", error);
-        showToast("❌ Error loading orders: " + error.message, true);
-    });
-}
-
-// ============================================================
-// LOAD ALL SELLERS - LIVE DATA FROM FIRESTORE
+// LOAD ALL SELLERS
 // ============================================================
 
 function loadAllSellers() {
@@ -1094,6 +1687,8 @@ function loadAllSellers() {
         html += '</div>';
         container.innerHTML = html;
         
+        document.getElementById('adminDropdownMenu').style.display = 'none';
+        
     }).catch(error => {
         console.error("Load sellers error:", error);
         container.innerHTML = `
@@ -1107,228 +1702,88 @@ function loadAllSellers() {
 }
 
 // ============================================================
-// SHOW SELLER ORDERS WITH PAYOUT - REAL-TIME
+// SHOW BUYER ORDERS BY EMAIL
 // ============================================================
 
-function showSellerOrdersWithPayout(sellerId) {
+function showBuyerOrdersByEmail(email) {
+    if (!email) {
+        showToast("❌ No email found for this buyer", true);
+        return;
+    }
+    
     const container = document.getElementById('pendingKycList');
     
-    db.collection("orders").where("sellerId", "==", sellerId).get().then(snapshot => {
-        const sellerOrders = [];
-        let totalAmount = 0;
-        let totalPayout = 0;
-        let totalReleased = 0;
-        let totalPending = 0;
+    db.collection("orders").where("buyerEmail", "==", email).get().then(snapshot => {
+        const userOrders = [];
+        let totalSpent = 0;
         
         snapshot.forEach(doc => {
             const order = { id: doc.id, ...doc.data() };
-            sellerOrders.push(order);
-            totalAmount += order.amount || 0;
-            const payout = order.splitBreakdown?.finalSellerPayout || 0;
-            totalPayout += payout;
-            if (order.splitBreakdown?.isReleased) {
-                totalReleased += payout;
-            } else {
-                totalPending += payout;
-            }
+            userOrders.push(order);
+            totalSpent += order.amount || 0;
         });
         
         container.scrollIntoView({ behavior: 'smooth', block: 'start' });
         
-        if (sellerOrders.length === 0) {
+        if (userOrders.length === 0) {
             container.innerHTML += `
                 <div style="margin-top:15px; padding:20px; background:#f8fafc; border-radius:12px; text-align:center;">
-                    <p style="color:#64748b;">📭 No orders found for this seller</p>
+                    <p style="color:#64748b;">📭 No orders found for ${email}</p>
                 </div>
             `;
             return;
         }
         
         let html = `
-            <div style="margin-top:15px; background:white; border-radius:16px; padding:16px; border:2px solid #8b5cf6; box-shadow:0 2px 8px rgba(139,92,246,0.1);">
+            <div style="margin-top:15px; background:white; border-radius:16px; padding:16px; border:2px solid #3b82f6;">
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
-                    <h4 style="margin:0; font-size:16px;">📦 Seller Orders (${sellerOrders.length})</h4>
+                    <h4 style="margin:0; font-size:16px;">📦 Orders for ${email} (${userOrders.length})</h4>
                     <button onclick="this.closest('div[style*="margin-top:15px"]').remove()" 
                             style="background:#ef4444; color:white; border:none; padding:4px 12px; border-radius:15px; font-size:11px; cursor:pointer;">✕ Close</button>
                 </div>
-                
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px;">
-                    <div style="background:#f0fdf4; padding:10px; border-radius:8px; text-align:center; border:1px solid #bbf7d0;">
-                        <div style="font-size:10px; color:#64748b;">💰 Total Sales</div>
-                        <div style="font-size:16px; font-weight:700; color:#10b981;">${getCurrencySymbol()}${convertPrice(totalAmount)}</div>
-                    </div>
-                    <div style="background:#d1fae5; padding:10px; border-radius:8px; text-align:center; border:1px solid #a7f3d0;">
-                        <div style="font-size:10px; color:#64748b;">✅ Released</div>
-                        <div style="font-size:16px; font-weight:700; color:#065f46;">${getCurrencySymbol()}${convertPrice(totalReleased)}</div>
-                    </div>
-                    <div style="background:#fef3c7; padding:10px; border-radius:8px; text-align:center; border:1px solid #fbbf24;">
-                        <div style="font-size:10px; color:#64748b;">⏳ Pending</div>
-                        <div style="font-size:16px; font-weight:700; color:#92400e;">${getCurrencySymbol()}${convertPrice(totalPending)}</div>
-                    </div>
-                </div>
-                
-                <div style="display:flex; flex-direction:column; gap:6px; max-height:300px; overflow-y:auto;">`;
+                <div style="display:flex; flex-direction:column; gap:8px; max-height:400px; overflow-y:auto;">`;
         
-        sellerOrders.slice(0, 20).forEach(o => {
+        userOrders.forEach(o => {
             const statusColor = o.status === 'Completed' ? '#10b981' : o.status === 'Processing' ? '#f59e0b' : o.status === 'Shipped' ? '#3b82f6' : '#ef4444';
             html += `
-                <div style="border:1px solid #e2e8f0; padding:10px; border-radius:8px; background:#f8fafc;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;">
-                        <strong style="font-size:12px;">🔖 ${o.trackingNumber || 'N/A'}</strong>
-                        <span style="font-size:10px; padding:2px 8px; border-radius:10px; background:${statusColor}20; color:${statusColor};">${o.status || 'Unknown'}</span>
+                <div style="border:1px solid #e2e8f0; padding:12px; border-radius:10px; background:#f8fafc;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+                        <strong style="font-size:14px;">🔖 ${o.trackingNumber || 'N/A'}</strong>
+                        <span style="font-size:12px; padding:2px 10px; border-radius:12px; background:${statusColor}20; color:${statusColor};">${o.status || 'Unknown'}</span>
                     </div>
-                    <div style="font-size:12px; color:#475569;">${o.productName || 'Unknown'} x${o.qty || 1}</div>
-                    <div style="font-size:12px; color:#475569;">💰 ${getCurrencySymbol()}${convertPrice(o.amount || 0)}</div>
-                    <div style="font-size:11px; color:#94a3b8;">👤 ${o.buyerName || 'Unknown'} | 📅 ${o.date || 'N/A'}</div>
+                    <div style="font-size:13px; color:#475569; margin-top:4px;">${o.productName || 'Unknown'} x${o.qty || 1}</div>
+                    <div style="font-size:13px; color:#475569;">💰 ${getCurrencySymbol()}${convertPrice(o.amount || 0)}</div>
+                    <div style="font-size:11px; color:#94a3b8;">📅 ${o.date || 'N/A'}</div>
                     ${o.splitBreakdown ? `
-                        <div style="font-size:10px; color:#64748b; margin-top:2px;">
-                            💰 Payout: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.finalSellerPayout || 0)} 
-                            ${o.splitBreakdown.isReleased ? '✅ Released' : '⏳ Pending'}
+                        <div style="font-size:10px; color:#64748b; margin-top:4px; padding-top:4px; border-top:1px solid #e2e8f0;">
+                            💰 Seller Payout: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.finalSellerPayout || 0)}
+                            ${o.splitBreakdown.isReleased ? ' ✅ Released' : ' ⏳ Pending'}
                         </div>
                     ` : ''}
                 </div>
             `;
         });
-        if (sellerOrders.length > 20) {
-            html += `<p style="text-align:center; font-size:11px; color:#94a3b8; margin:4px 0;">+ ${sellerOrders.length - 20} more orders</p>`;
-        }
         
-        html += '</div></div>';
+        html += `
+            </div>
+            <div style="margin-top:12px; padding:12px; background:#f0fdf4; border-radius:10px; border:2px solid #bbf7d0;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                    <span style="font-weight:600;">💰 Total Spent</span>
+                    <span style="font-size:18px; font-weight:700; color:#10b981;">${getCurrencySymbol()}${convertPrice(totalSpent)}</span>
+                </div>
+            </div>
+        </div>`;
+        
         container.innerHTML += html;
         
     }).catch(error => {
-        console.error("Load seller orders error:", error);
+        console.error("Load buyer orders error:", error);
         showToast("❌ Error loading orders: " + error.message, true);
     });
 }
 
 // ============================================================
-// SHOW SELLER DETAILS WITH PAYOUT - COMPLETE
-// ============================================================
-
-function showSellerDetailsWithPayout(sellerId) {
-    const container = document.getElementById('pendingKycList');
-    
-    db.collection("sellers").doc(sellerId).get().then(doc => {
-        if (!doc.exists) {
-            container.innerHTML += `
-                <div style="margin-top:15px; padding:20px; background:#fef2f2; border-radius:12px; text-align:center;">
-                    <p style="color:#dc2626;">❌ Seller not found</p>
-                </div>
-            `;
-            return;
-        }
-        
-        const seller = { id: doc.id, ...doc.data() };
-        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        
-        db.collection("orders").where("sellerId", "==", sellerId).get().then(ordersSnapshot => {
-            const sellerOrders = [];
-            let totalEarnings = 0;
-            let totalReleased = 0;
-            let totalPending = 0;
-            
-            ordersSnapshot.forEach(d => {
-                const order = { id: d.id, ...d.data() };
-                sellerOrders.push(order);
-                const payout = order.sellerEarning || order.splitBreakdown?.finalSellerPayout || 0;
-                totalEarnings += payout;
-                if (order.splitBreakdown?.isReleased) {
-                    totalReleased += payout;
-                } else {
-                    totalPending += payout;
-                }
-            });
-            
-            const statusColor = seller.kycStatus === 'verified' ? '#10b981' : seller.kycStatus === 'pending' ? '#f59e0b' : '#ef4444';
-            
-            let html = `
-                <div style="margin-top:15px; background:white; border-radius:16px; padding:16px; border:2px solid #8b5cf6; box-shadow:0 2px 8px rgba(139,92,246,0.1);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
-                        <h4 style="margin:0; font-size:16px;">🏪 ${seller.shopName || 'Unknown Seller'}</h4>
-                        <button onclick="this.closest('div[style*="margin-top:15px"]').remove()" 
-                                style="background:#ef4444; color:white; border:none; padding:4px 12px; border-radius:15px; font-size:11px; cursor:pointer;">✕ Close</button>
-                    </div>
-                    
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; background:#f8fafc; padding:12px; border-radius:10px;">
-                        <div><strong style="font-size:12px; color:#64748b;">Name:</strong> <span style="font-size:13px;">${seller.fullName || 'N/A'}</span></div>
-                        <div><strong style="font-size:12px; color:#64748b;">Email:</strong> <span style="font-size:13px;">${seller.email || 'N/A'}</span></div>
-                        <div><strong style="font-size:12px; color:#64748b;">Phone:</strong> <span style="font-size:13px;">${seller.phone || 'N/A'}</span></div>
-                        <div><strong style="font-size:12px; color:#64748b;">Country:</strong> <span style="font-size:13px;">${seller.country || 'N/A'}</span></div>
-                        <div><strong style="font-size:12px; color:#64748b;">KYC:</strong> <span style="font-size:13px; color:${statusColor};">${seller.kycStatus || 'pending'}</span></div>
-                        <div><strong style="font-size:12px; color:#64748b;">Earnings:</strong> <span style="font-size:13px; font-weight:600; color:#10b981;">${getCurrencySymbol()}${convertPrice(seller.earnings || 0)}</span></div>
-                        <div><strong style="font-size:12px; color:#64748b;">Total Orders:</strong> <span style="font-size:13px;">${sellerOrders.length}</span></div>
-                        <div><strong style="font-size:12px; color:#64748b;">Joined:</strong> <span style="font-size:13px;">${seller.createdAt ? new Date(seller.createdAt).toLocaleDateString() : 'N/A'}</span></div>
-                    </div>
-                    
-                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px;">
-                        <div style="background:#f0fdf4; padding:10px; border-radius:8px; text-align:center; border:1px solid #bbf7d0;">
-                            <div style="font-size:10px; color:#64748b;">💰 Total Payout</div>
-                            <div style="font-size:16px; font-weight:700; color:#10b981;">${getCurrencySymbol()}${convertPrice(totalEarnings)}</div>
-                        </div>
-                        <div style="background:#d1fae5; padding:10px; border-radius:8px; text-align:center; border:1px solid #a7f3d0;">
-                            <div style="font-size:10px; color:#64748b;">✅ Released</div>
-                            <div style="font-size:16px; font-weight:700; color:#065f46;">${getCurrencySymbol()}${convertPrice(totalReleased)}</div>
-                        </div>
-                        <div style="background:#fef3c7; padding:10px; border-radius:8px; text-align:center; border:1px solid #fbbf24;">
-                            <div style="font-size:10px; color:#64748b;">⏳ Pending</div>
-                            <div style="font-size:16px; font-weight:700; color:#92400e;">${getCurrencySymbol()}${convertPrice(totalPending)}</div>
-                        </div>
-                    </div>
-                    
-                    ${seller.docImage ? `
-                        <button onclick="window.open('${seller.docImage}', '_blank')" 
-                                style="background:#3b82f6; color:white; border:none; padding:8px 16px; border-radius:12px; font-size:13px; cursor:pointer; width:100%; margin-bottom:12px;">
-                            📄 View KYC Document
-                        </button>
-                    ` : ''}
-                    
-                    <h5 style="margin:8px 0 10px 0; font-size:14px;">📦 Orders (${sellerOrders.length})</h5>
-                    <div style="display:flex; flex-direction:column; gap:6px; max-height:300px; overflow-y:auto;">`;
-            
-            if (sellerOrders.length === 0) {
-                html += '<p style="color:#94a3b8; text-align:center; padding:10px;">No orders yet</p>';
-            } else {
-                sellerOrders.slice(0, 20).forEach(o => {
-                    const statusColor = o.status === 'Completed' ? '#10b981' : o.status === 'Processing' ? '#f59e0b' : o.status === 'Shipped' ? '#3b82f6' : '#ef4444';
-                    html += `
-                        <div style="border:1px solid #e2e8f0; padding:10px; border-radius:8px; background:#f8fafc;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;">
-                                <strong style="font-size:12px;">🔖 ${o.trackingNumber || 'N/A'}</strong>
-                                <span style="font-size:10px; padding:2px 8px; border-radius:10px; background:${statusColor}20; color:${statusColor};">${o.status || 'Unknown'}</span>
-                            </div>
-                            <div style="font-size:12px; color:#475569;">${o.productName || 'Unknown'} x${o.qty || 1}</div>
-                            <div style="font-size:12px; color:#475569;">💰 ${getCurrencySymbol()}${convertPrice(o.amount || 0)}</div>
-                            <div style="font-size:11px; color:#94a3b8;">👤 ${o.buyerName || 'Unknown'} | 📅 ${o.date || 'N/A'}</div>
-                            ${o.splitBreakdown ? `
-                                <div style="font-size:10px; color:#64748b; margin-top:2px;">
-                                    💰 Payout: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.finalSellerPayout || 0)} 
-                                    ${o.splitBreakdown.isReleased ? '✅ Released' : '⏳ Pending'}
-                                </div>
-                            ` : ''}
-                        </div>
-                    `;
-                });
-                if (sellerOrders.length > 20) {
-                    html += `<p style="text-align:center; font-size:11px; color:#94a3b8; margin:4px 0;">+ ${sellerOrders.length - 20} more orders</p>`;
-                }
-            }
-            
-            html += '</div></div>';
-            container.innerHTML += html;
-        });
-    }).catch(error => {
-        console.error("Load seller details error:", error);
-        container.innerHTML += `
-            <div style="margin-top:15px; padding:20px; background:#fef2f2; border-radius:12px; text-align:center;">
-                <p style="color:#dc2626;">❌ Error loading seller: ${error.message}</p>
-            </div>
-        `;
-    });
-}
-
-// ============================================================
-// FORCE APPROVE SELLER - COMPLETE FIXED
+// FORCE APPROVE SELLER
 // ============================================================
 
 async function forceApproveSeller(sellerId) {
@@ -1434,502 +1889,224 @@ function showConfirmModal(title, message, onConfirm) {
 }
 
 // ============================================================
-// LOAD WITHDRAWAL HISTORY
+// SHOW SELLER ORDERS WITH PAYOUT - REAL-TIME
 // ============================================================
 
-function loadWithdrawalHistory() {
-    const container = document.getElementById('pendingWithdrawals');
-    container.style.display = 'block';
-    container.innerHTML = '<div style="padding:20px; text-align:center; color:#64748b;">⏳ Loading withdrawal history...</div>';
-    
-    let allWithdrawals = [];
-    
-    pendingWithdrawals.forEach(w => {
-        allWithdrawals.push({ ...w, source: 'pending' });
-    });
-    
-    withdrawalHistory.forEach(w => {
-        allWithdrawals.push({ ...w, source: 'history' });
-    });
-    
-    allWithdrawals.sort((a, b) => new Date(b.date) - new Date(a.date));
-    
-    if (allWithdrawals.length === 0) {
-        container.innerHTML = `
-            <div style="padding:30px; text-align:center; background:#f8fafc; border-radius:12px;">
-                <p style="font-size:18px;">📭 No withdrawal history</p>
-                <p style="color:#94a3b8; font-size:14px;">No withdrawals have been requested yet.</p>
-            </div>
-        `;
-        return;
-    }
-    
-    let html = `
-        <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <strong style="font-size:16px;">📜 Withdrawal History (${allWithdrawals.length})</strong>
-            <button onclick="loadWithdrawalHistory()" style="background:#3b82f6; color:white; border:none; padding:6px 14px; border-radius:20px; font-size:12px; cursor:pointer;">🔄 Refresh</button>
-        </div>
-        <div style="display:flex; flex-direction:column; gap:8px;">`;
-    
-    let totalApproved = 0;
-    let totalPending = 0;
-    
-    allWithdrawals.forEach(w => {
-        const isPending = w.status === 'Pending' || w.status === 'pending';
-        const isApproved = w.status === 'Approved' || w.status === 'approved';
-        
-        const statusColor = isApproved ? '#10b981' : isPending ? '#f59e0b' : '#ef4444';
-        const statusIcon = isApproved ? '✅' : isPending ? '⏳' : '❌';
-        
-        if (isApproved) totalApproved += w.amount || 0;
-        if (isPending) totalPending += w.amount || 0;
-        
-        html += `
-            <div style="background:white; border-radius:12px; padding:14px; border-left:4px solid ${statusColor}; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-                    <div>
-                        <div style="font-weight:600; font-size:15px;">💰 ${getCurrencySymbol()}${convertPrice(w.amount || 0)}</div>
-                        <div style="font-size:13px; color:#64748b;">🏪 ${w.sellerName || 'Unknown'}</div>
-                        <div style="font-size:12px; color:#94a3b8;">📅 ${w.date || 'N/A'}</div>
-                    </div>
-                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
-                        <span style="font-size:12px; padding:2px 12px; border-radius:12px; background:${statusColor}20; color:${statusColor};">
-                            ${statusIcon} ${w.status || 'Pending'}
-                        </span>
-                        ${isPending ? `
-                            <button onclick="approveWithdrawal('${w.id}')" style="background:#10b981; color:white; border:none; padding:4px 12px; border-radius:12px; font-size:11px; cursor:pointer;">✅ Approve</button>
-                        ` : ''}
-                        ${w.approvedAt ? `
-                            <span style="font-size:10px; color:#94a3b8;">✅ Approved: ${new Date(w.approvedAt).toLocaleString()}</span>
-                        ` : ''}
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-    
-    html += `
-        </div>
-        <div style="margin-top:15px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <div style="background:#f0fdf4; padding:12px; border-radius:12px; text-align:center; border:2px solid #bbf7d0;">
-                <div style="font-size:11px; color:#64748b;">✅ Total Approved</div>
-                <div style="font-size:20px; font-weight:700; color:#10b981;">${getCurrencySymbol()}${convertPrice(totalApproved)}</div>
-            </div>
-            <div style="background:#fef3c7; padding:12px; border-radius:12px; text-align:center; border:2px solid #fbbf24;">
-                <div style="font-size:11px; color:#64748b;">⏳ Total Pending</div>
-                <div style="font-size:20px; font-weight:700; color:#f59e0b;">${getCurrencySymbol()}${convertPrice(totalPending)}</div>
-            </div>
-        </div>
-    `;
-    
-    container.innerHTML = html;
-}
-
-// ============================================================
-// APPROVE WITHDRAWAL
-// ============================================================
-
-async function approveWithdrawal(withdrawalId) {
-    if (!isAdminLoggedIn) {
-        showToast("❌ Please login as admin first!", true);
-        return;
-    }
-    
-    showConfirmModal(
-        '✅ Approve Withdrawal?',
-        'This will approve this withdrawal request. The seller will be notified.',
-        async () => {
-            try {
-                let w = pendingWithdrawals.find(w => w.id === withdrawalId || w.id == withdrawalId);
-                if (!w) {
-                    showToast("❌ Withdrawal not found!", true);
-                    return;
-                }
-                
-                w.status = 'Approved';
-                w.approvedAt = new Date().toISOString();
-                
-                withdrawalHistory.push({ ...w });
-                pendingWithdrawals = pendingWithdrawals.filter(pw => pw.id !== w.id && pw.id != w.id);
-                
-                saveAllLocal();
-                
-                showToast(`✅ Approved ${getCurrencySymbol()}${convertPrice(w.amount)}`, false);
-                await sendTelegramMessage(`💰 Withdrawal Approved: ${w.sellerName} - ${getCurrencySymbol()}${convertPrice(w.amount)}`);
-                addNotification(`💰 Withdrawal approved for ${w.sellerName}`, 'payment');
-                
-                loadWithdrawalHistory();
-                updateAdminMenuBadges();
-                renderSellerDashboard();
-                
-            } catch (error) {
-                console.error("Withdrawal approval error:", error);
-                showToast("❌ Error: " + error.message, true);
-            }
-        }
-    );
-}
-
-// ============================================================
-// PAYOUT HISTORY LOGGING
-// ============================================================
-
-function logPayoutToHistory(orderId, sellerId, amount, status) {
-    try {
-        const payoutLog = {
-            id: Date.now(),
-            orderId: orderId,
-            sellerId: sellerId,
-            amount: amount,
-            status: status || 'released',
-            timestamp: new Date().toISOString(),
-            date: new Date().toLocaleString()
-        };
-        
-        let payoutHistory = JSON.parse(localStorage.getItem('gb_payout_history')) || [];
-        payoutHistory.push(payoutLog);
-        localStorage.setItem('gb_payout_history', JSON.stringify(payoutHistory));
-        
-        console.log('📊 Payout logged:', payoutLog);
-    } catch (error) {
-        console.error('Payout logging error:', error);
-    }
-}
-
-function loadPayoutHistory() {
-    const container = document.getElementById('pendingWithdrawals');
-    container.style.display = 'block';
-    
-    let payoutHistory = JSON.parse(localStorage.getItem('gb_payout_history')) || [];
-    
-    if (payoutHistory.length === 0) {
-        container.innerHTML = `
-            <div style="padding:30px; text-align:center; background:#f8fafc; border-radius:12px;">
-                <p style="font-size:18px;">📊 No payout history</p>
-                <p style="color:#94a3b8; font-size:14px;">No payouts have been released yet.</p>
-            </div>
-        `;
-        return;
-    }
-    
-    let html = `
-        <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <strong style="font-size:16px;">📊 Payout History (${payoutHistory.length})</strong>
-            <button onclick="loadPayoutHistory()" style="background:#3b82f6; color:white; border:none; padding:6px 14px; border-radius:20px; font-size:12px; cursor:pointer;">🔄 Refresh</button>
-        </div>
-        <div style="display:flex; flex-direction:column; gap:8px;">`;
-    
-    let totalPayouts = 0;
-    
-    payoutHistory.slice().reverse().forEach(log => {
-        totalPayouts += log.amount || 0;
-        html += `
-            <div style="background:white; border-radius:12px; padding:12px; border-left:4px solid #10b981; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-                    <div>
-                        <div style="font-weight:600;">💰 ${getCurrencySymbol()}${convertPrice(log.amount || 0)}</div>
-                        <div style="font-size:12px; color:#64748b;">📦 Order: ${log.orderId || 'N/A'}</div>
-                        <div style="font-size:11px; color:#94a3b8;">📅 ${log.date || log.timestamp || 'N/A'}</div>
-                    </div>
-                    <div>
-                        <span style="font-size:11px; padding:2px 10px; border-radius:10px; background:#d1fae5; color:#065f46;">${log.status || 'Released'}</span>
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-    
-    html += `
-        </div>
-        <div style="margin-top:12px; padding:12px; background:#f0fdf4; border-radius:12px; text-align:center; border:2px solid #bbf7d0;">
-            <div style="font-size:11px; color:#64748b;">💰 Total Payouts Released</div>
-            <div style="font-size:22px; font-weight:700; color:#10b981;">${getCurrencySymbol()}${convertPrice(totalPayouts)}</div>
-        </div>
-    `;
-    
-    container.innerHTML = html;
-}
-
-// ============================================================
-// LOAD PENDING SELLERS (KYC) - LIVE DATA FROM FIRESTORE
-// ============================================================
-
-function loadPendingSellers() {
+function showSellerOrdersWithPayout(sellerId) {
     const container = document.getElementById('pendingKycList');
-    if (!container) return;
     
-    container.style.display = 'block';
-    container.innerHTML = '<div style="padding:20px; text-align:center; color:#64748b;">⏳ Loading pending sellers...</div>';
-    
-    db.collection("sellers").where("kycStatus", "==", "pending").get().then(snapshot => {
-        if (snapshot.empty) {
-            container.innerHTML = `
-                <div style="padding:30px; text-align:center; background:#f8fafc; border-radius:12px;">
-                    <p style="font-size:18px;">✅ No pending KYC requests</p>
-                    <p style="color:#94a3b8; font-size:14px;">All sellers have been verified.</p>
+    db.collection("orders").where("sellerId", "==", sellerId).get().then(snapshot => {
+        const sellerOrders = [];
+        let totalAmount = 0;
+        let totalPayout = 0;
+        let totalReleased = 0;
+        let totalPending = 0;
+        
+        snapshot.forEach(doc => {
+            const order = { id: doc.id, ...doc.data() };
+            sellerOrders.push(order);
+            totalAmount += order.amount || 0;
+            const payout = order.splitBreakdown?.finalSellerPayout || 0;
+            totalPayout += payout;
+            if (order.splitBreakdown?.isReleased) {
+                totalReleased += payout;
+            } else {
+                totalPending += payout;
+            }
+        });
+        
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
+        if (sellerOrders.length === 0) {
+            container.innerHTML += `
+                <div style="margin-top:15px; padding:20px; background:#f8fafc; border-radius:12px; text-align:center;">
+                    <p style="color:#64748b;">📭 No orders found for this seller</p>
                 </div>
             `;
             return;
         }
         
         let html = `
-            <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                <strong style="font-size:16px;">⏳ Pending KYC (${snapshot.size})</strong>
-                <button onclick="loadPendingSellers()" style="background:#3b82f6; color:white; border:none; padding:6px 14px; border-radius:20px; font-size:12px; cursor:pointer;">🔄 Refresh</button>
-            </div>
-            <div style="display:flex; flex-direction:column; gap:8px;">`;
+            <div style="margin-top:15px; background:white; border-radius:16px; padding:16px; border:2px solid #8b5cf6;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                    <h4 style="margin:0; font-size:16px;">📦 Seller Orders (${sellerOrders.length})</h4>
+                    <button onclick="this.closest('div[style*="margin-top:15px"]').remove()" 
+                            style="background:#ef4444; color:white; border:none; padding:4px 12px; border-radius:15px; font-size:11px; cursor:pointer;">✕ Close</button>
+                </div>
+                
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px;">
+                    <div style="background:#f0fdf4; padding:10px; border-radius:8px; text-align:center; border:1px solid #bbf7d0;">
+                        <div style="font-size:10px; color:#64748b;">💰 Total Sales</div>
+                        <div style="font-size:16px; font-weight:700; color:#10b981;">${getCurrencySymbol()}${convertPrice(totalAmount)}</div>
+                    </div>
+                    <div style="background:#d1fae5; padding:10px; border-radius:8px; text-align:center; border:1px solid #a7f3d0;">
+                        <div style="font-size:10px; color:#64748b;">✅ Released</div>
+                        <div style="font-size:16px; font-weight:700; color:#065f46;">${getCurrencySymbol()}${convertPrice(totalReleased)}</div>
+                    </div>
+                    <div style="background:#fef3c7; padding:10px; border-radius:8px; text-align:center; border:1px solid #fbbf24;">
+                        <div style="font-size:10px; color:#64748b;">⏳ Pending</div>
+                        <div style="font-size:16px; font-weight:700; color:#92400e;">${getCurrencySymbol()}${convertPrice(totalPending)}</div>
+                    </div>
+                </div>
+                
+                <div style="display:flex; flex-direction:column; gap:6px; max-height:300px; overflow-y:auto;">`;
         
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const sellerId = doc.id;
-            
+        sellerOrders.slice(0, 20).forEach(o => {
+            const statusColor = o.status === 'Completed' ? '#10b981' : o.status === 'Processing' ? '#f59e0b' : o.status === 'Shipped' ? '#3b82f6' : '#ef4444';
             html += `
-                <div style="background:white; border-radius:12px; padding:14px; border-left:4px solid #f59e0b; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-                        <div style="flex:1; min-width:150px;">
-                            <div style="font-weight:600; font-size:15px;">🏪 ${data.shopName || 'Unknown'}</div>
-                            <div style="font-size:13px; color:#64748b;">👤 ${data.fullName || 'N/A'}</div>
-                            <div style="font-size:13px; color:#64748b;">📧 ${data.email || 'N/A'}</div>
-                            <div style="font-size:12px; color:#94a3b8;">📄 ${data.docType || 'N/A'} - ${data.docNumber || 'N/A'}</div>
-                            <div style="font-size:11px; color:#94a3b8;">📅 Joined: ${data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'N/A'}</div>
+                <div style="border:1px solid #e2e8f0; padding:10px; border-radius:8px; background:#f8fafc;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;">
+                        <strong style="font-size:12px;">🔖 ${o.trackingNumber || 'N/A'}</strong>
+                        <span style="font-size:10px; padding:2px 8px; border-radius:10px; background:${statusColor}20; color:${statusColor};">${o.status || 'Unknown'}</span>
+                    </div>
+                    <div style="font-size:12px; color:#475569;">${o.productName || 'Unknown'} x${o.qty || 1}</div>
+                    <div style="font-size:12px; color:#475569;">💰 ${getCurrencySymbol()}${convertPrice(o.amount || 0)}</div>
+                    <div style="font-size:11px; color:#94a3b8;">👤 ${o.buyerName || 'Unknown'} | 📅 ${o.date || 'N/A'}</div>
+                    ${o.splitBreakdown ? `
+                        <div style="font-size:10px; color:#64748b; margin-top:2px;">
+                            💰 Payout: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.finalSellerPayout || 0)} 
+                            ${o.splitBreakdown.isReleased ? '✅ Released' : '⏳ Pending'}
                         </div>
-                        <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
-                            <span style="font-size:11px; padding:2px 10px; border-radius:10px; background:#fef3c7; color:#92400e;">⏳ Pending</span>
-                            <div style="display:flex; gap:4px; flex-wrap:wrap;">
-                                <button onclick="approveSeller('${sellerId}')" style="background:#10b981; color:white; border:none; padding:4px 10px; border-radius:12px; font-size:10px; cursor:pointer;">✅ Approve</button>
-                                <button onclick="rejectSeller('${sellerId}')" style="background:#ef4444; color:white; border:none; padding:4px 10px; border-radius:12px; font-size:10px; cursor:pointer;">❌ Reject</button>
-                                ${data.docImage ? `
-                                    <button onclick="window.open('${data.docImage}', '_blank')" style="background:#3b82f6; color:white; border:none; padding:4px 10px; border-radius:12px; font-size:10px; cursor:pointer;">📄 View</button>
-                                ` : ''}
+                    ` : ''}
+                </div>
+            `;
+        });
+        if (sellerOrders.length > 20) {
+            html += `<p style="text-align:center; font-size:11px; color:#94a3b8; margin:4px 0;">+ ${sellerOrders.length - 20} more orders</p>`;
+        }
+        
+        html += '</div></div>';
+        container.innerHTML += html;
+        
+    }).catch(error => {
+        console.error("Load seller orders error:", error);
+        showToast("❌ Error loading orders: " + error.message, true);
+    });
+}
+
+// ============================================================
+// SHOW SELLER DETAILS WITH PAYOUT
+// ============================================================
+
+function showSellerDetailsWithPayout(sellerId) {
+    const container = document.getElementById('pendingKycList');
+    
+    db.collection("sellers").doc(sellerId).get().then(doc => {
+        if (!doc.exists) {
+            container.innerHTML += `
+                <div style="margin-top:15px; padding:20px; background:#fef2f2; border-radius:12px; text-align:center;">
+                    <p style="color:#dc2626;">❌ Seller not found</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const seller = { id: doc.id, ...doc.data() };
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
+        db.collection("orders").where("sellerId", "==", sellerId).get().then(ordersSnapshot => {
+            const sellerOrders = [];
+            let totalEarnings = 0;
+            let totalReleased = 0;
+            let totalPending = 0;
+            
+            ordersSnapshot.forEach(d => {
+                const order = { id: d.id, ...d.data() };
+                sellerOrders.push(order);
+                const payout = order.sellerEarning || order.splitBreakdown?.finalSellerPayout || 0;
+                totalEarnings += payout;
+                if (order.splitBreakdown?.isReleased) {
+                    totalReleased += payout;
+                } else {
+                    totalPending += payout;
+                }
+            });
+            
+            const statusColor = seller.kycStatus === 'verified' ? '#10b981' : seller.kycStatus === 'pending' ? '#f59e0b' : '#ef4444';
+            
+            let html = `
+                <div style="margin-top:15px; background:white; border-radius:16px; padding:16px; border:2px solid #8b5cf6;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                        <h4 style="margin:0; font-size:16px;">🏪 ${seller.shopName || 'Unknown Seller'}</h4>
+                        <button onclick="this.closest('div[style*="margin-top:15px"]').remove()" 
+                                style="background:#ef4444; color:white; border:none; padding:4px 12px; border-radius:15px; font-size:11px; cursor:pointer;">✕ Close</button>
+                    </div>
+                    
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; background:#f8fafc; padding:12px; border-radius:10px;">
+                        <div><strong style="font-size:12px; color:#64748b;">Name:</strong> <span style="font-size:13px;">${seller.fullName || 'N/A'}</span></div>
+                        <div><strong style="font-size:12px; color:#64748b;">Email:</strong> <span style="font-size:13px;">${seller.email || 'N/A'}</span></div>
+                        <div><strong style="font-size:12px; color:#64748b;">Phone:</strong> <span style="font-size:13px;">${seller.phone || 'N/A'}</span></div>
+                        <div><strong style="font-size:12px; color:#64748b;">Country:</strong> <span style="font-size:13px;">${seller.country || 'N/A'}</span></div>
+                        <div><strong style="font-size:12px; color:#64748b;">KYC:</strong> <span style="font-size:13px; color:${statusColor};">${seller.kycStatus || 'pending'}</span></div>
+                        <div><strong style="font-size:12px; color:#64748b;">Earnings:</strong> <span style="font-size:13px; font-weight:600; color:#10b981;">${getCurrencySymbol()}${convertPrice(seller.earnings || 0)}</span></div>
+                        <div><strong style="font-size:12px; color:#64748b;">Total Orders:</strong> <span style="font-size:13px;">${sellerOrders.length}</span></div>
+                        <div><strong style="font-size:12px; color:#64748b;">Joined:</strong> <span style="font-size:13px;">${seller.createdAt ? new Date(seller.createdAt).toLocaleDateString() : 'N/A'}</span></div>
+                    </div>
+                    
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px;">
+                        <div style="background:#f0fdf4; padding:10px; border-radius:8px; text-align:center; border:1px solid #bbf7d0;">
+                            <div style="font-size:10px; color:#64748b;">💰 Total Payout</div>
+                            <div style="font-size:16px; font-weight:700; color:#10b981;">${getCurrencySymbol()}${convertPrice(totalEarnings)}</div>
+                        </div>
+                        <div style="background:#d1fae5; padding:10px; border-radius:8px; text-align:center; border:1px solid #a7f3d0;">
+                            <div style="font-size:10px; color:#64748b;">✅ Released</div>
+                            <div style="font-size:16px; font-weight:700; color:#065f46;">${getCurrencySymbol()}${convertPrice(totalReleased)}</div>
+                        </div>
+                        <div style="background:#fef3c7; padding:10px; border-radius:8px; text-align:center; border:1px solid #fbbf24;">
+                            <div style="font-size:10px; color:#64748b;">⏳ Pending</div>
+                            <div style="font-size:16px; font-weight:700; color:#92400e;">${getCurrencySymbol()}${convertPrice(totalPending)}</div>
+                        </div>
+                    </div>
+                    
+                    ${seller.docImage ? `
+                        <button onclick="window.open('${seller.docImage}', '_blank')" 
+                                style="background:#3b82f6; color:white; border:none; padding:8px 16px; border-radius:12px; font-size:13px; cursor:pointer; width:100%; margin-bottom:12px;">
+                            📄 View KYC Document
+                        </button>
+                    ` : ''}
+                    
+                    <h5 style="margin:8px 0 10px 0; font-size:14px;">📦 Orders (${sellerOrders.length})</h5>
+                    <div style="display:flex; flex-direction:column; gap:6px; max-height:300px; overflow-y:auto;">`;
+            
+            if (sellerOrders.length === 0) {
+                html += '<p style="color:#94a3b8; text-align:center; padding:10px;">No orders yet</p>';
+            } else {
+                sellerOrders.slice(0, 20).forEach(o => {
+                    const statusColor = o.status === 'Completed' ? '#10b981' : o.status === 'Processing' ? '#f59e0b' : o.status === 'Shipped' ? '#3b82f6' : '#ef4444';
+                    html += `
+                        <div style="border:1px solid #e2e8f0; padding:10px; border-radius:8px; background:#f8fafc;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;">
+                                <strong style="font-size:12px;">🔖 ${o.trackingNumber || 'N/A'}</strong>
+                                <span style="font-size:10px; padding:2px 8px; border-radius:10px; background:${statusColor}20; color:${statusColor};">${o.status || 'Unknown'}</span>
                             </div>
+                            <div style="font-size:12px; color:#475569;">${o.productName || 'Unknown'} x${o.qty || 1}</div>
+                            <div style="font-size:12px; color:#475569;">💰 ${getCurrencySymbol()}${convertPrice(o.amount || 0)}</div>
+                            <div style="font-size:11px; color:#94a3b8;">👤 ${o.buyerName || 'Unknown'} | 📅 ${o.date || 'N/A'}</div>
+                            ${o.splitBreakdown ? `
+                                <div style="font-size:10px; color:#64748b; margin-top:2px;">
+                                    💰 Payout: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.finalSellerPayout || 0)} 
+                                    ${o.splitBreakdown.isReleased ? '✅ Released' : '⏳ Pending'}
+                                </div>
+                            ` : ''}
                         </div>
-                    </div>
-                </div>
-            `;
-        });
-        
-        html += '</div>';
-        container.innerHTML = html;
-        
-    }).catch(error => {
-        console.error("Load pending sellers error:", error);
-        container.innerHTML = `
-            <div style="padding:20px; text-align:center; color:#dc2626; background:#fef2f2; border-radius:12px;">
-                ❌ Error loading pending sellers: ${error.message}
-                <br><br>
-                <button onclick="loadPendingSellers()" style="background:#3b82f6; color:white; border:none; padding:8px 20px; border-radius:20px; cursor:pointer;">🔄 Retry</button>
-            </div>
-        `;
-    });
-}
-
-// ============================================================
-// APPROVE SELLER - FIXED
-// ============================================================
-
-async function approveSeller(sellerId) {
-    if (!isAdminLoggedIn) {
-        showToast("❌ Please login as admin first!", true);
-        return;
-    }
-    
-    try {
-        const sellerRef = db.collection("sellers").doc(sellerId);
-        const sellerDoc = await sellerRef.get();
-        
-        if (!sellerDoc.exists) {
-            showToast("❌ Seller not found!", true);
-            return;
-        }
-        
-        const sellerData = sellerDoc.data();
-        
-        if (sellerData.kycStatus === 'verified') {
-            showToast("⚠️ This seller is already verified!", true);
-            return;
-        }
-        
-        await sellerRef.update({
-            kycStatus: 'verified',
-            verifiedAt: new Date().toISOString()
-        });
-        
-        showToast("✅ Seller approved successfully!", false);
-        addNotification(`✅ KYC approved: ${sellerData.shopName}`, 'info');
-        await sendTelegramMessage(`✅ KYC Approved: ${sellerData.shopName}`);
-        
-        const snapshot = await db.collection("sellers").get();
-        sellers = [];
-        snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
-        
-        updateAdminMenuBadges();
-        updateAdminPendingBadge();
-        loadPendingSellers();
-        loadAllSellers();
-        
-    } catch (error) {
-        console.error("Approve error:", error);
-        showToast("❌ Error: " + error.message, true);
-    }
-}
-
-// ============================================================
-// REJECT SELLER - FIXED
-// ============================================================
-
-async function rejectSeller(sellerId) {
-    if (!isAdminLoggedIn) {
-        showToast("❌ Please login as admin first!", true);
-        return;
-    }
-    
-    try {
-        const sellerRef = db.collection("sellers").doc(sellerId);
-        const sellerDoc = await sellerRef.get();
-        
-        if (!sellerDoc.exists) {
-            showToast("❌ Seller not found!", true);
-            return;
-        }
-        
-        const sellerData = sellerDoc.data();
-        
-        if (sellerData.kycStatus === 'rejected') {
-            showToast("⚠️ This seller is already rejected!", true);
-            return;
-        }
-        
-        await sellerRef.update({
-            kycStatus: 'rejected',
-            rejectedAt: new Date().toISOString()
-        });
-        
-        showToast("❌ Seller rejected!", false);
-        addNotification(`❌ KYC rejected: ${sellerData.shopName}`, 'info');
-        await sendTelegramMessage(`❌ KYC Rejected: ${sellerData.shopName}`);
-        
-        const snapshot = await db.collection("sellers").get();
-        sellers = [];
-        snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
-        
-        updateAdminMenuBadges();
-        updateAdminPendingBadge();
-        loadPendingSellers();
-        loadAllSellers();
-        
-    } catch (error) {
-        console.error("Reject error:", error);
-        showToast("❌ Error: " + error.message, true);
-    }
-}
-
-// ============================================================
-// LOAD VERIFIED SELLERS
-// ============================================================
-
-function loadVerifiedSellers() {
-    const container = document.getElementById('verifiedSellersList');
-    container.style.display = 'block';
-    container.innerHTML = '<div style="padding:20px; text-align:center; color:#64748b;">⏳ Loading verified sellers...</div>';
-    
-    db.collection("sellers").where("kycStatus", "==", "verified").get().then(snapshot => {
-        if (snapshot.empty) {
-            container.innerHTML = `
-                <div style="padding:30px; text-align:center; background:#f8fafc; border-radius:12px;">
-                    <p style="font-size:18px;">✅ No verified sellers</p>
-                    <p style="color:#94a3b8; font-size:14px;">No sellers have been verified yet.</p>
-                </div>
-            `;
-            return;
-        }
-        
-        let html = `
-            <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                <strong style="font-size:16px;">✅ Verified Sellers (${snapshot.size})</strong>
-                <button onclick="loadVerifiedSellers()" style="background:#3b82f6; color:white; border:none; padding:6px 14px; border-radius:20px; font-size:12px; cursor:pointer;">🔄 Refresh</button>
-            </div>
-            <div style="display:flex; flex-direction:column; gap:8px;">`;
-        
-        snapshot.forEach(doc => {
-            const data = doc.data();
+                    `;
+                });
+                if (sellerOrders.length > 20) {
+                    html += `<p style="text-align:center; font-size:11px; color:#94a3b8; margin:4px 0;">+ ${sellerOrders.length - 20} more orders</p>`;
+                }
+            }
             
-            html += `
-                <div style="background:white; border-radius:12px; padding:14px; border-left:4px solid #10b981; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-                        <div style="flex:1; min-width:150px;">
-                            <div style="font-weight:600; font-size:15px;">🏪 ${data.shopName || 'Unknown'}</div>
-                            <div style="font-size:13px; color:#64748b;">👤 ${data.fullName || 'N/A'}</div>
-                            <div style="font-size:13px; color:#64748b;">📧 ${data.email || 'N/A'}</div>
-                            <div style="font-size:12px; color:#94a3b8;">💰 Earnings: ${getCurrencySymbol()}${convertPrice(data.earnings || 0)}</div>
-                            <div style="font-size:11px; color:#94a3b8;">📅 Verified: ${data.verifiedAt ? new Date(data.verifiedAt).toLocaleDateString() : 'N/A'}</div>
-                        </div>
-                        <div>
-                            <span style="font-size:11px; padding:2px 10px; border-radius:10px; background:#d1fae5; color:#065f46;">✅ Verified</span>
-                        </div>
-                    </div>
-                </div>
-            `;
+            html += '</div></div>';
+            container.innerHTML += html;
         });
-        
-        html += '</div>';
-        container.innerHTML = html;
-        
     }).catch(error => {
-        console.error("Load verified sellers error:", error);
-        container.innerHTML = `
-            <div style="padding:20px; text-align:center; color:#dc2626; background:#fef2f2; border-radius:12px;">
-                ❌ Error loading verified sellers: ${error.message}
+        console.error("Load seller details error:", error);
+        container.innerHTML += `
+            <div style="margin-top:15px; padding:20px; background:#fef2f2; border-radius:12px; text-align:center;">
+                <p style="color:#dc2626;">❌ Error loading seller: ${error.message}</p>
             </div>
         `;
     });
-}
-
-// ============================================================
-// LOAD WITHDRAWALS LIST (PENDING)
-// ============================================================
-
-function loadWithdrawalsList() {
-    const container = document.getElementById('pendingWithdrawals');
-    container.style.display = 'block';
-    
-    const pending = pendingWithdrawals.filter(w => w.status === 'Pending' || w.status === 'pending');
-    
-    if (pending.length === 0) {
-        container.innerHTML = `
-            <div style="padding:30px; text-align:center; background:#f8fafc; border-radius:12px;">
-                <p style="font-size:18px;">✅ No pending withdrawals</p>
-                <p style="color:#94a3b8; font-size:14px;">All withdrawal requests have been processed.</p>
-            </div>
-        `;
-        return;
-    }
-    
-    let html = `
-        <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <strong style="font-size:16px;">💰 Pending Withdrawals (${pending.length})</strong>
-            <button onclick="loadWithdrawalsList()" style="background:#3b82f6; color:white; border:none; padding:6px 14px; border-radius:20px; font-size:12px; cursor:pointer;">🔄 Refresh</button>
-        </div>
-        <div style="display:flex; flex-direction:column; gap:8px;">`;
-    
-    pending.forEach(w => {
-        html += `
-            <div style="background:white; border-radius:12px; padding:14px; border-left:4px solid #f59e0b; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-                    <div>
-                        <div style="font-weight:600; font-size:15px;">💰 ${getCurrencySymbol()}${convertPrice(w.amount || 0)}</div>
-                        <div style="font-size:13px; color:#64748b;">🏪 ${w.sellerName || 'Unknown'}</div>
-                        <div style="font-size:12px; color:#94a3b8;">📅 ${w.date || 'N/A'}</div>
-                    </div>
-                    <div>
-                        <button onclick="approveWithdrawal('${w.id}')" style="background:#10b981; color:white; border:none; padding:6px 16px; border-radius:20px; font-size:12px; cursor:pointer;">✅ Approve</button>
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-    
-    html += '</div>';
-    container.innerHTML = html;
 }
 
 // ============================================================
@@ -1941,146 +2118,24 @@ document.getElementById('adminBackBtn')?.addEventListener('click', function() {
     document.getElementById('verifiedSellersList').style.display = 'none';
     document.getElementById('pendingWithdrawals').style.display = 'none';
     document.getElementById('adminOrdersList').style.display = 'none';
+    document.getElementById('payoutHistoryList').style.display = 'none';
     showToast("🔙 Back to dashboard", false);
 });
 
 // ============================================================
-// UPDATE ADMIN BADGES
+// SHOW MY ORDERS PAGE - FIXED
 // ============================================================
 
-function updateAdminPendingBadge() {
-    const pendingSellers = sellers.filter(s => s.kycStatus === 'pending');
-    const count = pendingSellers.length;
-    const badge = document.getElementById('adminPendingBadge');
-    if (badge) {
-        if (count > 0) {
-            badge.style.display = 'inline-block';
-            badge.innerText = count;
-        } else {
-            badge.style.display = 'none';
-        }
-    }
-}
-
-function updateAdminMenuBadges() {
-    const pending = sellers.filter(s => s.kycStatus === 'pending').length;
-    const pendingBadge = document.getElementById('pendingCountBadge');
-    if (pendingBadge) pendingBadge.textContent = pending;
-    
-    const verified = sellers.filter(s => s.kycStatus === 'verified').length;
-    const verifiedBadge = document.getElementById('verifiedCountBadge');
-    if (verifiedBadge) verifiedBadge.textContent = verified;
-    
-    const withdrawals = pendingWithdrawals.filter(w => w.status === 'Pending' || w.status === 'pending').length;
-    const withdrawalBadge = document.getElementById('withdrawalCountBadge');
-    if (withdrawalBadge) withdrawalBadge.textContent = withdrawals;
-}
-
-// ============================================================
-// ADMIN LOGIN - COMPLETE FIXED
-// ============================================================
-
-document.getElementById('adminLoginBtn')?.addEventListener('click', function() {
-    if (isAdminLoggedIn) {
-        showToast("✅ Already logged in!", false);
-        document.getElementById('adminLoginBox').style.display = 'none';
-        document.getElementById('adminContent').style.display = 'block';
+function showMyOrdersPage() {
+    const user = auth.currentUser;
+    if (!user) {
+        showToast("Please login to view your orders", true);
+        document.getElementById('loginModal').style.display = 'block';
         return;
     }
-    
-    const enteredKey = document.getElementById('adminKey').value;
-    
-    if (enteredKey === 'Haque0786@') {
-        isAdminLoggedIn = true;
-        document.getElementById('adminLoginBox').style.display = 'none';
-        document.getElementById('adminContent').style.display = 'block';
-        loadAdminData();
-        showToast("✅ Admin logged in successfully!", false);
-        document.getElementById('adminKey').value = '';
-    } else {
-        showToast("❌ Wrong admin key! Please enter: Haque0786@", true);
-        document.getElementById('adminKey').value = '';
-        document.getElementById('adminKey').focus();
-    }
-});
-
-// ============================================================
-// LOAD ADMIN DATA
-// ============================================================
-
-function loadAdminData() {
-    if (!isAdminLoggedIn) {
-        document.getElementById('adminLoginBox').style.display = 'block';
-        document.getElementById('adminContent').style.display = 'none';
-        return;
-    }
-    
-    try {
-        const revenueDisplay = document.getElementById('revenueDisplay');
-        if (revenueDisplay) {
-            revenueDisplay.innerHTML = getCurrencySymbol() + convertPrice(platformEarnings || 0);
-        }
-        
-        updateAdminMenuBadges();
-        updateAdminPendingBadge();
-        
-        document.getElementById('pendingKycList').style.display = 'none';
-        document.getElementById('verifiedSellersList').style.display = 'none';
-        document.getElementById('pendingWithdrawals').style.display = 'none';
-        document.getElementById('adminOrdersList').style.display = 'none';
-        
-        loadPendingSellers();
-        
-        console.log('✅ Admin data loaded successfully');
-    } catch (error) {
-        console.error('Load admin data error:', error);
-        showToast('⚠️ Error loading admin data: ' + error.message, true);
-    }
+    renderBuyerOrders();
+    showSection('profile');
 }
-
-// ============================================================
-// ADMIN MENU TOGGLE
-// ============================================================
-
-document.getElementById('adminMenuBtn')?.addEventListener('click', function(e) {
-    e.stopPropagation();
-    const menu = document.getElementById('adminDropdownMenu');
-    if (menu) {
-        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-    }
-});
-
-document.addEventListener('click', function(e) {
-    const menu = document.getElementById('adminDropdownMenu');
-    if (menu && !e.target.closest('#adminMenuBtn') && !e.target.closest('#adminDropdownMenu')) {
-        menu.style.display = 'none';
-    }
-});
-
-// ============================================================
-// ADMIN MENU ITEMS CLICK - CLEANED (No extra KYC options)
-// ============================================================
-
-document.querySelectorAll('.admin-menu-item[data-section]').forEach(item => {
-    item.addEventListener('click', function() {
-        const section = this.dataset.section;
-        document.getElementById('pendingKycList').style.display = 'none';
-        document.getElementById('verifiedSellersList').style.display = 'none';
-        document.getElementById('pendingWithdrawals').style.display = 'none';
-        document.getElementById('adminOrdersList').style.display = 'none';
-        
-        const targetId = section === 'pending' ? 'pendingKycList' : 
-                         section === 'verified' ? 'verifiedSellersList' : 'pendingWithdrawals';
-        const target = document.getElementById(targetId);
-        if (target) {
-            target.style.display = 'block';
-            if (section === 'pending') loadPendingSellers();
-            else if (section === 'verified') loadVerifiedSellers();
-            else if (section === 'withdrawals') loadWithdrawalsList();
-        }
-        document.getElementById('adminDropdownMenu').style.display = 'none';
-    });
-});
 
 // ============================================================
 // AUTHENTICATION
@@ -2486,8 +2541,6 @@ function confirmOrderReceived(orderId) {
                            `✅ Status: AVAILABLE FOR WITHDRAWAL NOW!`);
         
         addNotification(`💰 ${getCurrencySymbol()}${convertPrice(sellerPayout)} INSTANTLY released to ${seller.shopName}`, 'payment');
-        
-        logPayoutToHistory(order.trackingNumber, order.sellerId, sellerPayout, 'released');
         
         renderBuyerOrders();
         renderSellerDashboard();
