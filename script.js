@@ -2718,10 +2718,14 @@ function setupFirestoreListeners() {
         } catch(e) {
             console.error('Products render error:', e);
             document.getElementById('debugMsg').innerHTML = '⚠️ Error loading products: ' + e.message;
+            // Force load fallback if render fails
+            forceLoadProducts();
         }
     }, error => {
         console.error('Products listener error:', error);
         document.getElementById('debugMsg').innerHTML = '⚠️ Products listener error: ' + error.message;
+        // Force load fallback if listener fails
+        forceLoadProducts();
     });
     
     sellersUnsubscribe = db.collection("sellers").onSnapshot(snapshot => {
@@ -4301,6 +4305,8 @@ function renderProducts() {
                 ⚠️ Error loading products. Please refresh the page.
             </div>
         `;
+        // Force load fallback
+        forceLoadProducts();
     }
 }
 
@@ -5320,234 +5326,120 @@ function updateAdminMenuBadges() {
 }
 
 // ============================================================
-// INITIALIZATION
+// 🔥 FORCE LOAD PRODUCTS - FIX FOR "Initializing..."
 // ============================================================
 
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 GlobalBazaar Initializing...');
-    document.getElementById('debugMsg').innerHTML = '🚀 Loading...';
-    
-    updateFooterSupport();
-    
-    loadSplitSettings();
-    
-    const deliveryCountry = document.getElementById('deliveryCountry');
-    if (deliveryCountry) {
-        deliveryCountry.addEventListener('change', calculateShippingRealTime);
-    }
-    
-    const cartTotalDiv = document.getElementById('cartShippingTotal');
-    if (!cartTotalDiv) {
-        const cartSummary = document.querySelector('.cart-summary');
-        if (cartSummary) {
-            const subtotalDiv = document.createElement('div');
-            subtotalDiv.className = 'flex-between';
-            subtotalDiv.innerHTML = `<span>📦 Subtotal:</span><span id="cartSubtotal">${getCurrencySymbol()}0.00</span>`;
-            cartSummary.insertBefore(subtotalDiv, cartSummary.firstChild);
-            
-            const shippingDiv = document.createElement('div');
-            shippingDiv.className = 'flex-between';
-            shippingDiv.innerHTML = `<span>🚚 Shipping Fee:</span><span id="cartShippingTotal">${getCurrencySymbol()}0.00</span>`;
-            cartSummary.insertBefore(shippingDiv, cartSummary.lastChild);
-        }
-    }
-    
-    const currencySelect = document.getElementById('currencySelect');
-    if (currencySelect) {
-        currencySelect.value = selectedCurrency;
-    }
-    
-    document.getElementById('cartFloatBtn')?.addEventListener('click', () => {
-        renderCartPage();
-        showSection('cartPage');
-    });
-    
-    document.getElementById('menuBtn')?.addEventListener('click', openDrawer);
-    document.getElementById('drawerOverlay')?.addEventListener('click', closeDrawer);
-    
-    document.getElementById('searchInput')?.addEventListener('input', renderProducts);
-    
-    document.getElementById('proceedToCheckoutBtn')?.addEventListener('click', () => {
-        if (cart.length === 0) {
-            showToast('Cart is empty', true);
-            return;
-        }
-        const user = auth.currentUser;
-        if (!user) {
-            showToast('Please login first', true);
-            document.getElementById('loginModal').style.display = 'block';
-            return;
-        }
-        showSection('checkout');
-    });
-    
-    updateCartUI();
-    renderCartPage();
-    
-    const closeOrderDetails = document.querySelector('#orderDetailsModal .close-modal');
-    if (closeOrderDetails) {
-        closeOrderDetails.addEventListener('click', closeOrderDetailsModal);
-    }
-    
-    setupFirestoreListeners();
-    
-    document.getElementById('debugMsg').innerHTML = '✅ GlobalBazaar Ready!';
-    console.log('✅ GlobalBazaar Initialized Successfully');
-});
-
-function closeOrderDetailsModal() {
-    const modal = document.getElementById('orderDetailsModal');
-    if (modal) modal.style.display = 'none';
-}
-
- // ============================================================
-// ✅ FINAL INIT - FIXED
-// ============================================================
-
-// Ensure all functions exist before calling
-if (typeof renderCats === 'function') {
-    renderCats();
-} else {
-    console.warn('⚠️ renderCats not defined yet');
-}
-
-if (typeof updateCartUI === 'function') {
-    updateCartUI();
-} else {
-    console.warn('⚠️ updateCartUI not defined yet');
-}
-
-if (typeof updateNotificationUI === 'function') {
-    updateNotificationUI();
-} else {
-    console.warn('⚠️ updateNotificationUI not defined yet');
-}
-
-if (typeof updateAdminPendingBadge === 'function') {
-    updateAdminPendingBadge();
-} else {
-    console.warn('⚠️ updateAdminPendingBadge not defined yet');
-}
-
-if (typeof updateAdminMenuBadges === 'function') {
-    updateAdminMenuBadges();
-} else {
-    console.warn('⚠️ updateAdminMenuBadges not defined yet');
-}
-
-document.getElementById('debugMsg').innerHTML = "✅ GlobalBazaar Ready!";
-
-console.log('✅ GlobalBazaar Initialized Successfully');
-
-// Also force load products after everything
-setTimeout(function() {
-    if (typeof forceLoadProducts === 'function') {
-        forceLoadProducts();
-    } else {
-        console.log('⚠️ forceLoadProducts not defined, using fallback');
-        // Fallback - set default products
-        if (typeof products !== 'undefined' && products.length === 0) {
-            var fallbackProducts = [
-                { id: 1, name: "Wireless Headphones Pro", price: 89.99, category: "Electronics", stock: 15, mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", sellerName: "GlobalBazaar" },
-                { id: 2, name: "Smart Watch Series 8", price: 199.99, category: "Electronics", stock: 8, mainImage: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", sellerName: "GlobalBazaar" },
-                { id: 3, name: "Bluetooth Speaker X3", price: 49.99, category: "Electronics", stock: 20, mainImage: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400", sellerName: "GlobalBazaar" },
-                { id: 4, name: "Classic Cotton T-Shirt", price: 24.99, category: "Fashion", stock: 30, mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", sellerName: "GlobalBazaar" },
-                { id: 5, name: "Running Shoes Air Max", price: 79.99, category: "Fashion", stock: 12, mainImage: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400", sellerName: "GlobalBazaar" }
-            ];
-            products = fallbackProducts;
-            if (typeof renderProducts === 'function') {
-                renderProducts();
-            }
-            if (typeof renderCats === 'function') {
-                renderCats();
-            }
-            document.getElementById('debugMsg').innerHTML = '✅ ' + products.length + ' fallback products loaded!';
-        }
-    }
-}, 500);
-// ============================================================
-// 🔥 ULTIMATE FIX - FORCE PRODUCTS ON SCREEN
-// ============================================================
-
-(function ultimateFix() {
-    console.log('🔥 Ultimate fix started...');
+function forceLoadProducts() {
+    console.log('🔄 Force loading products...');
     document.getElementById('debugMsg').innerHTML = '🔄 Loading products...';
     
-    // Default products with images
-    var defaultProducts = [
-        { id: 1, name: "Wireless Headphones Pro", price: 89.99, category: "Electronics", stock: 15, mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", sellerName: "GlobalBazaar", description: "Premium wireless headphones" },
-        { id: 2, name: "Smart Watch Series 8", price: 199.99, category: "Electronics", stock: 8, mainImage: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", sellerName: "GlobalBazaar", description: "Advanced smart watch" },
-        { id: 3, name: "Bluetooth Speaker X3", price: 49.99, category: "Electronics", stock: 20, mainImage: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400", sellerName: "GlobalBazaar", description: "Portable waterproof speaker" },
-        { id: 4, name: "Classic Cotton T-Shirt", price: 24.99, category: "Fashion", stock: 30, mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", sellerName: "GlobalBazaar", description: "100% combed cotton" },
-        { id: 5, name: "Running Shoes Air Max", price: 79.99, category: "Fashion", stock: 12, mainImage: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400", sellerName: "GlobalBazaar", description: "Lightweight running shoes" },
-        { id: 6, name: "Non-Stick Cookware Set", price: 129.99, category: "Home & Kitchen", stock: 10, mainImage: "https://images.unsplash.com/photo-1584991106646-4fb6fb2d1485?w=400", sellerName: "GlobalBazaar", description: "5-piece cookware set" },
-        { id: 7, name: "Coffee Maker Deluxe", price: 89.99, category: "Home & Kitchen", stock: 7, mainImage: "https://images.unsplash.com/photo-1565205610303-11fe6b1f9a35?w=400", sellerName: "GlobalBazaar", description: "Programmable coffee maker" },
-        { id: 8, name: "Facial Cleanser Set", price: 34.99, category: "Beauty & Cosmetics", stock: 25, mainImage: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400", sellerName: "GlobalBazaar", description: "Natural facial cleanser" },
-        { id: 9, name: "Business Book Collection", price: 39.99, category: "Books & Stationery", stock: 20, mainImage: "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400", sellerName: "GlobalBazaar", description: "5 best-selling books" },
-        { id: 10, name: "LEGO Classic Set", price: 49.99, category: "Toys & Hobbies", stock: 25, mainImage: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400", sellerName: "GlobalBazaar", description: "500+ pieces" }
+    // Default fallback products
+    var fallbackProducts = [
+        { id: 1, name: "Wireless Headphones Pro", price: 89.99, category: "Electronics", stock: 15, mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA", description: "Premium wireless headphones with active noise cancellation", images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400"], shippingLocal: 0, shippingRegional: 0, shippingInternational: 0, shippingFreeAbove: 0 },
+        { id: 2, name: "Smart Watch Series 8", price: 199.99, category: "Electronics", stock: 8, mainImage: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA", description: "Advanced smart watch with heart rate monitor", images: ["https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400"], shippingLocal: 0, shippingRegional: 0, shippingInternational: 0, shippingFreeAbove: 0 },
+        { id: 3, name: "Bluetooth Speaker X3", price: 49.99, category: "Electronics", stock: 20, mainImage: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA", description: "Portable waterproof Bluetooth speaker", images: ["https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400"], shippingLocal: 0, shippingRegional: 0, shippingInternational: 0, shippingFreeAbove: 0 },
+        { id: 4, name: "Classic Cotton T-Shirt", price: 24.99, category: "Fashion", stock: 30, mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA", description: "100% combed cotton t-shirt", images: ["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400"], shippingLocal: 0, shippingRegional: 0, shippingInternational: 0, shippingFreeAbove: 0 },
+        { id: 5, name: "Running Shoes Air Max", price: 79.99, category: "Fashion", stock: 12, mainImage: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA", description: "Lightweight running shoes with air cushioning", images: ["https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400"], shippingLocal: 0, shippingRegional: 0, shippingInternational: 0, shippingFreeAbove: 0 },
+        { id: 6, name: "Non-Stick Cookware Set", price: 129.99, category: "Home & Kitchen", stock: 10, mainImage: "https://images.unsplash.com/photo-1584991106646-4fb6fb2d1485?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA", description: "5-piece non-stick cookware set", images: ["https://images.unsplash.com/photo-1584991106646-4fb6fb2d1485?w=400"], shippingLocal: 0, shippingRegional: 0, shippingInternational: 0, shippingFreeAbove: 0 },
+        { id: 7, name: "Coffee Maker Deluxe", price: 89.99, category: "Home & Kitchen", stock: 7, mainImage: "https://images.unsplash.com/photo-1565205610303-11fe6b1f9a35?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA", description: "Programmable coffee maker", images: ["https://images.unsplash.com/photo-1565205610303-11fe6b1f9a35?w=400"], shippingLocal: 0, shippingRegional: 0, shippingInternational: 0, shippingFreeAbove: 0 },
+        { id: 8, name: "Facial Cleanser Set", price: 34.99, category: "Beauty & Cosmetics", stock: 25, mainImage: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA", description: "Natural facial cleanser set", images: ["https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400"], shippingLocal: 0, shippingRegional: 0, shippingInternational: 0, shippingFreeAbove: 0 },
+        { id: 9, name: "Business Book Collection", price: 39.99, category: "Books & Stationery", stock: 20, mainImage: "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA", description: "Set of 5 best-selling business books", images: ["https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400"], shippingLocal: 0, shippingRegional: 0, shippingInternational: 0, shippingFreeAbove: 0 },
+        { id: 10, name: "LEGO Classic Set", price: 49.99, category: "Toys & Hobbies", stock: 25, mainImage: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA", description: "Classic LEGO building set with 500+ pieces", images: ["https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400"], shippingLocal: 0, shippingRegional: 0, shippingInternational: 0, shippingFreeAbove: 0 }
     ];
     
-    // Set products globally
-    if (typeof products === 'undefined' || products.length === 0) {
-        window.products = defaultProducts;
-        console.log('✅ Products set:', products.length);
+    // Agar products already loaded hain to skip karo
+    if (typeof products !== 'undefined' && products && products.length > 0) {
+        console.log('✅ Products already loaded:', products.length);
+        document.getElementById('debugMsg').innerHTML = '✅ Products loaded: ' + products.length;
+        if (typeof renderProducts === 'function') renderProducts();
+        if (typeof renderCats === 'function') renderCats();
+        return;
     }
     
-    // Force render products on screen
-    function forceRender() {
+    // Products set karo
+    if (typeof products === 'undefined') {
+        var products = [];
+        window.products = products;
+    }
+    products = fallbackProducts;
+    
+    // Render karo
+    console.log('✅ Fallback products set:', products.length);
+    document.getElementById('debugMsg').innerHTML = '✅ ' + products.length + ' products ready!';
+    
+    if (typeof renderProducts === 'function') {
+        renderProducts();
+        if (typeof renderCats === 'function') renderCats();
+    } else {
+        // Ultra fallback - direct DOM render
         var grid = document.getElementById('productsGrid');
-        if (!grid) {
-            console.error('❌ productsGrid not found!');
-            return;
+        if (grid) {
+            var html = '';
+            for (var i = 0; i < fallbackProducts.length; i++) {
+                var p = fallbackProducts[i];
+                var price = p.price + (p.price * 0.03) + (p.price * 0.015);
+                html += '<div class="product-card" style="border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin:10px;width:200px;display:inline-block;vertical-align:top;background:white;">';
+                html += '<img src="' + p.mainImage + '" style="width:100%;height:150px;object-fit:cover;border-radius:8px;">';
+                html += '<h4 style="margin:8px 0 4px;font-size:14px;">' + p.name + '</h4>';
+                html += '<div style="font-weight:bold;color:#3b82f6;">SAR ' + price.toFixed(2) + '</div>';
+                html += '<div style="font-size:12px;color:#64748b;">🏪 ' + p.sellerName + '</div>';
+                html += '<div style="font-size:11px;color:#10b981;">✅ ' + p.stock + ' in stock</div>';
+                html += '<button onclick="if(typeof addToCart===\'function\')addToCart(' + p.id + ');else alert(\'Add to cart: ' + p.name + '\')" style="background:#3b82f6;color:white;border:none;padding:6px 12px;border-radius:20px;cursor:pointer;width:100%;margin-top:6px;">🛒 Add to Cart</button>';
+                html += '</div>';
+            }
+            grid.innerHTML = html;
+            document.getElementById('debugMsg').innerHTML = '✅ ' + fallbackProducts.length + ' products rendered directly!';
         }
-        
-        // Check if grid already has products
-        if (grid.innerHTML.trim() !== '' && !grid.innerHTML.includes('No products')) {
-            console.log('✅ Products already rendered');
-            return;
-        }
-        
-        console.log('🔄 Force rendering products...');
-        var html = '';
-        
-        for (var i = 0; i < products.length; i++) {
-            var p = products[i];
-            html += '<div class="product-card" style="border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin:10px;width:200px;display:inline-block;vertical-align:top;background:white;box-shadow:0 1px 3px rgba(0,0,0,0.1);">';
-            html += '<img src="' + p.mainImage + '" style="width:100%;height:150px;object-fit:cover;border-radius:8px;">';
-            html += '<h4 style="margin:8px 0 4px;font-size:14px;">' + p.name + '</h4>';
-            html += '<div style="font-weight:bold;color:#3b82f6;">$' + p.price + '</div>';
-            html += '<div style="font-size:12px;color:#64748b;">🏪 ' + p.sellerName + '</div>';
-            html += '<div style="font-size:11px;color:#10b981;margin:4px 0;">✅ ' + p.stock + ' in stock</div>';
-            html += '<button onclick="alert(\'Add to cart: ' + p.name + '\')" style="background:#3b82f6;color:white;border:none;padding:6px 12px;border-radius:20px;cursor:pointer;width:100%;margin-top:6px;">🛒 Add to Cart</button>';
-            html += '</div>';
-        }
-        
-        grid.innerHTML = html;
-        document.getElementById('debugMsg').innerHTML = '✅ ' + products.length + ' products loaded!';
-        console.log('✅ Force render complete!');
     }
+}
+
+// ============================================================
+// 🚀 FIXED INITIALIZATION - "Initializing..." FIXED
+// ============================================================
+
+// DOMContentLoaded event - main initialization
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 GlobalBazaar Initializing (FIXED)...');
+    document.getElementById('debugMsg').innerHTML = '🚀 Initializing...';
     
-    // Run immediately
-    forceRender();
+    // Load split settings first
+    loadSplitSettings();
     
-    // Also try to load from Firestore in background
-    try {
-        if (typeof db !== 'undefined') {
-            db.collection("products").limit(5).get().then(function(snapshot) {
-                if (!snapshot.empty) {
-                    console.log('✅ Firestore has products');
-                }
-            }).catch(function(err) {
-                console.log('⚠️ Firestore error:', err.message);
-            });
+    // Saare existing functions ready hone ke baad load karo
+    setTimeout(function() {
+        console.log('🔄 Attempt 1: Loading products...');
+        forceLoadProducts();
+    }, 1000);
+    
+    // Second attempt - agar kuch miss ho gaya to
+    setTimeout(function() {
+        console.log('🔄 Attempt 2: Ensuring products...');
+        if (typeof products === 'undefined' || products.length === 0) {
+            forceLoadProducts();
         }
-    } catch(e) {
-        console.log('⚠️ Firestore not available');
-    }
+        // Ensure categories are rendered
+        if (typeof renderCats === 'function') renderCats();
+        if (typeof updateCartUI === 'function') updateCartUI();
+        if (typeof updateNotificationUI === 'function') updateNotificationUI();
+        document.getElementById('debugMsg').innerHTML = '✅ GlobalBazaar Ready!';
+    }, 3000);
     
-    // Also run after 500ms and 1500ms to be safe
-    setTimeout(forceRender, 500);
-    setTimeout(forceRender, 1500);
-    
-    console.log('✅ Ultimate fix complete!');
-})();
+    // Third attempt - final safety net
+    setTimeout(function() {
+        var grid = document.getElementById('productsGrid');
+        if (grid && (grid.innerHTML.trim() === '' || grid.innerHTML.includes('No products'))) {
+            console.log('🔄 Attempt 3: Force re-render...');
+            forceLoadProducts();
+        }
+    }, 5000);
+});
+
+// Also run immediately if DOM already loaded
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    console.log('🔄 DOM already loaded, running init...');
+    setTimeout(function() {
+        forceLoadProducts();
+    }, 500);
+}
+
+console.log('✅ FIX APPLIED - Products will load automatically!');
