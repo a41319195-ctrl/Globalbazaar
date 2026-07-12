@@ -1,4 +1,8 @@
 // ============================================================
+// GLOBAL BAZAAR - COMPLETE FIXED JAVASCRIPT
+// ============================================================
+
+// ============================================================
 // GLOBAL ERROR HANDLING
 // ============================================================
 window.onerror = function(message, source, lineno, colno, error) {
@@ -439,6 +443,7 @@ let verificationCheckInterval = null;
 let currentCategory = "All";
 let productsUnsubscribe = null;
 let sellersUnsubscribe = null;
+let currentProduct = null;
 
 // ============================================================
 // TELEGRAM NOTIFICATIONS
@@ -3966,10 +3971,26 @@ document.getElementById('updateProductBtn')?.addEventListener('click', async fun
     }
 });
 
-function renderBuyerWishlist(){ let w = products.filter(p => wishlist.includes(p.id)); document.getElementById('buyerWishlistList').innerHTML = w.map(p => `<div class="order-card"><strong>${p.name}</strong><br>Price: ${getCurrencySymbol()}${convertPrice(p.price)}<br><button class="removeWishlistBtn" data-id="${p.id}" style="background:#dc2626;">Remove</button></div>`).join(''); document.querySelectorAll('.removeWishlistBtn').forEach(btn => btn.addEventListener('click', () => { wishlist = wishlist.filter(id => id != btn.dataset.id); saveAllLocal(); renderProducts(); renderBuyerWishlist(); showToast("Removed", false); })); }
+function renderBuyerWishlist(){ 
+    let w = products.filter(p => wishlist.includes(p.id)); 
+    document.getElementById('buyerWishlistList').innerHTML = w.map(p => `<div class="order-card"><strong>${p.name}</strong><br>Price: ${getCurrencySymbol()}${convertPrice(p.price)}<br><button class="removeWishlistBtn" data-id="${p.id}" style="background:#dc2626;">Remove</button></div>`).join(''); 
+    document.querySelectorAll('.removeWishlistBtn').forEach(btn => btn.addEventListener('click', () => { 
+        wishlist = wishlist.filter(id => id != btn.dataset.id); 
+        saveAllLocal(); 
+        renderProducts(); 
+        renderBuyerWishlist(); 
+        showToast("Removed", false); 
+    })); 
+}
 
 document.getElementById('refreshAdminBtn')?.addEventListener('click', loadAdminData);
-window.viewSellerDocument = function(docImage, docType, sellerName){ if(docImage && docImage.startsWith('http')){ window.open(docImage, '_blank'); } else { alert(`No image available for ${sellerName}`); } };
+window.viewSellerDocument = function(docImage, docType, sellerName){ 
+    if(docImage && docImage.startsWith('http')){ 
+        window.open(docImage, '_blank'); 
+    } else { 
+        alert(`No image available for ${sellerName}`); 
+    } 
+};
 
 function validateKYCFileType(file) {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
@@ -4084,7 +4105,11 @@ function showTerms() {
     `;
 }
 
-function showSection(section){ document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.getElementById(section+"Section").classList.add('active'); }
+function showSection(section){ 
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); 
+    const target = document.getElementById(section + "Section");
+    if (target) target.classList.add('active');
+}
 
 document.getElementById('drawerBuyer')?.addEventListener('click', () => { 
     showMyOrdersPage(); 
@@ -4144,9 +4169,15 @@ document.getElementById('modalAddWishBtn')?.addEventListener('click', () => {
     document.getElementById('productModal').style.display='none'; 
 });
 
-function openDrawer(){ document.getElementById('drawer').classList.add('open'); document.getElementById('drawerOverlay').style.display='block'; }
+function openDrawer(){ 
+    document.getElementById('drawer').classList.add('open'); 
+    document.getElementById('drawerOverlay').style.display='block'; 
+}
 
-function closeDrawer(){ document.getElementById('drawer').classList.remove('open'); document.getElementById('drawerOverlay').style.display='none'; }
+function closeDrawer(){ 
+    document.getElementById('drawer').classList.remove('open'); 
+    document.getElementById('drawerOverlay').style.display='none'; 
+}
 
 document.getElementById('menuBtn').onclick = openDrawer;
 document.getElementById('drawerOverlay').onclick = closeDrawer;
@@ -4179,10 +4210,17 @@ function saveAllLocal(){
 
 function showToast(msg, isError){ 
     let t = document.getElementById('toast'); 
+    if (!t) {
+        t = document.createElement('div');
+        t.id = 'toast';
+        t.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:12px;color:white;font-weight:600;z-index:999999;display:none;max-width:90%;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.2);';
+        document.body.appendChild(t);
+    }
     t.innerText = msg; 
     t.style.backgroundColor = isError ? '#dc2626' : '#10b981'; 
     t.style.display = 'block'; 
-    setTimeout(()=> t.style.display='none', 3000); 
+    clearTimeout(t._timeout);
+    t._timeout = setTimeout(()=> t.style.display='none', 3000); 
 }
 
 function closeTermsModal(){ document.getElementById('termsModal').style.display='none'; }
@@ -4290,7 +4328,6 @@ function renderProducts() {
             card.addEventListener('click', () => openProduct(card.dataset.id));
         });
         
-        renderBuyerOrders();
         renderBuyerWishlist();
         
     } catch (error) {
@@ -4387,8 +4424,6 @@ function changeProductImage(pid, url){
     }
 }
 
-let currentProduct = null, currentRatingHandler = { currentRating: 0 };
-
 function openProduct(id) {
     try {
         let p = products.find(x => x.id == id);
@@ -4484,7 +4519,10 @@ function addToCart(id){
     if (currentBuyer) saveUserCart(currentBuyer.uid);
 }
 
-function updateCartUI(){ document.getElementById('cartCountBadge').innerText = cart.reduce((a,b)=>a+b.qty,0); }
+function updateCartUI(){ 
+    const badge = document.getElementById('cartCountBadge');
+    if (badge) badge.innerText = cart.reduce((a,b)=>a+b.qty,0); 
+}
 
 function toggleWish(id){
     if(wishlist.includes(id)) wishlist = wishlist.filter(i => i != id);
@@ -4573,8 +4611,6 @@ function renderCartPage() {
         document.getElementById('cartItemsList').innerHTML = '<p style="text-align:center;padding:40px;color:#dc2626;">Error loading cart</p>';
     }
 }
-
-let currentDelivery = null;
 
 // ============================================================
 // CHECKOUT
@@ -4665,7 +4701,23 @@ document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async f
     }, 500);
 });
 
-function loadSavedCards(){ let userCards = savedCards.filter(c => c.userEmail === "user.email"); if(userCards.length > 0){ document.getElementById('savedCardsSection').style.display = 'block'; document.getElementById('savedCardsList').innerHTML = userCards.map((card,idx) => `<div class="flex-between"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}">Use</button></div>`).join(''); document.querySelectorAll('.useSavedCardBtn').forEach(btn => btn.addEventListener('click', () => { let card = userCards[parseInt(btn.dataset.idx)]; document.getElementById('cardNumber').value = card.cardNumber; document.getElementById('cardHolderName').value = card.cardHolderName; document.getElementById('expiryDate').value = card.expiryDate; document.getElementById('cvv').value = ''; showToast("Card loaded", false); })); } }
+function loadSavedCards(){ 
+    let userCards = savedCards.filter(c => c.userEmail === "user.email"); 
+    if(userCards.length > 0){ 
+        document.getElementById('savedCardsSection').style.display = 'block'; 
+        document.getElementById('savedCardsList').innerHTML = userCards.map((card,idx) => `<div class="flex-between"><span>💳 ****${card.cardNumber.slice(-4)} - ${card.cardHolderName}</span><button class="useSavedCardBtn" data-idx="${idx}">Use</button></div>`).join(''); 
+        document.querySelectorAll('.useSavedCardBtn').forEach(btn => btn.addEventListener('click', () => { 
+            let card = userCards[parseInt(btn.dataset.idx)]; 
+            document.getElementById('cardNumber').value = card.cardNumber; 
+            document.getElementById('cardHolderName').value = card.cardHolderName; 
+            document.getElementById('expiryDate').value = card.expiryDate; 
+            document.getElementById('cvv').value = ''; 
+            showToast("Card loaded", false); 
+        })); 
+    } 
+}
+
+let currentDelivery = null;
 
 function calculateShippingRealTime() {
     try {
@@ -5400,6 +5452,7 @@ function closeOrderDetailsModal() {
     if (modal) modal.style.display = 'none';
 }
 
+// Call these on load
 renderCats(); 
 updateCartUI(); 
 updateNotificationUI(); 
