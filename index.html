@@ -1,6 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+// ============================================================
+// 🔥 EMERGENCY FIX - RUNS IMMEDIATELY
+// ============================================================
+(function() {
+    console.log('🚀 EMERGENCY FIX: Running...');
+    
+    // Fix drawer buttons
+    function fixDrawerButtons() {
+        var drawerBtns = {
+            'drawerBuyer': function() { 
+                closeDrawer(); 
+                var sec = document.getElementById('profileSection');
+                if (sec) sec.classList.add('active');
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                if (sec) sec.classList.add('active');
+            },
+            'drawerSeller': function() {
+                closeDrawer();
+                var sec = document.getElementById('sellerSection');
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                if (sec) sec.classList.add('active');
+                var box = document.getElementById('sellerRegisterBox');
+                if (box) box.style.display = 'block';
+                var dash = document.getElementById('sellerDashboard');
+                if (dash) dash.style.display = 'none';
+            },
+            'drawerMyShop': function() {
+                closeDrawer();
+                var modal = document.getElementById('loginModal');
+                if (modal) modal.style.display = 'block';
+            },
+            'drawerAdmin': function() {
+                closeDrawer();
+                var sec = document.getElementById('adminSection');
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                if (sec) sec.classList.add('active');
+            },
+            'drawerCartPage': function() {
+                closeDrawer();
+                var sec = document.getElementById('cartPageSection');
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                if (sec) sec.classList.add('active');
+                var list = document.getElementById('cartItemsList');
+                if (list) list.innerHTML = '<p style="text-align:center;padding:20px;">Cart is empty</p>';
+            },
+            'drawerWishlist': function() {
+                closeDrawer();
+                var sec = document.getElementById('profileSection');
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                if (sec) sec.classList.add('active');
+            },
+            'drawerSupport': function() {
+                closeDrawer();
+                var modal = document.getElementById('supportModal');
+                if (modal) modal.style.display = 'block';
+            },
+            'drawerLogout': function() {
+                closeDrawer();
+                localStorage.removeItem('gb_current_seller');
+                location.reload();
+            },
+            'drawerDarkModeToggle': function() {
+                closeDrawer();
+                document.body.classList.toggle('dark-mode');
+                localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+            }
+        };
+        
+        for (var id in drawerBtns) {
+            var el = document.getElementById(id);
+            if (el) {
+                el.onclick = function(id, fn) {
+                    return function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('🔘 Drawer button clicked:', id);
+                        fn();
+                    };
+                }(id, drawerBtns[id]);
+            }
+        }
+        console.log('✅ Drawer buttons fixed!');
+    }
+    
+    // Fix cart float button
+    function fixCartFloat() {
+        var btn = document.getElementById('cartFloatBtn');
+        if (btn) {
+            btn.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🛒 Cart float clicked');
+                var sec = document.getElementById('cartPageSection');
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                if (sec) sec.classList.add('active');
+            };
+        }
+    }
+    
+    // Run after DOM ready
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            fixDrawerButtons();
+            fixCartFloat();
+        }, 200);
+    });
+    
+    // Also run immediately
+    setTimeout(function() {
+        fixDrawerButtons();
+        fixCartFloat();
+    }, 500);
+    
+})();
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>GlobalBazaar - Auto Compress Images</title>
