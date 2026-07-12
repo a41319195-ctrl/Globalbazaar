@@ -809,6 +809,21 @@ function renderOrderHistory() {
 }
 
 // ============================================================
+// SHOW MY ORDERS PAGE - FIXED
+// ============================================================
+
+function showMyOrdersPage() {
+    const user = auth.currentUser;
+    if (!user) {
+        showToast("Please login to view your orders", true);
+        document.getElementById('loginModal').style.display = 'block';
+        return;
+    }
+    renderBuyerOrders();
+    showSection('profile');
+}
+
+// ============================================================
 // ADMIN MENU CLICK HANDLERS
 // ============================================================
 
@@ -819,11 +834,6 @@ document.getElementById('admin-buyer-list')?.addEventListener('click', function(
 
 document.getElementById('admin-seller-list')?.addEventListener('click', function() {
     loadAllSellers();
-    document.getElementById('adminDropdownMenu').style.display = 'none';
-});
-
-document.getElementById('admin-withdrawal-history')?.addEventListener('click', function() {
-    loadWithdrawalHistory();
     document.getElementById('adminDropdownMenu').style.display = 'none';
 });
 
@@ -905,7 +915,7 @@ function loadAllBuyers() {
                         <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
                             <span style="font-size:11px; padding:2px 10px; border-radius:12px; background:${isOnline ? '#d1fae5' : '#f1f5f9'}; color:${isOnline ? '#065f46' : '#64748b'};">${isOnline ? '🟢 Online' : '⚪ Offline'}</span>
                             <div style="display:flex; gap:4px; flex-wrap:wrap;">
-                                <button onclick="showBuyerOrdersByEmail('${email}')" style="background:#8b5cf6; color:white; border:none; padding:4px 10px; border-radius:12px; font-size:10px; cursor:pointer;">📦 Orders</button>
+                                <button onclick="showBuyerOrdersWithPayout('${email}')" style="background:#8b5cf6; color:white; border:none; padding:4px 10px; border-radius:12px; font-size:10px; cursor:pointer;">📦 Orders</button>
                             </div>
                         </div>
                     </div>
@@ -929,22 +939,29 @@ function loadAllBuyers() {
 }
 
 // ============================================================
-// SHOW BUYER ORDERS BY EMAIL
+// SHOW BUYER ORDERS WITH PAYOUT - REAL-TIME
 // ============================================================
 
-function showBuyerOrdersByEmail(email) {
+function showBuyerOrdersWithPayout(email) {
     if (!email) {
-        showToast("❌ No email found for this buyer", true);
+        showToast("❌ No email found", true);
         return;
     }
     
     const container = document.getElementById('pendingKycList');
     
     db.collection("orders").where("buyerEmail", "==", email).get().then(snapshot => {
-        
         const userOrders = [];
+        let totalSpent = 0;
+        let totalPayout = 0;
+        let totalAdminFees = 0;
+        
         snapshot.forEach(doc => {
-            userOrders.push({ id: doc.id, ...doc.data() });
+            const order = { id: doc.id, ...doc.data() };
+            userOrders.push(order);
+            totalSpent += order.amount || 0;
+            totalPayout += order.splitBreakdown?.finalSellerPayout || 0;
+            totalAdminFees += order.splitBreakdown?.adminCommissionDeducted || 0;
         });
         
         container.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -965,6 +982,22 @@ function showBuyerOrdersByEmail(email) {
                     <button onclick="this.closest('div[style*="margin-top:15px"]').remove()" 
                             style="background:#ef4444; color:white; border:none; padding:4px 12px; border-radius:15px; font-size:11px; cursor:pointer;">✕ Close</button>
                 </div>
+                
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px;">
+                    <div style="background:#f0fdf4; padding:10px; border-radius:8px; text-align:center; border:1px solid #bbf7d0;">
+                        <div style="font-size:10px; color:#64748b;">💰 Total Spent</div>
+                        <div style="font-size:16px; font-weight:700; color:#10b981;">${getCurrencySymbol()}${convertPrice(totalSpent)}</div>
+                    </div>
+                    <div style="background:#dbeafe; padding:10px; border-radius:8px; text-align:center; border:1px solid #93c5fd;">
+                        <div style="font-size:10px; color:#64748b;">🏪 Seller Payout</div>
+                        <div style="font-size:16px; font-weight:700; color:#1e40af;">${getCurrencySymbol()}${convertPrice(totalPayout)}</div>
+                    </div>
+                    <div style="background:#fef3c7; padding:10px; border-radius:8px; text-align:center; border:1px solid #fbbf24;">
+                        <div style="font-size:10px; color:#64748b;">🏛️ Admin Fees</div>
+                        <div style="font-size:16px; font-weight:700; color:#92400e;">${getCurrencySymbol()}${convertPrice(totalAdminFees)}</div>
+                    </div>
+                </div>
+                
                 <div style="display:flex; flex-direction:column; gap:8px; max-height:400px; overflow-y:auto;">`;
         
         userOrders.forEach(o => {
@@ -975,12 +1008,14 @@ function showBuyerOrdersByEmail(email) {
                         <strong style="font-size:14px;">🔖 ${o.trackingNumber || 'N/A'}</strong>
                         <span style="font-size:12px; padding:2px 10px; border-radius:12px; background:${statusColor}20; color:${statusColor};">${o.status || 'Unknown'}</span>
                     </div>
-                    <div style="font-size:13px; color:#475569; margin-top:4px;">${o.productName || 'Unknown'} x${o.qty || 1} - ${getCurrencySymbol()}${convertPrice(o.amount || 0)}</div>
+                    <div style="font-size:13px; color:#475569; margin-top:4px;">${o.productName || 'Unknown'} x${o.qty || 1}</div>
+                    <div style="font-size:13px; color:#475569;">💰 ${getCurrencySymbol()}${convertPrice(o.amount || 0)}</div>
                     <div style="font-size:11px; color:#94a3b8;">📅 ${o.date || 'N/A'}</div>
                     ${o.splitBreakdown ? `
                         <div style="font-size:10px; color:#64748b; margin-top:4px; padding-top:4px; border-top:1px solid #e2e8f0;">
                             💰 Seller Payout: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.finalSellerPayout || 0)}
                             ${o.splitBreakdown.isReleased ? ' ✅ Released' : ' ⏳ Pending'}
+                            | Admin: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.adminCommissionDeducted || 0)}
                         </div>
                     ` : ''}
                 </div>
@@ -1042,12 +1077,12 @@ function loadAllSellers() {
                         <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
                             <span style="font-size:12px; padding:2px 12px; border-radius:12px; background:${statusColor}20; color:${statusColor};">${statusText}</span>
                             <div style="display:flex; gap:4px; flex-wrap:wrap;">
-                                <button onclick="showSellerDetails('${sellerId}')" style="background:#8b5cf6; color:white; border:none; padding:4px 10px; border-radius:12px; font-size:10px; cursor:pointer;">👁️ View</button>
+                                <button onclick="showSellerDetailsWithPayout('${sellerId}')" style="background:#8b5cf6; color:white; border:none; padding:4px 10px; border-radius:12px; font-size:10px; cursor:pointer;">👁️ View</button>
                                 ${data.kycStatus === 'pending' ? `
                                     <button onclick="forceApproveSeller('${sellerId}')" style="background:#10b981; color:white; border:none; padding:4px 10px; border-radius:12px; font-size:10px; cursor:pointer;">✅ Force Approve</button>
                                 ` : ''}
                                 ${data.kycStatus === 'verified' ? `
-                                    <button onclick="viewSellerOrders('${sellerId}')" style="background:#3b82f6; color:white; border:none; padding:4px 10px; border-radius:12px; font-size:10px; cursor:pointer;">📦 Orders</button>
+                                    <button onclick="showSellerOrdersWithPayout('${sellerId}')" style="background:#3b82f6; color:white; border:none; padding:4px 10px; border-radius:12px; font-size:10px; cursor:pointer;">📦 Orders</button>
                                 ` : ''}
                             </div>
                         </div>
@@ -1072,16 +1107,30 @@ function loadAllSellers() {
 }
 
 // ============================================================
-// VIEW SELLER ORDERS
+// SHOW SELLER ORDERS WITH PAYOUT - REAL-TIME
 // ============================================================
 
-function viewSellerOrders(sellerId) {
+function showSellerOrdersWithPayout(sellerId) {
     const container = document.getElementById('pendingKycList');
     
     db.collection("orders").where("sellerId", "==", sellerId).get().then(snapshot => {
         const sellerOrders = [];
+        let totalAmount = 0;
+        let totalPayout = 0;
+        let totalReleased = 0;
+        let totalPending = 0;
+        
         snapshot.forEach(doc => {
-            sellerOrders.push({ id: doc.id, ...doc.data() });
+            const order = { id: doc.id, ...doc.data() };
+            sellerOrders.push(order);
+            totalAmount += order.amount || 0;
+            const payout = order.splitBreakdown?.finalSellerPayout || 0;
+            totalPayout += payout;
+            if (order.splitBreakdown?.isReleased) {
+                totalReleased += payout;
+            } else {
+                totalPending += payout;
+            }
         });
         
         container.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1102,28 +1151,47 @@ function viewSellerOrders(sellerId) {
                     <button onclick="this.closest('div[style*="margin-top:15px"]').remove()" 
                             style="background:#ef4444; color:white; border:none; padding:4px 12px; border-radius:15px; font-size:11px; cursor:pointer;">✕ Close</button>
                 </div>
-                <div style="display:flex; flex-direction:column; gap:8px; max-height:400px; overflow-y:auto;">`;
+                
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px;">
+                    <div style="background:#f0fdf4; padding:10px; border-radius:8px; text-align:center; border:1px solid #bbf7d0;">
+                        <div style="font-size:10px; color:#64748b;">💰 Total Sales</div>
+                        <div style="font-size:16px; font-weight:700; color:#10b981;">${getCurrencySymbol()}${convertPrice(totalAmount)}</div>
+                    </div>
+                    <div style="background:#d1fae5; padding:10px; border-radius:8px; text-align:center; border:1px solid #a7f3d0;">
+                        <div style="font-size:10px; color:#64748b;">✅ Released</div>
+                        <div style="font-size:16px; font-weight:700; color:#065f46;">${getCurrencySymbol()}${convertPrice(totalReleased)}</div>
+                    </div>
+                    <div style="background:#fef3c7; padding:10px; border-radius:8px; text-align:center; border:1px solid #fbbf24;">
+                        <div style="font-size:10px; color:#64748b;">⏳ Pending</div>
+                        <div style="font-size:16px; font-weight:700; color:#92400e;">${getCurrencySymbol()}${convertPrice(totalPending)}</div>
+                    </div>
+                </div>
+                
+                <div style="display:flex; flex-direction:column; gap:6px; max-height:300px; overflow-y:auto;">`;
         
-        sellerOrders.forEach(o => {
+        sellerOrders.slice(0, 20).forEach(o => {
             const statusColor = o.status === 'Completed' ? '#10b981' : o.status === 'Processing' ? '#f59e0b' : o.status === 'Shipped' ? '#3b82f6' : '#ef4444';
             html += `
-                <div style="border:1px solid #e2e8f0; padding:12px; border-radius:10px; background:#f8fafc;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-                        <strong style="font-size:14px;">🔖 ${o.trackingNumber || 'N/A'}</strong>
-                        <span style="font-size:12px; padding:2px 10px; border-radius:12px; background:${statusColor}20; color:${statusColor};">${o.status || 'Unknown'}</span>
+                <div style="border:1px solid #e2e8f0; padding:10px; border-radius:8px; background:#f8fafc;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;">
+                        <strong style="font-size:12px;">🔖 ${o.trackingNumber || 'N/A'}</strong>
+                        <span style="font-size:10px; padding:2px 8px; border-radius:10px; background:${statusColor}20; color:${statusColor};">${o.status || 'Unknown'}</span>
                     </div>
-                    <div style="font-size:13px; color:#475569; margin-top:4px;">${o.productName || 'Unknown'} x${o.qty || 1}</div>
-                    <div style="font-size:13px; color:#475569;">💰 ${getCurrencySymbol()}${convertPrice(o.amount || 0)}</div>
+                    <div style="font-size:12px; color:#475569;">${o.productName || 'Unknown'} x${o.qty || 1}</div>
+                    <div style="font-size:12px; color:#475569;">💰 ${getCurrencySymbol()}${convertPrice(o.amount || 0)}</div>
                     <div style="font-size:11px; color:#94a3b8;">👤 ${o.buyerName || 'Unknown'} | 📅 ${o.date || 'N/A'}</div>
                     ${o.splitBreakdown ? `
-                        <div style="font-size:10px; color:#64748b; margin-top:4px; padding-top:4px; border-top:1px solid #e2e8f0;">
-                            💰 Payout: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.finalSellerPayout || 0)}
-                            ${o.splitBreakdown.isReleased ? ' ✅ Released' : ' ⏳ Pending'}
+                        <div style="font-size:10px; color:#64748b; margin-top:2px;">
+                            💰 Payout: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.finalSellerPayout || 0)} 
+                            ${o.splitBreakdown.isReleased ? '✅ Released' : '⏳ Pending'}
                         </div>
                     ` : ''}
                 </div>
             `;
         });
+        if (sellerOrders.length > 20) {
+            html += `<p style="text-align:center; font-size:11px; color:#94a3b8; margin:4px 0;">+ ${sellerOrders.length - 20} more orders</p>`;
+        }
         
         html += '</div></div>';
         container.innerHTML += html;
@@ -1135,10 +1203,10 @@ function viewSellerOrders(sellerId) {
 }
 
 // ============================================================
-// SHOW SELLER DETAILS
+// SHOW SELLER DETAILS WITH PAYOUT - COMPLETE
 // ============================================================
 
-function showSellerDetails(sellerId) {
+function showSellerDetailsWithPayout(sellerId) {
     const container = document.getElementById('pendingKycList');
     
     db.collection("sellers").doc(sellerId).get().then(doc => {
@@ -1156,8 +1224,20 @@ function showSellerDetails(sellerId) {
         
         db.collection("orders").where("sellerId", "==", sellerId).get().then(ordersSnapshot => {
             const sellerOrders = [];
+            let totalEarnings = 0;
+            let totalReleased = 0;
+            let totalPending = 0;
+            
             ordersSnapshot.forEach(d => {
-                sellerOrders.push({ id: d.id, ...d.data() });
+                const order = { id: d.id, ...d.data() };
+                sellerOrders.push(order);
+                const payout = order.sellerEarning || order.splitBreakdown?.finalSellerPayout || 0;
+                totalEarnings += payout;
+                if (order.splitBreakdown?.isReleased) {
+                    totalReleased += payout;
+                } else {
+                    totalPending += payout;
+                }
             });
             
             const statusColor = seller.kycStatus === 'verified' ? '#10b981' : seller.kycStatus === 'pending' ? '#f59e0b' : '#ef4444';
@@ -1176,9 +1256,24 @@ function showSellerDetails(sellerId) {
                         <div><strong style="font-size:12px; color:#64748b;">Phone:</strong> <span style="font-size:13px;">${seller.phone || 'N/A'}</span></div>
                         <div><strong style="font-size:12px; color:#64748b;">Country:</strong> <span style="font-size:13px;">${seller.country || 'N/A'}</span></div>
                         <div><strong style="font-size:12px; color:#64748b;">KYC:</strong> <span style="font-size:13px; color:${statusColor};">${seller.kycStatus || 'pending'}</span></div>
-                        <div><strong style="font-size:12px; color:#64748b;">Earnings:</strong> <span style="font-size:13px; font-weight:600;">${getCurrencySymbol()}${convertPrice(seller.earnings || 0)}</span></div>
+                        <div><strong style="font-size:12px; color:#64748b;">Earnings:</strong> <span style="font-size:13px; font-weight:600; color:#10b981;">${getCurrencySymbol()}${convertPrice(seller.earnings || 0)}</span></div>
                         <div><strong style="font-size:12px; color:#64748b;">Total Orders:</strong> <span style="font-size:13px;">${sellerOrders.length}</span></div>
                         <div><strong style="font-size:12px; color:#64748b;">Joined:</strong> <span style="font-size:13px;">${seller.createdAt ? new Date(seller.createdAt).toLocaleDateString() : 'N/A'}</span></div>
+                    </div>
+                    
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px;">
+                        <div style="background:#f0fdf4; padding:10px; border-radius:8px; text-align:center; border:1px solid #bbf7d0;">
+                            <div style="font-size:10px; color:#64748b;">💰 Total Payout</div>
+                            <div style="font-size:16px; font-weight:700; color:#10b981;">${getCurrencySymbol()}${convertPrice(totalEarnings)}</div>
+                        </div>
+                        <div style="background:#d1fae5; padding:10px; border-radius:8px; text-align:center; border:1px solid #a7f3d0;">
+                            <div style="font-size:10px; color:#64748b;">✅ Released</div>
+                            <div style="font-size:16px; font-weight:700; color:#065f46;">${getCurrencySymbol()}${convertPrice(totalReleased)}</div>
+                        </div>
+                        <div style="background:#fef3c7; padding:10px; border-radius:8px; text-align:center; border:1px solid #fbbf24;">
+                            <div style="font-size:10px; color:#64748b;">⏳ Pending</div>
+                            <div style="font-size:16px; font-weight:700; color:#92400e;">${getCurrencySymbol()}${convertPrice(totalPending)}</div>
+                        </div>
                     </div>
                     
                     ${seller.docImage ? `
@@ -1202,8 +1297,9 @@ function showSellerDetails(sellerId) {
                                 <strong style="font-size:12px;">🔖 ${o.trackingNumber || 'N/A'}</strong>
                                 <span style="font-size:10px; padding:2px 8px; border-radius:10px; background:${statusColor}20; color:${statusColor};">${o.status || 'Unknown'}</span>
                             </div>
-                            <div style="font-size:12px; color:#475569;">${o.productName || 'Unknown'} x${o.qty || 1} - ${getCurrencySymbol()}${convertPrice(o.amount || 0)}</div>
-                            <div style="font-size:11px; color:#94a3b8;">👤 ${o.buyerName || 'Unknown'}</div>
+                            <div style="font-size:12px; color:#475569;">${o.productName || 'Unknown'} x${o.qty || 1}</div>
+                            <div style="font-size:12px; color:#475569;">💰 ${getCurrencySymbol()}${convertPrice(o.amount || 0)}</div>
+                            <div style="font-size:11px; color:#94a3b8;">👤 ${o.buyerName || 'Unknown'} | 📅 ${o.date || 'N/A'}</div>
                             ${o.splitBreakdown ? `
                                 <div style="font-size:10px; color:#64748b; margin-top:2px;">
                                     💰 Payout: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.finalSellerPayout || 0)} 
@@ -1232,7 +1328,7 @@ function showSellerDetails(sellerId) {
 }
 
 // ============================================================
-// FORCE APPROVE SELLER
+// FORCE APPROVE SELLER - COMPLETE FIXED
 // ============================================================
 
 async function forceApproveSeller(sellerId) {
@@ -1555,7 +1651,7 @@ function loadPayoutHistory() {
 }
 
 // ============================================================
-// LOAD PENDING SELLERS (KYC) - FIXED: LIVE DATA FROM FIRESTORE
+// LOAD PENDING SELLERS (KYC) - LIVE DATA FROM FIRESTORE
 // ============================================================
 
 function loadPendingSellers() {
@@ -1628,7 +1724,7 @@ function loadPendingSellers() {
 }
 
 // ============================================================
-// APPROVE SELLER - FIXED: Refreshes list after approval
+// APPROVE SELLER - FIXED
 // ============================================================
 
 async function approveSeller(sellerId) {
@@ -1678,7 +1774,7 @@ async function approveSeller(sellerId) {
 }
 
 // ============================================================
-// REJECT SELLER - FIXED: Refreshes list after rejection
+// REJECT SELLER - FIXED
 // ============================================================
 
 async function rejectSeller(sellerId) {
@@ -1962,7 +2058,7 @@ document.addEventListener('click', function(e) {
 });
 
 // ============================================================
-// ADMIN MENU ITEMS CLICK
+// ADMIN MENU ITEMS CLICK - CLEANED (No extra KYC options)
 // ============================================================
 
 document.querySelectorAll('.admin-menu-item[data-section]').forEach(item => {
@@ -1987,220 +2083,328 @@ document.querySelectorAll('.admin-menu-item[data-section]').forEach(item => {
 });
 
 // ============================================================
-// SHOW BUYER ORDERS - IMPROVED
+// AUTHENTICATION
 // ============================================================
-
-function showBuyerOrders(userId) {
-    const container = document.getElementById('pendingKycList');
-    const userOrders = orders.filter(o => o.buyerEmail === userId || o.buyerId === userId || o.buyerEmail?.includes(userId));
-    
-    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    
-    if (userOrders.length === 0) {
-        container.innerHTML += `
-            <div style="margin-top:15px; padding:20px; background:#f8fafc; border-radius:12px; text-align:center;">
-                <p style="color:#64748b;">📭 No orders found for this buyer</p>
-            </div>
-        `;
-        return;
-    }
-    
-    let html = `
-        <div style="margin-top:15px; background:white; border-radius:16px; padding:16px; border:2px solid #3b82f6; box-shadow:0 2px 8px rgba(59,130,246,0.1);">
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
-                <h4 style="margin:0; font-size:16px;">📦 Orders (${userOrders.length})</h4>
-                <button onclick="document.getElementById('pendingKycList').innerHTML = document.getElementById('pendingKycList').innerHTML.replace(/<div style="margin-top:15px;.*?<\/div>/, '')" 
-                        style="background:#ef4444; color:white; border:none; padding:4px 12px; border-radius:15px; font-size:11px; cursor:pointer;">✕ Close</button>
-            </div>
-            <div style="display:flex; flex-direction:column; gap:8px;">`;
-    
-    userOrders.forEach(o => {
-        const statusColor = o.status === 'Completed' ? '#10b981' : o.status === 'Processing' ? '#f59e0b' : o.status === 'Shipped' ? '#3b82f6' : '#ef4444';
-        html += `
-            <div style="border:1px solid #e2e8f0; padding:12px; border-radius:10px; background:#f8fafc;">
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-                    <strong style="font-size:14px;">🔖 ${o.trackingNumber}</strong>
-                    <span style="font-size:12px; padding:2px 10px; border-radius:12px; background:${statusColor}20; color:${statusColor};">${o.status}</span>
-                </div>
-                <div style="font-size:13px; color:#475569; margin-top:4px;">${o.productName} x${o.qty} - ${getCurrencySymbol()}${convertPrice(o.amount)}</div>
-                <div style="font-size:11px; color:#94a3b8;">📅 ${o.date}</div>
-                ${o.splitBreakdown ? `
-                    <div style="font-size:10px; color:#64748b; margin-top:4px; padding-top:4px; border-top:1px solid #e2e8f0;">
-                        💰 Gateway: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.gatewayFeeDeducted || 0)} | 
-                        Admin: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.adminCommissionDeducted || 0)} | 
-                        Seller: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.finalSellerPayout || 0)}
-                        ${o.splitBreakdown.isReleased ? ' ✅ Released' : ' ⏳ Pending'}
-                    </div>
-                ` : ''}
-            </div>
-        `;
-    });
-    
-    html += '</div></div>';
-    container.innerHTML += html;
-}
-
-// ============================================================
-// SHOW SELLER DETAILS - IMPROVED
-// ============================================================
-
-function showSellerDetails(sellerId) {
-    const container = document.getElementById('pendingKycList');
-    const seller = sellers.find(s => s.id === sellerId);
-    
-    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    
-    if (!seller) {
-        container.innerHTML += `
-            <div style="margin-top:15px; padding:20px; background:#fef2f2; border-radius:12px; text-align:center;">
-                <p style="color:#dc2626;">❌ Seller not found</p>
-            </div>
-        `;
-        return;
-    }
-    
-    const sellerOrders = orders.filter(o => o.sellerId === sellerId);
-    const statusColor = seller.kycStatus === 'verified' ? '#10b981' : seller.kycStatus === 'pending' ? '#f59e0b' : '#ef4444';
-    
-    let html = `
-        <div style="margin-top:15px; background:white; border-radius:16px; padding:16px; border:2px solid #8b5cf6; box-shadow:0 2px 8px rgba(139,92,246,0.1);">
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
-                <h4 style="margin:0; font-size:16px;">🏪 ${seller.shopName || 'Unknown Seller'}</h4>
-                <button onclick="this.closest('div[style*="margin-top:15px"]').remove()" 
-                        style="background:#ef4444; color:white; border:none; padding:4px 12px; border-radius:15px; font-size:11px; cursor:pointer;">✕ Close</button>
-            </div>
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        currentBuyer = user;
+        
+        const sellerSnapshot = await db.collection("sellers").where("uid", "==", user.uid).get();
+        
+        if (!sellerSnapshot.empty) {
+            const sellerData = sellerSnapshot.docs[0].data();
+            const sellerId = sellerSnapshot.docs[0].id;
             
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; background:#f8fafc; padding:12px; border-radius:10px;">
-                <div><strong style="font-size:12px; color:#64748b;">Name:</strong> <span style="font-size:13px;">${seller.fullName || 'N/A'}</span></div>
-                <div><strong style="font-size:12px; color:#64748b;">Email:</strong> <span style="font-size:13px;">${seller.email || 'N/A'}</span></div>
-                <div><strong style="font-size:12px; color:#64748b;">Phone:</strong> <span style="font-size:13px;">${seller.phone || 'N/A'}</span></div>
-                <div><strong style="font-size:12px; color:#64748b;">Country:</strong> <span style="font-size:13px;">${seller.country || 'N/A'}</span></div>
-                <div><strong style="font-size:12px; color:#64748b;">KYC:</strong> <span style="font-size:13px; color:${statusColor};">${seller.kycStatus || 'pending'}</span></div>
-                <div><strong style="font-size:12px; color:#64748b;">Earnings:</strong> <span style="font-size:13px; font-weight:600;">${getCurrencySymbol()}${convertPrice(seller.earnings || 0)}</span></div>
-            </div>
+            if (user.emailVerified && !sellerData.emailVerified) {
+                await db.collection("sellers").doc(sellerId).update({
+                    emailVerified: true,
+                    kycStatus: 'pending'
+                });
+                showToast("✅ Email verified! Your account is now active. Waiting for admin KYC approval.", false);
+                addNotification(`Seller ${sellerData.shopName} verified email! Now pending KYC.`, 'info');
+                await sendTelegramMessage(`✅ Email verified: ${sellerData.shopName}\nNow pending KYC approval.`);
+                
+                currentSeller = {
+                    name: sellerData.fullName,
+                    email: sellerData.email,
+                    role: 'seller',
+                    sellerId: sellerId,
+                    phone: sellerData.phone,
+                    kycStatus: 'pending',
+                    shopName: sellerData.shopName
+                };
+                localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
+                document.getElementById('sellerRegisterBox').style.display = 'none';
+                document.getElementById('sellerDashboard').style.display = 'block';
+                renderSellerDashboard();
+                return;
+            }
             
-            ${seller.docImage ? `
-                <button onclick="window.open('${seller.docImage}', '_blank')" 
-                        style="background:#3b82f6; color:white; border:none; padding:8px 16px; border-radius:12px; font-size:13px; cursor:pointer; width:100%; margin-bottom:12px;">
-                    📄 View KYC Document
-                </button>
-            ` : ''}
-            
-            <h5 style="margin:8px 0 10px 0; font-size:14px;">📦 Orders (${sellerOrders.length})</h5>
-            <div style="display:flex; flex-direction:column; gap:6px; max-height:300px; overflow-y:auto;">`;
-    
-    if (sellerOrders.length === 0) {
-        html += '<p style="color:#94a3b8; text-align:center; padding:10px;">No orders yet</p>';
-    } else {
-        sellerOrders.slice(0, 20).forEach(o => {
-            const statusColor = o.status === 'Completed' ? '#10b981' : o.status === 'Processing' ? '#f59e0b' : o.status === 'Shipped' ? '#3b82f6' : '#ef4444';
-            html += `
-                <div style="border:1px solid #e2e8f0; padding:10px; border-radius:8px; background:#f8fafc;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;">
-                        <strong style="font-size:12px;">🔖 ${o.trackingNumber}</strong>
-                        <span style="font-size:10px; padding:2px 8px; border-radius:10px; background:${statusColor}20; color:${statusColor};">${o.status}</span>
-                    </div>
-                    <div style="font-size:12px; color:#475569;">${o.productName} x${o.qty} - ${getCurrencySymbol()}${convertPrice(o.amount)}</div>
-                    ${o.splitBreakdown ? `
-                        <div style="font-size:10px; color:#64748b; margin-top:2px;">
-                            💰 Payout: ${getCurrencySymbol()}${convertPrice(o.splitBreakdown.finalSellerPayout || 0)} 
-                            ${o.splitBreakdown.isReleased ? '✅ Released' : '⏳ Pending'}
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-        });
-        if (sellerOrders.length > 20) {
-            html += `<p style="text-align:center; font-size:11px; color:#94a3b8; margin:4px 0;">+ ${sellerOrders.length - 20} more orders</p>`;
+            if (sellerData.emailVerified) {
+                const freshSellerData = sellerSnapshot.docs[0].data();
+                
+                currentSeller = {
+                    name: freshSellerData.fullName,
+                    email: freshSellerData.email,
+                    role: 'seller',
+                    sellerId: sellerId,
+                    phone: freshSellerData.phone,
+                    kycStatus: freshSellerData.kycStatus || 'pending',
+                    shopName: freshSellerData.shopName,
+                    earnings: freshSellerData.earnings || 0
+                };
+                localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
+                
+                if (freshSellerData.kycStatus === 'verified') {
+                    document.getElementById('sellerRegisterBox').style.display = 'none';
+                    document.getElementById('sellerDashboard').style.display = 'block';
+                    renderSellerDashboard();
+                    showToast(`Welcome back ${freshSellerData.shopName}!`, false);
+                } else if (freshSellerData.kycStatus === 'pending') {
+                    document.getElementById('sellerRegisterBox').style.display = 'none';
+                    document.getElementById('sellerDashboard').style.display = 'block';
+                    renderSellerDashboard();
+                    showToast("⏳ Your KYC is pending verification. Please wait for admin approval.", true);
+                } else if (freshSellerData.kycStatus === 'rejected') {
+                    document.getElementById('sellerRegisterBox').style.display = 'block';
+                    document.getElementById('sellerDashboard').style.display = 'none';
+                    showToast("❌ Your KYC was rejected. Please contact support.", true);
+                }
+            }
+        } else {
+            if (currentSeller) {
+                currentSeller = null;
+                localStorage.removeItem('gb_current_seller');
+                document.getElementById('sellerRegisterBox').style.display = 'block';
+                document.getElementById('sellerDashboard').style.display = 'none';
+            }
         }
+    } else {
+        currentBuyer = null;
+        currentSeller = null;
+        localStorage.removeItem('gb_current_seller');
+        cart = [];
+        updateCartUI();
+        document.getElementById('sellerRegisterBox').style.display = 'block';
+        document.getElementById('sellerDashboard').style.display = 'none';
     }
-    
-    html += '</div></div>';
-    container.innerHTML += html;
+    renderProducts();
+});
+
+const storedSeller = localStorage.getItem('gb_current_seller');
+if (storedSeller) {
+    currentSeller = JSON.parse(storedSeller);
 }
 
 // ============================================================
-// PAYOUT HISTORY LOGGING - NEW FEATURE
+// LOGIN
 // ============================================================
-
-function logPayoutToHistory(orderId, sellerId, amount, status) {
+document.getElementById('doLoginBtn')?.addEventListener('click', async () => {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    if (!email || !password) { showToast("Please enter email and password", true); return; }
     try {
-        const payoutLog = {
-            id: Date.now(),
-            orderId: orderId,
-            sellerId: sellerId,
-            amount: amount,
-            status: status || 'released',
-            timestamp: new Date().toISOString(),
-            date: new Date().toLocaleString()
-        };
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        showToast(`Welcome back ${userCredential.user.email}!`, false);
+        document.getElementById('loginModal').style.display = 'none';
+        document.getElementById('loginEmail').value = '';
+        document.getElementById('loginPassword').value = '';
         
-        let payoutHistory = JSON.parse(localStorage.getItem('gb_payout_history')) || [];
-        payoutHistory.push(payoutLog);
-        localStorage.setItem('gb_payout_history', JSON.stringify(payoutHistory));
+        const sellerSnapshot = await db.collection("sellers").where("uid", "==", userCredential.user.uid).get();
+        if (!sellerSnapshot.empty) {
+            const sellerData = sellerSnapshot.docs[0].data();
+            if (sellerData.kycStatus === 'verified') {
+                setTimeout(() => {
+                    showSection('seller');
+                }, 1000);
+            }
+        }
         
-        console.log('📊 Payout logged:', payoutLog);
+        const pendingCheckout = sessionStorage.getItem('pendingCheckout');
+        if (pendingCheckout === 'true') {
+            sessionStorage.removeItem('pendingCheckout');
+            const pendingCart = sessionStorage.getItem('pendingCart');
+            if (pendingCart) {
+                cart = JSON.parse(pendingCart);
+                sessionStorage.removeItem('pendingCart');
+                updateCartUI();
+            }
+            showSection('checkout');
+            loadSavedAddresses();
+        }
+        await loadUserCart(userCredential.user.uid);
+        renderCartPage();
     } catch (error) {
-        console.error('Payout logging error:', error);
+        if (error.code === 'auth/user-not-found') showToast("No account found", true);
+        else if (error.code === 'auth/wrong-password') showToast("Wrong password", true);
+        else showToast("Login failed: " + error.message, true);
+    }
+});
+
+document.getElementById('doRegisterBtn')?.addEventListener('click', async () => {
+    const name = document.getElementById('regName').value;
+    const email = document.getElementById('regEmail').value;
+    const password = document.getElementById('regPassword').value;
+    if (!name || !email || !password) { showToast("Please fill all fields", true); return; }
+    if (password.length < 6) { showToast("Password must be at least 6 characters", true); return; }
+    try {
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        await db.collection('users').doc(userCredential.user.uid).set({ name, email, createdAt: new Date().toISOString(), role: 'buyer' });
+        showToast("Account created successfully!", false);
+        document.getElementById('loginModal').style.display = 'none';
+        document.getElementById('regName').value = '';
+        document.getElementById('regEmail').value = '';
+        document.getElementById('regPassword').value = '';
+        const pendingCheckout = sessionStorage.getItem('pendingCheckout');
+        if (pendingCheckout === 'true') {
+            sessionStorage.removeItem('pendingCheckout');
+            const pendingCart = sessionStorage.getItem('pendingCart');
+            if (pendingCart) {
+                cart = JSON.parse(pendingCart);
+                sessionStorage.removeItem('pendingCart');
+                updateCartUI();
+            }
+            showSection('checkout');
+            loadSavedAddresses();
+        }
+    } catch (error) {
+        if (error.code === 'auth/email-already-in-use') showToast("Email already registered", true);
+        else showToast("Registration failed: " + error.message, true);
+    }
+});
+
+document.getElementById('googleSignInBtn')?.addEventListener('click', async () => {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    try {
+        const result = await auth.signInWithPopup(provider);
+        const userRef = db.collection('users').doc(result.user.uid);
+        const doc = await userRef.get();
+        if (!doc.exists) {
+            await userRef.set({ name: result.user.displayName, email: result.user.email, createdAt: new Date().toISOString(), role: 'buyer' });
+        }
+        showToast(`Welcome ${result.user.displayName}!`, false);
+        document.getElementById('loginModal').style.display = 'none';
+        const pendingCheckout = sessionStorage.getItem('pendingCheckout');
+        if (pendingCheckout === 'true') {
+            sessionStorage.removeItem('pendingCheckout');
+            const pendingCart = sessionStorage.getItem('pendingCart');
+            if (pendingCart) {
+                cart = JSON.parse(pendingCart);
+                sessionStorage.removeItem('pendingCart');
+                updateCartUI();
+            }
+            showSection('checkout');
+            loadSavedAddresses();
+        }
+    } catch (error) { showToast("Google sign-in failed: " + error.message, true); }
+});
+
+document.getElementById('googleSignUpBtn')?.addEventListener('click', async () => {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    try {
+        const result = await auth.signInWithPopup(provider);
+        const userRef = db.collection('users').doc(result.user.uid);
+        const doc = await userRef.get();
+        if (!doc.exists) {
+            await userRef.set({ name: result.user.displayName, email: result.user.email, createdAt: new Date().toISOString(), role: 'buyer' });
+        }
+        showToast(`Welcome ${result.user.displayName}!`, false);
+        document.getElementById('loginModal').style.display = 'none';
+        const pendingCheckout = sessionStorage.getItem('pendingCheckout');
+        if (pendingCheckout === 'true') {
+            sessionStorage.removeItem('pendingCheckout');
+            const pendingCart = sessionStorage.getItem('pendingCart');
+            if (pendingCart) {
+                cart = JSON.parse(pendingCart);
+                sessionStorage.removeItem('pendingCart');
+                updateCartUI();
+            }
+            showSection('checkout');
+            loadSavedAddresses();
+        }
+    } catch (error) { showToast("Google sign-up failed: " + error.message, true); }
+});
+
+document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+    await auth.signOut();
+    showToast("Logged out successfully", false);
+    cart = [];
+    updateCartUI();
+    renderCartPage();
+    showSection('buyer');
+    currentSeller = null;
+    localStorage.removeItem('gb_current_seller');
+    document.getElementById('sellerRegisterBox').style.display = 'block';
+    document.getElementById('sellerDashboard').style.display = 'none';
+});
+
+async function saveUserCart(userId) {
+    if (!userId) return;
+    await db.collection('carts').doc(userId).set({ items: cart, updatedAt: new Date().toISOString() });
+}
+
+async function loadUserCart(userId) {
+    if (!userId) return;
+    const doc = await db.collection('carts').doc(userId).get();
+    if (doc.exists && doc.data().items) {
+        cart = doc.data().items;
+        updateCartUI();
+        renderCartPage();
     }
 }
 
-function loadPayoutHistory() {
-    const container = document.getElementById('pendingWithdrawals');
-    container.style.display = 'block';
+// ============================================================
+// RENDER BUYER ORDERS
+// ============================================================
+
+function renderBuyerOrders() {
+    const user = auth.currentUser;
+    if (!user) return;
     
-    let payoutHistory = JSON.parse(localStorage.getItem('gb_payout_history')) || [];
+    let activeOrders = orders.filter(o => 
+        o.buyerEmail === user.email && 
+        o.status !== 'Cancelled' && 
+        o.status !== 'Completed'
+    );
     
-    if (payoutHistory.length === 0) {
-        container.innerHTML = `
-            <div style="padding:30px; text-align:center; background:#f8fafc; border-radius:12px;">
-                <p style="font-size:18px;">📊 No payout history</p>
-                <p style="color:#94a3b8; font-size:14px;">No payouts have been released yet.</p>
-            </div>
-        `;
+    renderOrderHistory();
+    
+    const container = document.getElementById('buyerOrdersList');
+    if (!container) return;
+    
+    if (activeOrders.length === 0) {
+        container.innerHTML = '<div class="premium-card"><p>No active orders. Check your order history for completed orders.</p></div>';
         return;
     }
     
-    let html = `
-        <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <strong style="font-size:16px;">📊 Payout History (${payoutHistory.length})</strong>
-            <button onclick="loadPayoutHistory()" style="background:#3b82f6; color:white; border:none; padding:6px 14px; border-radius:20px; font-size:12px; cursor:pointer;">🔄 Refresh</button>
-        </div>
-        <div style="display:flex; flex-direction:column; gap:8px;">`;
-    
-    let totalPayouts = 0;
-    
-    payoutHistory.slice().reverse().forEach(log => {
-        totalPayouts += log.amount || 0;
-        html += `
-            <div style="background:white; border-radius:12px; padding:12px; border-left:4px solid #10b981; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-                    <div>
-                        <div style="font-weight:600;">💰 ${getCurrencySymbol()}${convertPrice(log.amount || 0)}</div>
-                        <div style="font-size:12px; color:#64748b;">📦 Order: ${log.orderId || 'N/A'}</div>
-                        <div style="font-size:11px; color:#94a3b8;">📅 ${log.date || log.timestamp || 'N/A'}</div>
+    let ordersHtml = '';
+    activeOrders.forEach(o => {
+        ordersHtml += `
+            <div class="order-card" data-order-id="${o.id}">
+                <div class="order-header">
+                    <strong>🔖 ${o.trackingNumber}</strong>
+                    <span class="order-status ${o.status.toLowerCase()}">${o.status}</span>
+                </div>
+                <div class="order-details">
+                    <div class="product-info">
+                        <div class="label">📦 Product</div>
+                        <div class="value">${o.productName} x${o.qty}</div>
+                        <div class="value">${getCurrencySymbol()}${convertPrice(o.amount)}</div>
+                        ${o.shippingCost > 0 ? `<div class="value" style="font-size:11px; color:#64748b;">🚚 +${getCurrencySymbol()}${convertPrice(o.shippingCost)} shipping</div>` : 
+                        `<div class="value" style="font-size:11px; color:#10b981;">🚚 Free Shipping</div>`}
                     </div>
-                    <div>
-                        <span style="font-size:11px; padding:2px 10px; border-radius:10px; background:#d1fae5; color:#065f46;">${log.status || 'Released'}</span>
+                    <div class="buyer-info">
+                        <div class="label">📅 Order Details</div>
+                        <div class="value">Date: ${o.date}</div>
+                        <div class="value">${o.trackingInfo ? `📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}` : ''}</div>
+                        ${o.status === "Shipped" || o.status === "Delivered" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981; color:white; border:none; padding:4px 12px; border-radius:16px; cursor:pointer; font-size:11px;">✅ Received</button>` : ''}
+                        ${o.status === "Processing" ? `<button class="cancelOrderBtn" data-id="${o.id}" style="background:#dc2626; color:white; border:none; padding:4px 12px; border-radius:16px; cursor:pointer; font-size:11px;">❌ Cancel</button>` : ''}
                     </div>
                 </div>
             </div>
         `;
     });
     
-    html += `
-        </div>
-        <div style="margin-top:12px; padding:12px; background:#f0fdf4; border-radius:12px; text-align:center; border:2px solid #bbf7d0;">
-            <div style="font-size:11px; color:#64748b;">💰 Total Payouts Released</div>
-            <div style="font-size:22px; font-weight:700; color:#10b981;">${getCurrencySymbol()}${convertPrice(totalPayouts)}</div>
-        </div>
-    `;
+    container.innerHTML = ordersHtml;
     
-    container.innerHTML = html;
+    document.querySelectorAll('.order-card').forEach((card) => {
+        const orderId = parseFloat(card.dataset.orderId);
+        const order = activeOrders.find(o => o.id === orderId);
+        if (order) {
+            setupOrderThreeDotMenu(card, order);
+        }
+    });
+    
+    document.querySelectorAll('.confirmReceivedBtn').forEach(btn => {
+        btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id)));
+    });
+    document.querySelectorAll('.cancelOrderBtn').forEach(btn => {
+        btn.addEventListener('click', () => cancelOrder(parseFloat(btn.dataset.id)));
+    });
 }
 
 // ============================================================
-// UPDATE CONFIRM ORDER TO LOG PAYOUT
+// CONFIRM ORDER RECEIVED - INSTANT PAYMENT RELEASE (0 DELAY)
 // ============================================================
 
 function confirmOrderReceived(orderId) {
@@ -4806,53 +5010,346 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
 });
 
 // ============================================================
-// RENDER ALL REMAINING FUNCTIONS...
+// ADMIN
 // ============================================================
 
-// These functions are already defined above and working perfectly:
-// - renderBuyerWishlist()
-// - viewSellerDocument()
-// - validateKYCFileType()
-// - populateShippingZones()
-// - migrateOldSellers()
-// - showPrivacy()
-// - showTerms()
-// - showSection()
-// - openDrawer()
-// - closeDrawer()
-// - closeEditModal()
-// - saveAllLocal()
-// - showToast()
-// - closeTermsModal()
-// - showSellerAgreement()
-// - closeSellerAgreementModal()
-// - showSupport()
-// - closeSupportModal()
-// - calculateAge()
-// - closeSellerSummary()
-// - closeOrderSummary()
-// - updateFooterSupport()
-// - renderProducts()
-// - renderProductCard()
-// - renderCats()
-// - changeProductImage()
-// - openProduct()
-// - addToCart()
-// - updateCartUI()
-// - toggleWish()
-// - renderCartPage()
-// - loadSavedCards()
-// - calculateShippingRealTime()
-// - getZoneType()
-// - updatePaymentSummary()
-// - confirmOrderReceived()
-// - calculateSellerPayout()
-// - cancelOrder()
-// - requestWithdrawal()
-// - markOrderShipped()
-// - setupFirestoreListeners()
-// - showMyShopLogin()
-// - showOrderDetailsModal()
-// - renderSellerDashboard()
-// - renderEditProductModal()
-// - closeOrderDetailsModal()
+document.getElementById('adminMenuBtn')?.addEventListener('click', function(e) {
+    e.stopPropagation();
+    const menu = document.getElementById('adminDropdownMenu');
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+});
+
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('adminDropdownMenu');
+    if (menu && !e.target.closest('#adminMenuBtn') && !e.target.closest('#adminDropdownMenu')) {
+        menu.style.display = 'none';
+    }
+});
+
+document.querySelectorAll('.admin-menu-item[data-section]').forEach(item => {
+    item.addEventListener('click', function() {
+        const section = this.dataset.section;
+        document.getElementById('pendingKycList').style.display = 'none';
+        document.getElementById('verifiedSellersList').style.display = 'none';
+        document.getElementById('pendingWithdrawals').style.display = 'none';
+        document.getElementById('adminOrdersList').style.display = 'none';
+        const targetId = section === 'pending' ? 'pendingKycList' : 
+                         section === 'verified' ? 'verifiedSellersList' : 'pendingWithdrawals';
+        const target = document.getElementById(targetId);
+        if (target) {
+            target.style.display = 'block';
+            if (section === 'pending') loadPendingSellers();
+            else if (section === 'verified') loadVerifiedSellers();
+            else if (section === 'withdrawals') loadWithdrawalsList();
+        }
+        document.getElementById('adminDropdownMenu').style.display = 'none';
+    });
+});
+
+function loadPendingSellers() {
+    const pending = sellers.filter(s => s.kycStatus === 'pending');
+    const container = document.getElementById('pendingKycList');
+    if (pending.length === 0) {
+        container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">✅ No pending KYC requests</div>';
+        return;
+    }
+    let html = `<div style="margin-bottom:15px;"><strong>Total Pending: ${pending.length}</strong></div><div style="display:flex; flex-direction:column; gap:12px;">`;
+    pending.forEach((seller, idx) => {
+        html += `
+            <div style="background:#f8fafc; border-radius:16px; padding:12px; border-left:4px solid #fbbf24;">
+                <div style="font-weight:bold;">${idx+1}. ${seller.shopName}</div>
+                <div>👤 ${seller.fullName}</div>
+                <div>📧 ${seller.email}</div>
+                <div>📞 ${seller.phone}</div>
+                <div>📄 ${seller.docType} - ${seller.docNumber}</div>
+                <div style="margin-top:8px;">
+                    <button class="btn-approve" data-id="${seller.id}" style="background:#10b981; color:white; border:none; padding:6px 12px; border-radius:20px; margin-right:8px;">✅ Approve</button>
+                    <button class="btn-reject" data-id="${seller.id}" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:20px;">❌ Reject</button>
+                    <button class="btn-view-doc" onclick='viewSellerDocument("${seller.docImage}","${seller.docType}","${seller.shopName}")' style="background:#3b82f6; color:white; border:none; padding:4px 10px; border-radius:15px; margin-left:8px;">📄 View</button>
+                </div>
+            </div>
+        `;
+    });
+    html += '</div>';
+    container.innerHTML = html;
+    
+    container.querySelectorAll('.btn-approve').forEach(btn => {
+        btn.addEventListener('click', async function(e) {
+            e.stopPropagation();
+            const sellerId = this.dataset.id;
+            if (!sellerId) { showToast("Seller ID not found", true); return; }
+            try {
+                if (!isAdminLoggedIn) { showToast("Please login as admin", true); return; }
+                
+                const sellerRef = db.collection("sellers").doc(sellerId);
+                const sellerDoc = await sellerRef.get();
+                if (sellerDoc.exists && sellerDoc.data().kycStatus === 'verified') {
+                    showToast("⚠️ This seller is already verified!", true);
+                    return;
+                }
+                
+                await sellerRef.update({ 
+                    kycStatus: 'verified', 
+                    verifiedAt: new Date().toISOString() 
+                });
+                
+                showToast("✅ Seller approved successfully!", false);
+                addNotification(`Seller KYC verified`, 'info');
+                await sendTelegramMessage(`✅ KYC Verified: ${sellerDoc.data().shopName}`);
+                
+                const snapshot = await db.collection("sellers").get();
+                sellers = [];
+                snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
+                updateAdminPendingBadge();
+                updateAdminMenuBadges();
+                loadPendingSellers();
+                document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
+                
+            } catch (error) {
+                console.error("Approve error:", error);
+                showToast("Error approving seller: " + error.message, true);
+            }
+        });
+    });
+    
+    container.querySelectorAll('.btn-reject').forEach(btn => {
+        btn.addEventListener('click', async function(e) {
+            e.stopPropagation();
+            const sellerId = this.dataset.id;
+            if (!sellerId) { showToast("Seller ID not found", true); return; }
+            const reason = prompt("Enter rejection reason:");
+            if (reason === null) return;
+            if (!reason.trim()) { showToast("Please enter a reason", true); return; }
+            try {
+                if (!isAdminLoggedIn) { showToast("Please login as admin", true); return; }
+                
+                const sellerRef = db.collection("sellers").doc(sellerId);
+                const sellerDoc = await sellerRef.get();
+                if (sellerDoc.exists && sellerDoc.data().kycStatus === 'rejected') {
+                    showToast("⚠️ This seller is already rejected!", true);
+                    return;
+                }
+                
+                await sellerRef.update({ 
+                    kycStatus: 'rejected', 
+                    rejectionReason: reason.trim(),
+                    rejectedAt: new Date().toISOString()
+                });
+                
+                showToast("❌ Seller rejected", false);
+                addNotification(`Seller KYC rejected: ${reason}`, 'info');
+                await sendTelegramMessage(`❌ KYC Rejected: ${reason}`);
+                
+                const snapshot = await db.collection("sellers").get();
+                sellers = [];
+                snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
+                updateAdminPendingBadge();
+                updateAdminMenuBadges();
+                loadPendingSellers();
+                document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
+            } catch (error) {
+                console.error("Reject error:", error);
+                showToast("Error rejecting seller: " + error.message, true);
+            }
+        });
+    });
+}
+
+function loadVerifiedSellers() {
+    const verified = sellers.filter(s => s.kycStatus === 'verified');
+    const container = document.getElementById('verifiedSellersList');
+    if (verified.length === 0) {
+        container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">No verified sellers yet</div>';
+        return;
+    }
+    let html = `<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Shipping Zones</th><th>Joined</th></tr></thead><tbody>`;
+    verified.forEach(s => {
+        let zones = '❌ Not set';
+        if (s.shippingZones) {
+            const local = s.shippingZones.local?.countries?.length || 0;
+            const regional = s.shippingZones.regional?.countries?.length || 0;
+            const international = s.shippingZones.international?.countries?.length || 0;
+            zones = `📍${local} 🌏${regional} 🌐${international}`;
+        }
+        html += `<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td style="font-size:12px;">${zones}</td><td>${new Date(s.createdAt).toLocaleDateString()}</td></tr>`;
+    });
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+function loadWithdrawalsList() {
+    const container = document.getElementById('pendingWithdrawals');
+    if (pendingWithdrawals.length === 0) {
+        container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">No pending withdrawals</div>';
+        return;
+    }
+    let html = pendingWithdrawals.map(w => `<div class="order-card"><span>💰 ${getCurrencySymbol()}${convertPrice(w.amount)} - ${w.sellerName}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981; color:white; border:none; padding:4px 12px; border-radius:20px;">Approve</button></div>`).join('');
+    container.innerHTML = html;
+    container.querySelectorAll('.approveBtn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            let w = pendingWithdrawals.find(w => w.id === parseInt(btn.dataset.id));
+            if(w){
+                w.status = 'Approved';
+                withdrawalHistory.push({ ...w, approvedAt: new Date().toISOString() });
+                pendingWithdrawals = pendingWithdrawals.filter(pw => pw.id !== w.id);
+                saveAllLocal();
+                showToast(`✅ Approved ${getCurrencySymbol()}${convertPrice(w.amount)} - Moved to History`, false);
+                await sendTelegramMessage(`💰 Withdrawal Approved: ${w.sellerName} - ${getCurrencySymbol()}${convertPrice(w.amount)}`);
+                addNotification(`Withdrawal approved for ${w.sellerName}`, 'payment');
+                loadWithdrawalsList();
+                updateAdminMenuBadges();
+            }
+        });
+    });
+}
+
+document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
+    const enteredKey = document.getElementById('adminKey').value;
+    if (enteredKey === 'Haque0786@') {
+        isAdminLoggedIn = true;
+        document.getElementById('adminLoginBox').style.display = 'none';
+        document.getElementById('adminContent').style.display = 'block';
+        loadAdminData();
+        showToast("Admin logged in successfully!", false);
+        document.getElementById('adminKey').value = '';
+    } else {
+        showToast("Wrong admin key!", true);
+    }
+});
+
+document.getElementById('adminBackBtn')?.addEventListener('click', function() {
+    document.getElementById('pendingKycList').style.display = 'none';
+    document.getElementById('verifiedSellersList').style.display = 'none';
+    document.getElementById('pendingWithdrawals').style.display = 'none';
+    document.getElementById('adminOrdersList').style.display = 'none';
+    showToast("Back to dashboard", false);
+});
+
+function loadAdminData() {
+    if (!isAdminLoggedIn) {
+        document.getElementById('adminLoginBox').style.display = 'block';
+        document.getElementById('adminContent').style.display = 'none';
+        return;
+    }
+    document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
+    updateAdminMenuBadges();
+    updateAdminPendingBadge();
+    document.getElementById('pendingKycList').style.display = 'none';
+    document.getElementById('verifiedSellersList').style.display = 'none';
+    document.getElementById('pendingWithdrawals').style.display = 'none';
+    document.getElementById('adminOrdersList').style.display = 'none';
+}
+
+function updateAdminPendingBadge() {
+    const pendingSellers = sellers.filter(s => s.kycStatus === 'pending');
+    const count = pendingSellers.length;
+    const badge = document.getElementById('adminPendingBadge');
+    if (badge) {
+        if (count > 0) {
+            badge.style.display = 'inline-block';
+            badge.innerText = count;
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+}
+
+function updateAdminMenuBadges() {
+    const pending = sellers.filter(s => s.kycStatus === 'pending').length;
+    const verified = sellers.filter(s => s.kycStatus === 'verified').length;
+    const withdrawals = pendingWithdrawals.filter(w => w.status === 'Pending').length;
+    const pendingBadge = document.getElementById('pendingCountBadge');
+    const verifiedBadge = document.getElementById('verifiedCountBadge');
+    const withdrawalBadge = document.getElementById('withdrawalCountBadge');
+    if (pendingBadge) pendingBadge.textContent = pending;
+    if (verifiedBadge) verifiedBadge.textContent = verified;
+    if (withdrawalBadge) withdrawalBadge.textContent = withdrawals;
+}
+
+// ============================================================
+// INITIALIZATION
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 GlobalBazaar Initializing...');
+    document.getElementById('debugMsg').innerHTML = '🚀 Loading...';
+    
+    updateFooterSupport();
+    
+    loadSplitSettings();
+    
+    const deliveryCountry = document.getElementById('deliveryCountry');
+    if (deliveryCountry) {
+        deliveryCountry.addEventListener('change', calculateShippingRealTime);
+    }
+    
+    const cartTotalDiv = document.getElementById('cartShippingTotal');
+    if (!cartTotalDiv) {
+        const cartSummary = document.querySelector('.cart-summary');
+        if (cartSummary) {
+            const subtotalDiv = document.createElement('div');
+            subtotalDiv.className = 'flex-between';
+            subtotalDiv.innerHTML = `<span>📦 Subtotal:</span><span id="cartSubtotal">${getCurrencySymbol()}0.00</span>`;
+            cartSummary.insertBefore(subtotalDiv, cartSummary.firstChild);
+            
+            const shippingDiv = document.createElement('div');
+            shippingDiv.className = 'flex-between';
+            shippingDiv.innerHTML = `<span>🚚 Shipping Fee:</span><span id="cartShippingTotal">${getCurrencySymbol()}0.00</span>`;
+            cartSummary.insertBefore(shippingDiv, cartSummary.lastChild);
+        }
+    }
+    
+    const currencySelect = document.getElementById('currencySelect');
+    if (currencySelect) {
+        currencySelect.value = selectedCurrency;
+    }
+    
+    document.getElementById('cartFloatBtn')?.addEventListener('click', () => {
+        renderCartPage();
+        showSection('cartPage');
+    });
+    
+    document.getElementById('menuBtn')?.addEventListener('click', openDrawer);
+    document.getElementById('drawerOverlay')?.addEventListener('click', closeDrawer);
+    
+    document.getElementById('searchInput')?.addEventListener('input', renderProducts);
+    
+    document.getElementById('proceedToCheckoutBtn')?.addEventListener('click', () => {
+        if (cart.length === 0) {
+            showToast('Cart is empty', true);
+            return;
+        }
+        const user = auth.currentUser;
+        if (!user) {
+            showToast('Please login first', true);
+            document.getElementById('loginModal').style.display = 'block';
+            return;
+        }
+        showSection('checkout');
+    });
+    
+    updateCartUI();
+    renderCartPage();
+    
+    const closeOrderDetails = document.querySelector('#orderDetailsModal .close-modal');
+    if (closeOrderDetails) {
+        closeOrderDetails.addEventListener('click', closeOrderDetailsModal);
+    }
+    
+    setupFirestoreListeners();
+    
+    document.getElementById('debugMsg').innerHTML = '✅ GlobalBazaar Ready!';
+    console.log('✅ GlobalBazaar Initialized Successfully');
+});
+
+function closeOrderDetailsModal() {
+    const modal = document.getElementById('orderDetailsModal');
+    if (modal) modal.style.display = 'none';
+}
+
+renderCats(); 
+updateCartUI(); 
+updateNotificationUI(); 
+updateAdminPendingBadge(); 
+updateAdminMenuBadges();
+document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 6 Categories | Free Shipping Optional";
