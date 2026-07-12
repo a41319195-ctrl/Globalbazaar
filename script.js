@@ -1,14 +1,14 @@
 // ============================================================
-// GLOBAL BAZAAR - COMPLETE FIXED JAVASCRIPT
+// GLOBAL BAZAAR - COMPLETE CODE
 // ============================================================
 
 // ============================================================
 // GLOBAL ERROR HANDLING
 // ============================================================
 window.onerror = function(message, source, lineno, colno, error) {
-    console.error('Global Error:', message, source, lineno, colno, error);
+    console.error('Global Error:', message);
     showToast('⚠️ Something went wrong. Please try again.', true);
-    document.getElementById('debugMsg').innerHTML = 'Error: ' + message;
+    document.getElementById('debugMsg').innerHTML = '❌ Error: ' + message;
     return true;
 };
 
@@ -444,6 +444,7 @@ let currentCategory = "All";
 let productsUnsubscribe = null;
 let sellersUnsubscribe = null;
 let currentProduct = null;
+let currentRatingHandler = { currentRating: 0 };
 
 // ============================================================
 // TELEGRAM NOTIFICATIONS
@@ -462,7 +463,7 @@ async function sendTelegramMessage(msg) {
 // ============================================================
 // SUPPORT CONTACT INFO
 // ============================================================
-const SUPPORT_EMAIL = "a41319195@gmail.com";
+const SUPPORT_EMAIL = "supportglobalbazaarshopco@gmail.com";
 const SUPPORT_WHATSAPP = "+966579230517";
 
 // ============================================================
@@ -589,6 +590,7 @@ const countryCodes = [
     {code:"+61",name:"Australia",flag:"🇦🇺"},{code:"+64",name:"New Zealand",flag:"🇳🇿"}
 ];
 const shippingCountries = ["India","Pakistan","Bangladesh","Nepal","Sri Lanka","Malaysia","Indonesia","Philippines","Thailand","Vietnam","China","Japan","South Korea","Germany","France","UK","Italy","Spain","Switzerland","Netherlands","Sweden","Norway","Denmark","Finland","Belgium","Austria","Poland","Czech Republic","Hungary","Romania","Bulgaria","Greece","Turkey","Saudi Arabia","UAE","Qatar","Oman","Kuwait","Bahrain","USA","Canada","Mexico","Brazil","Argentina","Colombia","Chile","Peru","Venezuela","Ecuador","Bolivia","Paraguay","Uruguay","Australia","New Zealand"];
+
 function initCountrySearch(inputId,dropdownId,selectId){
     let inp=document.getElementById(inputId), dd=document.getElementById(dropdownId), sel=document.getElementById(selectId);
     if(!inp||!dd) return;
@@ -5459,3 +5461,7 @@ updateNotificationUI();
 updateAdminPendingBadge(); 
 updateAdminMenuBadges();
 document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 6 Categories | Free Shipping Optional";
+
+// ============================================================
+// END OF FILE
+// ============================================================
