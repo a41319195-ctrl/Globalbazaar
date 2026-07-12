@@ -5443,3 +5443,85 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
 }
 
 console.log('✅ FIX APPLIED - Products will load automatically!');
+
+// ============================================================
+// DRAWER FIX - MENU OPEN/CLOSE
+// ============================================================
+
+// Open drawer function
+function openDrawer() {
+    var drawer = document.getElementById('drawer');
+    var overlay = document.getElementById('drawerOverlay');
+    if (drawer) {
+        drawer.classList.add('open');
+        if (overlay) overlay.style.display = 'block';
+        document.body.style.overflow = 'hidden'; // Prevent scroll
+    }
+}
+
+// Close drawer function
+function closeDrawer() {
+    var drawer = document.getElementById('drawer');
+    var overlay = document.getElementById('drawerOverlay');
+    if (drawer) {
+        drawer.classList.remove('open');
+        if (overlay) overlay.style.display = 'none';
+        document.body.style.overflow = 'auto'; // Restore scroll
+    }
+}
+
+// Toggle drawer function
+function toggleDrawer() {
+    var drawer = document.getElementById('drawer');
+    if (drawer && drawer.classList.contains('open')) {
+        closeDrawer();
+    } else {
+        openDrawer();
+    }
+}
+
+// ============================================================
+// ATTACH MENU BUTTON - FIXED
+// ============================================================
+
+// Wait for DOM to load
+document.addEventListener('DOMContentLoaded', function() {
+    // Menu button
+    var menuBtn = document.getElementById('menuBtn');
+    if (menuBtn) {
+        menuBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleDrawer();
+        });
+    }
+    
+    // Overlay click to close
+    var overlay = document.getElementById('drawerOverlay');
+    if (overlay) {
+        overlay.addEventListener('click', function() {
+            closeDrawer();
+        });
+    }
+    
+    // ESC key to close
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeDrawer();
+        }
+    });
+    
+    // Close drawer when clicking a drawer item (optional)
+    var drawerItems = document.querySelectorAll('.drawer-item, .dark-mode-menu-item');
+    drawerItems.forEach(function(item) {
+        item.addEventListener('click', function() {
+            // Don't close if it's dark mode toggle (it has its own logic)
+            if (!item.id || item.id !== 'drawerDarkModeToggle') {
+                // Small delay to let the click action complete
+                setTimeout(closeDrawer, 300);
+            }
+        });
+    });
+});
+
+console.log('✅ Drawer fix applied!');
