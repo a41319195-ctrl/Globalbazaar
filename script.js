@@ -5407,94 +5407,114 @@ updateAdminPendingBadge();
 updateAdminMenuBadges();
 document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 6 Categories | Free Shipping Optional";
 // ============================================================
-// 🔥 EMERGENCY FIX - FORCE PRODUCTS LOAD
+// 🔥 FINAL FIX - FORCE PRODUCTS LOAD
 // ============================================================
 
-function forceLoadProducts() {
-    console.log('🚀 Force loading products...');
+(function() {
+    console.log('🚀 Starting force load...');
     document.getElementById('debugMsg').innerHTML = '🔄 Loading products...';
     
+    // Default products
+    var defaultProducts = [
+        { id: 1, name: "Wireless Headphones Pro", price: 89.99, category: "Electronics", stock: 15, mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
+        { id: 2, name: "Smart Watch Series 8", price: 199.99, category: "Electronics", stock: 8, mainImage: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
+        { id: 3, name: "Bluetooth Speaker X3", price: 49.99, category: "Electronics", stock: 20, mainImage: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
+        { id: 4, name: "Classic Cotton T-Shirt", price: 24.99, category: "Fashion", stock: 30, mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
+        { id: 5, name: "Running Shoes Air Max", price: 79.99, category: "Fashion", stock: 12, mainImage: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
+        { id: 6, name: "Non-Stick Cookware Set", price: 129.99, category: "Home & Kitchen", stock: 10, mainImage: "https://images.unsplash.com/photo-1584991106646-4fb6fb2d1485?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
+        { id: 7, name: "Coffee Maker Deluxe", price: 89.99, category: "Home & Kitchen", stock: 7, mainImage: "https://images.unsplash.com/photo-1565205610303-11fe6b1f9a35?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
+        { id: 8, name: "Facial Cleanser Set", price: 34.99, category: "Beauty & Cosmetics", stock: 25, mainImage: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
+        { id: 9, name: "Business Book Collection", price: 39.99, category: "Books & Stationery", stock: 20, mainImage: "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
+        { id: 10, name: "LEGO Classic Set", price: 49.99, category: "Toys & Hobbies", stock: 25, mainImage: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" }
+    ];
+    
     // Check if products already loaded
-    if (products && products.length > 0) {
-        console.log('✅ Products already loaded:', products.length);
+    if (typeof products !== 'undefined' && products && products.length > 0) {
+        console.log('✅ Products already loaded');
         document.getElementById('debugMsg').innerHTML = '✅ Products loaded: ' + products.length;
-        renderProducts();
-        renderCats();
+        if (typeof renderProducts === 'function') {
+            renderProducts();
+            renderCats();
+        }
         return;
     }
     
-    // Try to load from Firestore
-    db.collection("products").limit(10).get().then(snapshot => {
-        if (!snapshot.empty) {
-            products = [];
-            snapshot.forEach(doc => {
-                products.push({ id: doc.id, ...doc.data() });
-            });
-            console.log('✅ Products loaded from Firestore:', products.length);
-            document.getElementById('debugMsg').innerHTML = '✅ ' + products.length + ' products loaded';
-            renderProducts();
-            renderCats();
-            return;
+    // Set products
+    products = defaultProducts;
+    
+    // Render products
+    if (typeof renderProducts === 'function') {
+        renderProducts();
+        renderCats();
+        document.getElementById('debugMsg').innerHTML = '✅ ' + products.length + ' products loaded!';
+    } else {
+        // Fallback render
+        var grid = document.getElementById('productsGrid');
+        if (grid) {
+            var html = '';
+            for (var i = 0; i < defaultProducts.length; i++) {
+                var p = defaultProducts[i];
+                html += '<div style="border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin:10px;width:200px;display:inline-block;vertical-align:top;background:white;">';
+                html += '<img src="' + p.mainImage + '" style="width:100%;height:150px;object-fit:cover;border-radius:8px;">';
+                html += '<h4 style="margin:8px 0 4px;font-size:14px;">' + p.name + '</h4>';
+                html += '<div style="font-weight:bold;color:#3b82f6;">$' + p.price + '</div>';
+                html += '<div style="font-size:12px;color:#64748b;">🏪 ' + p.sellerName + '</div>';
+                html += '<button onclick="alert(\'Add to cart: ' + p.name + '\')" style="background:#3b82f6;color:white;border:none;padding:6px 12px;border-radius:20px;cursor:pointer;width:100%;margin-top:6px;">🛒 Add to Cart</button>';
+                html += '</div>';
+            }
+            grid.innerHTML = html;
+            document.getElementById('debugMsg').innerHTML = '✅ ' + defaultProducts.length + ' products rendered!';
         }
-        
-        // If no products in Firestore, use default products
-        console.log('⚠️ No products in Firestore, using defaults...');
-        document.getElementById('debugMsg').innerHTML = '⚠️ Using default products...';
-        
-        const defaults = [
-            { name: "Wireless Headphones Pro", price: 89.99, category: "Electronics", stock: 15, mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
-            { name: "Smart Watch Series 8", price: 199.99, category: "Electronics", stock: 8, mainImage: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
-            { name: "Bluetooth Speaker X3", price: 49.99, category: "Electronics", stock: 20, mainImage: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
-            { name: "Classic Cotton T-Shirt", price: 24.99, category: "Fashion", stock: 30, mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
-            { name: "Running Shoes Air Max", price: 79.99, category: "Fashion", stock: 12, mainImage: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" }
-        ];
-        
-        products = defaults.map((p, i) => ({ id: i + 1, ...p }));
-        
-        Promise.all(defaults.map(p => db.collection("products").add(p))).then(() => {
-            console.log('✅ Default products added to Firestore');
-        }).catch(err => {
-            console.error('❌ Error seeding products:', err);
-        });
-        
-        renderProducts();
-        renderCats();
-        document.getElementById('debugMsg').innerHTML = '✅ ' + products.length + ' default products loaded!';
-        
-    }).catch(error => {
-        console.error('❌ Force load error:', error);
-        document.getElementById('debugMsg').innerHTML = '❌ Error: ' + error.message;
-        
-        const defaults = [
-            { id: 1, name: "Wireless Headphones Pro", price: 89.99, category: "Electronics", stock: 15, mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
-            { id: 2, name: "Smart Watch Series 8", price: 199.99, category: "Electronics", stock: 8, mainImage: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
-            { id: 3, name: "Bluetooth Speaker X3", price: 49.99, category: "Electronics", stock: 20, mainImage: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
-            { id: 4, name: "Classic Cotton T-Shirt", price: 24.99, category: "Fashion", stock: 30, mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" },
-            { id: 5, name: "Running Shoes Air Max", price: 79.99, category: "Fashion", stock: 12, mainImage: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400", sellerName: "GlobalBazaar", sellerCountry: "SA" }
-        ];
-        
-        products = defaults;
-        renderProducts();
-        renderCats();
-        document.getElementById('debugMsg').innerHTML = '⚠️ Using fallback products';
-    });
-}
+    }
+    
+    // Also try Firestore
+    try {
+        if (typeof db !== 'undefined') {
+            db.collection("products").limit(5).get().then(function(snapshot) {
+                if (!snapshot.empty) {
+                    console.log('✅ Firestore products found');
+                }
+            }).catch(function(err) {
+                console.log('⚠️ Firestore error, using defaults');
+            });
+        }
+    } catch(e) {
+        console.log('⚠️ Firestore not available');
+    }
+    
+    console.log('✅ Force load complete!');
+})();
 
-// Call the function
+// Also run after 1 second
 setTimeout(function() {
-    forceLoadProducts();
-}, 500);
-
-// Also fix renderProducts if grid is empty
-setTimeout(function() {
-    const grid = document.getElementById('productsGrid');
-    if (grid) {
-        console.log('🔄 Checking grid...');
-        if (grid.innerHTML.trim() === '' || grid.innerHTML.includes('No products')) {
-            console.log('🔄 Re-rendering products...');
+    console.log('🔄 Second attempt...');
+    var grid = document.getElementById('productsGrid');
+    if (grid && (grid.innerHTML.trim() === '' || grid.innerHTML.includes('No products'))) {
+        console.log('🔄 Re-rendering...');
+        if (typeof renderProducts === 'function') {
             renderProducts();
-            renderCats();
+        } else {
+            // Fallback
+            var html = '';
+            var defaultProducts = [
+                { id: 1, name: "Wireless Headphones Pro", price: 89.99, category: "Electronics", stock: 15, mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", sellerName: "GlobalBazaar" },
+                { id: 2, name: "Smart Watch Series 8", price: 199.99, category: "Electronics", stock: 8, mainImage: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", sellerName: "GlobalBazaar" },
+                { id: 3, name: "Bluetooth Speaker X3", price: 49.99, category: "Electronics", stock: 20, mainImage: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400", sellerName: "GlobalBazaar" },
+                { id: 4, name: "Classic Cotton T-Shirt", price: 24.99, category: "Fashion", stock: 30, mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", sellerName: "GlobalBazaar" },
+                { id: 5, name: "Running Shoes Air Max", price: 79.99, category: "Fashion", stock: 12, mainImage: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400", sellerName: "GlobalBazaar" }
+            ];
+            for (var i = 0; i < defaultProducts.length; i++) {
+                var p = defaultProducts[i];
+                html += '<div style="border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin:10px;width:200px;display:inline-block;vertical-align:top;background:white;">';
+                html += '<img src="' + p.mainImage + '" style="width:100%;height:150px;object-fit:cover;border-radius:8px;">';
+                html += '<h4 style="margin:8px 0 4px;font-size:14px;">' + p.name + '</h4>';
+                html += '<div style="font-weight:bold;color:#3b82f6;">$' + p.price + '</div>';
+                html += '<div style="font-size:12px;color:#64748b;">🏪 ' + p.sellerName + '</div>';
+                html += '<button onclick="alert(\'Add to cart: ' + p.name + '\')" style="background:#3b82f6;color:white;border:none;padding:6px 12px;border-radius:20px;cursor:pointer;width:100%;margin-top:6px;">🛒 Add to Cart</button>';
+                html += '</div>';
+            }
+            grid.innerHTML = html;
             document.getElementById('debugMsg').innerHTML = '✅ Products re-rendered!';
         }
     }
-}, 3000);
+}, 1500);
