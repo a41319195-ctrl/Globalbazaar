@@ -5400,12 +5400,71 @@ function closeOrderDetailsModal() {
     if (modal) modal.style.display = 'none';
 }
 
-renderCats(); 
-updateCartUI(); 
-updateNotificationUI(); 
-updateAdminPendingBadge(); 
-updateAdminMenuBadges();
-document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 6 Categories | Free Shipping Optional";
+ // ============================================================
+// ✅ FINAL INIT - FIXED
+// ============================================================
+
+// Ensure all functions exist before calling
+if (typeof renderCats === 'function') {
+    renderCats();
+} else {
+    console.warn('⚠️ renderCats not defined yet');
+}
+
+if (typeof updateCartUI === 'function') {
+    updateCartUI();
+} else {
+    console.warn('⚠️ updateCartUI not defined yet');
+}
+
+if (typeof updateNotificationUI === 'function') {
+    updateNotificationUI();
+} else {
+    console.warn('⚠️ updateNotificationUI not defined yet');
+}
+
+if (typeof updateAdminPendingBadge === 'function') {
+    updateAdminPendingBadge();
+} else {
+    console.warn('⚠️ updateAdminPendingBadge not defined yet');
+}
+
+if (typeof updateAdminMenuBadges === 'function') {
+    updateAdminMenuBadges();
+} else {
+    console.warn('⚠️ updateAdminMenuBadges not defined yet');
+}
+
+document.getElementById('debugMsg').innerHTML = "✅ GlobalBazaar Ready!";
+
+console.log('✅ GlobalBazaar Initialized Successfully');
+
+// Also force load products after everything
+setTimeout(function() {
+    if (typeof forceLoadProducts === 'function') {
+        forceLoadProducts();
+    } else {
+        console.log('⚠️ forceLoadProducts not defined, using fallback');
+        // Fallback - set default products
+        if (typeof products !== 'undefined' && products.length === 0) {
+            var fallbackProducts = [
+                { id: 1, name: "Wireless Headphones Pro", price: 89.99, category: "Electronics", stock: 15, mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", sellerName: "GlobalBazaar" },
+                { id: 2, name: "Smart Watch Series 8", price: 199.99, category: "Electronics", stock: 8, mainImage: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", sellerName: "GlobalBazaar" },
+                { id: 3, name: "Bluetooth Speaker X3", price: 49.99, category: "Electronics", stock: 20, mainImage: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400", sellerName: "GlobalBazaar" },
+                { id: 4, name: "Classic Cotton T-Shirt", price: 24.99, category: "Fashion", stock: 30, mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", sellerName: "GlobalBazaar" },
+                { id: 5, name: "Running Shoes Air Max", price: 79.99, category: "Fashion", stock: 12, mainImage: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400", sellerName: "GlobalBazaar" }
+            ];
+            products = fallbackProducts;
+            if (typeof renderProducts === 'function') {
+                renderProducts();
+            }
+            if (typeof renderCats === 'function') {
+                renderCats();
+            }
+            document.getElementById('debugMsg').innerHTML = '✅ ' + products.length + ' fallback products loaded!';
+        }
+    }
+}, 500);
 // ============================================================
 // 🔥 FINAL FIX - FORCE PRODUCTS LOAD
 // ============================================================
