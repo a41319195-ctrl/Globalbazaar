@@ -1,122 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script>
-// ============================================================
-// 🔥 EMERGENCY FIX - RUNS IMMEDIATELY
-// ============================================================
-(function() {
-    console.log('🚀 EMERGENCY FIX: Running...');
-    
-    // Fix drawer buttons
-    function fixDrawerButtons() {
-        var drawerBtns = {
-            'drawerBuyer': function() { 
-                closeDrawer(); 
-                var sec = document.getElementById('profileSection');
-                if (sec) sec.classList.add('active');
-                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-                if (sec) sec.classList.add('active');
-            },
-            'drawerSeller': function() {
-                closeDrawer();
-                var sec = document.getElementById('sellerSection');
-                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-                if (sec) sec.classList.add('active');
-                var box = document.getElementById('sellerRegisterBox');
-                if (box) box.style.display = 'block';
-                var dash = document.getElementById('sellerDashboard');
-                if (dash) dash.style.display = 'none';
-            },
-            'drawerMyShop': function() {
-                closeDrawer();
-                var modal = document.getElementById('loginModal');
-                if (modal) modal.style.display = 'block';
-            },
-            'drawerAdmin': function() {
-                closeDrawer();
-                var sec = document.getElementById('adminSection');
-                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-                if (sec) sec.classList.add('active');
-            },
-            'drawerCartPage': function() {
-                closeDrawer();
-                var sec = document.getElementById('cartPageSection');
-                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-                if (sec) sec.classList.add('active');
-                var list = document.getElementById('cartItemsList');
-                if (list) list.innerHTML = '<p style="text-align:center;padding:20px;">Cart is empty</p>';
-            },
-            'drawerWishlist': function() {
-                closeDrawer();
-                var sec = document.getElementById('profileSection');
-                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-                if (sec) sec.classList.add('active');
-            },
-            'drawerSupport': function() {
-                closeDrawer();
-                var modal = document.getElementById('supportModal');
-                if (modal) modal.style.display = 'block';
-            },
-            'drawerLogout': function() {
-                closeDrawer();
-                localStorage.removeItem('gb_current_seller');
-                location.reload();
-            },
-            'drawerDarkModeToggle': function() {
-                closeDrawer();
-                document.body.classList.toggle('dark-mode');
-                localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
-            }
-        };
-        
-        for (var id in drawerBtns) {
-            var el = document.getElementById(id);
-            if (el) {
-                el.onclick = function(id, fn) {
-                    return function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('🔘 Drawer button clicked:', id);
-                        fn();
-                    };
-                }(id, drawerBtns[id]);
-            }
-        }
-        console.log('✅ Drawer buttons fixed!');
-    }
-    
-    // Fix cart float button
-    function fixCartFloat() {
-        var btn = document.getElementById('cartFloatBtn');
-        if (btn) {
-            btn.onclick = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('🛒 Cart float clicked');
-                var sec = document.getElementById('cartPageSection');
-                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-                if (sec) sec.classList.add('active');
-            };
-        }
-    }
-    
-    // Run after DOM ready
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(function() {
-            fixDrawerButtons();
-            fixCartFloat();
-        }, 200);
-    });
-    
-    // Also run immediately
-    setTimeout(function() {
-        fixDrawerButtons();
-        fixCartFloat();
-    }, 500);
-    
-})();
-</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>GlobalBazaar - Auto Compress Images</title>
@@ -126,105 +10,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <link rel="stylesheet" href="style.css">
-    
-    <!-- ===== EMERGENCY FIX - RUNS IMMEDIATELY ===== -->
-    <script>
-    (function() {
-        console.log('🚀 EMERGENCY FIX: Running...');
-        
-        // FORCE DRAWER FUNCTIONS - GLOBAL SCOPE
-        window.openDrawer = function() {
-            console.log('🔄 Opening drawer...');
-            var drawer = document.getElementById('drawer');
-            var overlay = document.getElementById('drawerOverlay');
-            if (drawer) {
-                drawer.classList.add('open');
-                if (overlay) overlay.style.display = 'block';
-                document.body.style.overflow = 'hidden';
-            }
-        };
-        
-        window.closeDrawer = function() {
-            console.log('🔄 Closing drawer...');
-            var drawer = document.getElementById('drawer');
-            var overlay = document.getElementById('drawerOverlay');
-            if (drawer) {
-                drawer.classList.remove('open');
-                if (overlay) overlay.style.display = 'none';
-                document.body.style.overflow = 'auto';
-            }
-        };
-        
-        window.toggleDrawer = function() {
-            var drawer = document.getElementById('drawer');
-            if (drawer && drawer.classList.contains('open')) {
-                closeDrawer();
-            } else {
-                openDrawer();
-            }
-        };
-        
-        // Attach menu button immediately when DOM ready
-        document.addEventListener('DOMContentLoaded', function() {
-            var menuBtn = document.getElementById('menuBtn');
-            if (menuBtn) {
-                menuBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    toggleDrawer();
-                });
-                console.log('✅ Menu button attached!');
-            }
-            
-            var overlay = document.getElementById('drawerOverlay');
-            if (overlay) {
-                overlay.addEventListener('click', closeDrawer);
-            }
-            
-            // ESC key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') closeDrawer();
-            });
-        });
-        
-        // Force remove "Initializing..." after 2 seconds
-        setTimeout(function() {
-            var debugEl = document.getElementById('debugMsg');
-            if (debugEl && debugEl.innerHTML.includes('Initializing')) {
-                debugEl.innerHTML = '✅ Loading products...';
-                debugEl.style.color = '#10b981';
-            }
-            
-            // Force show products if grid is empty
-            var grid = document.getElementById('productsGrid');
-            if (grid && (grid.innerHTML.trim() === '' || grid.innerHTML.includes('No products'))) {
-                var fallback = [
-                    { id: 1, name: "Wireless Headphones Pro", price: 89.99, category: "Electronics", stock: 15, mainImage: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", sellerName: "GlobalBazaar" },
-                    { id: 2, name: "Smart Watch Series 8", price: 199.99, category: "Electronics", stock: 8, mainImage: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400", sellerName: "GlobalBazaar" },
-                    { id: 3, name: "Bluetooth Speaker X3", price: 49.99, category: "Electronics", stock: 20, mainImage: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400", sellerName: "GlobalBazaar" },
-                    { id: 4, name: "Classic Cotton T-Shirt", price: 24.99, category: "Fashion", stock: 30, mainImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", sellerName: "GlobalBazaar" },
-                    { id: 5, name: "Running Shoes Air Max", price: 79.99, category: "Fashion", stock: 12, mainImage: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400", sellerName: "GlobalBazaar" }
-                ];
-                
-                var html = '';
-                for (var i = 0; i < fallback.length; i++) {
-                    var p = fallback[i];
-                    var price = p.price + (p.price * 0.03) + (p.price * 0.015);
-                    html += '<div class="product-card" style="border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin:10px;width:200px;display:inline-block;vertical-align:top;background:white;cursor:pointer;">';
-                    html += '<img src="' + p.mainImage + '" style="width:100%;height:150px;object-fit:cover;border-radius:8px;">';
-                    html += '<h4 style="margin:8px 0 4px;font-size:14px;">' + p.name + '</h4>';
-                    html += '<div style="font-weight:bold;color:#3b82f6;">SAR ' + price.toFixed(2) + '</div>';
-                    html += '<div style="font-size:12px;color:#64748b;">🏪 ' + p.sellerName + '</div>';
-                    html += '<div style="font-size:11px;color:#10b981;">✅ ' + p.stock + ' in stock</div>';
-                    html += '<button onclick="alert(\'Added: ' + p.name + '\')" style="background:#3b82f6;color:white;border:none;padding:6px 12px;border-radius:20px;cursor:pointer;width:100%;margin-top:6px;">🛒 Add to Cart</button>';
-                    html += '</div>';
-                }
-                grid.innerHTML = html;
-                if (debugEl) debugEl.innerHTML = '✅ ' + fallback.length + ' products loaded!';
-            }
-        }, 2000);
-    })();
-    </script>
 </head>
 <body>
 <div class="debug-status" id="debugMsg">Initializing...</div>
@@ -407,6 +192,8 @@
                     <button id="adminMenuBtn" style="background:none; border:none; font-size:24px; cursor:pointer;">⋮</button>
                     <div id="adminDropdownMenu" style="display:none; position:absolute; right:0; top:30px; background:white; border-radius:12px; box-shadow:0 8px 25px rgba(0,0,0,0.2); z-index:100; min-width:220px; padding:8px 0; border:1px solid #e2e8f0;">
                         <div style="padding:10px 16px; border-bottom:1px solid #eef2f8; font-weight:600; font-size:13px; color:#475569;">📋 Admin Menu</div>
+                        
+                        <!-- ========== FIXED: No prompt, direct function calls ========== -->
                         <div class="admin-menu-item" onclick="loadPendingSellers()" style="padding:10px 16px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9;">
                             <span>⏳ Pending Verification</span>
                             <span id="pendingCountBadge" style="background:#fbbf24; color:#1e293b; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:bold;">0</span>
@@ -431,6 +218,8 @@
                         <div class="admin-menu-item" onclick="loadPayoutHistory()" style="padding:10px 16px; cursor:pointer; display:flex; align-items:center; gap:10px;">
                             <span>📊 Payout History</span>
                         </div>
+                        <!-- ========== END FIXED ADMIN MENU ========== -->
+                        
                     </div>
                 </div>
                 <div style="clear:both;"></div>
@@ -553,7 +342,7 @@
 <div class="toast" id="toast"></div>
 
 <!-- ============================================================ -->
-<!-- CONFIRM MODAL CONTAINER -->
+<!-- CONFIRM MODAL CONTAINER (NEW - For confirm modal) -->
 <!-- ============================================================ -->
 <div id="modal-container"></div>
 
@@ -821,9 +610,8 @@ function closeOrderDetailsModal() {
 </div>
 
 <!-- ============================================================ -->
-<!-- SCRIPTS - MAIN JAVASCRIPT FILE -->
+<!-- SCRIPTS -->
 <!-- ============================================================ -->
 <script src="script.js"></script>
-
 </body>
 </html>
