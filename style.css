@@ -233,16 +233,69 @@ body.dark-mode #orderHistoryContainer { background: #1e293b; border-color: #3341
 .footer-legal { text-align: center; padding: 20px; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; margin-top: 20px; }
 
 /* ============================================================
+   /* ============================================================
    PHONE GROUP
    ============================================================ */
-.phone-group { display: flex; gap: 10px; margin-bottom: 14px; position: relative; }
-.phone-group select { width: 35%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; }
-.phone-group input { width: 65%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; margin-bottom: 0; }
-.country-search-select { position: relative; width: 35%; }
-.country-search-select input { width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; font-size: 14px; }
-.country-dropdown-list { position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #e2e8f0; border-radius: 12px; z-index: 1000; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-.country-dropdown-list div { padding: 10px 14px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
-.country-dropdown-list div:hover { background: #f1f5f9; }
+.phone-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+    position: relative;
+    width: 100%;
+}
+
+.iti {
+    width: 100%;
+}
+
+.phone-group input {
+    width: 100%;
+    padding: 14px;
+    padding-left: 50px;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-sizing: border-box;
+}
+
+.country-search-select {
+    position: relative;
+    width: 35%;
+}
+
+.country-search-select input {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    font-size: 14px;
+}
+
+.country-dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    z-index: 1000;
+    display: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.country-dropdown-list div {
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 13px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.country-dropdown-list div:hover {
+    background: #f1f5f9;
+}
+
 
 /* ============================================================
    KYC STATUS
