@@ -4356,32 +4356,3 @@ updateNotificationUI();
 updateAdminPendingBadge(); 
 updateAdminMenuBadges();
 document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 6 Categories | Free Shipping Optional";
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const globalRules = {
-        phone: { min: 7, max: 15 },
-        pincode: { min: 3, max: 10 },
-        address: { min: 5 },
-        docs: { "NationalID": 10, "Passport": 9, "License": 12 }
-    };
-
-    document.addEventListener('input', function(e) {
-        const input = e.target;
-        const type = input.getAttribute('name');
-        if (!type || (type !== 'phone' && type !== 'pincode' && type !== 'address' && type !== 'docNumber')) return;
-
-        const val = input.value;
-        let isValid = true;
-
-        if (type === 'phone') isValid = val.length >= 7 && val.length <= 15 && /^[0-9]+$/.test(val);
-        else if (type === 'pincode') isValid = val.length >= 3 && val.length <= 10;
-        else if (type === 'address') isValid = val.length >= 5;
-        else if (type === 'docNumber') {
-            const docType = document.getElementById('docType')?.value;
-            if (docType && globalRules.docs[docType]) isValid = val.length === globalRules.docs[docType];
-        }
-
-        input.style.borderColor = (val === "") ? "#ccc" : (isValid ? "green" : "red");
-    });
-});
-</script>
