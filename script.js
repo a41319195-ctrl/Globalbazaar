@@ -4356,14 +4356,32 @@ updateNotificationUI();
 updateAdminPendingBadge(); 
 updateAdminMenuBadges();
 document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 6 Categories | Free Shipping Optional";
+
 document.addEventListener('input', function(e) {
-    const validNames = ['phone', 'pincode', 'address', 'docNumber'];
-    if (!e.target.name || !validNames.includes(e.target.name)) return;
-    const val = e.target.value;
+    const target = e.target;
+    const fieldId = target.id || ""; 
+    const val = target.value;
+    
+    // सिर्फ उन्हीं फील्ड्स को चेक करें जो हमारे काम के हैं (ID से पहचान)
+    // फोन और पिनकोड के लिए सख्त चेक, एड्रेस के लिए बेसिक चेक
     let isValid = true;
-    if (e.target.name === 'phone') isValid = val.length >= 7 && val.length <= 15;
-    else if (e.target.name === 'pincode') isValid = val.length >= 3 && val.length <= 10;
-    else if (e.target.name === 'address') isValid = val.length >= 5;
-    else if (e.target.name === 'docNumber') isValid = val.length >= 8;
-    e.target.style.borderColor = (val === "") ? "#ccc" : (isValid ? "green" : "red");
+
+    // फोन नंबर के लिए चेक (IDs: sellerPhone, userPhone आदि)
+    if (fieldId.toLowerCase().includes('phone')) {
+        isValid = val.length >= 7 && val.length <= 15;
+    }
+    // पिनकोड के लिए चेक (IDs: sellerPincode, userPincode आदि)
+    else if (fieldId.toLowerCase().includes('pincode')) {
+        isValid = val.length >= 3 && val.length <= 10;
+    }
+    // एड्रेस के लिए चेक (IDs: sellerHouseNo, sellerStreet, userAddress आदि)
+    else if (fieldId.toLowerCase().includes('house') || fieldId.toLowerCase().includes('street') || fieldId.toLowerCase().includes('address')) {
+        isValid = val.length >= 5;
+    }
+    else {
+        return; // बाकी किसी भी फील्ड पर यह कोड असर नहीं करेगा
+    }
+
+    // कलर अपडेट करें
+    target.style.borderColor = (val === "") ? "#ccc" : (isValid ? "green" : "red");
 });
