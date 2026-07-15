@@ -4356,3 +4356,14 @@ updateNotificationUI();
 updateAdminPendingBadge(); 
 updateAdminMenuBadges();
 document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 6 Categories | Free Shipping Optional";
+document.addEventListener('input', function(e) {
+    const validNames = ['phone', 'pincode', 'address', 'docNumber'];
+    if (!e.target.name || !validNames.includes(e.target.name)) return;
+    const val = e.target.value;
+    let isValid = true;
+    if (e.target.name === 'phone') isValid = val.length >= 7 && val.length <= 15;
+    else if (e.target.name === 'pincode') isValid = val.length >= 3 && val.length <= 10;
+    else if (e.target.name === 'address') isValid = val.length >= 5;
+    else if (e.target.name === 'docNumber') isValid = val.length >= 8;
+    e.target.style.borderColor = (val === "") ? "#ccc" : (isValid ? "green" : "red");
+});
