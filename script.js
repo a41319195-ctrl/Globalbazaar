@@ -4356,9 +4356,3 @@ updateNotificationUI();
 updateAdminPendingBadge(); 
 updateAdminMenuBadges();
 document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 6 Categories | Free Shipping Optional";
-<script>
-window.addEventListener('load', function() {
-    // यहाँ अपना वैलिडेशन कोड रखें
-    console.log("Validation system active");
-});
-</script>
