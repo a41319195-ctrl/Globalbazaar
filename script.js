@@ -4357,26 +4357,8 @@ updateAdminPendingBadge();
 updateAdminMenuBadges();
 document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 6 Categories | Free Shipping Optional";
 <script>
-document.addEventListener('input', function(e) {
-    const input = e.target;
-    // सिर्फ उन्हीं इनपुट पर काम करें जिनकी जरूरत है
-    const validNames = ['phone', 'pincode', 'address', 'docNumber'];
-    if (!input.name || !validNames.includes(input.name)) return;
-
-    let isValid = true;
-    const val = input.value;
-
-    // वैलिडेशन लॉजिक
-    if (input.name === 'phone') isValid = val.length >= 7 && val.length <= 15;
-    else if (input.name === 'pincode') isValid = val.length >= 3 && val.length <= 10;
-    else if (input.name === 'address') isValid = val.length >= 5;
-    else if (input.name === 'docNumber') isValid = val.length >= 8; // बेसिक चेक
-
-    // रंग बदलना (बिना किसी एरर के)
-    if (val === "") {
-        input.style.borderColor = "#ccc";
-    } else {
-        input.style.borderColor = isValid ? "green" : "red";
-    }
+window.addEventListener('load', function() {
+    // यहाँ अपना वैलिडेशन कोड रखें
+    console.log("Validation system active");
 });
 </script>
