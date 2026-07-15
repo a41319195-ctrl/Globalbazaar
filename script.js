@@ -4356,3 +4356,51 @@ updateNotificationUI();
 updateAdminPendingBadge(); 
 updateAdminMenuBadges();
 document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 6 Categories | Free Shipping Optional";
+<script>
+(function() {
+    try {
+        const globalRules = {
+            phone: { min: 7, max: 15 },
+            pincode: { min: 3, max: 10 },
+            address: { min: 5 },
+            docs: {
+                "NationalID": { len: 10 },
+                "Passport": { len: 9 },
+                "License": { len: 12 }
+            }
+        };
+
+        document.addEventListener('input', function(e) {
+            try {
+                const input = e.target;
+                const type = input.getAttribute('name');
+                if (!type || !globalRules[type] && type !== 'docNumber') return;
+
+                const val = input.value;
+                let isValid = true;
+
+                if (type === 'phone') {
+                    isValid = val.length >= globalRules.phone.min && val.length <= globalRules.phone.max && /^[0-9]+$/.test(val);
+                } else if (type === 'pincode') {
+                    isValid = val.length >= globalRules.pincode.min && val.length <= globalRules.pincode.max;
+                } else if (type === 'address') {
+                    isValid = val.length >= globalRules.address.min;
+                } else if (type === 'docNumber') {
+                    const docTypeSelect = document.getElementById('docType');
+                    if (docTypeSelect && globalRules.docs[docTypeSelect.value]) {
+                        isValid = val.length === globalRules.docs[docTypeSelect.value].len;
+                    }
+                }
+
+                // UI फीडबैक (अगर इनपुट खाली है तो डिफ़ॉल्ट, वरना हरा या लाल)
+                input.style.borderColor = (val === "") ? "#ccc" : (isValid ? "green" : "red");
+                
+            } catch (innerErr) {
+                console.error("Validation error:", innerErr);
+            }
+        });
+    } catch (err) {
+        console.error("Master script failed to load:", err);
+    }
+})();
+</script>
