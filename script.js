@@ -455,13 +455,16 @@ async function sendTelegramMessage(msg) {
 }
 
 // ==========================================
-// SUPPORT CONTACT INFO
+// SUPPORT CONTACT INFO - FIXED
 // ==========================================
 const SUPPORT_EMAIL = "supportglobalbazaarshopco@gmail.com";
 const SUPPORT_EMAIL_1 = "supportglobalbazaarshopco@gmail.com";
 const SUPPORT_EMAIL_2 = "a41319195@gmail.com";
+
+const SUPPORT_WHATSAPP = "+966579230517";
 const SUPPORT_WHATSAPP_1 = "+966579230517";
 const SUPPORT_WHATSAPP_2 = "+9779811245373";
+
 const INSTAGRAM_URL = "https://www.instagram.com/globalbazaarworld/";
 
 
