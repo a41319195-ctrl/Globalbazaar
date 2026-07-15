@@ -457,8 +457,10 @@ async function sendTelegramMessage(msg) {
 // ============================================================
 // SUPPORT CONTACT INFO
 // ============================================================
-const SUPPORT_EMAIL = "a41319195@gmail.com";
-const SUPPORT_WHATSAPP = "+966579230517";
+const SUPPORT_EMAIL_1 = "supportglobalbazaarshopco@gmail.com";
+const SUPPORT_EMAIL_2 = "a41319195@gmail.com";
+const SUPPORT_WHATSAPP_1 = "+966579230517";
+const SUPPORT_WHATSAPP_2 = "+9779811245373";
 
 // ============================================================
 // NOTIFICATIONS
