@@ -4361,27 +4361,32 @@ document.getElementById('debugMsg').innerHTML = "GlobalBazaar Ready | 6 Categori
 
 document.addEventListener('input', function(e) {
     const target = e.target;
-    const fieldId = target.id || ""; 
+    const fieldId = (target.id || "").toLowerCase();
+    const placeholder = (target.getAttribute('placeholder') || "").toLowerCase();
     const val = target.value;
     
-    // सिर्फ फोन और पिनकोड के लिए वैलिडेशन (हाउस नंबर/एड्रेस को हटा दिया गया है)
     let isValid = true;
     let needsValidation = false;
 
-    // फोन नंबर के लिए चेक
-    if (fieldId.toLowerCase().includes('phone')) {
+    // --- सेलर के लिए स्ट्रिक्ट वैलिडेशन (ID के आधार पर) ---
+    if (fieldId === 'sellerphone') {
         needsValidation = true;
         isValid = val.length >= 7 && val.length <= 15;
-    }
-    // पिनकोड के लिए चेक
-    else if (fieldId.toLowerCase().includes('pincode')) {
+    } else if (fieldId === 'sellerpincode') {
         needsValidation = true;
         isValid = val.length >= 3 && val.length <= 10;
     }
-    else {
-        return; // बाकी किसी भी फील्ड पर यह कोड असर नहीं करेगा
+
+    // --- बायर (Delivery Details) के लिए फ्लेक्सिबल वैलिडेशन (Placeholder के आधार पर) ---
+    else if (placeholder.includes('phone') || placeholder.includes('mobile')) {
+        needsValidation = true;
+        isValid = val.length >= 7;
+    } else if (placeholder.includes('code') || placeholder.includes('zip') || placeholder.includes('post')) {
+        needsValidation = true;
+        isValid = val.length >= 3;
     }
 
+    // कलर अपडेट करें
     if (needsValidation) {
         target.style.borderColor = (val === "") ? "#ccc" : (isValid ? "green" : "red");
     }
