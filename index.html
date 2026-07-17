@@ -166,31 +166,36 @@
             <div class="premium-card">
                 <h3>📜 My Orders</h3>
                 <!-- नया ऑर्डर और पे-आउट हिस्ट्री सेक्शन -->
-<div id="orderHistoryContainer" style="display:none; margin-bottom:15px; padding:15px; background:#fff8fa;">
+                <!-- Order & Payout History Container -->
+<div id="orderHistoryContainer" style="display:none; margin-bottom:15px; padding:15px; background:#fff8fa; border:1px solid #ddd; border-radius:8px;">
     
-    <!-- ऑर्डर हिस्ट्री के लिए थ्री डॉट -->
-<div style="display: inline-block; position: relative;">
-    <button onclick="toggleMenu('orderMenu')" style="background:none; border:none; cursor:pointer; font-size:20px;">⋮</button>
-    <div id="orderMenu" style="display:none; position:absolute; right:0; background:white; border:1px solid #ccc; padding:10px; z-index:10; min-width: 120px;">
-        <div onclick="showHistory('orders')" style="cursor:pointer; padding:5px;">Order History</div>
-    </div>
-</div>
+    <!-- Header with Three-Dot Menus -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h4 style="margin:0;">⌚ History</h4>
+        <div>
+            <!-- Order History Dot Menu -->
+            <div style="display: inline-block; position: relative;">
+                <button onclick="toggleMenu('orderMenu')" style="background:none; border:none; cursor:pointer; font-size:24px; font-weight:bold; line-height:1; vertical-align:middle;">&vellip;</button>
+                <div id="orderMenu" style="display:none; position:absolute; right:0; top:30px; background:white; border:1px solid #ccc; padding:10px; z-index:1000; min-width: 120px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <div onclick="showHistory('orders')" style="cursor:pointer; padding:5px; border-bottom:1px solid #eee;">Order History</div>
+                </div>
+            </div>
 
-<!-- पे-आउट हिस्ट्री के लिए थ्री डॉट -->
-<div style="display: inline-block; position: relative; margin-left: 10px;">
-    <button onclick="toggleMenu('payoutMenu')" style="background:none; border:none; cursor:pointer; font-size:20px;">⋮</button>
-    <div id="payoutMenu" style="display:none; position:absolute; right:0; background:white; border:1px solid #ccc; padding:10px; z-index:10; min-width: 120px;">
-        <div onclick="showHistory('payouts')" style="cursor:pointer; padding:5px;">Payout History</div>
+            <!-- Payout History Dot Menu -->
+            <div style="display: inline-block; position: relative; margin-left: 15px;">
+                <button onclick="toggleMenu('payoutMenu')" style="background:none; border:none; cursor:pointer; font-size:24px; font-weight:bold; line-height:1; vertical-align:middle;">&vellip;</button>
+                <div id="payoutMenu" style="display:none; position:absolute; right:0; top:30px; background:white; border:1px solid #ccc; padding:10px; z-index:1000; min-width: 120px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <div onclick="showHistory('payouts')" style="cursor:pointer; padding:5px;">Payout History</div>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
 
-    <!-- ऑर्डर हिस्ट्री का एरिया -->
+    <!-- Data Display Areas -->
     <div id="historyOrdersList"></div>
-    
-    <!-- पे-आउट हिस्ट्री का एरिया -->
     <div id="historyPayoutsList" style="display: none;"></div>
-
 </div>
+
 
                 <div id="buyerOrdersList"></div>
             </div>
