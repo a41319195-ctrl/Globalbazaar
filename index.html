@@ -168,11 +168,21 @@
                 <!-- नया ऑर्डर और पे-आउट हिस्ट्री सेक्शन -->
 <div id="orderHistoryContainer" style="display:none; margin-bottom:15px; padding:15px; background:#fff8fa;">
     
-    <!-- बटनों का कंटेनर -->
-    <div id="historyButtonsContainer" style="display: flex; gap: 10px; margin-bottom: 20px;">
-        <button onclick="showHistory('orders')" style="padding: 10px; cursor: pointer;">Order History</button>
-        <button onclick="showHistory('payouts')" style="padding: 10px; cursor: pointer;">Payout History</button>
+    <!-- ऑर्डर हिस्ट्री के लिए थ्री डॉट -->
+<div style="display: inline-block; position: relative;">
+    <button onclick="toggleMenu('orderMenu')" style="background:none; border:none; cursor:pointer; font-size:20px;">⋮</button>
+    <div id="orderMenu" style="display:none; position:absolute; right:0; background:white; border:1px solid #ccc; padding:10px; z-index:10; min-width: 120px;">
+        <div onclick="showHistory('orders')" style="cursor:pointer; padding:5px;">Order History</div>
     </div>
+</div>
+
+<!-- पे-आउट हिस्ट्री के लिए थ्री डॉट -->
+<div style="display: inline-block; position: relative; margin-left: 10px;">
+    <button onclick="toggleMenu('payoutMenu')" style="background:none; border:none; cursor:pointer; font-size:20px;">⋮</button>
+    <div id="payoutMenu" style="display:none; position:absolute; right:0; background:white; border:1px solid #ccc; padding:10px; z-index:10; min-width: 120px;">
+        <div onclick="showHistory('payouts')" style="cursor:pointer; padding:5px;">Payout History</div>
+    </div>
+</div>
 
     <!-- ऑर्डर हिस्ट्री का एरिया -->
     <div id="historyOrdersList"></div>
