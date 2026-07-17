@@ -165,10 +165,23 @@
             </div>
             <div class="premium-card">
                 <h3>📜 My Orders</h3>
-                <div id="orderHistoryContainer" style="display:none; margin-bottom:15px; padding:15px; background:#f8fafc; border-radius:12px; border:1px solid #e2e8f0;">
-                    <h4>📋 Order History</h4>
-                    <div id="orderHistoryList"></div>
-                </div>
+                <!-- नया ऑर्डर और पे-आउट हिस्ट्री सेक्शन -->
+<div id="orderHistoryContainer" style="display:none; margin-bottom:15px; padding:15px; background:#fff8fa;">
+    
+    <!-- बटनों का कंटेनर -->
+    <div id="historyButtonsContainer" style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <button onclick="showHistory('orders')" style="padding: 10px; cursor: pointer;">Order History</button>
+        <button onclick="showHistory('payouts')" style="padding: 10px; cursor: pointer;">Payout History</button>
+    </div>
+
+    <!-- ऑर्डर हिस्ट्री का एरिया -->
+    <div id="historyOrdersList"></div>
+    
+    <!-- पे-आउट हिस्ट्री का एरिया -->
+    <div id="historyPayoutsList" style="display: none;"></div>
+
+</div>
+
                 <div id="buyerOrdersList"></div>
             </div>
             <div class="premium-card">
