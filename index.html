@@ -151,14 +151,14 @@
                 <button type="submit" class="btn-primary" id="sellerSubmitBtn">✅ Register Shop</button>
             </form>
         </div>
-        <div id="sellerDashboard" style="display:none;">
+    <div id="sellerDashboard" style="display:none;">
     <!-- Top Products सेक्शन -->
     <div style="background: #ffffff; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h4 style="margin: 0; color: #333;">📈 Top Products</h4>
             <button onclick="toggleMenu('topProductMenu')" style="background:none; border:none; cursor:pointer; font-size:24px; color: #555;">⋮</button>
         </div>
-        <div id="topProductMenu" style="display:none; margin-top:10px; border-top:1px solid #eee; padding-top:10px; display: flex; align-items: center; justify-content: space-between;">
+        <div id="topProductMenu" style="display:none; margin-top:10px; border-top:1px solid #eee; padding-top:10px; align-items: center; justify-content: space-between;">
             <span style="font-size: 14px; color: #666; font-weight: bold;">Order History:</span>
             <button onclick="showHistory('orders')" style="background: #eef6ff; color: #007bff; border:none; padding:8px 15px; border-radius: 6px; cursor:pointer; font-weight: bold;">📦 View</button>
         </div>
@@ -170,17 +170,17 @@
             <h4 style="margin: 0; color: #333;">💰 Withdraw Balance</h4>
             <button onclick="toggleMenu('payoutMenu')" style="background:none; border:none; cursor:pointer; font-size:24px; color: #555;">⋮</button>
         </div>
-        <div id="payoutMenu" style="display:none; margin-top:10px; border-top:1px solid #eee; padding-top:10px; display: flex; align-items: center; justify-content: space-between;">
+        <div id="payoutMenu" style="display:none; margin-top:10px; border-top:1px solid #eee; padding-top:10px; align-items: center; justify-content: space-between;">
             <span style="font-size: 14px; color: #666; font-weight: bold;">Payout History:</span>
             <button onclick="showHistory('payouts')" style="background: #e8f5e9; color: #28a745; border:none; padding:8px 15px; border-radius: 6px; cursor:pointer; font-weight: bold;">💵 View</button>
         </div>
     </div>
 
-    <!-- डेटा डिस्प्ले एरिया -->
+    <!-- डेटा डिस्प्ले एरिया (मेनू के बाहर ताकि लेआउट न बिगड़े) -->
     <div id="sellerOrdersList" style="margin-top:10px;"></div>
     <div id="sellerPayoutsList" style="margin-top:10px; display:none;"></div>
+</div>
 
-    
     <!-- ========== PROFILE SECTION ========== -->
     <div id="profileSection" class="section">
         <div id="buyerProfilePanel" style="display:block;">
