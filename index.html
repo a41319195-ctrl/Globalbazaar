@@ -205,34 +205,7 @@
                 <button class="btn-primary" id="adminLoginBtn">Login</button>
             </div>
             <div id="adminContent" style="display:none;">
-                <!-- Admin Menu -->
-                <div style="position:relative; display:inline-block; float:right; margin-top:-40px;">
-                    <button id="adminMenuBtn" style="background:none; border:none; font-size:24px; cursor:pointer;">⋮</button>
-                    <div id="adminDropdownMenu" style="display:none; position:absolute; right:0; top:30px; background:white; border-radius:12px; box-shadow:0 8px 25px rgba(0,0,0,0.2); z-index:100; min-width:220px; padding:8px 0; border:1px solid #e2e8f0;">
-                        <div style="padding:10px 16px; border-bottom:1px solid #eef2f8; font-weight:600; font-size:13px; color:#475569;">📋 Admin Menu</div>
-                        
-                        <!-- ========== FIXED: No prompt, direct function calls ========== -->
-                        <div class="admin-menu-item" onclick="loadPendingSellers()" style="padding:10px 16px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9;">
-                            <span>⏳ Pending Verification</span>
-                            <span id="pendingCountBadge" style="background:#fbbf24; color:#1e293b; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:bold;">0</span>
-                        </div>
-                <div id="buyerOrdersList"></div>
-            </div>
-            <div class="premium-card">
-                <h3>❤️ My Wishlist</h3>
-                <div id="buyerWishlistList"></div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- ========== ADMIN SECTION ========== -->
-    <div id="adminSection" class="section">
-        <div id="adminPanel" class="premium-card">
-            <h2>⚙️ Admin Dashboard</h2>
-            <div id="adminLoginBox">
-                <input type="password" id="adminKey" class="input" placeholder="Enter Admin Key">
-                <button class="btn-primary" id="adminLoginBtn">Login</button>
-            </div>
+                
             <div id="adminContent" style="display:none;">
                 <!-- Admin Menu -->
                 <div style="position:relative; display:inline-block; float:right; margin-top:-40px;">
