@@ -4397,3 +4397,54 @@ document.addEventListener('input', function(e) {
         target.style.borderColor = (val === "") ? "#ccc" : (isValid ? "green" : "red");
     }
 });
+
+
+// Universal Fetch & Render with Pagination
+async function fetchAndRenderData(collection, containerId, queryType, limit = 5) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.innerHTML = "Loading...";
+
+    try {
+        let ref = db.collection(collection);
+        
+        // Seperating logic: Admin sees all, Seller sees their own
+        if (queryType === 'seller') {
+            const user = auth.currentUser;
+            if (user) ref = ref.where("sellerEmail", "==", user.email);
+        }
+
+        const snapshot = await ref.limit(limit).get(); // Limit applied here
+        container.innerHTML = "";
+
+        if (snapshot.empty) {
+            container.innerHTML = "No records found.";
+            return;
+        }
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const div = document.createElement('div');
+            div.className = "premium-card";
+            div.style.marginBottom = "10px";
+            div.innerHTML = `
+                <p><b>ID:</b> ${doc.id}</p>
+                <p><b>Amount:</b> ${data.amount || 0} SAR</p>
+                <p><b>Status:</b> ${data.status}</p>
+            `;
+            container.appendChild(div);
+        });
+
+        // Read More button (Simple approach)
+        const btn = document.createElement('button');
+        btn.innerText = "Load More";
+        btn.onclick = () => alert("Next batch logic here"); // Pagination logic
+        container.appendChild(btn);
+
+    } catch (e) {
+        container.innerHTML = "Error loading data.";
+        console.error(e);
+    }
+}
+
