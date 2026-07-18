@@ -4397,3 +4397,47 @@ document.addEventListener('input', function(e) {
         target.style.borderColor = (val === "") ? "#ccc" : (isValid ? "green" : "red");
     }
 });
+// --- यूनिवर्सल डेटा लोडर (सुरक्षित स्थान) ---
+async function fetchAndRenderData(collectionName, containerId, limit = 5) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    container.innerHTML = "<p>Loading data...</p>";
+
+    try {
+        const snapshot = await db.collection(collectionName).get();
+        container.innerHTML = ""; 
+
+        if (snapshot.empty) {
+            container.innerHTML = "<p>No data available.</p>";
+            return;
+        }
+
+        let items = [];
+        snapshot.forEach(doc => {
+            items.push({ id: doc.id, ...doc.data() });
+        });
+
+        items.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = index >= limit ? 'hidden-item' : 'visible-item';
+            div.style.display = index >= limit ? 'none' : 'block';
+            div.innerHTML = `<div class="premium-card" style="margin-bottom:10px;">ID: ${item.id} - Status: ${item.status || 'N/A'}</div>`;
+            container.appendChild(div);
+        });
+
+        if (items.length > limit) {
+            const btn = document.createElement('button');
+            btn.innerText = "Read More";
+            btn.style.marginTop = "10px";
+            btn.onclick = function() {
+                container.querySelectorAll('.hidden-item').forEach(el => el.style.display = 'block');
+                this.style.display = 'none';
+            };
+            container.appendChild(btn);
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        container.innerHTML = "<p>Error loading data.</p>";
+    }
+}
