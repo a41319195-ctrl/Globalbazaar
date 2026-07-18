@@ -4401,12 +4401,17 @@ document.addEventListener('input', function(e) {
 
 // Universal Fetch & Render with Pagination
 // Toggle Section for showing/hiding content
-function toggleSection(sectionId) {
+// Toggle Section made global for accessibility
+window.toggleSection = function(sectionId) {
     const section = document.getElementById(sectionId);
     if (section) {
         section.style.display = (section.style.display === "none" || section.style.display === "") ? "block" : "none";
+        console.log("Toggle action triggered for: " + sectionId); // यह कंसोल में चेक करने के लिए
+    } else {
+        console.error("Section not found with ID: " + sectionId); // यह एरर ट्रैक करने के लिए
     }
-}
+};
+
 
 async function fetchAndRenderData(collection, containerId, queryType, limit = 5) {
     const container = document.getElementById(containerId);
