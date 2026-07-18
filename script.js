@@ -4400,6 +4400,14 @@ document.addEventListener('input', function(e) {
 
 
 // Universal Fetch & Render with Pagination
+// Toggle Section for showing/hiding content
+function toggleSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (section) {
+        section.style.display = (section.style.display === "none" || section.style.display === "") ? "block" : "none";
+    }
+}
+
 async function fetchAndRenderData(collection, containerId, queryType, limit = 5) {
     const container = document.getElementById(containerId);
     if (!container) return;
