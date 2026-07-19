@@ -4342,7 +4342,7 @@ window.toggleSection = function(sectionId) {
 // ग्लोबल वेरिएबल ताकि पेजिनेशन याद रहे
 let lastVisible = null; 
 
-async function fetchAndRenderData(collection, containerId, queryType, limit = 5) {
+async Function fetchAndRenderData(collection, containerId, queryType, limit = 5) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
