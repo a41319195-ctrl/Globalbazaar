@@ -849,16 +849,20 @@ function loadAllBuyers() {
     });
 }
 
-function loadAllSellers() {
+    function loadAllSellers() {
     toggleSection('adminContent');
-lastVisible = null;
-fetchAndRenderData('sellers', 'pendingKycList', 'admin');
+    document.getElementById('pendingKycList').style.display = 'block';
+    document.getElementById('pendingWithdrawals').style.display = 'none';
+    lastVisible = null;
+    FetchAndRenderData('sellers', 'pendingKycList', 'admin');
 }
 
-function loadWithdrawalHistory() {
+    function loadWithdrawalHistory() {
     toggleSection('adminContent');
-lastVisible = null;
-fetchAndRenderData('withdrawals', 'pendingWithdrawals', 'admin');
+    document.getElementById('pendingWithdrawals').style.display = 'block';
+    document.getElementById('pendingKycList').style.display = 'none';
+    lastVisible = null;
+    FetchAndRenderData('withdrawals', 'pendingWithdrawals', 'admin');
 }
 
 function showBuyerOrders(userId) {
