@@ -4487,11 +4487,3 @@ async function fetchAndRenderData(collection, containerId, queryType, limit = 5)
     }
 }
 
-
-
-    } catch (e) {
-        container.innerHTML = "Error loading data.";
-        console.error(e);
-    }
-}
-
