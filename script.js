@@ -853,7 +853,7 @@ function loadAllSellers() {
     document.getElementById('pendingKycList').style.display = 'block';
     document.getElementById('pendingWithdrawals').style.display = 'none';
     lastVisible = null;
-    FetchAndRenderData('sellers', 'pendingKycList', 'admin');
+    fetchAndRenderData('sellers', 'pendingKycList', 'admin');
 }
 
 function loadWithdrawalHistory() {
@@ -861,7 +861,7 @@ function loadWithdrawalHistory() {
     document.getElementById('pendingWithdrawals').style.display = 'block';
     document.getElementById('pendingKycList').style.display = 'none';
     lastVisible = null;
-    FetchAndRenderData('withdrawals', 'pendingWithdrawals', 'admin');
+    fetchAndRenderData('withdrawals', 'pendingWithdrawals', 'admin');
 }
 
 function showBuyerOrders(userId) {
@@ -4342,7 +4342,7 @@ window.toggleSection = function(sectionId) {
 // ग्लोबल वेरिएबल ताकि पेजिनेशन याद रहे
 let lastVisible = null; 
 
-async Function fetchAndRenderData(collection, containerId, queryType, limit = 5) {
+async function fetchAndRenderData(collection, containerId, queryType, limit = 5) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
