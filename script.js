@@ -848,21 +848,56 @@ function loadAllBuyers() {
         container.innerHTML = '<p style="color:#dc2626;">Error loading buyers: ' + error.message + '</p>';
     });
 }
-function loadAllSellers() {
+    function loadAllSellers() {
     toggleSection('adminContent');
-    document.getElementById('pendingKycList').style.display = 'block';
+    const container = document.getElementById('pendingKycList');
+    container.style.display = 'block';
     document.getElementById('pendingWithdrawals').style.display = 'none';
-    lastVisible = null;
-    fetchAndRenderData('sellers', 'pendingKycList', 'admin');
+    container.innerHTML = '<p style="padding:20px; text-align:center;">Loading sellers...</p>';
+
+    db.collection("users").where("role", "==", "seller").get().then(snapshot => {
+        let html = '<div style="margin-bottom:15px;"><strong>👥 All Sellers (' + snapshot.size + ')</strong></div>';
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            html += `
+                <div style="background:#f8fafc; border-radius:12px; padding:12px; border-left:4px solid #10b981; margin-bottom:10px;">
+                    <div style="font-weight:600;">${data.name || 'Unknown'}</div>
+                    <div style="font-size:13px; color:#64748b;">✉️ ${data.email || 'N/A'}</div>
+                    <div style="font-size:12px; color:#94a3b8;">📅 Joined: ${data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'N/A'}</div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }).catch(error => {
+        container.innerHTML = '<p style="color:#dc2626;">Error loading sellers: ' + error.message + '</p>';
+    });
 }
 
 function loadWithdrawalHistory() {
     toggleSection('adminContent');
-    document.getElementById('pendingWithdrawals').style.display = 'block';
+    const container = document.getElementById('pendingWithdrawals');
+    container.style.display = 'block';
     document.getElementById('pendingKycList').style.display = 'none';
-    lastVisible = null;
-    fetchAndRenderData('withdrawals', 'pendingWithdrawals', 'admin');
+    container.innerHTML = '<p style="padding:20px; text-align:center;">Loading withdrawals...</p>';
+
+    db.collection("withdrawals").get().then(snapshot => {
+        let html = '<div style="margin-bottom:15px;"><strong>💰 Withdrawal History (' + snapshot.size + ')</strong></div>';
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            html += `
+                <div style="background:#f8fafc; border-radius:12px; padding:12px; border-left:4px solid #ef4444; margin-bottom:10px;">
+                    <div style="font-weight:600;">Amount: €${data.amount || '0'}</div>
+                    <div style="font-size:13px; color:#64748b;">Status: ${data.status || 'Pending'}</div>
+                    <div style="font-size:12px; color:#94a3b8;">User: ${data.userEmail || 'N/A'}</div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }).catch(error => {
+        container.innerHTML = '<p style="color:#dc2626;">Error loading withdrawals: ' + error.message + '</p>';
+    });
 }
+
 
 function showBuyerOrders(userId) {
     const container = document.getElementById('pendingKycList');
