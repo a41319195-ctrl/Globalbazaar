@@ -4411,31 +4411,42 @@ window.toggleSection = function(sectionId) {
         console.error("Section not found with ID: " + sectionId); // यह एरर ट्रैक करने के लिए
     }
 };
-
+// ग्लोबल वेरिएबल ताकि पेजिनेशन याद रहे
+let lastVisible = null; 
 
 async function fetchAndRenderData(collection, containerId, queryType, limit = 5) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    container.innerHTML = "Loading...";
+    // अगर पहली बार लोड हो रहा है, तो "Loading" दिखाएं
+    if (!lastVisible) container.innerHTML = "Loading...";
 
     try {
-        let ref = db.collection(collection);
+        let ref = db.collection(collection).orderBy("createdAt", "desc").limit(limit);
         
-        // Seperating logic: Admin sees all, Seller sees their own
+        // सेलर के लिए फ़िल्टर
         if (queryType === 'seller') {
             const user = auth.currentUser;
             if (user) ref = ref.where("sellerEmail", "==", user.email);
         }
 
-        const snapshot = await ref.limit(limit).get(); // Limit applied here
-        container.innerHTML = "";
+        // अगर पिछले आइटम हैं, तो उनके बाद से डेटा उठाएं
+        if (lastVisible) {
+            ref = ref.startAfter(lastVisible);
+        }
 
-        if (snapshot.empty) {
+        const snapshot = await ref.get();
+        
+        // अगर डेटा खाली है और कुछ लोड नहीं हुआ
+        if (snapshot.empty && !lastVisible) {
             container.innerHTML = "No records found.";
             return;
         }
 
+        // पहली बार के लिए पुराने लोडिंग मैसेज को हटा दें
+        if (!lastVisible) container.innerHTML = "";
+
+        // डेटा रेंडर करें
         snapshot.forEach(doc => {
             const data = doc.data();
             const div = document.createElement('div');
@@ -4449,11 +4460,34 @@ async function fetchAndRenderData(collection, containerId, queryType, limit = 5)
             container.appendChild(div);
         });
 
-        // Read More button (Simple approach)
-        const btn = document.createElement('button');
-        btn.innerText = "Load More";
-        btn.onclick = () => alert("Next batch logic here"); // Pagination logic
-        container.appendChild(btn);
+        // अगला 'lastVisible' अपडेट करें
+        if (snapshot.docs.length > 0) {
+            lastVisible = snapshot.docs[snapshot.docs.length - 1];
+        }
+
+        // Load More बटन का लॉजिक
+        if (snapshot.docs.length === limit) {
+            let btn = document.getElementById('loadMoreBtn_' + containerId);
+            if (!btn) {
+                btn = document.createElement('button');
+                btn.id = 'loadMoreBtn_' + containerId;
+                btn.innerText = "Load More";
+                btn.onclick = () => fetchAndRenderData(collection, containerId, queryType, limit);
+                container.appendChild(btn);
+            }
+        } else {
+            // अगर और डेटा नहीं है, तो बटन हटा दें
+            const btn = document.getElementById('loadMoreBtn_' + containerId);
+            if (btn) btn.remove();
+        }
+
+    } catch (e) {
+        container.innerHTML = "Error loading data.";
+        console.error(e);
+    }
+}
+
+
 
     } catch (e) {
         container.innerHTML = "Error loading data.";
