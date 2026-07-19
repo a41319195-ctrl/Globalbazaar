@@ -4422,7 +4422,7 @@ async function fetchAndRenderData(collection, containerId, queryType, limit = 5)
     if (!lastVisible) container.innerHTML = "Loading...";
 
     try {
-        let ref = db.collection(collection).orderBy("createdAt", "desc").limit(limit);
+        let ref = db.collection(collection).limit(limit);
         
         // सेलर के लिए फ़िल्टर
         if (queryType === 'seller') {
