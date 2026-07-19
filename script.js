@@ -771,13 +771,49 @@ function moveOrderToHistory(order) {
     showToast(`Order ${movedOrder.trackingNumber} moved to history`, false);
 }
 
-    function renderOrderHistory() {
+function renderOrderHistory() {
     const historyContainer = document.getElementById('orderHistoryContainer');
-    if (historyContainer) {
-        historyContainer.classList.add('show');
+    const historyList = document.getElementById('orderHistoryList');
+    
+    if (!historyContainer || !historyList) return;
+    
+    const historyOrders = orders.filter(o => 
+        o.status === 'Cancelled' || o.status === 'Completed'
+    );
+    
+    if (historyOrders.length === 0) {
+        historyContainer.classList.remove('show');
+        historyList.innerHTML = '<p style="text-align:center; padding:20px; color:#64748b;">No order history</p>';
+        return;
     }
-    lastVisible = null;
-    fetchAndRenderData('orders', 'orderHistoryList', 'seller');
+    
+    historyList.innerHTML = '';
+    historyOrders.forEach(order => {
+        const historyCard = document.createElement('div');
+        historyCard.className = 'order-card';
+        historyCard.style.borderLeftColor = order.status === 'Cancelled' ? '#ef4444' : '#10b981';
+        historyCard.innerHTML = `
+            <div class="order-header">
+                <strong>🔖 ${order.trackingNumber}</strong>
+                <span class="order-status ${order.status.toLowerCase()}">${order.status}</span>
+            </div>
+            <div class="order-details">
+                <div class="product-info">
+                    <div class="label">📦 Product</div>
+                    <div class="value">${order.productName} x${order.qty}</div>
+                    <div class="value">${getCurrencySymbol()}${convertPrice(order.amount)}</div>
+                </div>
+                <div class="buyer-info">
+                    <div class="label">👤 Buyer</div>
+                    <div class="value">${order.buyerName}</div>
+                    <div class="value">📅 ${order.date}</div>
+                </div>
+            </div>
+        `;
+        historyList.appendChild(historyCard);
+    });
+    
+    historyContainer.classList.add('show');
 }
 
 // ============================================================
@@ -848,25 +884,27 @@ function loadAllBuyers() {
         container.innerHTML = '<p style="color:#dc2626;">Error loading buyers: ' + error.message + '</p>';
     });
 }
-    function loadAllSellers() {
-    toggleSection('adminContent');
+
+function loadAllSellers() {
     const container = document.getElementById('pendingKycList');
     container.style.display = 'block';
-    document.getElementById('pendingWithdrawals').style.display = 'none';
     container.innerHTML = '<p style="padding:20px; text-align:center;">Loading sellers...</p>';
-
-    db.collection("users").where("role", "==", "seller").get().then(snapshot => {
-        let html = '<div style="margin-bottom:15px;"><strong>👥 All Sellers (' + snapshot.size + ')</strong></div>';
+    
+    db.collection("sellers").get().then(snapshot => {
+        let html = `<div style="margin-bottom:15px;"><strong>🏪 All Sellers (${snapshot.size})</strong></div><div style="display:flex; flex-direction:column; gap:10px;">`;
         snapshot.forEach(doc => {
             const data = doc.data();
+            const statusColor = data.kycStatus === 'verified' ? '#10b981' : data.kycStatus === 'pending' ? '#f59e0b' : '#ef4444';
             html += `
-                <div style="background:#f8fafc; border-radius:12px; padding:12px; border-left:4px solid #10b981; margin-bottom:10px;">
-                    <div style="font-weight:600;">${data.name || 'Unknown'}</div>
-                    <div style="font-size:13px; color:#64748b;">✉️ ${data.email || 'N/A'}</div>
-                    <div style="font-size:12px; color:#94a3b8;">📅 Joined: ${data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'N/A'}</div>
+                <div style="background:#f8fafc; border-radius:12px; padding:12px; border-left:4px solid ${statusColor}; cursor:pointer;" onclick='showSellerDetails("${doc.id}")'>
+                    <div style="font-weight:600;">🏪 ${data.shopName || 'Unknown'}</div>
+                    <div style="font-size:13px; color:#64748b;">👤 ${data.fullName || 'N/A'}</div>
+                    <div style="font-size:13px; color:#64748b;">📧 ${data.email || 'N/A'}</div>
+                    <div style="font-size:12px; color:#94a3b8;">💰 Earnings: ${getCurrencySymbol()}${convertPrice(data.earnings || 0)} | KYC: <span style="color:${statusColor};">${data.kycStatus || 'pending'}</span></div>
                 </div>
             `;
         });
+        html += '</div>';
         container.innerHTML = html;
     }).catch(error => {
         container.innerHTML = '<p style="color:#dc2626;">Error loading sellers: ' + error.message + '</p>';
@@ -874,30 +912,29 @@ function loadAllBuyers() {
 }
 
 function loadWithdrawalHistory() {
-    toggleSection('adminContent');
     const container = document.getElementById('pendingWithdrawals');
     container.style.display = 'block';
-    document.getElementById('pendingKycList').style.display = 'none';
-    container.innerHTML = '<p style="padding:20px; text-align:center;">Loading withdrawals...</p>';
-
-    db.collection("withdrawals").get().then(snapshot => {
-        let html = '<div style="margin-bottom:15px;"><strong>💰 Withdrawal History (' + snapshot.size + ')</strong></div>';
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            html += `
-                <div style="background:#f8fafc; border-radius:12px; padding:12px; border-left:4px solid #ef4444; margin-bottom:10px;">
-                    <div style="font-weight:600;">Amount: €${data.amount || '0'}</div>
-                    <div style="font-size:13px; color:#64748b;">Status: ${data.status || 'Pending'}</div>
-                    <div style="font-size:12px; color:#94a3b8;">User: ${data.userEmail || 'N/A'}</div>
-                </div>
-            `;
-        });
-        container.innerHTML = html;
-    }).catch(error => {
-        container.innerHTML = '<p style="color:#dc2626;">Error loading withdrawals: ' + error.message + '</p>';
+    
+    const history = withdrawalHistory.length > 0 ? withdrawalHistory : [];
+    if (history.length === 0) {
+        container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">📭 No withdrawal history</div>';
+        return;
+    }
+    
+    let html = `<div style="margin-bottom:15px;"><strong>📜 Withdrawal History</strong></div><div style="display:flex; flex-direction:column; gap:10px;">`;
+    history.forEach(w => {
+        const statusColor = w.status === 'Approved' ? '#10b981' : w.status === 'Pending' ? '#f59e0b' : '#ef4444';
+        html += `
+            <div style="background:#f8fafc; border-radius:12px; padding:12px; border-left:4px solid ${statusColor};">
+                <div style="font-weight:600;">💰 ${getCurrencySymbol()}${convertPrice(w.amount)} - ${w.sellerName}</div>
+                <div style="font-size:13px; color:#64748b;">📅 ${w.date || 'N/A'}</div>
+                <div style="font-size:12px; color:${statusColor};">Status: ${w.status || 'Pending'}</div>
+            </div>
+        `;
     });
+    html += '</div>';
+    container.innerHTML = html;
 }
-
 
 function showBuyerOrders(userId) {
     const container = document.getElementById('pendingKycList');
@@ -4449,4 +4486,3 @@ async function fetchAndRenderData(collection, containerId, queryType, limit = 5)
         console.error(e);
     }
 }
-
