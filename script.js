@@ -848,8 +848,7 @@ function loadAllBuyers() {
         container.innerHTML = '<p style="color:#dc2626;">Error loading buyers: ' + error.message + '</p>';
     });
 }
-
-    function loadAllSellers() {
+function loadAllSellers() {
     toggleSection('adminContent');
     document.getElementById('pendingKycList').style.display = 'block';
     document.getElementById('pendingWithdrawals').style.display = 'none';
@@ -857,7 +856,7 @@ function loadAllBuyers() {
     FetchAndRenderData('sellers', 'pendingKycList', 'admin');
 }
 
-    function loadWithdrawalHistory() {
+function loadWithdrawalHistory() {
     toggleSection('adminContent');
     document.getElementById('pendingWithdrawals').style.display = 'block';
     document.getElementById('pendingKycList').style.display = 'none';
