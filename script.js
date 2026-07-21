@@ -1998,7 +1998,6 @@ document.getElementById('drawerMyShop')?.addEventListener('click', function() {
 // SELLER DASHBOARD PAGINATION FUNCTION
 // ==========================================
 function renderSellerDashboard() {
-    // 1. Dashboard View Open करो
     const sellerDashboard = document.getElementById('sellerDashboard');
     if (sellerDashboard) sellerDashboard.style.display = 'block';
 
@@ -2006,55 +2005,49 @@ function renderSellerDashboard() {
         ? currentSeller.sellerId 
         : (firebase.auth().currentUser ? firebase.auth().currentUser.uid : null);
 
-    if (!currentSellerId) {
-        console.error("Seller ID not found");
-        return;
-    }
+    if (!currentSellerId) return;
 
-    // 2. Master Paginator Engine
+    // Master Paginator Engine - Seller Order History
     if (window.GlobalPaginator && typeof window.GlobalPaginator.load === 'function') {
         window.GlobalPaginator.load({
             isFresh: true,
-            containerId: 'pendingKycList', // Seller Dashboard Container ID
+            containerId: 'orderHistoryList', // Correct Seller Container ID
             collection: 'orders',
             where: [
                 ['sellerId', '==', currentSellerId]
             ],
-            limit: 5, // एक बार में 5 ऑर्डर्स ही लोड होंगे
+            limit: 5, // केवल 5 ऑर्डर्स ही लोड होंगे
             
             renderCard: (order, orderId) => {
                 const dateStr = order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleString() : (order.date || 'N/A');
-                const statusColor = order.status === 'Completed' ? '#dcfce7; color:#15803d;' : (order.status === 'Cancelled' ? '#fee2e2; color:#b91c1c;' : '#fef3c7; color:#b45309;');
+                const statusClass = (order.status || '').toLowerCase();
+                const statusColor = order.status === 'Cancelled' ? '#ef4444' : '#10b981';
 
                 return `
-                <div class="order-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px; margin-bottom: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 6px;">
-                        <div>
-                            <span style="font-weight: 700; font-size: 14px; color: #1e293b;">🏷️ ${order.trackingNumber || order.orderNumber || orderId}</span>
-                            <span style="background: ${statusColor}; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-left: 6px;">
-                                ${order.status || 'Completed'}
-                            </span>
-                        </div>
-                        <div style="font-size: 11px; color: #94a3b8;">📅 ${dateStr}</div>
+                <div class="order-card" style="border-left-color: ${statusColor}; margin-bottom: 12px; background: #fff; padding: 12px; border-radius: 10px; border-left-width: 4px; border-left-style: solid; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <div class="order-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <strong>🏷️ ${order.trackingNumber || order.orderNumber || orderId}</strong>
+                        <span class="order-status ${statusClass}" style="background: #f1f5f9; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                            ${order.status || 'Completed'}
+                        </span>
                     </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: #f8fafc; padding: 12px; border-radius: 12px; margin-bottom: 12px; font-size: 12px;">
-                        <div>
-                            <div style="color: #64748b; font-weight: 600;">📦 Product</div>
-                            <div style="font-weight: 700; color: #0f172a; margin-top: 2px;">${order.productName || 'Product'}</div>
-                            <div style="color: #64748b; font-size: 11px;">Qty: ${order.qty || 1} x €${order.price || '0.00'}</div>
-                            <div style="font-weight: 700; color: #0f172a; margin-top: 4px;">Total: €${order.amount || order.total || '0.00'}</div>
+                    <div class="order-details" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
+                        <div class="product-info">
+                            <div class="label" style="color: #64748b;">📦 Product</div>
+                            <div class="value" style="font-weight: 600;">${order.productName || 'Product'} x${order.qty || 1}</div>
+                            <div class="value" style="font-weight: 700; color: #10b981; margin-top: 2px;">
+                                Total: SAR ${order.amount || order.total || '0.00'}
+                            </div>
                         </div>
-                        <div>
-                            <div style="color: #64748b; font-weight: 600;">👤 Buyer</div>
-                            <div style="font-weight: 700; color: #0f172a; margin-top: 2px;">${order.buyerName || 'Buyer'}</div>
-                            <div style="color: #64748b; font-size: 11px; word-break: break-all;">📧 ${order.buyerEmail || 'N/A'}</div>
+                        <div class="buyer-info">
+                            <div class="label" style="color: #64748b;">👤 Buyer</div>
+                            <div class="value" style="font-weight: 600;">${order.buyerName || 'Buyer'}</div>
+                            <div class="value" style="color: #94a3b8; font-size: 11px;">📧 ${order.buyerEmail || 'N/A'}</div>
                         </div>
                     </div>
-
-                    <div>
+                    <div style="margin-top: 8px;">
                         <button onclick='showOrderDetailsInModal(${JSON.stringify(order).replace(/'/g, "&apos;")})' 
-                                style="background: #a855f7; color: white; border: none; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer;">
+                                style="background: #a855f7; color: white; border: none; padding: 5px 12px; border-radius: 15px; font-size: 11px; cursor: pointer;">
                             👁️ View Order
                         </button>
                     </div>
