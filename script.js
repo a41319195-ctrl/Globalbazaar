@@ -1994,8 +1994,9 @@ document.getElementById('drawerMyShop')?.addEventListener('click', function() {
         showMyShopLogin();
     }
 });
+
 // ==========================================
-// SELLER DASHBOARD PAGINATION FUNCTION
+// SELLER DASHBOARD ALL-IN-ONE PAGINATION
 // ==========================================
 function renderSellerDashboard() {
     const sellerDashboard = document.getElementById('sellerDashboard');
@@ -2005,18 +2006,27 @@ function renderSellerDashboard() {
         ? currentSeller.sellerId 
         : (firebase.auth().currentUser ? firebase.auth().currentUser.uid : null);
 
-    if (!currentSellerId) return;
+    if (!currentSellerId) {
+        console.error("Seller ID not found");
+        return;
+    }
 
-    // Master Paginator Engine - Seller Order History
+    // HTML के कंटेनर (pendingKycList) को JS खुद ही हैंडल और विजिबल करेगा
+    const targetContainer = document.getElementById('pendingKycList');
+    if (targetContainer) {
+        targetContainer.style.display = 'block';
+    }
+
+    // Master Paginator Call - JS खुद HTML में ऑर्डर्स और "Load More" बटन बना देगा
     if (window.GlobalPaginator && typeof window.GlobalPaginator.load === 'function') {
         window.GlobalPaginator.load({
             isFresh: true,
-            containerId: 'orderHistoryList', // Correct Seller Container ID
+            containerId: 'pendingKycList', // HTML Line 161 वाला Exact Container
             collection: 'orders',
             where: [
                 ['sellerId', '==', currentSellerId]
             ],
-            limit: 5, // केवल 5 ऑर्डर्स ही लोड होंगे
+            limit: 5, // एक बार में केवल 5 ही लोड होंगे
             
             renderCard: (order, orderId) => {
                 const dateStr = order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleString() : (order.date || 'N/A');
@@ -2056,7 +2066,6 @@ function renderSellerDashboard() {
         });
     }
 }
-
 
 // ============================================================
 // ORDER DETAILS MODAL
