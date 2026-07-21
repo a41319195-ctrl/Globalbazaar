@@ -4397,3 +4397,128 @@ document.addEventListener('input', function(e) {
         target.style.borderColor = (val === "") ? "#ccc" : (isValid ? "green" : "red");
     }
 });
+
+// ===============================================================
+// 🌐 GLOBAL PAGINATION ENGINE FOR GLOBAL BAZAAR (Admin/Buyer/Seller)
+// ===============================================================
+
+window.GlobalPaginator = {
+    state: {},
+
+    // 1. मास्टर फेच फंक्शन
+    load: function (options) {
+        /*
+          options = {
+             containerId: 'div_id',      // HTML Div जहाँ डेटा दिखाना है
+             collection: 'collection',   // Firebase Collection
+             where: [['field', '==', 'val']], // Query Filters (Optional)
+             orderBy: 'createdAt',       // Sorting (Default: 'createdAt')
+             limit: 5,                   // Per Page Limit (Default: 5)
+             renderCard: function(data, id){ return HTML_STRING; }
+          }
+        */
+
+        const {
+            containerId,
+            collection,
+            where = [],
+            orderBy = null,
+            limit = 6,
+            renderCard
+        } = options;
+
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        // स्टेट इनिशियलाइज़ेशन
+        if (!this.state[containerId] || options.isFresh) {
+            this.state[containerId] = {
+                lastDoc: null,
+                hasMore: true,
+                isLoading: false,
+                config: options
+            };
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:#64748b;">⏳ Data Loading...</div>';
+        }
+
+        const currentState = this.state[containerId];
+
+        if (currentState.isLoading || !currentState.hasMore) return;
+        currentState.isLoading = true;
+
+        // 2. Dynamic Query Builder
+        let query = db.collection(collection);
+
+        // Filters लागू करो
+        where.forEach(condition => {
+            if (condition && condition.length === 3) {
+                query = query.where(condition[0], condition[1], condition[2]);
+            }
+        });
+
+        // Sorting
+        if (orderBy) {
+            query = query.orderBy(orderBy, 'desc');
+        }
+
+        query = query.limit(limit);
+
+        // Next Page Logics
+        if (currentState.lastDoc) {
+            query = query.startAfter(currentState.lastDoc);
+        }
+
+        // 3. Execution
+        query.get().then(snapshot => {
+            if (!currentState.lastDoc) container.innerHTML = '';
+
+            if (snapshot.empty && !currentState.lastDoc) {
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">कोई रिकॉर्ड नहीं मिला।</div>';
+                currentState.hasMore = false;
+                currentState.isLoading = false;
+                return;
+            }
+
+            // Cards Render
+            snapshot.forEach(doc => {
+                const cardHTML = renderCard(doc.data(), doc.id);
+                container.insertAdjacentHTML('beforeend', cardHTML);
+            });
+
+            // Last Document Track
+            currentState.lastDoc = snapshot.docs[snapshot.docs.length - 1];
+
+            // Old Button Removal
+            const oldBtn = document.getElementById(`btn-more-${containerId}`);
+            if (oldBtn) oldBtn.remove();
+
+            // Load More Button UI
+            if (snapshot.docs.length === limit) {
+                const loadMoreBtn = `
+                    <div id="btn-more-${containerId}" style="text-align:center; margin:20px 0; width:100%;">
+                        <button onclick="window.GlobalPaginator.nextPage('${containerId}')" 
+                                style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color:white; border:none; padding:10px 22px; border-radius:20px; font-weight:600; cursor:pointer; box-shadow:0 4px 12px rgba(59,130,246,0.3);">
+                            📄 Load More Records
+                        </button>
+                    </div>`;
+                container.insertAdjacentHTML('beforeend', loadMoreBtn);
+            } else {
+                currentState.hasMore = false;
+            }
+
+            currentState.isLoading = false;
+        }).catch(err => {
+            console.error("Pagination Engine Error:", err);
+            container.innerHTML += `<div style="color:#ef4444; text-align:center; padding:10px;">Error: ${err.message}</div>`;
+            currentState.isLoading = false;
+        });
+    },
+
+    // 2. अगली बार क्लिक करने पर ऑटो-नेक्स्ट करने वाला मेथड
+    nextPage: function (containerId) {
+        if (this.state[containerId] && this.state[containerId].config) {
+            this.load(this.state[containerId].config);
+        }
+    }
+};
+
