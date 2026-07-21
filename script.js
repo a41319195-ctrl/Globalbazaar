@@ -770,21 +770,18 @@ function moveOrderToHistory(order) {
     renderSellerDashboard();
     showToast(`Order ${movedOrder.trackingNumber} moved to history`, false);
 }
-
 function renderOrderHistory() {
     const historyContainer = document.getElementById('orderHistoryContainer');
     if (!historyContainer) return;
     
-    // कंटेंनर दिखाओ
     historyContainer.classList.add('show');
 
-    // मास्टर पेजिनेशन इंजन को कॉल करो
+    // मास्टर पेजिनेशन इंजन को कॉल करो (orderBy हटा दिया गया है)
     window.GlobalPaginator.load({
         isFresh: true,
         containerId: 'orderHistoryList',
         collection: 'orders',
-        limit: 5, // एक बार में 5 ऑर्डर्स
-        orderBy: 'createdAt',
+        limit: 5, // एक बार में सिर्फ 5 लोड होंगे
         renderCard: (order, orderId) => {
             const statusClass = (order.status || '').toLowerCase();
             const statusColor = order.status === 'Cancelled' ? '#ef4444' : '#10b981';
