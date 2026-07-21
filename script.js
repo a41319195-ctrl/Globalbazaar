@@ -1994,6 +1994,76 @@ document.getElementById('drawerMyShop')?.addEventListener('click', function() {
         showMyShopLogin();
     }
 });
+// ==========================================
+// SELLER DASHBOARD PAGINATION FUNCTION
+// ==========================================
+function renderSellerDashboard() {
+    // 1. Dashboard View Open करो
+    const sellerDashboard = document.getElementById('sellerDashboard');
+    if (sellerDashboard) sellerDashboard.style.display = 'block';
+
+    const currentSellerId = (typeof currentSeller !== 'undefined' && currentSeller && currentSeller.sellerId) 
+        ? currentSeller.sellerId 
+        : (firebase.auth().currentUser ? firebase.auth().currentUser.uid : null);
+
+    if (!currentSellerId) {
+        console.error("Seller ID not found");
+        return;
+    }
+
+    // 2. Master Paginator Engine
+    if (window.GlobalPaginator && typeof window.GlobalPaginator.load === 'function') {
+        window.GlobalPaginator.load({
+            isFresh: true,
+            containerId: 'pendingKycList', // Seller Dashboard Container ID
+            collection: 'orders',
+            where: [
+                ['sellerId', '==', currentSellerId]
+            ],
+            limit: 5, // एक बार में 5 ऑर्डर्स ही लोड होंगे
+            
+            renderCard: (order, orderId) => {
+                const dateStr = order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleString() : (order.date || 'N/A');
+                const statusColor = order.status === 'Completed' ? '#dcfce7; color:#15803d;' : (order.status === 'Cancelled' ? '#fee2e2; color:#b91c1c;' : '#fef3c7; color:#b45309;');
+
+                return `
+                <div class="order-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px; margin-bottom: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 6px;">
+                        <div>
+                            <span style="font-weight: 700; font-size: 14px; color: #1e293b;">🏷️ ${order.trackingNumber || order.orderNumber || orderId}</span>
+                            <span style="background: ${statusColor}; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-left: 6px;">
+                                ${order.status || 'Completed'}
+                            </span>
+                        </div>
+                        <div style="font-size: 11px; color: #94a3b8;">📅 ${dateStr}</div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: #f8fafc; padding: 12px; border-radius: 12px; margin-bottom: 12px; font-size: 12px;">
+                        <div>
+                            <div style="color: #64748b; font-weight: 600;">📦 Product</div>
+                            <div style="font-weight: 700; color: #0f172a; margin-top: 2px;">${order.productName || 'Product'}</div>
+                            <div style="color: #64748b; font-size: 11px;">Qty: ${order.qty || 1} x €${order.price || '0.00'}</div>
+                            <div style="font-weight: 700; color: #0f172a; margin-top: 4px;">Total: €${order.amount || order.total || '0.00'}</div>
+                        </div>
+                        <div>
+                            <div style="color: #64748b; font-weight: 600;">👤 Buyer</div>
+                            <div style="font-weight: 700; color: #0f172a; margin-top: 2px;">${order.buyerName || 'Buyer'}</div>
+                            <div style="color: #64748b; font-size: 11px; word-break: break-all;">📧 ${order.buyerEmail || 'N/A'}</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <button onclick='showOrderDetailsInModal(${JSON.stringify(order).replace(/'/g, "&apos;")})' 
+                                style="background: #a855f7; color: white; border: none; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer;">
+                            👁️ View Order
+                        </button>
+                    </div>
+                </div>`;
+            }
+        });
+    }
+}
+
 
 // ============================================================
 // ORDER DETAILS MODAL
