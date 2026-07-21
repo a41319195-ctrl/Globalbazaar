@@ -776,12 +776,12 @@ function renderOrderHistory() {
     
     historyContainer.classList.add('show');
 
-    // मास्टर पेजिनेशन इंजन को कॉल करो (orderBy हटा दिया गया है)
+    // मास्टर पेजिनेशन इंजन को कॉल करो
     window.GlobalPaginator.load({
         isFresh: true,
         containerId: 'orderHistoryList',
         collection: 'orders',
-        limit: 5, // एक बार में सिर्फ 5 लोड होंगे
+        limit: 5,
         renderCard: (order, orderId) => {
             const statusClass = (order.status || '').toLowerCase();
             const statusColor = order.status === 'Cancelled' ? '#ef4444' : '#10b981';
@@ -861,76 +861,111 @@ function displayUserData(userData, type) {}
 function loadAllBuyers() {
     const container = document.getElementById('pendingKycList');
     container.style.display = 'block';
-    container.innerHTML = '<p style="padding:20px; text-align:center;">Loading buyers...</p>';
+    container.innerHTML = '';
     
-    db.collection("users").get().then(snapshot => {
-        let html = `<div style="margin-bottom:15px;"><strong>👥 All Buyers (${snapshot.size})</strong></div><div style="display:flex; flex-direction:column; gap:10px;">`;
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            html += `
-                <div style="background:#f8fafc; border-radius:12px; padding:12px; border-left:4px solid #3b82f6; cursor:pointer;" onclick='showBuyerOrders("${doc.id}")'>
-                    <div style="font-weight:600;">${data.name || 'Unknown'}</div>
-                    <div style="font-size:13px; color:#64748b;">📧 ${data.email || 'N/A'}</div>
-                    <div style="font-size:12px; color:#94a3b8;">📅 Joined: ${data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'N/A'}</div>
-                </div>
-            `;
-        });
-        html += '</div>';
-        container.innerHTML = html;
-    }).catch(error => {
-        container.innerHTML = '<p style="color:#dc2626;">Error loading buyers: ' + error.message + '</p>';
+    window.GlobalPaginator.load({
+        isFresh: true,
+        containerId: 'pendingKycList',
+        collection: 'users',
+        limit: 5,
+        renderCard: (data, id) => {
+            return `
+            <div style="background:#f8fafc; border-radius:12px; padding:12px; margin-bottom:10px; border-left:4px solid #3b82f6; cursor:pointer;" onclick='showBuyerOrders("${id}")'>
+                <div style="font-weight:600;">👤 ${data.name || 'Unknown'}</div>
+                <div style="font-size:13px; color:#64748b;">📧 ${data.email || 'N/A'}</div>
+                <div style="font-size:12px; color:#94a3b8;">📅 Joined: ${data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'N/A'}</div>
+                <div style="font-size:12px; color:#3b82f6; margin-top:4px;">🖱️ Click to view orders</div>
+            </div>`;
+        }
     });
 }
 
 function loadAllSellers() {
     const container = document.getElementById('pendingKycList');
     container.style.display = 'block';
-    container.innerHTML = '<p style="padding:20px; text-align:center;">Loading sellers...</p>';
+    container.innerHTML = '';
     
-    db.collection("sellers").get().then(snapshot => {
-        let html = `<div style="margin-bottom:15px;"><strong>🏪 All Sellers (${snapshot.size})</strong></div><div style="display:flex; flex-direction:column; gap:10px;">`;
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const statusColor = data.kycStatus === 'verified' ? '#10b981' : data.kycStatus === 'pending' ? '#f59e0b' : '#ef4444';
-            html += `
-                <div style="background:#f8fafc; border-radius:12px; padding:12px; border-left:4px solid ${statusColor}; cursor:pointer;" onclick='showSellerDetails("${doc.id}")'>
-                    <div style="font-weight:600;">🏪 ${data.shopName || 'Unknown'}</div>
-                    <div style="font-size:13px; color:#64748b;">👤 ${data.fullName || 'N/A'}</div>
-                    <div style="font-size:13px; color:#64748b;">📧 ${data.email || 'N/A'}</div>
-                    <div style="font-size:12px; color:#94a3b8;">💰 Earnings: ${getCurrencySymbol()}${convertPrice(data.earnings || 0)} | KYC: <span style="color:${statusColor};">${data.kycStatus || 'pending'}</span></div>
-                </div>
-            `;
-        });
-        html += '</div>';
-        container.innerHTML = html;
-    }).catch(error => {
-        container.innerHTML = '<p style="color:#dc2626;">Error loading sellers: ' + error.message + '</p>';
+    window.GlobalPaginator.load({
+        isFresh: true,
+        containerId: 'pendingKycList',
+        collection: 'sellers',
+        limit: 5,
+        renderCard: (data, id) => {
+            const statusColor = data.kycStatus === 'verified' ? '#10b981' : 
+                               data.kycStatus === 'pending' ? '#f59e0b' : '#ef4444';
+            return `
+            <div style="background:#f8fafc; border-radius:12px; padding:12px; margin-bottom:10px; border-left:4px solid ${statusColor}; cursor:pointer;" onclick='showSellerDetails("${id}")'>
+                <div style="font-weight:600;">🏪 ${data.shopName || 'Unknown'}</div>
+                <div style="font-size:13px; color:#64748b;">👤 ${data.fullName || 'N/A'} | 📧 ${data.email || 'N/A'}</div>
+                <div style="font-size:12px; color:#94a3b8;">💰 Earnings: ${getCurrencySymbol()}${convertPrice(data.earnings || 0)} | KYC: <span style="color:${statusColor};">${data.kycStatus || 'pending'}</span></div>
+                <div style="font-size:12px; color:#3b82f6; margin-top:4px;">🖱️ Click to view details</div>
+            </div>`;
+        }
     });
 }
 
 function loadWithdrawalHistory() {
     const container = document.getElementById('pendingWithdrawals');
-    container.style.display = 'block';
+    if (!container) return;
     
-    const history = withdrawalHistory.length > 0 ? withdrawalHistory : [];
-    if (history.length === 0) {
+    container.style.display = 'block';
+    container.innerHTML = '';
+    
+    if (withdrawalHistory.length === 0) {
         container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">📭 No withdrawal history</div>';
         return;
     }
     
-    let html = `<div style="margin-bottom:15px;"><strong>📜 Withdrawal History</strong></div><div style="display:flex; flex-direction:column; gap:10px;">`;
-    history.forEach(w => {
-        const statusColor = w.status === 'Approved' ? '#10b981' : w.status === 'Pending' ? '#f59e0b' : '#ef4444';
-        html += `
-            <div style="background:#f8fafc; border-radius:12px; padding:12px; border-left:4px solid ${statusColor};">
-                <div style="font-weight:600;">💰 ${getCurrencySymbol()}${convertPrice(w.amount)} - ${w.sellerName}</div>
+    // Local pagination for history
+    let currentPage = 0;
+    const pageSize = 5;
+    let allHistory = [...withdrawalHistory];
+    
+    function renderHistoryPage() {
+        const start = currentPage * pageSize;
+        const end = start + pageSize;
+        const pageItems = allHistory.slice(start, end);
+        
+        if (start === 0) container.innerHTML = `<div style="margin-bottom:15px; font-weight:600;">📜 Withdrawal History</div>`;
+        
+        pageItems.forEach(w => {
+            const statusColor = w.status === 'Approved' ? '#10b981' : '#ef4444';
+            const div = document.createElement('div');
+            div.style.cssText = `background:#f8fafc; border-radius:12px; padding:12px; margin-bottom:10px; border-left:4px solid ${statusColor};`;
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                    <span style="font-weight:600;">💰 ${getCurrencySymbol()}${convertPrice(w.amount)} - ${w.sellerName}</span>
+                    <span style="color:${statusColor}; font-weight:600; font-size:12px;">${w.status || 'Approved'}</span>
+                </div>
                 <div style="font-size:13px; color:#64748b;">📅 ${w.date || 'N/A'}</div>
-                <div style="font-size:12px; color:${statusColor};">Status: ${w.status || 'Pending'}</div>
-            </div>
-        `;
-    });
-    html += '</div>';
-    container.innerHTML = html;
+                ${w.approvedAt ? `<div style="font-size:12px; color:#94a3b8;">✅ Approved: ${new Date(w.approvedAt).toLocaleString()}</div>` : ''}
+            `;
+            container.appendChild(div);
+        });
+        
+        const oldBtn = document.getElementById('btn-more-history');
+        if (oldBtn) oldBtn.remove();
+        
+        if (end < allHistory.length) {
+            const btnDiv = document.createElement('div');
+            btnDiv.id = 'btn-more-history';
+            btnDiv.style.cssText = 'text-align:center; margin:15px 0; width:100%;';
+            btnDiv.innerHTML = `
+                <button onclick="loadMoreHistory()" 
+                        style="background:linear-gradient(135deg,#3b82f6,#1d4ed8); color:white; border:none; padding:10px 22px; border-radius:20px; font-weight:600; cursor:pointer; box-shadow:0 4px 12px rgba(59,130,246,0.3);">
+                    📄 Load More History
+                </button>
+            `;
+            container.appendChild(btnDiv);
+        }
+    }
+    
+    window.loadMoreHistory = function() {
+        currentPage++;
+        renderHistoryPage();
+    };
+    
+    renderHistoryPage();
 }
 
 function showBuyerOrders(userId) {
@@ -1342,73 +1377,113 @@ function showMyOrdersPage() {
 }
 
 // ============================================================
-// RENDER BUYER ORDERS
+// RENDER BUYER ORDERS WITH PAGINATION
 // ============================================================
 
 function renderBuyerOrders() {
     const user = auth.currentUser;
     if (!user) return;
     
-    let activeOrders = orders.filter(o => 
-        o.buyerEmail === user.email && 
-        o.status !== 'Cancelled' && 
-        o.status !== 'Completed'
-    );
-    
-    renderOrderHistory();
-    
-    const container = document.getElementById('buyerOrdersList');
-    if (!container) return;
-    
-    if (activeOrders.length === 0) {
-        container.innerHTML = '<div class="premium-card"><p>No active orders. Check your order history for completed orders.</p></div>';
-        return;
-    }
-    
-    let ordersHtml = '';
-    activeOrders.forEach(o => {
-        ordersHtml += `
-            <div class="order-card" data-order-id="${o.id}">
-                <div class="order-header">
-                    <strong>🔖 ${o.trackingNumber}</strong>
-                    <span class="order-status ${o.status.toLowerCase()}">${o.status}</span>
+    // Active Orders - Pagination
+    window.GlobalPaginator.load({
+        isFresh: true,
+        containerId: 'buyerOrdersList',
+        collection: 'orders',
+        where: [
+            ['buyerEmail', '==', user.email]
+        ],
+        limit: 5,
+        renderCard: (order, orderId) => {
+            const statusClass = (order.status || '').toLowerCase();
+            const statusColor = order.status === 'Cancelled' ? '#ef4444' : '#10b981';
+            
+            let actionsHtml = '';
+            if (order.status === "Shipped" || order.status === "Delivered") {
+                actionsHtml = `<button onclick="confirmOrderReceived(${order.id})" style="background:#10b981; color:white; border:none; padding:4px 12px; border-radius:16px; cursor:pointer; font-size:11px;">✅ Received</button>`;
+            }
+            if (order.status === "Processing") {
+                actionsHtml = `<button onclick="cancelOrder(${order.id})" style="background:#dc2626; color:white; border:none; padding:4px 12px; border-radius:16px; cursor:pointer; font-size:11px;">❌ Cancel</button>`;
+            }
+            
+            return `
+            <div class="order-card" data-order-id="${order.id}" style="border-left-color: ${statusColor}; margin-bottom: 12px; background: #fff; padding: 12px; border-radius: 10px; border-left-width: 4px; border-left-style: solid; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                <div class="order-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <strong>🔖 ${order.trackingNumber || order.orderNumber || orderId}</strong>
+                    <span class="order-status ${statusClass}" style="background: #f1f5f9; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                        ${order.status || 'Processing'}
+                    </span>
                 </div>
-                <div class="order-details">
+                <div class="order-details" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
                     <div class="product-info">
-                        <div class="label">📦 Product</div>
-                        <div class="value">${o.productName} x${o.qty}</div>
-                        <div class="value">${getCurrencySymbol()}${convertPrice(o.amount)}</div>
-                        ${o.shippingCost > 0 ? `<div class="value" style="font-size:11px; color:#64748b;">🚚 +${getCurrencySymbol()}${convertPrice(o.shippingCost)} shipping</div>` : 
+                        <div class="label" style="color: #64748b;">📦 Product</div>
+                        <div class="value" style="font-weight: 600;">${order.productName || 'Product'} x${order.qty || 1}</div>
+                        <div class="value" style="font-weight: 700; color: #10b981; margin-top: 2px;">
+                            ${getCurrencySymbol()}${convertPrice(order.amount || order.total || 0)}
+                        </div>
+                        ${order.shippingCost > 0 ? `<div class="value" style="font-size:11px; color:#64748b;">🚚 +${getCurrencySymbol()}${convertPrice(order.shippingCost)} shipping</div>` : 
                         `<div class="value" style="font-size:11px; color:#10b981;">🚚 Free Shipping</div>`}
                     </div>
                     <div class="buyer-info">
-                        <div class="label">📅 Order Details</div>
-                        <div class="value">Date: ${o.date}</div>
-                        <div class="value">${o.trackingInfo ? `📮 Tracking: ${o.trackingInfo.trackingNumber || o.trackingInfo}` : ''}</div>
-                        ${o.status === "Shipped" || o.status === "Delivered" ? `<button class="confirmReceivedBtn" data-id="${o.id}" style="background:#10b981; color:white; border:none; padding:4px 12px; border-radius:16px; cursor:pointer; font-size:11px;">✅ Received</button>` : ''}
-                        ${o.status === "Processing" ? `<button class="cancelOrderBtn" data-id="${o.id}" style="background:#dc2626; color:white; border:none; padding:4px 12px; border-radius:16px; cursor:pointer; font-size:11px;">❌ Cancel</button>` : ''}
+                        <div class="label" style="color: #64748b;">📅 Order Details</div>
+                        <div class="value" style="font-size: 11px; color: #94a3b8;">📅 ${order.date || (order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString() : 'N/A')}</div>
+                        ${order.trackingInfo ? `<div class="value" style="font-size: 11px;">📮 Tracking: ${order.trackingInfo.trackingNumber || order.trackingInfo}</div>` : ''}
+                        <div style="margin-top: 4px;">${actionsHtml}</div>
                     </div>
                 </div>
-            </div>
-        `;
-    });
-    
-    container.innerHTML = ordersHtml;
-    
-    document.querySelectorAll('.order-card').forEach((card) => {
-        const orderId = parseFloat(card.dataset.orderId);
-        const order = activeOrders.find(o => o.id === orderId);
-        if (order) {
-            setupOrderThreeDotMenu(card, order);
+                ${order.splitBreakdown ? `
+                    <div style="margin-top: 8px; padding: 8px; background: #f0fdf4; border-radius: 6px; font-size: 11px; border: 1px solid #bbf7d0;">
+                        💰 Seller Payout: ${getCurrencySymbol()}${convertPrice(order.splitBreakdown.finalSellerPayout || 0)} | 
+                        Status: ${order.splitBreakdown.isReleased ? '✅ Released' : '⏳ Pending'}
+                    </div>
+                ` : ''}
+            </div>`;
         }
     });
     
-    document.querySelectorAll('.confirmReceivedBtn').forEach(btn => {
-        btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id)));
+    // Order History - Pagination
+    window.GlobalPaginator.load({
+        isFresh: true,
+        containerId: 'orderHistoryList',
+        collection: 'orders',
+        where: [
+            ['buyerEmail', '==', user.email],
+            ['status', 'in', ['Completed', 'Cancelled']]
+        ],
+        limit: 5,
+        renderCard: (order, orderId) => {
+            const statusClass = (order.status || '').toLowerCase();
+            const statusColor = order.status === 'Cancelled' ? '#ef4444' : '#10b981';
+            
+            return `
+            <div class="order-card" style="border-left-color: ${statusColor}; margin-bottom: 12px; background: #f8fafc; padding: 12px; border-radius: 10px; border-left-width: 4px; border-left-style: solid; box-shadow: 0 2px 4px rgba(0,0,0,0.05); opacity: 0.8;">
+                <div class="order-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <strong>🏷️ ${order.trackingNumber || order.orderNumber || orderId}</strong>
+                    <span class="order-status ${statusClass}" style="background: #f1f5f9; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                        ${order.status || 'Completed'}
+                    </span>
+                </div>
+                <div class="order-details" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
+                    <div class="product-info">
+                        <div class="label" style="color: #64748b;">📦 Product</div>
+                        <div class="value" style="font-weight: 600;">${order.productName || 'Product'} x${order.qty || 1}</div>
+                        <div class="value" style="font-weight: 700; color: #10b981; margin-top: 2px;">
+                            ${getCurrencySymbol()}${convertPrice(order.amount || order.total || 0)}
+                        </div>
+                    </div>
+                    <div class="buyer-info">
+                        <div class="label" style="color: #64748b;">👤 Buyer</div>
+                        <div class="value" style="font-weight: 600;">${order.buyerName || 'Buyer'}</div>
+                        <div class="value" style="color: #94a3b8; font-size: 11px;">📅 ${order.date || (order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString() : 'N/A')}</div>
+                    </div>
+                </div>
+            </div>`;
+        }
     });
-    document.querySelectorAll('.cancelOrderBtn').forEach(btn => {
-        btn.addEventListener('click', () => cancelOrder(parseFloat(btn.dataset.id)));
-    });
+    
+    const historyContainer = document.getElementById('orderHistoryContainer');
+    if (historyContainer) {
+        historyContainer.style.display = 'block';
+    }
 }
 
 // ============================================================
@@ -2011,60 +2086,73 @@ function renderSellerDashboard() {
         return;
     }
 
-    // HTML के कंटेनर (pendingKycList) को JS खुद ही हैंडल और विजिबल करेगा
     const targetContainer = document.getElementById('pendingKycList');
     if (targetContainer) {
         targetContainer.style.display = 'block';
     }
 
-    // Master Paginator Call - JS खुद HTML में ऑर्डर्स और "Load More" बटन बना देगा
-    if (window.GlobalPaginator && typeof window.GlobalPaginator.load === 'function') {
-        window.GlobalPaginator.load({
-            isFresh: true,
-            containerId: 'pendingKycList', // HTML Line 161 वाला Exact Container
-            collection: 'orders',
-            where: [
-                ['sellerId', '==', currentSellerId]
-            ],
-            limit: 5, // एक बार में केवल 5 ही लोड होंगे
-            
-            renderCard: (order, orderId) => {
-                const dateStr = order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleString() : (order.date || 'N/A');
-                const statusClass = (order.status || '').toLowerCase();
-                const statusColor = order.status === 'Cancelled' ? '#ef4444' : '#10b981';
+    // Seller Orders - Pagination
+    window.GlobalPaginator.load({
+        isFresh: true,
+        containerId: 'pendingKycList',
+        collection: 'orders',
+        where: [
+            ['sellerId', '==', currentSellerId]
+        ],
+        limit: 5,
+        renderCard: (order, orderId) => {
+            const statusClass = (order.status || '').toLowerCase();
+            const statusColor = order.status === 'Cancelled' ? '#ef4444' : '#10b981';
 
-                return `
-                <div class="order-card" style="border-left-color: ${statusColor}; margin-bottom: 12px; background: #fff; padding: 12px; border-radius: 10px; border-left-width: 4px; border-left-style: solid; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                    <div class="order-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <strong>🏷️ ${order.trackingNumber || order.orderNumber || orderId}</strong>
-                        <span class="order-status ${statusClass}" style="background: #f1f5f9; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
-                            ${order.status || 'Completed'}
-                        </span>
-                    </div>
-                    <div class="order-details" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
-                        <div class="product-info">
-                            <div class="label" style="color: #64748b;">📦 Product</div>
-                            <div class="value" style="font-weight: 600;">${order.productName || 'Product'} x${order.qty || 1}</div>
-                            <div class="value" style="font-weight: 700; color: #10b981; margin-top: 2px;">
-                                Total: SAR ${order.amount || order.total || '0.00'}
-                            </div>
+            return `
+            <div class="order-card" style="border-left-color: ${statusColor}; margin-bottom: 12px; background: #fff; padding: 12px; border-radius: 10px; border-left-width: 4px; border-left-style: solid; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                <div class="order-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <strong>🏷️ ${order.trackingNumber || order.orderNumber || orderId}</strong>
+                    <span class="order-status ${statusClass}" style="background: #f1f5f9; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                        ${order.status || 'Processing'}
+                    </span>
+                </div>
+                <div class="order-details" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
+                    <div class="product-info">
+                        <div class="label" style="color: #64748b;">📦 Product</div>
+                        <div class="value" style="font-weight: 600;">${order.productName || 'Product'} x${order.qty || 1}</div>
+                        <div class="value" style="font-weight: 700; color: #10b981; margin-top: 2px;">
+                            Total: SAR ${order.amount || order.total || '0.00'}
                         </div>
-                        <div class="buyer-info">
-                            <div class="label" style="color: #64748b;">👤 Buyer</div>
-                            <div class="value" style="font-weight: 600;">${order.buyerName || 'Buyer'}</div>
-                            <div class="value" style="color: #94a3b8; font-size: 11px;">📧 ${order.buyerEmail || 'N/A'}</div>
-                        </div>
+                        ${order.shippingCost > 0 ? `<div style="font-size:11px; color:#64748b;">🚚 +${getCurrencySymbol()}${convertPrice(order.shippingCost)} shipping</div>` : 
+                        `<div style="font-size:11px; color:#10b981;">🚚 Free Shipping</div>`}
                     </div>
-                    <div style="margin-top: 8px;">
-                        <button onclick='showOrderDetailsInModal(${JSON.stringify(order).replace(/'/g, "&apos;")})' 
-                                style="background: #a855f7; color: white; border: none; padding: 5px 12px; border-radius: 15px; font-size: 11px; cursor: pointer;">
-                            👁️ View Order
-                        </button>
+                    <div class="buyer-info">
+                        <div class="label" style="color: #64748b;">👤 Buyer</div>
+                        <div class="value" style="font-weight: 600;">${order.buyerName || 'Buyer'}</div>
+                        <div class="value" style="color: #94a3b8; font-size: 11px;">📧 ${order.buyerEmail || 'N/A'}</div>
+                        <div class="value" style="font-size: 11px;">📅 ${order.date || (order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString() : 'N/A')}</div>
                     </div>
-                </div>`;
-            }
-        });
-    }
+                </div>
+                <div style="margin-top: 8px;">
+                    <button onclick='showOrderDetailsModal(${JSON.stringify(order).replace(/'/g, "&apos;")})' 
+                            style="background: #a855f7; color: white; border: none; padding: 5px 12px; border-radius: 15px; font-size: 11px; cursor: pointer;">
+                        👁️ View Order
+                    </button>
+                    ${order.status === "Processing" ? `
+                    <button onclick="markOrderShipped(${order.id}, prompt('Enter tracking number:'))" 
+                            style="background: #3b82f6; color: white; border: none; padding: 5px 12px; border-radius: 15px; font-size: 11px; cursor: pointer; margin-left: 5px;">
+                        📦 Ship
+                    </button>` : ''}
+                    ${order.splitBreakdown?.isReleased ? `
+                    <span style="background: #10b981; color: white; padding: 3px 10px; border-radius: 12px; font-size: 10px; margin-left: 5px;">
+                        💰 Paid
+                    </span>` : ''}
+                </div>
+                ${order.splitBreakdown ? `
+                    <div style="margin-top: 6px; padding: 6px; background: #f0fdf4; border-radius: 4px; font-size: 10px; border: 1px solid #bbf7d0;">
+                        💰 Seller Payout: ${getCurrencySymbol()}${convertPrice(order.splitBreakdown.finalSellerPayout || 0)} | 
+                        Status: ${order.splitBreakdown.isReleased ? '✅ Released' : '⏳ Pending'}
+                    </div>
+                ` : ''}
+            </div>`;
+        }
+    });
 }
 
 // ============================================================
@@ -4127,183 +4215,318 @@ document.querySelectorAll('.admin-menu-item[data-section]').forEach(item => {
 });
 
 function loadPendingSellers() {
-    const pending = sellers.filter(s => s.kycStatus === 'pending');
     const container = document.getElementById('pendingKycList');
-    if (pending.length === 0) {
-        container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">✅ No pending KYC requests</div>';
-        return;
-    }
-    let html = `<div style="margin-bottom:15px;"><strong>Total Pending: ${pending.length}</strong></div><div style="display:flex; flex-direction:column; gap:12px;">`;
-    pending.forEach((seller, idx) => {
-        html += `
-            <div style="background:#f8fafc; border-radius:16px; padding:12px; border-left:4px solid #fbbf24;">
-                <div style="font-weight:bold;">${idx+1}. ${seller.shopName}</div>
-                <div>👤 ${seller.fullName}</div>
-                <div>📧 ${seller.email}</div>
-                <div>📞 ${seller.phone}</div>
-                <div>📄 ${seller.docType} - ${seller.docNumber}</div>
-                <div style="margin-top:8px;">
-                    <button class="btn-approve" data-id="${seller.id}" style="background:#10b981; color:white; border:none; padding:6px 12px; border-radius:20px; margin-right:8px;">✅ Approve</button>
-                    <button class="btn-reject" data-id="${seller.id}" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:20px;">❌ Reject</button>
-                    <button class="btn-view-doc" onclick='viewSellerDocument("${seller.docImage}","${seller.docType}","${seller.shopName}")' style="background:#3b82f6; color:white; border:none; padding:4px 10px; border-radius:15px; margin-left:8px;">📄 View</button>
+    if (!container) return;
+    
+    container.style.display = 'block';
+    container.innerHTML = '';
+    
+    window.GlobalPaginator.load({
+        isFresh: true,
+        containerId: 'pendingKycList',
+        collection: 'sellers',
+        where: [['kycStatus', '==', 'pending']],
+        limit: 5,
+        renderCard: (seller, id) => {
+            return `
+            <div style="background:#fef3c7; border-radius:16px; padding:14px; margin-bottom:10px; border-left:4px solid #fbbf24;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                    <div style="font-weight:bold; font-size:16px;">🏪 ${seller.shopName || 'Unknown'}</div>
+                    <span style="background:#fbbf24; color:#1e293b; padding:2px 12px; border-radius:20px; font-size:11px; font-weight:600;">⏳ PENDING</span>
                 </div>
-            </div>
-        `;
-    });
-    html += '</div>';
-    container.innerHTML = html;
-    
-    container.querySelectorAll('.btn-approve').forEach(btn => {
-        btn.addEventListener('click', async function(e) {
-            e.stopPropagation();
-            const sellerId = this.dataset.id;
-            if (!sellerId) { showToast("Seller ID not found", true); return; }
-            try {
-                if (!isAdminLoggedIn) { showToast("Please login as admin", true); return; }
-                
-                const sellerRef = db.collection("sellers").doc(sellerId);
-                const sellerDoc = await sellerRef.get();
-                if (sellerDoc.exists && sellerDoc.data().kycStatus === 'verified') {
-                    showToast("⚠️ This seller is already verified!", true);
-                    return;
-                }
-                
-                await sellerRef.update({ 
-                    kycStatus: 'verified', 
-                    verifiedAt: new Date().toISOString() 
-                });
-                
-                showToast("✅ Seller approved successfully!", false);
-                addNotification(`Seller KYC verified`, 'info');
-                await sendTelegramMessage(`✅ KYC Verified: ${sellerDoc.data().shopName}`);
-                
-                const snapshot = await db.collection("sellers").get();
-                sellers = [];
-                snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
-                updateAdminPendingBadge();
-                updateAdminMenuBadges();
-                loadPendingSellers();
-                document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
-                
-            } catch (error) {
-                console.error("Approve error:", error);
-                showToast("Error approving seller: " + error.message, true);
-            }
-        });
+                <div style="margin-top:6px;">
+                    <div>👤 ${seller.fullName || 'N/A'}</div>
+                    <div>📧 ${seller.email || 'N/A'}</div>
+                    <div>📞 ${seller.phone || 'N/A'}</div>
+                    <div>📍 ${seller.city || 'N/A'}, ${seller.country || 'N/A'}</div>
+                    <div>📄 ${seller.docType || 'N/A'} - ${seller.docNumber || 'N/A'}</div>
+                </div>
+                ${seller.docImage ? `
+                    <div style="margin-top:6px;">
+                        <button onclick='viewSellerDocument("${seller.docImage}","${seller.docType}","${seller.shopName}")' 
+                                style="background:#3b82f6; color:white; border:none; padding:4px 12px; border-radius:15px; cursor:pointer; font-size:11px;">
+                            📄 View Document
+                        </button>
+                    </div>
+                ` : ''}
+                <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+                    <button class="btn-approve" data-id="${seller.id}" 
+                            style="background:#10b981; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
+                        ✅ Approve
+                    </button>
+                    <button class="btn-reject" data-id="${seller.id}" 
+                            style="background:#ef4444; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
+                        ❌ Reject
+                    </button>
+                </div>
+            </div>`;
+        }
     });
     
-    container.querySelectorAll('.btn-reject').forEach(btn => {
-        btn.addEventListener('click', async function(e) {
-            e.stopPropagation();
-            const sellerId = this.dataset.id;
-            if (!sellerId) { showToast("Seller ID not found", true); return; }
-            const reason = prompt("Enter rejection reason:");
-            if (reason === null) return;
-            if (!reason.trim()) { showToast("Please enter a reason", true); return; }
-            try {
-                if (!isAdminLoggedIn) { showToast("Please login as admin", true); return; }
-                
-                const sellerRef = db.collection("sellers").doc(sellerId);
-                const sellerDoc = await sellerRef.get();
-                if (sellerDoc.exists && sellerDoc.data().kycStatus === 'rejected') {
-                    showToast("⚠️ This seller is already rejected!", true);
-                    return;
+    // Approve/Reject event listeners
+    setTimeout(() => {
+        document.querySelectorAll('#pendingKycList .btn-approve').forEach(btn => {
+            btn.addEventListener('click', async function(e) {
+                e.stopPropagation();
+                const sellerId = this.dataset.id;
+                if (!sellerId) { showToast("Seller ID not found", true); return; }
+                try {
+                    const sellerRef = db.collection("sellers").doc(sellerId);
+                    const sellerDoc = await sellerRef.get();
+                    if (sellerDoc.exists && sellerDoc.data().kycStatus === 'verified') {
+                        showToast("⚠️ This seller is already verified!", true);
+                        return;
+                    }
+                    await sellerRef.update({ 
+                        kycStatus: 'verified', 
+                        verifiedAt: new Date().toISOString() 
+                    });
+                    showToast("✅ Seller approved successfully!", false);
+                    addNotification(`Seller KYC verified`, 'info');
+                    await sendTelegramMessage(`✅ KYC Verified: ${sellerDoc.data().shopName}`);
+                    const snapshot = await db.collection("sellers").get();
+                    sellers = [];
+                    snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
+                    updateAdminPendingBadge();
+                    updateAdminMenuBadges();
+                    loadPendingSellers();
+                } catch (error) {
+                    console.error("Approve error:", error);
+                    showToast("Error approving seller: " + error.message, true);
                 }
-                
-                await sellerRef.update({ 
-                    kycStatus: 'rejected', 
-                    rejectionReason: reason.trim(),
-                    rejectedAt: new Date().toISOString()
-                });
-                
-                showToast("❌ Seller rejected", false);
-                addNotification(`Seller KYC rejected: ${reason}`, 'info');
-                await sendTelegramMessage(`❌ KYC Rejected: ${reason}`);
-                
-                const snapshot = await db.collection("sellers").get();
-                sellers = [];
-                snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
-                updateAdminPendingBadge();
-                updateAdminMenuBadges();
-                loadPendingSellers();
-                document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
-            } catch (error) {
-                console.error("Reject error:", error);
-                showToast("Error rejecting seller: " + error.message, true);
-            }
+            });
         });
-    });
+        
+        document.querySelectorAll('#pendingKycList .btn-reject').forEach(btn => {
+            btn.addEventListener('click', async function(e) {
+                e.stopPropagation();
+                const sellerId = this.dataset.id;
+                if (!sellerId) { showToast("Seller ID not found", true); return; }
+                const reason = prompt("Enter rejection reason:");
+                if (reason === null) return;
+                if (!reason.trim()) { showToast("Please enter a reason", true); return; }
+                try {
+                    const sellerRef = db.collection("sellers").doc(sellerId);
+                    await sellerRef.update({ 
+                        kycStatus: 'rejected', 
+                        rejectionReason: reason.trim(),
+                        rejectedAt: new Date().toISOString()
+                    });
+                    showToast("❌ Seller rejected", false);
+                    addNotification(`Seller KYC rejected: ${reason}`, 'info');
+                    await sendTelegramMessage(`❌ KYC Rejected: ${reason}`);
+                    const snapshot = await db.collection("sellers").get();
+                    sellers = [];
+                    snapshot.forEach(doc => { sellers.push({ id: doc.id, ...doc.data() }); });
+                    updateAdminPendingBadge();
+                    updateAdminMenuBadges();
+                    loadPendingSellers();
+                } catch (error) {
+                    console.error("Reject error:", error);
+                    showToast("Error rejecting seller: " + error.message, true);
+                }
+            });
+        });
+    }, 500);
 }
 
 function loadVerifiedSellers() {
-    const verified = sellers.filter(s => s.kycStatus === 'verified');
     const container = document.getElementById('verifiedSellersList');
-    if (verified.length === 0) {
-        container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">No verified sellers yet</div>';
-        return;
-    }
-    let html = `<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Shipping Zones</th><th>Joined</th></tr></thead><tbody>`;
-    verified.forEach(s => {
-        let zones = '❌ Not set';
-        if (s.shippingZones) {
-            const local = s.shippingZones.local?.countries?.length || 0;
-            const regional = s.shippingZones.regional?.countries?.length || 0;
-            const international = s.shippingZones.international?.countries?.length || 0;
-            zones = `📍${local} 🌏${regional} 🌐${international}`;
+    if (!container) return;
+    
+    container.style.display = 'block';
+    container.innerHTML = '';
+    
+    window.GlobalPaginator.load({
+        isFresh: true,
+        containerId: 'verifiedSellersList',
+        collection: 'sellers',
+        where: [['kycStatus', '==', 'verified']],
+        limit: 5,
+        renderCard: (seller, id) => {
+            return `
+            <div style="background:#f0fdf4; border-radius:12px; padding:12px; margin-bottom:10px; border-left:4px solid #10b981;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="font-weight:600; font-size:15px;">🏪 ${seller.shopName || 'Unknown'}</div>
+                    <span style="background:#10b981; color:white; padding:2px 12px; border-radius:20px; font-size:11px;">✅ Verified</span>
+                </div>
+                <div style="font-size:13px; color:#64748b; margin-top:4px;">
+                    👤 ${seller.fullName || 'N/A'} | 📧 ${seller.email || 'N/A'}
+                </div>
+                <div style="font-size:12px; color:#94a3b8;">
+                    📞 ${seller.phone || 'N/A'} | 📍 ${seller.city || 'N/A'}, ${seller.country || 'N/A'}
+                </div>
+                <div style="font-size:13px; color:#10b981; margin-top:4px; font-weight:600;">
+                    💰 Earnings: ${getCurrencySymbol()}${convertPrice(seller.earnings || 0)}
+                </div>
+                <div style="font-size:12px; color:#94a3b8;">
+                    📦 Total Sales: ${seller.totalSales || 0} | 📅 Joined: ${seller.createdAt ? new Date(seller.createdAt).toLocaleDateString() : 'N/A'}
+                </div>
+            </div>`;
         }
-        html += `<tr><td>🏪 ${s.shopName}</td><td>${s.fullName}</td><td>${s.email}</td><td style="font-size:12px;">${zones}</td><td>${new Date(s.createdAt).toLocaleDateString()}</td></tr>`;
     });
-    html += '</tbody></table>';
-    container.innerHTML = html;
 }
 
 function loadWithdrawalsList() {
     const container = document.getElementById('pendingWithdrawals');
+    if (!container) return;
+    
+    container.style.display = 'block';
+    container.innerHTML = '';
+    
     if (pendingWithdrawals.length === 0) {
-        container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">No pending withdrawals</div>';
+        container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">💰 No pending withdrawals</div>';
         return;
     }
-    let html = pendingWithdrawals.map(w => `<div class="order-card"><span>💰 ${getCurrencySymbol()}${convertPrice(w.amount)} - ${w.sellerName}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981; color:white; border:none; padding:4px 12px; border-radius:20px;">Approve</button></div>`).join('');
-    container.innerHTML = html;
-    container.querySelectorAll('.approveBtn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            let w = pendingWithdrawals.find(w => w.id === parseInt(btn.dataset.id));
-            if(w){
-                w.status = 'Approved';
-                withdrawalHistory.push({ ...w, approvedAt: new Date().toISOString() });
-                pendingWithdrawals = pendingWithdrawals.filter(pw => pw.id !== w.id);
-                saveAllLocal();
-                showToast(`✅ Approved ${getCurrencySymbol()}${convertPrice(w.amount)} - Moved to History`, false);
-                await sendTelegramMessage(`💰 Withdrawal Approved: ${w.sellerName} - ${getCurrencySymbol()}${convertPrice(w.amount)}`);
-                addNotification(`Withdrawal approved for ${w.sellerName}`, 'payment');
-                loadWithdrawalsList();
-                updateAdminMenuBadges();
-            }
+    
+    // Local pagination for withdrawals
+    let currentPage = 0;
+    const pageSize = 5;
+    let allWithdrawals = [...pendingWithdrawals];
+    
+    function renderWithdrawalsPage() {
+        const start = currentPage * pageSize;
+        const end = start + pageSize;
+        const pageItems = allWithdrawals.slice(start, end);
+        
+        if (start === 0) container.innerHTML = '';
+        
+        pageItems.forEach(w => {
+            const div = document.createElement('div');
+            div.className = 'order-card';
+            div.style.cssText = 'background:#fef3c7; border-radius:12px; padding:12px; margin-bottom:10px; border-left:4px solid #f59e0b;';
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                    <span style="font-weight:600;">💰 ${getCurrencySymbol()}${convertPrice(w.amount)} - ${w.sellerName}</span>
+                    <span style="background:#f59e0b; color:#1e293b; padding:2px 12px; border-radius:20px; font-size:11px;">⏳ Pending</span>
+                </div>
+                <div style="font-size:13px; color:#64748b; margin-top:4px;">📅 ${w.date || 'N/A'}</div>
+                <div style="margin-top:8px;">
+                    <button class="approveWithdrawalBtn" data-id="${w.id}" 
+                            style="background:#10b981; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600;">
+                        ✅ Approve
+                    </button>
+                    <button class="rejectWithdrawalBtn" data-id="${w.id}" 
+                            style="background:#ef4444; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; font-weight:600; margin-left:5px;">
+                        ❌ Reject
+                    </button>
+                </div>
+            `;
+            container.appendChild(div);
         });
-    });
+        
+        // Remove old load more button
+        const oldBtn = document.getElementById('btn-more-withdrawals');
+        if (oldBtn) oldBtn.remove();
+        
+        // Add load more button
+        if (end < allWithdrawals.length) {
+            const btnDiv = document.createElement('div');
+            btnDiv.id = 'btn-more-withdrawals';
+            btnDiv.style.cssText = 'text-align:center; margin:15px 0; width:100%;';
+            btnDiv.innerHTML = `
+                <button onclick="loadMoreWithdrawals()" 
+                        style="background:linear-gradient(135deg,#3b82f6,#1d4ed8); color:white; border:none; padding:10px 22px; border-radius:20px; font-weight:600; cursor:pointer; box-shadow:0 4px 12px rgba(59,130,246,0.3);">
+                    📄 Load More Withdrawals
+                </button>
+            `;
+            container.appendChild(btnDiv);
+        }
+        
+        // Event listeners for approve/reject
+        setTimeout(() => {
+            container.querySelectorAll('.approveWithdrawalBtn').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    let w = pendingWithdrawals.find(w => w.id === parseInt(this.dataset.id));
+                    if(w){
+                        w.status = 'Approved';
+                        withdrawalHistory.push({ ...w, approvedAt: new Date().toISOString() });
+                        pendingWithdrawals = pendingWithdrawals.filter(pw => pw.id !== w.id);
+                        saveAllLocal();
+                        showToast(`✅ Approved ${getCurrencySymbol()}${convertPrice(w.amount)}`, false);
+                        await sendTelegramMessage(`💰 Withdrawal Approved: ${w.sellerName} - ${getCurrencySymbol()}${convertPrice(w.amount)}`);
+                        addNotification(`Withdrawal approved for ${w.sellerName}`, 'payment');
+                        loadWithdrawalsList();
+                        updateAdminMenuBadges();
+                    }
+                });
+            });
+            
+            container.querySelectorAll('.rejectWithdrawalBtn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.dataset.id);
+                    const w = pendingWithdrawals.find(pw => pw.id === id);
+                    if(w && confirm(`Reject withdrawal of ${getCurrencySymbol()}${convertPrice(w.amount)} for ${w.sellerName}?`)){
+                        pendingWithdrawals = pendingWithdrawals.filter(pw => pw.id !== id);
+                        saveAllLocal();
+                        showToast(`❌ Withdrawal rejected`, false);
+                        addNotification(`Withdrawal rejected for ${w.sellerName}`, 'info');
+                        loadWithdrawalsList();
+                        updateAdminMenuBadges();
+                    }
+                });
+            });
+        }, 300);
+    }
+    
+    window.loadMoreWithdrawals = function() {
+        currentPage++;
+        renderWithdrawalsPage();
+    };
+    
+    renderWithdrawalsPage();
 }
 
-document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
-    const enteredKey = document.getElementById('adminKey').value;
-    if (enteredKey === 'Haque0786@') {
-        isAdminLoggedIn = true;
-        document.getElementById('adminLoginBox').style.display = 'none';
-        document.getElementById('adminContent').style.display = 'block';
-        loadAdminData();
-        showToast("Admin logged in successfully!", false);
-        document.getElementById('adminKey').value = '';
-    } else {
-        showToast("Wrong admin key!", true);
-    }
-});
-
-document.getElementById('adminBackBtn')?.addEventListener('click', function() {
-    document.getElementById('pendingKycList').style.display = 'none';
-    document.getElementById('verifiedSellersList').style.display = 'none';
-    document.getElementById('pendingWithdrawals').style.display = 'none';
-    document.getElementById('adminOrdersList').style.display = 'none';
-    showToast("Back to dashboard", false);
-});
+function loadAdminOrders() {
+    const container = document.getElementById('adminOrdersList');
+    if (!container) return;
+    
+    container.style.display = 'block';
+    container.innerHTML = '';
+    
+    window.GlobalPaginator.load({
+        isFresh: true,
+        containerId: 'adminOrdersList',
+        collection: 'orders',
+        limit: 5,
+        renderCard: (order, orderId) => {
+            const statusColor = order.status === 'Completed' ? '#10b981' : 
+                               order.status === 'Cancelled' ? '#ef4444' : 
+                               order.status === 'Shipped' ? '#3b82f6' : '#f59e0b';
+            
+            return `
+            <div style="background:#f8fafc; border-radius:12px; padding:12px; margin-bottom:10px; border-left:4px solid ${statusColor};">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:5px;">
+                    <strong>🔖 ${order.trackingNumber || orderId}</strong>
+                    <span style="color:${statusColor}; font-weight:600; font-size:12px;">${order.status || 'Processing'}</span>
+                </div>
+                <div style="font-size:13px; color:#64748b; margin-top:4px;">
+                    📦 ${order.productName} x${order.qty} - ${getCurrencySymbol()}${convertPrice(order.amount)}
+                </div>
+                <div style="font-size:12px; color:#94a3b8;">
+                    👤 ${order.buyerName || 'N/A'} | 📅 ${order.date || 'N/A'}
+                </div>
+                <div style="font-size:12px; color:#94a3b8;">
+                    🏪 ${order.sellerName || 'Seller'} | 📧 ${order.buyerEmail || 'N/A'}
+                </div>
+                ${order.splitBreakdown ? `
+                    <div style="font-size:11px; color:#64748b; margin-top:4px; background:#f1f5f9; padding:6px; border-radius:6px;">
+                        💰 Gateway: ${getCurrencySymbol()}${convertPrice(order.splitBreakdown.gatewayFeeDeducted || 0)} | 
+                        Admin: ${getCurrencySymbol()}${convertPrice(order.splitBreakdown.adminCommissionDeducted || 0)} | 
+                        Seller: ${getCurrencySymbol()}${convertPrice(order.splitBreakdown.finalSellerPayout || 0)}
+                        ${order.splitBreakdown.isReleased ? ' ✅ Released' : ' ⏳ Pending'}
+                    </div>
+                ` : ''}
+                <div style="margin-top:6px;">
+                    <button onclick='showOrderDetailsModal(${JSON.stringify(order).replace(/'/g, "&apos;")})' 
+                            style="background:#8b5cf6; color:white; border:none; padding:4px 12px; border-radius:15px; cursor:pointer; font-size:11px;">
+                        👁️ View
+                    </button>
+                </div>
+            </div>`;
+        }
+    });
+}
 
 function loadAdminData() {
     if (!isAdminLoggedIn) {
@@ -4443,17 +4666,13 @@ document.addEventListener('input', function(e) {
     let isValid = true;
     let needsValidation = false;
 
-    // --- सेलर के लिए स्ट्रिक्ट वैलिडेशन (ID के आधार पर) ---
     if (fieldId === 'sellerphone') {
         needsValidation = true;
         isValid = val.length >= 7 && val.length <= 15;
     } else if (fieldId === 'sellerpincode') {
         needsValidation = true;
         isValid = val.length >= 3 && val.length <= 10;
-    }
-
-    // --- बायर (Delivery Details) के लिए फ्लेक्सिबल वैलिडेशन (Placeholder के आधार पर) ---
-    else if (placeholder.includes('phone') || placeholder.includes('mobile')) {
+    } else if (placeholder.includes('phone') || placeholder.includes('mobile')) {
         needsValidation = true;
         isValid = val.length >= 7;
     } else if (placeholder.includes('code') || placeholder.includes('zip') || placeholder.includes('post')) {
@@ -4461,7 +4680,6 @@ document.addEventListener('input', function(e) {
         isValid = val.length >= 3;
     }
 
-    // कलर अपडेट करें
     if (needsValidation) {
         target.style.borderColor = (val === "") ? "#ccc" : (isValid ? "green" : "red");
     }
@@ -4474,32 +4692,19 @@ document.addEventListener('input', function(e) {
 window.GlobalPaginator = {
     state: {},
 
-    // 1. मास्टर फेच फंक्शन
     load: function (options) {
-        /*
-          options = {
-             containerId: 'div_id',      // HTML Div जहाँ डेटा दिखाना है
-             collection: 'collection',   // Firebase Collection
-             where: [['field', '==', 'val']], // Query Filters (Optional)
-             orderBy: 'createdAt',       // Sorting (Default: 'createdAt')
-             limit: 5,                   // Per Page Limit (Default: 5)
-             renderCard: function(data, id){ return HTML_STRING; }
-          }
-        */
-
         const {
             containerId,
             collection,
             where = [],
             orderBy = null,
-            limit = 6,
+            limit = 5,
             renderCard
         } = options;
 
         const container = document.getElementById(containerId);
         if (!container) return;
 
-        // स्टेट इनिशियलाइज़ेशन
         if (!this.state[containerId] || options.isFresh) {
             this.state[containerId] = {
                 lastDoc: null,
@@ -4515,29 +4720,24 @@ window.GlobalPaginator = {
         if (currentState.isLoading || !currentState.hasMore) return;
         currentState.isLoading = true;
 
-        // 2. Dynamic Query Builder
         let query = db.collection(collection);
 
-        // Filters लागू करो
         where.forEach(condition => {
             if (condition && condition.length === 3) {
                 query = query.where(condition[0], condition[1], condition[2]);
             }
         });
 
-        // Sorting
         if (orderBy) {
             query = query.orderBy(orderBy, 'desc');
         }
 
         query = query.limit(limit);
 
-        // Next Page Logics
         if (currentState.lastDoc) {
             query = query.startAfter(currentState.lastDoc);
         }
 
-        // 3. Execution
         query.get().then(snapshot => {
             if (!currentState.lastDoc) container.innerHTML = '';
 
@@ -4548,20 +4748,16 @@ window.GlobalPaginator = {
                 return;
             }
 
-            // Cards Render
             snapshot.forEach(doc => {
                 const cardHTML = renderCard(doc.data(), doc.id);
                 container.insertAdjacentHTML('beforeend', cardHTML);
             });
 
-            // Last Document Track
             currentState.lastDoc = snapshot.docs[snapshot.docs.length - 1];
 
-            // Old Button Removal
             const oldBtn = document.getElementById(`btn-more-${containerId}`);
             if (oldBtn) oldBtn.remove();
 
-            // Load More Button UI
             if (snapshot.docs.length === limit) {
                 const loadMoreBtn = `
                     <div id="btn-more-${containerId}" style="text-align:center; margin:20px 0; width:100%;">
@@ -4583,11 +4779,9 @@ window.GlobalPaginator = {
         });
     },
 
-    // 2. अगली बार क्लिक करने पर ऑटो-नेक्स्ट करने वाला मेथड
     nextPage: function (containerId) {
         if (this.state[containerId] && this.state[containerId].config) {
             this.load(this.state[containerId].config);
         }
     }
 };
-
