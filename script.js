@@ -773,47 +773,47 @@ function moveOrderToHistory(order) {
 
 function renderOrderHistory() {
     const historyContainer = document.getElementById('orderHistoryContainer');
-    const historyList = document.getElementById('orderHistoryList');
+    if (!historyContainer) return;
     
-    if (!historyContainer || !historyList) return;
-    
-    const historyOrders = orders.filter(o => 
-        o.status === 'Cancelled' || o.status === 'Completed'
-    );
-    
-    if (historyOrders.length === 0) {
-        historyContainer.classList.remove('show');
-        historyList.innerHTML = '<p style="text-align:center; padding:20px; color:#64748b;">No order history</p>';
-        return;
-    }
-    
-    historyList.innerHTML = '';
-    historyOrders.forEach(order => {
-        const historyCard = document.createElement('div');
-        historyCard.className = 'order-card';
-        historyCard.style.borderLeftColor = order.status === 'Cancelled' ? '#ef4444' : '#10b981';
-        historyCard.innerHTML = `
-            <div class="order-header">
-                <strong>🔖 ${order.trackingNumber}</strong>
-                <span class="order-status ${order.status.toLowerCase()}">${order.status}</span>
-            </div>
-            <div class="order-details">
-                <div class="product-info">
-                    <div class="label">📦 Product</div>
-                    <div class="value">${order.productName} x${order.qty}</div>
-                    <div class="value">${getCurrencySymbol()}${convertPrice(order.amount)}</div>
-                </div>
-                <div class="buyer-info">
-                    <div class="label">👤 Buyer</div>
-                    <div class="value">${order.buyerName}</div>
-                    <div class="value">📅 ${order.date}</div>
-                </div>
-            </div>
-        `;
-        historyList.appendChild(historyCard);
-    });
-    
+    // कंटेंनर दिखाओ
     historyContainer.classList.add('show');
+
+    // मास्टर पेजिनेशन इंजन को कॉल करो
+    window.GlobalPaginator.load({
+        isFresh: true,
+        containerId: 'orderHistoryList',
+        collection: 'orders',
+        limit: 5, // एक बार में 5 ऑर्डर्स
+        orderBy: 'createdAt',
+        renderCard: (order, orderId) => {
+            const statusClass = (order.status || '').toLowerCase();
+            const statusColor = order.status === 'Cancelled' ? '#ef4444' : '#10b981';
+            
+            return `
+            <div class="order-card" style="border-left-color: ${statusColor}; margin-bottom: 12px; background: #fff; padding: 12px; border-radius: 10px; border-left-width: 4px; border-left-style: solid; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                <div class="order-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <strong>🏷️ ${order.trackingNumber || order.orderNumber || orderId}</strong>
+                    <span class="order-status ${statusClass}" style="background: #f1f5f9; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                        ${order.status || 'Completed'}
+                    </span>
+                </div>
+                <div class="order-details" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
+                    <div class="product-info">
+                        <div class="label" style="color: #64748b;">📦 Product</div>
+                        <div class="value" style="font-weight: 600;">${order.productName || 'Product'} x${order.qty || 1}</div>
+                        <div class="value" style="font-weight: 700; color: #10b981; margin-top: 2px;">
+                            ${typeof getCurrencySymbol === 'function' ? getCurrencySymbol() : '€'}${typeof convertPrice === 'function' ? convertPrice(order.amount || order.total || 0) : (order.amount || order.total || '0.00')}
+                        </div>
+                    </div>
+                    <div class="buyer-info">
+                        <div class="label" style="color: #64748b;">👤 Buyer</div>
+                        <div class="value" style="font-weight: 600;">${order.buyerName || 'Buyer'}</div>
+                        <div class="value" style="color: #94a3b8; font-size: 11px;">📅 ${order.date || (order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString() : 'N/A')}</div>
+                    </div>
+                </div>
+            </div>`;
+        }
+    });
 }
 
 // ============================================================
