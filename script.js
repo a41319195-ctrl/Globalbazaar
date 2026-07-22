@@ -4681,7 +4681,7 @@ document.addEventListener('input', function(e) {
 });
 
 // ===============================================================
-// 🌐 GLOBAL PAGINATION ENGINE - COMPLETE FIXED VERSION
+// 🌐 GLOBAL PAGINATION ENGINE - COMPLETE FINAL
 // ===============================================================
 
 window.GlobalPaginator = {
@@ -4698,7 +4698,12 @@ window.GlobalPaginator = {
         } = options;
 
         const container = document.getElementById(containerId);
-        if (!container) return;
+        if (!container) {
+            console.error('❌ Container not found:', containerId);
+            return;
+        }
+
+        console.log('📄 Loading pagination for:', containerId);
 
         if (!this.state[containerId] || options.isFresh) {
             this.state[containerId] = {
@@ -4712,7 +4717,6 @@ window.GlobalPaginator = {
 
         const currentState = this.state[containerId];
 
-        // ✅ FIX 1: !currentState.hasMore
         if (currentState.isLoading || !currentState.hasMore) return;
         currentState.isLoading = true;
 
@@ -4738,7 +4742,7 @@ window.GlobalPaginator = {
             if (!currentState.lastDoc) container.innerHTML = '';
 
             if (snapshot.empty && !currentState.lastDoc) {
-                container.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">कोई रिकॉर्ड नहीं मिला।</div>';
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">📭 कोई रिकॉर्ड नहीं मिला।</div>';
                 currentState.hasMore = false;
                 currentState.isLoading = false;
                 return;
@@ -4749,14 +4753,11 @@ window.GlobalPaginator = {
                 container.insertAdjacentHTML('beforeend', cardHTML);
             });
 
-            // ✅ FIX 2: snapshot.docs
             currentState.lastDoc = snapshot.docs[snapshot.docs.length - 1];
 
-            // ✅ FIX 3: if (oldBtn)
             const oldBtn = document.getElementById(`btn-more-${containerId}`);
             if (oldBtn) oldBtn.remove();
 
-            // ✅ FIX 4: limit === limit (5)
             if (snapshot.docs.length === limit) {
                 const loadMoreBtn = `
                     <div id="btn-more-${containerId}" style="text-align:center; margin:20px 0; width:100%;">
@@ -4766,19 +4767,22 @@ window.GlobalPaginator = {
                         </button>
                     </div>`;
                 container.insertAdjacentHTML('beforeend', loadMoreBtn);
+                console.log('✅ Load More button added for:', containerId);
             } else {
                 currentState.hasMore = false;
+                console.log('✅ No more records for:', containerId);
             }
 
             currentState.isLoading = false;
         }).catch(err => {
-            console.error("Pagination Engine Error:", err);
-            container.innerHTML += `<div style="color:#ef4444; text-align:center; padding:10px;">Error: ${err.message}</div>`;
+            console.error("❌ Pagination Engine Error:", err);
+            container.innerHTML += `<div style="color:#ef4444; text-align:center; padding:10px;">❌ Error: ${err.message}</div>`;
             currentState.isLoading = false;
         });
     },
 
     nextPage: function (containerId) {
+        console.log('📄 Next page requested for:', containerId);
         if (this.state[containerId] && this.state[containerId].config) {
             this.load(this.state[containerId].config);
         }
