@@ -284,7 +284,6 @@
             <button id="proceedToCheckoutBtn" class="btn-primary" style="margin-top:20px; width:100%;">Proceed to Checkout</button>
         </div>
     </div>
-    
     <!-- ========== CHECKOUT PAGE ========== -->
     <div id="checkoutSection" class="section">
         <div class="premium-card">
@@ -322,38 +321,116 @@
     <div id="paymentSection" class="section">
         <div class="premium-card">
             <h2>💳 Payment Options</h2>
-            <div id="paymentForm">
-                <input type="text" id="cardNumber" placeholder="Card Number *" class="input" maxlength="19">
-                <input type="text" id="cardHolderName" placeholder="Card Holder Name *" class="input">
-                <div class="delivery-form-row">
-                    <input type="text" id="expiryDate" placeholder="MM/YY *" maxlength="5">
-                    <input type="password" id="cvv" placeholder="CVV *" maxlength="4">
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="saveCardCheckbox"> <label>Save card for next time</label>
-                </div>
-                
-                <!-- Payment Summary -->
-                <div style="background:#f8fafc; padding:16px; border-radius:12px; margin:15px 0; border:1px solid #e2e8f0;">
-                    <h4 style="margin-bottom:10px;">💰 Payment Summary</h4>
-                    <div class="flex-between"><span>📦 Subtotal:</span><span id="paymentSubtotal">SAR 0.00</span></div>
-                    <div class="flex-between"><span>🚚 Shipping Fee:</span><span id="paymentShipping">SAR 0.00</span></div>
-                    <div class="flex-between" style="font-size:18px; font-weight:700; border-top:2px solid #e2e8f0; padding-top:10px; margin-top:10px;">
-                        <span>💰 Total Paid:</span>
-                        <span id="paymentTotal">SAR 0.00</span>
+            
+            <!-- Tab Selection Buttons / Switcher -->
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button type="button" id="tabCardBtn" onclick="switchPaymentMode('card')" class="btn-primary" style="flex: 1; background: #2563eb; color: white;">💳 Pay with Card</button>
+                <button type="button" id="tabCryptoBtn" onclick="switchPaymentMode('crypto')" style="flex: 1; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <span style="background: linear-gradient(135deg, #fbbf24, #d97706); color: white; width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">A</span> 
+                    Pay via Crypto
+                </button>
+            </div>
+
+            <!-- 1. CARD PAYMENT FORM CONTAINER -->
+            <div id="cardPaymentContainer">
+                <div id="paymentForm">
+                    <input type="text" id="cardNumber" placeholder="Card Number *" class="input" maxlength="19">
+                    <input type="text" id="cardHolderName" placeholder="Card Holder Name *" class="input">
+                    <div class="delivery-form-row">
+                        <input type="text" id="expiryDate" placeholder="MM/YY *" maxlength="5">
+                        <input type="password" id="cvv" placeholder="CVV *" maxlength="4">
                     </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="saveCardCheckbox"> <label>Save card for next time</label>
+                    </div>
+                    
+                    <!-- Payment Summary -->
+                    <div style="background:#f8fafc; padding:16px; border-radius:12px; margin:15px 0; border:1px solid #e2e8f0;">
+                        <h4 style="margin-bottom:10px;">💰 Payment Summary</h4>
+                        <div class="flex-between"><span>📦 Subtotal:</span><span id="paymentSubtotal">SAR 0.00</span></div>
+                        <div class="flex-between"><span>🚚 Shipping Fee:</span><span id="paymentShipping">SAR 0.00</span></div>
+                        <div class="flex-between" style="font-size:18px; font-weight:700; border-top:2px solid #e2e8f0; padding-top:10px; margin-top:10px;">
+                            <span>💰 Total Paid:</span>
+                            <span id="paymentTotal">SAR 0.00</span>
+                        </div>
+                    </div>
+                    
+                    <button id="payNowBtn" class="btn-primary">Pay with Card (Dummy)</button>
                 </div>
+                <div class="payment-divider"><hr><span>OR</span><hr></div>
+                <div id="savedCardsSection" style="margin-top:20px; display:none;">
+                    <h4>💳 Saved Cards</h4>
+                    <div id="savedCardsList"></div>
+                </div>
+            </div>
+
+            <!-- 2. CRYPTO PAYMENT CONTAINER (Initially Hidden) -->
+            <div id="cryptoPaymentContainer" style="display: none; text-align: center; padding: 25px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                <div style="margin-bottom: 15px;">
+                    <span style="display: inline-flex; width: 45px; height: 45px; background: linear-gradient(135deg, #fbbf24, #d97706); color: white; border-radius: 50%; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">A</span>
+                </div>
+                <h3 style="margin-bottom: 5px; color: #1e293b;">Digital Currency Checkout</h3>
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 20px;">Fast, secure, and decentralized blockchain settlement.</p>
                 
-                <button id="payNowBtn" class="btn-primary">Pay with Card (Dummy)</button>
+                <button type="button" onclick="openCryptoPopup()" class="btn-primary" style="background: #0f172a; color: white; width: 100%; padding: 14px; font-size: 16px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                    Pay via Crypto (Instant & Secure)
+                </button>
+                <p style="font-size: 12px; color: #16a34a; margin-top: 12px; font-weight: 600;">🔒 100% Secure & Encrypted Blockchain Payment</p>
             </div>
-            <div class="payment-divider"><hr><span>OR</span><hr></div>
-            <div id="savedCardsSection" style="margin-top:20px; display:none;">
-                <h4>💳 Saved Cards</h4>
-                <div id="savedCardsList"></div>
-            </div>
+
         </div>
     </div>
+</div> 
+
+<!-- DUMMY CRYPTO POPUP MODAL -->
+<div id="cryptoPopup" class="popup-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 9999;">
+    <div class="popup-content" style="background: white; padding: 30px; border-radius: 12px; text-align: center; width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <span class="close-btn" onclick="closeCryptoPopup()" style="float: right; font-size: 24px; cursor: pointer; font-weight: bold; color: #64748b;">&times;</span>
+        <h3 style="margin-bottom: 8px; color: #1e293b;">Scan & Pay (Testing)</h3>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">Send USDT/Crypto to complete transaction</p>
+        <div class="dummy-qr" style="background: #f1f5f9; padding: 40px 20px; margin: 15px 0; font-weight: bold; color: #475569; border-radius: 8px; border: 2px dashed #cbd5e1;">[ 🪙 'A' COIN QR CODE ]</div>
+        <button type="button" class="confirm-dummy-btn" onclick="alert('Payment Simulated Successfully!'); closeCryptoPopup();" style="background: #16a34a; color: white; border: none; padding: 12px 15px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; font-size: 15px;">Simulate Successful Payment</button>
+    </div>
 </div>
+
+<!-- SCRIPT FOR SWITCHING TABS & POPUP -->
+<script>
+function switchPaymentMode(mode) {
+    const cardContainer = document.getElementById('cardPaymentContainer');
+    const cryptoContainer = document.getElementById('cryptoPaymentContainer');
+    const tabCardBtn = document.getElementById('tabCardBtn');
+    const tabCryptoBtn = document.getElementById('tabCryptoBtn');
+
+    if (mode === 'card') {
+        cardContainer.style.display = 'block';
+        cryptoContainer.style.display = 'none';
+        tabCardBtn.style.background = '#2563eb';
+        tabCardBtn.style.color = 'white';
+        tabCardBtn.style.border = 'none';
+        tabCryptoBtn.style.background = '#f3f4f6';
+        tabCryptoBtn.style.color = '#374151';
+        tabCryptoBtn.style.border = '1px solid #d1d5db';
+    } else {
+        cardContainer.style.display = 'none';
+        cryptoContainer.style.display = 'block';
+        tabCryptoBtn.style.background = '#0f172a';
+        tabCryptoBtn.style.color = 'white';
+        tabCryptoBtn.style.border = 'none';
+        tabCardBtn.style.background = '#f3f4f6';
+        tabCardBtn.style.color = '#374151';
+        tabCardBtn.style.border = '1px solid #d1d5db';
+    }
+}
+
+function openCryptoPopup() {
+    document.getElementById('cryptoPopup').style.display = 'flex';
+}
+
+function closeCryptoPopup() {
+    document.getElementById('cryptoPopup').style.display = 'none';
+}
+</script>
+
 
 <!-- ============================================================ -->
 <!-- FIXED CART BUTTON -->
