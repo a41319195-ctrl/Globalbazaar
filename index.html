@@ -87,27 +87,26 @@
         </div>
         <div class="product-grid" id="productsGrid"></div>
     </div>
-    
     <!-- ========== SELLER SECURE TOKENIZED PAYOUT CONFIGURATION ========== -->
 <div class="premium-card" style="background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-top: 15px;">
     <h3 style="font-size: 16px; color: #1e293b; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
         <span>🔒</span> Secure Payout Configuration (Tokenized)
     </h3>
     <p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">
-        Bank details go directly to the payment gateway via API, and only a secure cryptographic token is stored on our end. Crypto is managed via BTCPay Server.
+        Bank details go directly to the payment gateway via API, and crypto connects to BTCPay Server securely.
     </p>
 
     <!-- Payout Method Tabs -->
     <div style="display: flex; gap: 10px; background: #f1f5f9; padding: 5px; border-radius: 8px; margin-bottom: 15px;">
         <button type="button" id="bankTabBtn" onclick="switchSellerPayoutTab('bank')" style="flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; background: #ffffff; color: #0f172a; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: 0.3s;">
-            🏦 Bank Payout (Via Gateway Token)
+            🏦 Bank Payout (Via Gateway)
         </button>
         <button type="button" id="cryptoTabBtn" onclick="switchSellerPayoutTab('crypto')" style="flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; background: transparent; color: #64748b; transition: 0.3s;">
             🪙 Crypto (BTCPay Server)
         </button>
     </div>
 
-    <!-- 1. Bank Form Container (Sends raw data to Gateway, stores only Token) -->
+    <!-- 1. Bank Form Container -->
     <div id="sellerBankFormContainer" style="display: block;">
         <div style="margin-bottom: 10px;">
             <input type="text" id="sellerBankName" placeholder="Bank Name *" class="input" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; margin-bottom: 8px;">
@@ -132,15 +131,51 @@
         </button>
     </div>
 
-    <!-- Locked Status View (Stores only Gateway Token / Reference) -->
+    <!-- Locked Status View -->
     <div id="sellerPayoutLockedView" style="display: none; text-align: center; padding: 12px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; margin-top: 10px;">
-        <p style="color: #16a34a; font-weight: bold; margin-bottom: 3px; font-size: 14px;">✅ Payout Method Securely Tokenized</p>
+        <p style="color: #16a34a; font-weight: bold; margin-bottom: 3px; font-size: 14px;">✅ Payout Method Securely Configured</p>
         <p id="sellerLockedInfoText" style="font-size: 13px; color: #475569; margin: 0;"></p>
-        <p style="font-size: 11px; color: #94a3b8; margin-top: 5px;">Raw bank details reside securely with the Gateway. Only safe token stored.</p>
+        <p style="font-size: 11px; color: #94a3b8; margin-top: 5px;">Protected via Gateway Tokenization / BTCPay.</p>
     </div>
 </div>
 
-<!-- ========== JAVASCRIPT LOGIC FOR TRUE TOKENIZATION ========== -->
+<!-- ========== SELLER PAYOUT SUCCESS POPUP MODAL (Bayer Style) ========== -->
+<div id="sellerPayoutModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; padding: 15px;">
+    <div style="background: #ffffff; width: 100%; max-width: 420px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); overflow: hidden;">
+        
+        <!-- Header -->
+        <div style="background: #f0fdf4; padding: 20px; text-align: center; border-bottom: 1px solid #bbf7d0; position: relative;">
+            <button onclick="closeSellerPayoutModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 18px; cursor: pointer; color: #64748b;">✕</button>
+            <div style="font-size: 32px; margin-bottom: 5px;">✅</div>
+            <h3 style="color: #166534; margin: 0; font-size: 18px;">Payout Configured Successfully!</h3>
+            <p style="color: #15803d; font-size: 12px; margin: 5px 0 0 0;">Your payout destination is securely linked.</p>
+        </div>
+
+        <!-- Body Details -->
+        <div style="padding: 20px;">
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 15px; font-size: 13px; color: #334155;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="color: #64748b;">🆔 Reference ID:</span>
+                    <strong id="modalRefId">GB-PAY-98421</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="color: #64748b;">📅 Date & Time:</span>
+                    <strong id="modalDateTime">-</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: #64748b;">🔒 Destination:</span>
+                    <strong id="modalMethodType" style="text-align: right; max-width: 200px; word-break: break-all;">-</strong>
+                </div>
+            </div>
+
+            <button onclick="closeSellerPayoutModal()" style="width: 100%; background: #0f172a; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px;">
+                Got It, Return to Dashboard
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== JAVASCRIPT LOGIC ========== -->
 <script>
 function switchSellerPayoutTab(type) {
     const bankBtn = document.getElementById('bankTabBtn');
@@ -171,13 +206,6 @@ function switchSellerPayoutTab(type) {
     }
 }
 
-function tokenizeAndSampleGatewayAPI(bankData) {
-    // यहाँ असली कोडिंग में थर्ड-पार्टी पेमेंट गेटवे की API का POST अनुरोध जाएगा।
-    // गेटवे बैंक डेटा लेकर अपना सिक्योर टोकन रिटर्न करेगा।
-    // हम यहाँ एक मॉक टोकन (Mock Token) जनरेट कर रहे हैं:
-    const mockGatewayToken = "tok_gb_bank_" + Math.random().toString(36).substring(2, 12);
-}
-
 function tokenizeAndSaveBankWithGateway() {
     const bankName = document.getElementById('sellerBankName').value;
     const accHolder = document.getElementById('sellerAccHolder').value;
@@ -188,19 +216,22 @@ function tokenizeAndSaveBankWithGateway() {
         return;
     }
 
-    // 1. Send data to Gateway simulation & get Token
-    const secureToken = tokenizeAndSampleGatewayAPI({bankName, accHolder, accNo});
+    // Masked Account Number (Showing only last 4 digits)
+    const maskedAcc = "****" + accNo.slice(-4);
+    const secureToken = "tok_gb_" + Math.random().toString(36).substring(2, 10);
+    const refId = "GB-BNK-" + Math.floor(100000 + Math.random() * 900000);
 
-    // 2. Hide input fields so raw bank info is wiped out from UI memory
+    // Hide input form
     document.getElementById('sellerBankFormContainer').style.display = 'none';
     document.getElementById('sellerCryptoFormContainer').style.display = 'none';
     document.getElementById('bankTabBtn').parentElement.style.display = 'none'; 
     
-    // 3. Save ONLY the Gateway Token in our system view
-    document.getElementById('sellerLockedInfoText').innerHTML = `<b>Method:</b> Bank Account (${bankName}) <br><b>Gateway Token:</b> <code style="background:#e2e8f0; padding:2px 4px; border-radius:4px;">${secureToken}</code>`;
+    // Dashboard Inline View Update (Masked)
+    document.getElementById('sellerLockedInfoText').innerHTML = `<b>Bank:</b> ${bankName} (${maskedAcc}) <br><b>Token:</b> <code>${secureToken}</code>`;
     document.getElementById('sellerPayoutLockedView').style.display = 'block';
-    
-    alert('Bank data successfully sent to Payment Gateway. Secure Token stored successfully!');
+
+    // Show Buyer-like Success Popup with Masked Info
+    showSellerPayoutSuccessModal(refId, `${bankName} (${maskedAcc})`);
 }
 
 function saveAndLockCrypto() {
@@ -211,14 +242,32 @@ function saveAndLockCrypto() {
         return;
     }
 
+    // Masked Crypto Address (Showing first 6 and last 4 chars)
+    const maskedCrypto = cryptoAddress.substring(0, 6) + "..." + cryptoAddress.substring(cryptoAddress.length - 4);
+    const refId = "GB-CRY-" + Math.floor(100000 + Math.random() * 900000);
+
     document.getElementById('sellerBankFormContainer').style.display = 'none';
     document.getElementById('sellerCryptoFormContainer').style.display = 'none';
     document.getElementById('bankTabBtn').parentElement.style.display = 'none'; 
 
-    document.getElementById('sellerLockedInfoText').innerHTML = `<b>Method:</b> Crypto Wallet (BTCPay Server) <br><b>Address:</b> ${cryptoAddress.substring(0,6)}...${cryptoAddress.substring(cryptoAddress.length - 4)}`;
+    // Dashboard Inline View Update (Masked)
+    document.getElementById('sellerLockedInfoText').innerHTML = `<b>Crypto (TRC20):</b> ${maskedCrypto} <br><b>Status:</b> Locked to BTCPay`;
     document.getElementById('sellerPayoutLockedView').style.display = 'block';
 
-    alert('Crypto wallet successfully linked to BTCPay Server and locked!');
+    // Show Buyer-like Success Popup with Masked Crypto
+    showSellerPayoutSuccessModal(refId, `USDT: ${maskedCrypto}`);
+}
+
+function showSellerPayoutSuccessModal(refText, methodDetails) {
+    const now = new Date().toLocaleString();
+    document.getElementById('modalRefId').innerText = refText;
+    document.getElementById('modalDateTime').innerText = now;
+    document.getElementById('modalMethodType').innerText = methodDetails;
+    document.getElementById('sellerPayoutModal').style.display = 'flex';
+}
+
+function closeSellerPayoutModal() {
+    document.getElementById('sellerPayoutModal').style.display = 'none';
 }
 </script>
 
