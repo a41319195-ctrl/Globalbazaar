@@ -776,7 +776,6 @@ function renderOrderHistory() {
     
     historyContainer.classList.add('show');
 
-    // मास्टर पेजिनेशन इंजन को कॉल करो
     window.GlobalPaginator.load({
         isFresh: true,
         containerId: 'orderHistoryList',
@@ -916,7 +915,6 @@ function loadWithdrawalHistory() {
         return;
     }
     
-    // Local pagination for history
     let currentPage = 0;
     const pageSize = 5;
     let allHistory = [...withdrawalHistory];
@@ -4379,7 +4377,6 @@ function loadWithdrawalsList() {
         return;
     }
     
-    // Local pagination for withdrawals
     let currentPage = 0;
     const pageSize = 5;
     let allWithdrawals = [...pendingWithdrawals];
@@ -4415,11 +4412,9 @@ function loadWithdrawalsList() {
             container.appendChild(div);
         });
         
-        // Remove old load more button
         const oldBtn = document.getElementById('btn-more-withdrawals');
         if (oldBtn) oldBtn.remove();
         
-        // Add load more button
         if (end < allWithdrawals.length) {
             const btnDiv = document.createElement('div');
             btnDiv.id = 'btn-more-withdrawals';
@@ -4686,7 +4681,7 @@ document.addEventListener('input', function(e) {
 });
 
 // ===============================================================
-// 🌐 GLOBAL PAGINATION ENGINE FOR GLOBAL BAZAAR (Admin/Buyer/Seller)
+// 🌐 GLOBAL PAGINATION ENGINE - COMPLETE FIXED VERSION
 // ===============================================================
 
 window.GlobalPaginator = {
@@ -4717,6 +4712,7 @@ window.GlobalPaginator = {
 
         const currentState = this.state[containerId];
 
+        // ✅ FIX 1: !currentState.hasMore
         if (currentState.isLoading || !currentState.hasMore) return;
         currentState.isLoading = true;
 
@@ -4753,11 +4749,14 @@ window.GlobalPaginator = {
                 container.insertAdjacentHTML('beforeend', cardHTML);
             });
 
+            // ✅ FIX 2: snapshot.docs
             currentState.lastDoc = snapshot.docs[snapshot.docs.length - 1];
 
+            // ✅ FIX 3: if (oldBtn)
             const oldBtn = document.getElementById(`btn-more-${containerId}`);
             if (oldBtn) oldBtn.remove();
 
+            // ✅ FIX 4: limit === limit (5)
             if (snapshot.docs.length === limit) {
                 const loadMoreBtn = `
                     <div id="btn-more-${containerId}" style="text-align:center; margin:20px 0; width:100%;">
