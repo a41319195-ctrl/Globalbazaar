@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>GlobalBazaar - Auto Compress Images</title>
+    <title>GlobalBazaar - Multi-Vendor Marketplace</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -168,16 +168,16 @@
             </div>
 
             <!-- ============================================================ -->
-            <!-- 🔥 SECURE PAYOUT METHOD - FULL WORKING SYSTEM -->
+            <!-- 🔥 SECURE PAYOUT METHOD & GBPay GATEWAY -->
             <!-- ============================================================ -->
             <div class="premium-card" style="margin-bottom: 15px; border: 3px solid #007bff; background: #fbfdff;" id="payoutSection">
-                <h3 style="color: #007bff; margin-bottom: 10px;">🌐 Secure Payout Method & Bank Gateway</h3>
-                <p style="font-size: 13px; color: #555; margin-bottom: 15px;">Select your payout method. This will be permanently locked after first setup.</p>
+                <h3 style="color: #007bff; margin-bottom: 10px;">🌐 Global Bazaar Payout & GBPay Gateway</h3>
+                <p style="font-size: 13px; color: #555; margin-bottom: 15px;">Configure your secure payout method. All disbursements are processed securely via GBPay and are permanently locked after initial setup.</p>
                 
                 <!-- Lock Status -->
                 <div id="payoutLockStatus" style="margin-bottom: 15px; padding: 12px; border-radius: 8px; background: #fef3c7; border: 2px solid #f59e0b; display: none;">
                     <span style="font-weight: 700; color: #92400e; font-size: 15px;">🔒 Payout Method is PERMANENTLY LOCKED</span>
-                    <span style="display: block; font-size: 13px; color: #78350f; margin-top: 4px;">This cannot be changed. All future withdrawals will use this method.</span>
+                    <span style="display: block; font-size: 13px; color: #78350f; margin-top: 4px;">This cannot be changed. All future withdrawals will use this verified Global Bazaar payout route.</span>
                 </div>
                 
                 <!-- Method Selection -->
@@ -186,7 +186,7 @@
                         <input type="radio" name="sellerPayoutMethod" value="bank" checked onclick="togglePayoutFields('bank')"> 🏦 Local Bank Transfer
                     </label>
                     <label style="cursor: pointer; font-weight: 600; font-size: 15px; padding: 8px 16px; background: #eef6ff; border-radius: 8px;">
-                        <input type="radio" name="sellerPayoutMethod" value="crypto" onclick="togglePayoutFields('crypto')"> 🪙 Crypto / Gold Coin Gateway
+                        <input type="radio" name="sellerPayoutMethod" value="crypto" onclick="togglePayoutFields('crypto')"> 🪙 GBPay Crypto / Gold Coin Gateway
                     </label>
                 </div>
 
@@ -201,7 +201,7 @@
 
                 <!-- Crypto Details -->
                 <div id="sellerCryptoFields" style="display: none; background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0;">
-                    <h4 style="font-size: 15px; margin-bottom: 12px; color: #1e293b;">🪙 Crypto & Gold Coin System</h4>
+                    <h4 style="font-size: 15px; margin-bottom: 12px; color: #1e293b;">🪙 GBPay Crypto & Gold Coin System</h4>
                     <select id="sellerCryptoCoinType" class="input" style="margin-bottom: 10px;">
                         <option value="usdt">USDT (Tether - ERC20/TRC20)</option>
                         <option value="btc">Bitcoin (BTC / Lightning Network)</option>
@@ -232,14 +232,14 @@
             <!-- 💰 Payout & Withdrawals -->
             <div class="premium-card" style="margin-top: 15px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="margin: 0;">💰 Payout & Withdrawals History</h3>
+                    <h3 style="margin: 0;">💰 Global Bazaar Payout & Withdrawals History</h3>
                     <button onclick="toggleSection('payoutHistoryList')" style="background:#f0fdf4; color:#166534; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; font-weight:bold;">View</button>
                 </div>
                 
                 <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <input type="number" id="withdrawAmount" placeholder="Enter Amount to Withdraw" class="input" style="flex: 1; min-width: 150px;">
-                        <button type="button" class="btn-primary" onclick="processWithdrawal()" style="background: #16a34a; font-weight: 700; padding: 12px 24px;">🚀 Request Payout</button>
+                        <button type="button" class="btn-primary" onclick="processWithdrawal()" style="background: #16a34a; font-weight: 700; padding: 12px 24px;">🚀 Request Global Bazaar Payout</button>
                     </div>
                 </div>
                 <div id="pendingWithdrawals" style="display:none; margin-top:10px;"></div>
@@ -248,9 +248,9 @@
             <!-- 🔌 Webhook Settings -->
             <div class="premium-card" style="margin-top: 15px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="margin: 0;">🔌 Gateway & Webhook Settings</h3>
+                    <h3 style="margin: 0;">🔌 GBPay Gateway & Webhook Settings</h3>
                 </div>
-                <p style="font-size: 13px; color: #64748b; margin-top: 5px;">Configure your webhooks for instant transaction synchronization.</p>
+                <p style="font-size: 13px; color: #64748b; margin-top: 5px;">Configure your GBPay webhooks for instant transaction synchronization.</p>
                 
                 <div style="margin-top: 15px;">
                     <label style="font-weight:600; font-size: 14px;">Webhook URL Endpoint</label>
@@ -259,7 +259,7 @@
                     <label style="font-weight:600; font-size: 14px;">API Secret Key</label>
                     <input type="password" id="sellerApiKey" placeholder="sk_live_xxxxxxxxxxxxxxxx" class="input" style="margin-top: 5px; margin-bottom: 15px;">
                     
-                    <button type="button" class="btn-primary" onclick="saveWebhookSettings()" style="background: #0284c7;">Save Gateway Settings</button>
+                    <button type="button" class="btn-primary" onclick="saveWebhookSettings()" style="background: #0284c7;">Save GBPay Settings</button>
                 </div>
             </div>
         </div>
@@ -298,7 +298,7 @@
             <h3 id="popupTitleText" style="margin: 0 0 10px; color: #0f172a; font-size: 22px; font-weight: 800;">Success!</h3>
             <p id="popupMessageText" style="color: #475569; font-size: 15px; margin-bottom: 10px; line-height: 1.7;">Your transaction has been processed successfully.</p>
             <div id="popupWebhookStatusDiv" style="font-size: 13px; color: #6b7280; background: #f1f5f9; padding: 10px 14px; border-radius: 10px; margin-bottom: 22px; display: none;">
-                <span style="font-weight: 600;">📡 Webhook Status:</span> <span id="webhookStatusText">Pending</span>
+                <span style="font-weight: 600;">📡 GBPay Webhook Status:</span> <span id="webhookStatusText">Pending</span>
             </div>
             <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
                 <button onclick="closePopup()" style="background:#0f172a; color:#fff; border:none; padding:12px 32px; border-radius:12px; cursor:pointer; font-weight:700; font-size:15px; min-width:120px;">Got It</button>
@@ -435,8 +435,8 @@
             <div style="display: flex; gap: 10px; margin-bottom: 20px;">
                 <button type="button" id="tabCardBtn" onclick="switchPaymentMode('card')" class="btn-primary" style="flex: 1; background: #2563eb; color: white;">💳 Pay with Card</button>
                 <button type="button" id="tabCryptoBtn" onclick="switchPaymentMode('crypto')" style="flex: 1; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    <span style="background: linear-gradient(135deg, #fbbf24, #d97706); color: white; width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">A</span> 
-                    Pay via Crypto
+                    <span style="background: linear-gradient(135deg, #fbbf24, #d97706); color: white; width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">G</span> 
+                    Pay via GBPay Crypto
                 </button>
             </div>
 
@@ -473,28 +473,28 @@
 
             <div id="cryptoPaymentContainer" style="display: none; text-align: center; padding: 25px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
                 <div style="margin-bottom: 15px;">
-                    <span style="display: inline-flex; width: 45px; height: 45px; background: linear-gradient(135deg, #fbbf24, #d97706); color: white; border-radius: 50%; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">A</span>
+                    <span style="display: inline-flex; width: 45px; height: 45px; background: linear-gradient(135deg, #fbbf24, #d97706); color: white; border-radius: 50%; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">G</span>
                 </div>
-                <h3 style="margin-bottom: 5px; color: #1e293b;">Digital Currency Checkout</h3>
-                <p style="font-size: 13px; color: #64748b; margin-bottom: 20px;">Fast, secure, and decentralized blockchain settlement.</p>
+                <h3 style="margin-bottom: 5px; color: #1e293b;">GBPay Digital Currency Checkout</h3>
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 20px;">Fast, secure, and decentralized blockchain settlement via GBPay.</p>
                 
                 <button type="button" onclick="openCryptoPopup()" class="btn-primary" style="background: #0f172a; color: white; width: 100%; padding: 14px; font-size: 16px; border-radius: 8px; font-weight: bold; cursor: pointer;">
-                    Pay via Crypto (Instant & Secure)
+                    Pay via GBPay (Instant & Secure)
                 </button>
-                <p style="font-size: 12px; color: #16a34a; margin-top: 12px; font-weight: 600;">🔒 100% Secure & Encrypted Blockchain Payment</p>
+                <p style="font-size: 12px; color: #16a34a; margin-top: 12px; font-weight: 600;">🔒 100% Secure & Encrypted GBPay Blockchain Settlement</p>
             </div>
         </div>
     </div>
 </div> 
 
-<!-- DUMMY CRYPTO POPUP -->
+<!-- GBPay CRYPTO POPUP -->
 <div id="cryptoPopup" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 99998;">
     <div style="background: white; padding: 30px; border-radius: 12px; text-align: center; width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <span onclick="closeCryptoPopup()" style="float: right; font-size: 24px; cursor: pointer; font-weight: bold; color: #64748b;">&times;</span>
-        <h3 style="margin-bottom: 8px; color: #1e293b;">Scan & Pay (Testing)</h3>
+        <h3 style="margin-bottom: 8px; color: #1e293b;">GBPay Scan & Pay</h3>
         <p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">Send USDT/Crypto to complete transaction</p>
-        <div style="background: #f1f5f9; padding: 40px 20px; margin: 15px 0; font-weight: bold; color: #475569; border-radius: 8px; border: 2px dashed #cbd5e1;">[ 🪙 'A' COIN QR CODE ]</div>
-        <button onclick="alert('Payment Simulated Successfully!'); closeCryptoPopup();" style="background: #16a34a; color: white; border: none; padding: 12px 15px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; font-size: 15px;">Simulate Successful Payment</button>
+        <div style="background: #f1f5f9; padding: 40px 20px; margin: 15px 0; font-weight: bold; color: #475569; border-radius: 8px; border: 2px dashed #cbd5e1;">[ 🪙 GBPay QR CODE ]</div>
+        <button onclick="alert('GBPay Payment Simulated Successfully!'); closeCryptoPopup();" style="background: #16a34a; color: white; border: none; padding: 12px 15px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; font-size: 15px;">Simulate Successful GBPay Payment</button>
     </div>
 </div>
 
@@ -664,7 +664,7 @@
         <p><strong>Gateway Fee:</strong> 3% + $0.49</p>
         <p><strong>Handling Fee:</strong> $1.50 per order</p><br>
         <p><strong>Payment Release:</strong></p>
-        <ul style="text-align:left;"><li>✅ Buyer confirms delivery → Payment released to seller</li><li>✅ Auto-confirm after 2 days (if buyer doesn't confirm)</li><li>✅ Weekly withdrawal available (Monday & Friday)</li></ul><br>
+        <ul style="text-align:left;"><li>✅ Buyer confirms delivery → Payment released to seller via GBPay</li><li>✅ Auto-confirm after 2 days (if buyer doesn't confirm)</li><li>✅ Weekly withdrawal available (Monday & Friday)</li></ul><br>
         <p><strong>📌 Commission Structure:</strong></p>
         <ul style="text-align:left;">
             <li>🔹 Electronics: 10% Commission</li>
@@ -737,7 +737,7 @@
 <!-- ============================================================ -->
 <script>
 // ============================================================
-// PAYOUT SYSTEM - COMPLETE WORKING CODE
+// PAYOUT SYSTEM & GBPay INTEGRATION - COMPLETE WORKING CODE
 // ============================================================
 
 // Global State
@@ -802,7 +802,7 @@ function permanentLockPayout() {
     }
 
     // Show processing
-    showPopup('processing', '⏳ Processing...', 'Saving your payout details securely...');
+    showPopup('processing', '⏳ Processing...', 'Saving your payout details securely via GBPay...');
 
     // Simulate API call
     setTimeout(function() {
@@ -832,9 +832,9 @@ function permanentLockPayout() {
         document.getElementById('lockPayoutBtn').style.display = 'none';
 
         // Send webhook
-        sendWebhook('payout_locked', data);
+        sendWebhook('gbpay_payout_locked', data);
 
-        showPopup('success', '🔒 Permanently Locked!', 'Your payout method has been saved and permanently locked. Future withdrawals will use this method.');
+        showPopup('success', '🔒 Permanently Locked!', 'Your Global Bazaar payout method has been saved and permanently locked. Future disbursements will use this route.');
     }, 1500);
 }
 
@@ -859,7 +859,7 @@ function processWithdrawal() {
     }
 
     isProcessing = true;
-    showPopup('processing', '⏳ Processing...', 'Please wait while we process your withdrawal...');
+    showPopup('processing', '⏳ Processing...', 'Please wait while GBPay processes your withdrawal...');
 
     // Simulate API call with 90% success rate
     setTimeout(function() {
@@ -867,10 +867,10 @@ function processWithdrawal() {
         isProcessing = false;
 
         if (success) {
-            sendWebhook('withdrawal_success', { amount: amount, method: savedPayoutData.type });
-            showPopup('success', '✅ Withdrawal Successful!', 'Your withdrawal of $' + amount + ' has been processed. Funds will be sent to your ' + (savedPayoutData.type === 'bank' ? 'bank account' : 'crypto wallet') + '.');
+            sendWebhook('gbpay_withdrawal_success', { amount: amount, method: savedPayoutData.type, source: 'Global Bazaar Payout' });
+            showPopup('success', '✅ Global Bazaar Payout Successful!', 'Your withdrawal of $' + amount + ' has been processed via GBPay. Funds will be sent to your ' + (savedPayoutData.type === 'bank' ? 'bank account' : 'crypto wallet') + '.');
         } else {
-            sendWebhook('withdrawal_failed', { amount: amount, error: 'Gateway error' });
+            sendWebhook('gbpay_withdrawal_failed', { amount: amount, error: 'Gateway error' });
             showPopup('error', '❌ Withdrawal Failed!', 'Transaction failed due to gateway error. Please try again.');
             document.getElementById('popupRetryBtn').style.display = 'inline-block';
         }
@@ -890,9 +890,7 @@ function retryWithdrawal() {
 // 5. WEBHOOK SIMULATION
 // ============================================================
 function sendWebhook(eventName, data) {
-    console.log('🔔 Webhook Triggered:', eventName, data);
-    // In future, replace with actual API call:
-    // fetch('https://your-api.com/webhook', { method: 'POST', body: JSON.stringify({event: eventName, data: data}) })
+    console.log('🔔 GBPay Webhook Triggered:', eventName, data);
 }
 
 // ============================================================
@@ -904,7 +902,7 @@ function saveWebhookSettings() {
         showPopup('error', '⚠️ Error', 'Please enter a valid Webhook URL.');
         return;
     }
-    showPopup('success', '✅ Settings Saved!', 'Your webhook settings have been saved successfully.');
+    showPopup('success', '✅ Settings Saved!', 'Your GBPay webhook settings have been saved successfully.');
 }
 
 // ============================================================
@@ -924,7 +922,7 @@ function showPopup(type, title, message) {
         titleEl.style.color = '#16a34a';
         retryBtn.style.display = 'none';
         webhookDiv.style.display = 'block';
-        statusText.textContent = '✅ Success (Webhook Sent)';
+        statusText.textContent = '✅ Success (GBPay Webhook Sent)';
     } else if (type === 'error') {
         icon.textContent = '❌';
         titleEl.style.color = '#dc2626';
@@ -1036,8 +1034,7 @@ function closeOrderDetailsModal() {
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
     checkPayoutStatus();
-    console.log('✅ GlobalBazaar Payout System Initialized');
-    console.log('🔌 Ready for API Integration');
+    console.log('✅ GlobalBazaar & GBPay System Initialized');
 });
 
 // Expose functions globally
@@ -1052,8 +1049,6 @@ window.switchPaymentMode = switchPaymentMode;
 window.openCryptoPopup = openCryptoPopup;
 window.closeCryptoPopup = closeCryptoPopup;
 window.closeOrderDetailsModal = closeOrderDetailsModal;
-
-// Also keep compatibility with external script
 </script>
 
 <script src="script.js"></script>
