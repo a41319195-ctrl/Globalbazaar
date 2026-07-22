@@ -2109,7 +2109,7 @@ function showOrderDetailsModal(order) {
 }
 
 // ============================================================
-// SELLER DASHBOARD - COMPLETE FIXED VERSION
+// SELLER DASHBOARD - COMPLETE FIXED VERSION WITH PAYOUT
 // ============================================================
 
 function renderSellerDashboard() {
@@ -2213,6 +2213,80 @@ function renderSellerDashboard() {
     });
     let topList = Object.entries(topProducts).sort((a, b) => b[1] - a[1]).slice(0, 5);
     
+    // ============================================================
+    // PAYOUT SECTION HTML - BANK + GBPay (CRYPTO)
+    // ============================================================
+    let payoutHtml = `
+        <div class="premium-card" style="margin-bottom: 15px; border: 3px solid #007bff; background: #fbfdff;" id="payoutSection">
+            <h3 style="color: #007bff; margin-bottom: 10px;">🌐 Secure Payout Method & Bank Gateway</h3>
+            <p style="font-size: 13px; color: #555; margin-bottom: 15px;">Select your payout method. This will be permanently locked after first setup.</p>
+            
+            <!-- Lock Status -->
+            <div id="payoutLockStatus" style="margin-bottom: 15px; padding: 12px; border-radius: 8px; background: #fef3c7; border: 2px solid #f59e0b; display: none;">
+                <span style="font-weight: 700; color: #92400e; font-size: 15px;">🔒 Payout Method is PERMANENTLY LOCKED</span>
+                <span style="display: block; font-size: 13px; color: #78350f; margin-top: 4px;">This cannot be changed. All future withdrawals will use this method.</span>
+            </div>
+            
+            <!-- Method Selection -->
+            <div style="display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap;">
+                <label style="cursor: pointer; font-weight: 600; font-size: 15px; padding: 8px 16px; background: #eef6ff; border-radius: 8px;">
+                    <input type="radio" name="sellerPayoutMethod" value="bank" checked onclick="togglePayoutFields('bank')"> 🏦 Local Bank Transfer
+                </label>
+                <label style="cursor: pointer; font-weight: 600; font-size: 15px; padding: 8px 16px; background: #eef6ff; border-radius: 8px;">
+                    <input type="radio" name="sellerPayoutMethod" value="crypto" onclick="togglePayoutFields('crypto')"> 🪙 GBPay (Crypto / Gold Coin)
+                </label>
+            </div>
+
+            <!-- Bank Details -->
+            <div id="sellerBankFields" style="display: block; background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0;">
+                <h4 style="font-size: 15px; margin-bottom: 12px; color: #1e293b;">🏦 Bank Account Details</h4>
+                <input type="text" id="sellerBankHolderName" placeholder="Account Holder Name *" class="input" style="margin-bottom: 10px;">
+                <input type="text" id="sellerBankAccountNo" placeholder="Account Number / IBAN *" class="input" style="margin-bottom: 10px;">
+                <input type="text" id="sellerBankIfsc" placeholder="IFSC / SWIFT Code *" class="input" style="margin-bottom: 10px;">
+                <input type="text" id="sellerBankName" placeholder="Bank Name *" class="input">
+            </div>
+
+            <!-- Crypto / GBPay Details -->
+            <div id="sellerCryptoFields" style="display: none; background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0;">
+                <h4 style="font-size: 15px; margin-bottom: 12px; color: #1e293b;">🪙 GBPay (Crypto & Gold Coin System)</h4>
+                <select id="sellerCryptoCoinType" class="input" style="margin-bottom: 10px;">
+                    <option value="usdt">USDT (Tether - ERC20/TRC20)</option>
+                    <option value="btc">Bitcoin (BTC / Lightning Network)</option>
+                    <option value="eth">Ethereum (ETH)</option>
+                    <option value="gold_coin">🪙 Digital Gold Coin (GBPay)</option>
+                </select>
+                <input type="text" id="withdrawCryptoAddress" placeholder="Enter Wallet Address *" class="input">
+                <p style="font-size: 11px; color: #6b7280; margin-top: 4px;">💡 GBPay supports Crypto & Gold Coin settlements</p>
+            </div>
+            
+            <!-- Lock Button -->
+            <button type="button" class="btn-primary" onclick="permanentLockPayout()" style="margin-top: 15px; background: #dc2626; font-weight: 700; padding: 12px 24px;" id="lockPayoutBtn">
+                🔒 Permanently Lock Payout Method (One-Time)
+            </button>
+            <p style="font-size: 12px; color: #6b7280; margin-top: 6px; font-weight: 500;">
+                ⚠️ WARNING: This action is IRREVERSIBLE. You will not be able to change your payout method after locking.
+            </p>
+        </div>
+    `;
+
+    // Add Withdrawal section
+    let withdrawalHtml = `
+        <div class="premium-card" style="margin-top: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0;">💰 Payout & Withdrawals History</h3>
+                <button onclick="toggleSection('payoutHistoryList')" style="background:#f0fdf4; color:#166534; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; font-weight:bold;">View</button>
+            </div>
+            
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <input type="number" id="withdrawAmount" placeholder="Enter Amount to Withdraw" class="input" style="flex: 1; min-width: 150px;">
+                    <button type="button" class="btn-primary" onclick="processWithdrawalRequest()" style="background: #16a34a; font-weight: 700; padding: 12px 24px;">🚀 Request Payout</button>
+                </div>
+            </div>
+            <div id="pendingWithdrawals" style="display:none; margin-top:10px;"></div>
+        </div>
+    `;
+
     let prodListHtml = myProducts.map(p => {
         const isSoldOut = p.stock <= 0;
         const commissionRate = getCategoryCommission(p.category);
@@ -2230,13 +2304,6 @@ function renderSellerDashboard() {
                                 `<span style="color:#10b981;">✅ ${p.stock} in stock</span>`
                             }
                             <span style="margin-left:8px; font-size:11px; color:#8b5cf6;">Commission: ${(commissionRate * 100).toFixed(0)}%</span>
-                        </div>
-                        <div style="font-size:10px; color:#64748b; margin-top:2px;">
-                            🚚 Local: ${getCurrencySymbol()}${convertPrice(p.shippingLocal || 0)} | 
-                            Regional: ${getCurrencySymbol()}${convertPrice(p.shippingRegional || 0)} | 
-                            International: ${getCurrencySymbol()}${convertPrice(p.shippingInternational || 0)} | 
-                            Free above: ${getCurrencySymbol()}${convertPrice(p.shippingFreeAbove || 0)}
-                            ${p.shippingFreeAbove > 0 ? `(Free above ${getCurrencySymbol()}${convertPrice(p.shippingFreeAbove)})` : '(No free shipping)'}
                         </div>
                     </div>
                 </div>
@@ -2272,7 +2339,6 @@ function renderSellerDashboard() {
                 <div style="background:#f8fafc; padding:12px; border-radius:8px;">
                     <div style="font-weight:600; color:#475569; font-size:13px;">📦 Product</div>
                     <div style="font-size:15px; font-weight:500;">${o.productName}</div>
-                    <div style="color:#64748b; font-size:13px;">Category: ${o.category || 'General'} | Commission: ${(o.commissionRate || 0.15) * 100}%</div>
                     <div style="color:#64748b; font-size:13px;">Qty: ${o.qty} × ${getCurrencySymbol()}${convertPrice(o.amount/o.qty)}</div>
                     <div style="font-weight:600; color:#1e293b; font-size:15px; margin-top:4px;">
                         Total: ${getCurrencySymbol()}${convertPrice(o.amount * o.qty)}
@@ -2429,28 +2495,11 @@ function renderSellerDashboard() {
                         <div style="font-size:10px; color:#94a3b8;">${(availableAmount || 0) > 0 ? '✅ ' + getCurrencySymbol() + convertPrice(availableAmount) + ' available' : '⏳ All pending'}</div>
                     </div>
                 </div>
-                
-                <div style="margin-top:12px; padding:20px; background:#f0fdf4; border-radius:16px; border:2px solid #bbf7d0;">
-                    <h4 style="margin:0 0 12px 0; color:#065f46;">💰 Withdraw Money</h4>
-                    <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
-                        <div style="flex:1; min-width:200px;">
-                            <input type="number" id="withdrawAmountInput" 
-                                   placeholder="Enter amount to withdraw" 
-                                   style="width:100%; padding:12px; border:2px solid #d1d5db; border-radius:8px; font-size:16px;">
-                        </div>
-                        <button id="withdrawBtn" 
-                                style="background:#10b981; color:white; border:none; padding:12px 30px; border-radius:25px; cursor:pointer; font-weight:600; font-size:16px;">
-                            💰 Withdraw Now
-                        </button>
-                    </div>
-                    <div style="margin-top:8px; font-size:14px; color:#64748b;">
-                        Available: ${getCurrencySymbol()}${convertPrice(availableAmount || 0)}
-                        ${(availableAmount || 0) === 0 ? '<span style="color: #ef4444; margin-left: 10px;">⚠️ No balance to withdraw</span>' : ''}
-                    </div>
-                </div>
-                ${pendingAmount > 0 ? `<p style="text-align:center; font-size:12px; color:#94a3b8; margin-top:4px;">⏳ ${getCurrencySymbol()}${convertPrice(pendingAmount)} pending - Will be available after buyer confirms delivery</p>` : ''}
             </div>
         </div>
+        
+        ${payoutHtml}
+        ${withdrawalHtml}
         
         <div class="chart-container"><h3>📊 Revenue</h3><canvas id="revenueChart"></canvas></div>
         
@@ -2539,6 +2588,17 @@ function renderSellerDashboard() {
     
     document.getElementById('sellerDashboard').innerHTML = sellerDashboardHtml;
     
+    // ============================================================
+    // FIX: Ensure Payout Section Shows
+    // ============================================================
+    setTimeout(function() {
+        var payoutSection = document.getElementById('payoutSection');
+        if (payoutSection) {
+            payoutSection.style.display = 'block';
+        }
+        checkPayoutStatus();
+    }, 100);
+    
     // Revenue Chart
     let ctx = document.getElementById('revenueChart')?.getContext('2d');
     if (ctx) {
@@ -2564,24 +2624,6 @@ function renderSellerDashboard() {
                         }
                     }
                 });
-            } else {
-                console.warn('Chart.js not loaded, showing fallback');
-                const chartContainer = document.querySelector('.chart-container');
-                if (chartContainer) {
-                    chartContainer.innerHTML = `
-                        <h3>📊 Revenue</h3>
-                        <div style="padding:15px; background:#f8fafc; border-radius:8px;">
-                            <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-                                ${chartLabels.map((label, i) => `
-                                    <div style="padding:10px; background:white; border-radius:8px; min-width:60px; text-align:center; border:1px solid #e2e8f0;">
-                                        <div style="font-weight:700; font-size:16px; color:#3b82f6;">${getCurrencySymbol()}${chartData[i].toFixed(2)}</div>
-                                        <div style="font-size:11px; color:#64748b;">${label}</div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    `;
-                }
             }
         } catch (error) {
             console.error('Chart error:', error);
@@ -2738,28 +2780,6 @@ function renderSellerDashboard() {
             let track = prompt("Enter tracking number:");
             if (track) markOrderShipped(parseFloat(btn.dataset.id), track);
         });
-    });
-    
-    document.getElementById('withdrawBtn')?.addEventListener('click', function() {
-        let seller = sellers.find(s => s.id === currentSeller.sellerId);
-        if (!seller) {
-            showToast("⚠️ Seller not found", true);
-            return;
-        }
-        
-        let amount = parseFloat(document.getElementById('withdrawAmountInput').value);
-        
-        if (isNaN(amount) || amount <= 0) {
-            showToast("Please enter a valid amount", true);
-            return;
-        }
-        
-        if (amount > seller.earnings) {
-            showToast("❌ Insufficient balance! Available: " + getCurrencySymbol() + convertPrice(seller.earnings), true);
-            return;
-        }
-        
-        requestWithdrawal(seller.id);
     });
 }
 
@@ -4349,6 +4369,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     setupFirestoreListeners();
     
+    // ============================================================
+    // PAYOUT SYSTEM INITIALIZATION
+    // ============================================================
+    checkPayoutStatus();
+    console.log('✅ Bank + GBPay Payout System Initialized');
+    
     document.getElementById('debugMsg').innerHTML = '✅ GlobalBazaar Ready!';
     console.log('✅ GlobalBazaar Initialized Successfully');
 });
@@ -4374,17 +4400,13 @@ document.addEventListener('input', function(e) {
     let isValid = true;
     let needsValidation = false;
 
-    // --- सेलर के लिए स्ट्रिक्ट वैलिडेशन (ID के आधार पर) ---
     if (fieldId === 'sellerphone') {
         needsValidation = true;
         isValid = val.length >= 7 && val.length <= 15;
     } else if (fieldId === 'sellerpincode') {
         needsValidation = true;
         isValid = val.length >= 3 && val.length <= 10;
-    }
-
-    // --- बायर (Delivery Details) के लिए फ्लेक्सिबल वैलिडेशन (Placeholder के आधार पर) ---
-    else if (placeholder.includes('phone') || placeholder.includes('mobile')) {
+    } else if (placeholder.includes('phone') || placeholder.includes('mobile')) {
         needsValidation = true;
         isValid = val.length >= 7;
     } else if (placeholder.includes('code') || placeholder.includes('zip') || placeholder.includes('post')) {
@@ -4392,61 +4414,51 @@ document.addEventListener('input', function(e) {
         isValid = val.length >= 3;
     }
 
-    // कलर अपडेट करें
     if (needsValidation) {
         target.style.borderColor = (val === "") ? "#ccc" : (isValid ? "green" : "red");
     }
 });
 
-
 // Universal Fetch & Render with Pagination
-// Toggle Section for showing/hiding content
-// Toggle Section made global for accessibility
 window.toggleSection = function(sectionId) {
     const section = document.getElementById(sectionId);
     if (section) {
         section.style.display = (section.style.display === "none" || section.style.display === "") ? "block" : "none";
-        console.log("Toggle action triggered for: " + sectionId); // यह कंसोल में चेक करने के लिए
+        console.log("Toggle action triggered for: " + sectionId);
     } else {
-        console.error("Section not found with ID: " + sectionId); // यह एरर ट्रैक करने के लिए
+        console.error("Section not found with ID: " + sectionId);
     }
 };
-// ग्लोबल वेरिएबल ताकि पेजिनेशन याद रहे
+
 let lastVisible = null; 
 
 async function fetchAndRenderData(collection, containerId, queryType, limit = 5) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    // अगर पहली बार लोड हो रहा है, तो "Loading" दिखाएं
     if (!lastVisible) container.innerHTML = "Loading...";
 
     try {
         let ref = db.collection(collection).orderBy("createdAt", "desc").limit(limit);
         
-        // सेलर के लिए फ़िल्टर
         if (queryType === 'seller') {
             const user = auth.currentUser;
             if (user) ref = ref.where("sellerEmail", "==", user.email);
         }
 
-        // अगर पिछले आइटम हैं, तो उनके बाद से डेटा उठाएं
         if (lastVisible) {
             ref = ref.startAfter(lastVisible);
         }
 
         const snapshot = await ref.get();
         
-        // अगर डेटा खाली है और कुछ लोड नहीं हुआ
         if (snapshot.empty && !lastVisible) {
             container.innerHTML = "No records found.";
             return;
         }
 
-        // पहली बार के लिए पुराने लोडिंग मैसेज को हटा दें
         if (!lastVisible) container.innerHTML = "";
 
-        // डेटा रेंडर करें
         snapshot.forEach(doc => {
             const data = doc.data();
             const div = document.createElement('div');
@@ -4460,12 +4472,10 @@ async function fetchAndRenderData(collection, containerId, queryType, limit = 5)
             container.appendChild(div);
         });
 
-        // अगला 'lastVisible' अपडेट करें
         if (snapshot.docs.length > 0) {
             lastVisible = snapshot.docs[snapshot.docs.length - 1];
         }
 
-        // Load More बटन का लॉजिक
         if (snapshot.docs.length === limit) {
             let btn = document.getElementById('loadMoreBtn_' + containerId);
             if (!btn) {
@@ -4476,7 +4486,6 @@ async function fetchAndRenderData(collection, containerId, queryType, limit = 5)
                 container.appendChild(btn);
             }
         } else {
-            // अगर और डेटा नहीं है, तो बटन हटा दें
             const btn = document.getElementById('loadMoreBtn_' + containerId);
             if (btn) btn.remove();
         }
@@ -4486,3 +4495,4 @@ async function fetchAndRenderData(collection, containerId, queryType, limit = 5)
         console.error(e);
     }
 }
+</script>
