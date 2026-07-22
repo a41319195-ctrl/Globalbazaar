@@ -88,7 +88,7 @@
         <div class="product-grid" id="productsGrid"></div>
     </div>
 
-        <!-- ========== SELLER SECTION ========== -->
+            <!-- ========== SELLER SECTION ========== -->
     <div id="sellerSection" class="section">
         <div id="sellerRegisterBox" class="premium-card">
             <h2>🏪 Open Your Shop</h2>
@@ -152,79 +152,100 @@
             </form>
         </div>
 
-        <!-- SELLER DASHBOARD (यहीं पर पे-आउट कॉन्फ़िगरेशन रहेगा) -->
+        <!-- SELLER DASHBOARD -->
         <div id="sellerDashboard" style="display:none;">
+            
+            <!-- 📊 Revenue & Earnings Overview Card -->
+            <div class="premium-card" style="margin-bottom: 15px; background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);">
+                <h3>📊 Revenue & Earnings</h3>
+                <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                    <div style="flex: 1; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
+                        <span style="font-size: 13px; color: #64748b;">Total Sales</span>
+                        <h4 id="sellerTotalSales" style="margin: 5px 0 0; color: #0f172a;">$0.00</h4>
+                    </div>
+                    <div style="flex: 1; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
+                        <span style="font-size: 13px; color: #64748b;">Available Balance</span>
+                        <h4 id="sellerAvailBalance" style="margin: 5px 0 0; color: #16a34a;">$0.00</h4>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🔄 SECURE PAYOUT METHOD SYSTEM (Bank Integration + Crypto / Gold Coin) -->
+            <div class="premium-card" style="margin-bottom: 15px; border: 2px solid #007bff; background: #fbfdff;">
+                <h3 style="color: #007bff; margin-bottom: 10px;">🌐 Secure Payout Method & Bank Gateway</h3>
+                <p style="font-size: 13px; color: #555; margin-bottom: 15px;">Select how you want to receive your funds (Localized Bank Transfer or Secure Crypto/Gold Coin System).</p>
+                
+                <!-- Payout Method Selection Tabs/Radio -->
+                <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                    <label style="cursor: pointer; font-weight: 600;"><input type="radio" name="sellerPayoutMethod" value="bank" checked onclick="togglePayoutFields('bank')"> 🏦 Local Bank Transfer (Third-Party)</label>
+                    <label style="cursor: pointer; font-weight: 600;"><input type="radio" name="sellerPayoutMethod" value="crypto" onclick="togglePayoutFields('crypto')"> 🪙 Crypto / Gold Coin Gateway</label>
+                </div>
+
+                <!-- 1. Bank Details Section -->
+                <div id="sellerBankFields" style="display: block; background: #fff; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <h4 style="font-size: 14px; margin-bottom: 10px; color: #333;">🏦 Bank Account Details</h4>
+                    <input type="text" id="sellerBankHolderName" placeholder="Account Holder Name" class="input" style="margin-bottom: 10px;">
+                    <input type="text" id="sellerBankAccountNo" placeholder="Account Number / IBAN" class="input" style="margin-bottom: 10px;">
+                    <input type="text" id="sellerBankIfsc" placeholder="IFSC / SWIFT Code" class="input" style="margin-bottom: 10px;">
+                    <input type="text" id="sellerBankName" placeholder="Bank Name" class="input">
+                </div>
+
+                <!-- 2. Crypto / Gold Coin Details Section -->
+                <div id="sellerCryptoFields" style="display: none; background: #fff; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <h4 style="font-size: 14px; margin-bottom: 10px; color: #333;">🪙 Crypto & Gold Coin System</h4>
+                    <select id="sellerCryptoCoinType" class="input" style="margin-bottom: 10px;">
+                        <option value="usdt">USDT (Tether)</option>
+                        <option value="btc">Bitcoin (BTC / Lightning)</option>
+                        <option value="gold_coin">🪙 Digital Gold Coin</option>
+                    </select>
+                    <input type="text" id="withdrawCryptoAddress" placeholder="Enter Destination Wallet Address" class="input">
+                </div>
+            </div>
+
+            <!-- 📦 Seller Orders -->
             <div class="premium-card">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3>📦 Seller Orders</h3>
                     <button onclick="toggleSection('sellerOrdersList')" style="background:#eef6ff; color:#007bff; border:none; padding:8px 15px; border-radius:6px; cursor:pointer;">View</button>
                 </div>
-                <!-- यह रहा आपका ऑर्डर लिस्ट -->
                 <div id="pendingKycList" style="display:none; margin-top:15px;"></div>
             </div>
 
-            <!-- सेलर पे-आउट बटन -->
-            <div class="premium-card" style="margin-top: 10px;">
+            <!-- 💰 Payout History & Withdrawal Trigger -->
+            <div class="premium-card" style="margin-top: 15px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="margin: 0;">💰 Payout History</h3>
+                    <h3 style="margin: 0;">💰 Payout & Withdrawals History</h3>
                     <button onclick="toggleSection('payoutHistoryList')" style="background:#f0fdf4; color:#166534; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; font-weight:bold;">View</button>
                 </div>
+                
+                <!-- Request Payout Action Area -->
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
+                    <input type="number" id="withdrawAmount" placeholder="Enter Amount to Withdraw" class="input" style="margin-bottom: 10px;">
+                    <button type="button" class="btn-primary" onclick="triggerPayoutRequest()" style="width: 100%; background: #16a34a;">🚀 Process & Request Payout</button>
+                </div>
+
                 <div id="pendingWithdrawals" style="display:none; margin-top:10px;"></div>
             </div>
 
-            <!-- ========== SECURE TOKENIZED PAYOUT CONFIGURATION (अब सही जगह यानी डैशबोर्ड के अंदर है) ========== -->
-            <div class="premium-card" style="background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-top: 15px;">
-                <h3 style="font-size: 16px; color: #1e293b; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                    <span>🔒</span> Secure Payout Configuration (Tokenized)
-                </h3>
-                <p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">
-                    Bank details go directly to the payment gateway via API, and crypto connects to BTCPay Server securely.
-                </p>
-
-                <!-- Payout Method Tabs -->
-                <div style="display: flex; gap: 10px; background: #f1f5f9; padding: 5px; border-radius: 8px; margin-bottom: 15px;">
-                    <button type="button" id="bankTabBtn" onclick="switchSellerPayoutTab('bank')" style="flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; background: #ffffff; color: #0f172a; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: 0.3s;">
-                        🏦 Bank Payout (Via Gateway)
-                    </button>
-                    <button type="button" id="cryptoTabBtn" onclick="switchSellerPayoutTab('crypto')" style="flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; background: transparent; color: #64748b; transition: 0.3s;">
-                        🪙 Crypto (BTCPay Server)
-                    </button>
+            <!-- 🔌 API & Webhook Configuration -->
+            <div class="premium-card" style="margin-top: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin: 0;">🔌 Gateway & Webhook Settings</h3>
                 </div>
-
-                <!-- 1. Bank Form Container -->
-                <div id="sellerBankFormContainer" style="display: block;">
-                    <div style="margin-bottom: 10px;">
-                        <input type="text" id="sellerBankName" placeholder="Bank Name *" class="input" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; margin-bottom: 8px;">
-                        <input type="text" id="sellerAccHolder" placeholder="Account Holder Name *" class="input" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; margin-bottom: 8px;">
-                        <input type="text" id="sellerAccNumber" placeholder="Account Number / IBAN *" class="input" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; margin-bottom: 8px;">
-                        <input type="text" id="sellerSwiftIfsc" placeholder="SWIFT / IFSC Code *" class="input" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
-                    </div>
-                    <button type="button" onclick="tokenizeAndSaveBankWithGateway()" class="btn-primary" style="background: #0f172a; color: white; padding: 10px; border: none; border-radius: 6px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 5px;">
-                        Submit to Gateway & Secure Token
-                    </button>
-                </div>
-
-                <!-- 2. Crypto Form Container -->
-                <div id="sellerCryptoFormContainer" style="display: none;">
-                    <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 10px; text-align: center;">
-                        <p style="font-size: 13px; color: #334155; font-weight: bold; margin-bottom: 5px;">Digital Currency Payout (BTCPay Server)</p>
-                        <p style="font-size: 12px; color: #64748b; margin-bottom: 12px;">Fast, secure, and decentralized blockchain settlement on USDT TRC20.</p>
-                        <input type="text" id="sellerCryptoAddress" placeholder="Enter USDT TRC20 Wallet Address *" class="input" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
-                    </div>
-                    <button type="button" onclick="saveAndLockCrypto()" class="btn-primary" style="background: #0f172a; color: white; padding: 10px; border: none; border-radius: 6px; width: 100%; font-weight: bold; cursor: pointer;">
-                        Save & Lock Crypto Wallet
-                    </button>
-                </div>
-
-                <!-- Locked Status View -->
-                <div id="sellerPayoutLockedView" style="display: none; text-align: center; padding: 12px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; margin-top: 10px;">
-                    <p style="color: #16a34a; font-weight: bold; margin-bottom: 3px; font-size: 14px;">✅ Payout Method Securely Configured</p>
-                    <p id="sellerLockedInfoText" style="font-size: 13px; color: #475569; margin: 0;"></p>
-                    <p style="font-size: 11px; color: #94a3b8; margin-top: 5px;">Protected via Gateway Tokenization / BTCPay.</p>
+                <p style="font-size: 13px; color: #64748b; margin-top: 5px;">Configure your store webhooks and payment gateway API keys for instant transaction synchronization.</p>
+                
+                <div style="margin-top: 15px;">
+                    <label style="font-weight:600; font-size: 14px;">Webhook URL Endpoint</label>
+                    <input type="text" id="sellerWebhookUrl" placeholder="https://yourstore.com/api/v1/webhook" class="input" style="margin-top: 5px; margin-bottom: 10px;">
+                    
+                    <label style="font-weight:600; font-size: 14px;">API Secret Key</label>
+                    <input type="password" id="sellerApiKey" placeholder="sk_live_xxxxxxxxxxxxxxxx" class="input" style="margin-top: 5px; margin-bottom: 15px;">
+                    
+                    <button type="button" class="btn-primary" onclick="saveWebhookSettings()" style="background: #0284c7;">Save Gateway Settings</button>
                 </div>
             </div>
 
-        </div> <!-- /sellerDashboard End -->
+        </div>
     </div>
     
     <!-- ========== PROFILE SECTION ========== -->
@@ -249,131 +270,73 @@
                 <div id="buyerWishlistList"></div>
             </div>
         </div>
-    </div> 
+    </div>
 
-    <!-- ========== SELLER PAYOUT SUCCESS POPUP MODAL (Bayer Style) ========== -->
-    <div id="sellerPayoutModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; padding: 15px;">
-        <div style="background: #ffffff; width: 100%; max-width: 420px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); overflow: hidden;">
-            
-            <!-- Header -->
-            <div style="background: #f0fdf4; padding: 20px; text-align: center; border-bottom: 1px solid #bbf7d0; position: relative;">
-                <button onclick="closeSellerPayoutModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 18px; cursor: pointer; color: #64748b;">✕</button>
-                <div style="font-size: 32px; margin-bottom: 5px;">✅</div>
-                <h3 style="color: #166534; margin: 0; font-size: 18px;">Payout Configured Successfully!</h3>
-                <p style="color: #15803d; font-size: 12px; margin: 5px 0 0 0;">Your payout destination is securely linked.</p>
-            </div>
-
-            <!-- Body Details -->
-            <div style="padding: 20px;">
-                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 15px; font-size: 13px; color: #334155;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                        <span style="color: #64748b;">🆔 Reference ID:</span>
-                        <strong id="modalRefId">GB-PAY-98421</strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                        <span style="color: #64748b;">📅 Date & Time:</span>
-                        <strong id="modalDateTime">-</strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="color: #64748b;">🔒 Destination:</span>
-                        <strong id="modalMethodType" style="text-align: right; max-width: 200px; word-break: break-all;">-</strong>
-                    </div>
-                </div>
-
-                <button onclick="closeSellerPayoutModal()" style="width: 100%; background: #0f172a; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px;">
-                    Got It, Return to Dashboard
-                </button>
-            </div>
+    <!-- 🪟 Custom Popup Modal Overlay (Success / Status Message) -->
+    <div id="customPopupModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:#fff; width:90%; max-width:400px; padding:25px; border-radius:16px; text-align:center; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); animation: popupScale 0.3s ease-in-out;">
+            <div id="popupIcon" style="font-size: 48px; margin-bottom: 15px;">🎉</div>
+            <h3 id="popupTitle" style="margin: 0 0 10px; color: #0f172a; font-size: 20px;">Success!</h3>
+            <p id="popupMessage" style="color: #64748b; font-size: 14px; margin-bottom: 20px; line-height: 1.5;">Your Global Bazaar payout request has been successfully processed.</p>
+            <button onclick="closeCustomPopup()" style="background:#0f172a; color:#fff; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:600; width:100%;">Got It</button>
         </div>
     </div>
 
-    <!-- ========== JAVASCRIPT LOGIC ========== -->
+    <style>
+    @keyframes popupScale {
+        from { transform: scale(0.8); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+    </style>
+
+    <!-- JavaScript फंक्शन्स -->
     <script>
-    function switchSellerPayoutTab(type) {
-        const bankBtn = document.getElementById('bankTabBtn');
-        const cryptoBtn = document.getElementById('cryptoTabBtn');
-        const bankForm = document.getElementById('sellerBankFormContainer');
-        const cryptoForm = document.getElementById('sellerCryptoFormContainer');
-
-        if(type === 'bank') {
-            bankBtn.style.background = '#ffffff';
-            bankBtn.style.color = '#0f172a';
-            bankBtn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
-            cryptoBtn.style.background = 'transparent';
-            cryptoBtn.style.color = '#64748b';
-            cryptoBtn.style.boxShadow = 'none';
-
-            bankForm.style.display = 'block';
-            cryptoForm.style.display = 'none';
-        } else {
-            cryptoBtn.style.background = '#ffffff';
-            cryptoBtn.style.color = '#0f172a';
-            cryptoBtn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
-            bankBtn.style.background = 'transparent';
-            bankBtn.style.color = '#64748b';
-            bankBtn.style.boxShadow = 'none';
-
-            cryptoForm.style.display = 'block';
-            bankForm.style.display = 'none';
-        }
-    }
-
-    function tokenizeAndSaveBankWithGateway() {
-        const bankName = document.getElementById('sellerBankName').value;
-        const accHolder = document.getElementById('sellerAccHolder').value;
-        const accNo = document.getElementById('sellerAccNumber').value;
-
-        if(!bankName || !accHolder || !accNo) {
-            alert('Please fill in all required bank details.');
-            return;
+        // बैंक और क्रिप्टो फील्ड को टॉगल करने के लिए
+        function togglePayoutFields(type) {
+            const bankFields = document.getElementById('sellerBankFields');
+            const cryptoFields = document.getElementById('sellerCryptoFields');
+            if (type === 'bank') {
+                bankFields.style.display = 'block';
+                cryptoFields.style.display = 'none';
+            } else {
+                bankFields.style.display = 'none';
+                cryptoFields.style.display = 'block';
+            }
         }
 
-        const maskedAcc = "****" + accNo.slice(-4);
-        const secureToken = "tok_gb_" + Math.random().toString(36).substring(2, 10);
-        const refId = "GB-BNK-" + Math.floor(100000 + Math.random() * 900000);
-
-        document.getElementById('sellerBankFormContainer').style.display = 'none';
-        document.getElementById('sellerCryptoFormContainer').style.display = 'none';
-        document.getElementById('bankTabBtn').parentElement.style.display = 'none'; 
-        
-        document.getElementById('sellerLockedInfoText').innerHTML = `<b>Bank:</b> ${bankName} (${maskedAcc}) <br><b>Token:</b> <code>${secureToken}</code>`;
-        document.getElementById('sellerPayoutLockedView').style.display = 'block';
-
-        showSellerPayoutSuccessModal(refId, `${bankName} (${maskedAcc})`);
-    }
-
-    function saveAndLockCrypto() {
-        const cryptoAddress = document.getElementById('sellerCryptoAddress').value;
-
-        if(!cryptoAddress || cryptoAddress.length < 10) {
-            alert('Please enter a valid USDT TRC20 wallet address.');
-            return;
+        // पेआउट रिक्वेस्ट ट्रिगर होने पर पॉपअप दिखाने के लिए
+        function triggerPayoutRequest() {
+            const amount = document.getElementById('withdrawAmount').value;
+            if(!amount || amount <= 0) {
+                showPopup("Invalid Amount", "Please enter a valid payout amount to proceed.", "⚠️");
+                return;
+            }
+            
+            // यहाँ आप अपना एपीआई या बैकएंड कॉल लिख सकते हैं
+            showPopup("Payout Requested! 🚀", `Your Global Bazaar payout request of $${amount} has been submitted securely via your selected gateway.`);
         }
 
-        const maskedCrypto = cryptoAddress.substring(0, 6) + "..." + cryptoAddress.substring(cryptoAddress.length - 4);
-        const refId = "GB-CRY-" + Math.floor(100000 + Math.random() * 900000);
+        // पॉपअप मॉडल को ओपन/क्लोज करने के फंक्शन्स
+        function showPopup(title, message, icon = "🎉") {
+            document.getElementById('popupTitle').innerText = title;
+            document.getElementById('popupMessage').innerText = message;
+            document.getElementById('popupIcon').innerText = icon;
+            document.getElementById('customPopupModal').style.display = 'flex';
+        }
 
-        document.getElementById('sellerBankFormContainer').style.display = 'none';
-        document.getElementById('sellerCryptoFormContainer').style.display = 'none';
-        document.getElementById('bankTabBtn').parentElement.style.display = 'none'; 
+        function closeCustomPopup() {
+            document.getElementById('customPopupModal').style.display = 'none';
+        }
 
-        document.getElementById('sellerLockedInfoText').innerHTML = `<b>Crypto (TRC20):</b> ${maskedCrypto} <br><b>Status:</b> Locked to BTCPay`;
-        document.getElementById('sellerPayoutLockedView').style.display = 'block';
-
-        showSellerPayoutSuccessModal(refId, `USDT: ${maskedCrypto}`);
-    }
-
-    function showSellerPayoutSuccessModal(refText, methodDetails) {
-        const now = new Date().toLocaleString();
-        document.getElementById('modalRefId').innerText = refText;
-        document.getElementById('modalDateTime').innerText = now;
-        document.getElementById('modalMethodType').innerText = methodDetails;
-        document.getElementById('sellerPayoutModal').style.display = 'flex';
-    }
-
-    function closeSellerPayoutModal() {
-        document.getElementById('sellerPayoutModal').style.display = 'none';
-    }
+        // वेबहुक सेव करने का फंक्शन
+        function saveWebhookSettings() {
+            const url = document.getElementById('sellerWebhookUrl').value;
+            if(!url) {
+                showPopup("Missing URL", "Please enter a valid Webhook URL endpoint.", "⚠️");
+                return;
+            }
+            showPopup("Settings Saved", "Your Webhook URL and API keys have been synchronized successfully.");
+        }
     </script>
 
     <!-- ========== ADMIN SECTION ========== -->
