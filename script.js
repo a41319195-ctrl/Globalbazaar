@@ -4399,21 +4399,17 @@ document.addEventListener('input', function(e) {
 });
 
 // ============================================================
-// 🔥 GLOBALBAZAAR & GBPAY - COMPLETE PAYOUT SYSTEM SCRIPT
-// Bank + GBPay (Crypto) - One Time Permanent Lock & Withdrawal
+// 🔥 GLOBALBAZAAR & GBPAY - SAFE PAYOUT SCRIPT
 // ============================================================
 
-// Global State Variables
 let isPayoutLocked = false;
 let savedPayoutData = null;
 let isProcessing = false;
 
-// ============================================================
 // 1. TOGGLE BANK / CRYPTO FIELDS
-// ============================================================
 function togglePayoutFields(type) {
     if (isPayoutLocked) {
-        showPopup('error', '🔒 Locked!', 'Payout method is permanently locked. Cannot change.');
+        if (typeof showPopup === 'function') showPopup('error', '🔒 Locked!', 'Payout method is permanently locked.');
         return;
     }
     const bankFields = document.getElementById('sellerBankFields');
@@ -4430,18 +4426,13 @@ function togglePayoutFields(type) {
     }
 }
 
-// ============================================================
-// 2. PERMANENT LOCK - ONE TIME IRREVERSIBLE
-// ============================================================
+// 2. PERMANENT LOCK - ONE TIME
 function permanentLockPayout() {
-    if (isPayoutLocked) {
-        showPopup('error', '🔒 Already Locked!', 'Your payout method has already been permanently locked.');
-        return;
-    }
+    if (isPayoutLocked) return;
 
     const method = document.querySelector('input[name="sellerPayoutMethod"]:checked');
     if (!method) {
-        showPopup('error', '⚠️ Error', 'Please select a payout method first.');
+        alert('Please select a payout method.');
         return;
     }
 
@@ -4453,7 +4444,7 @@ function permanentLockPayout() {
         const bankName = document.getElementById('sellerBankName')?.value.trim();
 
         if (!holder || !account || !ifsc || !bankName) {
-            showPopup('error', '⚠️ Incomplete', 'Please fill all required bank details before locking.');
+            alert('Please fill all bank details.');
             return;
         }
         data = { type: 'bank', holder, account, ifsc, bankName };
@@ -4461,200 +4452,50 @@ function permanentLockPayout() {
         const coinType = document.getElementById('sellerCryptoCoinType')?.value || 'usdt';
         const wallet = document.getElementById('withdrawCryptoAddress')?.value.trim();
         if (!wallet) {
-            showPopup('error', '⚠️ Error', 'Please enter your wallet address.');
+            alert('Please enter wallet address.');
             return;
         }
         data = { type: 'crypto', coinType, wallet };
     }
 
-    showPopup('processing', '⏳ Processing...', 'Saving and securing your payout details via GBPay...');
+    isPayoutLocked = true;
+    savedPayoutData = data;
 
-    setTimeout(() => {
-        isPayoutLocked = true;
-        savedPayoutData = data;
+    try {
+        localStorage.setItem('globalbazaar_payout_locked', 'true');
+        localStorage.setItem('globalbazaar_payout_data', JSON.stringify(data));
+    } catch(e) {}
 
-        // Save persistence in localStorage
-        try {
-            localStorage.setItem('globalbazaar_payout_locked', 'true');
-            localStorage.setItem('globalbazaar_payout_data', JSON.stringify(data));
-        } catch(e) {}
-
-        // Disable all inputs in the payout section
-        const section = document.getElementById('payoutSection');
-        if (section) {
-            const inputs = section.querySelectorAll('input, select, textarea');
-            inputs.forEach(el => el.disabled = true);
-            const radios = section.querySelectorAll('input[type="radio"]');
-            radios.forEach(el => el.disabled = true);
-        }
-
-        const lockStatusEl = document.getElementById('payoutLockStatus');
-        const lockBtnEl = document.getElementById('lockPayoutBtn');
-        if (lockStatusEl) lockStatusEl.style.display = 'block';
-        if (lockBtnEl) lockBtnEl.style.display = 'none';
-
-        sendWebhook('gbpay_payout_locked', data);
-        showPopup('success', '🔒 Permanently Locked!', 'Your payout method is now securely locked. Future disbursements will use this route.');
-    }, 1500);
-}
-
-// ============================================================
-// 3. PROCESS WITHDRAWAL REQUEST
-// ============================================================
-function processWithdrawalRequest() {
-    if (isProcessing) {
-        showPopup('processing', '⏳ Wait...', 'A transaction is already in progress.');
-        return;
+    const section = document.getElementById('payoutSection');
+    if (section) {
+        section.querySelectorAll('input, select, textarea').forEach(el => el.disabled = true);
     }
 
+    if (document.getElementById('payoutLockStatus')) document.getElementById('payoutLockStatus').style.display = 'block';
+    if (document.getElementById('lockPayoutBtn')) document.getElementById('lockPayoutBtn').style.display = 'none';
+
+    alert('🔒 Payout method permanently locked!');
+}
+
+// 3. PROCESS WITHDRAWAL
+function processWithdrawalRequest() {
     const amountInput = document.getElementById('withdrawAmount');
     const amount = amountInput ? amountInput.value : '';
     
     if (!amount || parseFloat(amount) <= 0) {
-        showPopup('error', '⚠️ Error', 'Please enter a valid withdrawal amount.');
+        alert('Please enter valid amount.');
         return;
     }
 
     if (!isPayoutLocked) {
-        showPopup('error', '⚠️ Not Setup', 'Please lock your payout method first. This is a one-time requirement.');
+        alert('Please lock your payout method first.');
         return;
     }
 
-    // Checking seller earnings if available in global scope
-    if (typeof sellers !== 'undefined' && typeof currentSeller !== 'undefined' && currentSeller) {
-        const seller = sellers.find(s => s.id === currentSeller.sellerId);
-        if (seller && parseFloat(amount) > (seller.earnings || 0)) {
-            showPopup('error', '❌ Insufficient Balance', 'You do not have enough available balance for this withdrawal.');
-            return;
-        }
-    }
-
-    isProcessing = true;
-    showPopup('processing', '⏳ Processing...', 'Please wait while GBPay processes your payout...');
-
-    setTimeout(() => {
-        const success = Math.random() < 0.9; // 90% success simulation
-        isProcessing = false;
-
-        if (success) {
-            // Deduct earnings if seller object exists
-            if (typeof sellers !== 'undefined' && typeof currentSeller !== 'undefined' && currentSeller) {
-                const seller = sellers.find(s => s.id === currentSeller.sellerId);
-                if (seller) {
-                    seller.earnings = (seller.earnings || 0) - parseFloat(amount);
-                    currentSeller.earnings = seller.earnings;
-                    try {
-                        localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
-                    } catch(e) {}
-                }
-            }
-
-            if (typeof withdrawalHistory !== 'undefined') {
-                withdrawalHistory.push({
-                    id: Date.now(),
-                    amount: parseFloat(amount),
-                    date: new Date().toLocaleString(),
-                    status: 'Approved',
-                    method: savedPayoutData?.type || 'Unknown'
-                });
-            }
-
-            if (typeof saveAllLocal === 'function') {
-                saveAllLocal();
-            }
-
-            const methodName = savedPayoutData?.type === 'bank' ? 'Bank Account' : 'GBPay Crypto Wallet';
-            sendWebhook('gbpay_withdrawal_success', { amount, method: savedPayoutData?.type });
-            
-            showPopup('success', '✅ Payout Successful!', 'Your withdrawal of $' + amount + ' has been successfully sent to your ' + methodName + '.');
-            
-            if (typeof renderSellerDashboard === 'function') {
-                renderSellerDashboard();
-            }
-        } else {
-            sendWebhook('gbpay_withdrawal_failed', { amount, error: 'Gateway timeout' });
-            showPopup('error', '❌ Withdrawal Failed!', 'Transaction failed due to network error. Please try again.');
-            const retryBtn = document.getElementById('popupRetryBtn');
-            if (retryBtn) retryBtn.style.display = 'inline-block';
-        }
-    }, 2000);
+    alert('Withdrawal request of ' + amount + ' processed successfully via ' + savedPayoutData?.type);
 }
 
-// ============================================================
-// 4. RETRY WITHDRAWAL
-// ============================================================
-function retryWithdrawal() {
-    const retryBtn = document.getElementById('popupRetryBtn');
-    if (retryBtn) retryBtn.style.display = 'none';
-    closePopup();
-    processWithdrawalRequest();
-}
-
-// ============================================================
-// 5. WEBHOOK SIMULATION
-// ============================================================
-function sendWebhook(eventName, data) {
-    console.log('🔔 GBPay Webhook Triggered:', eventName, data);
-}
-
-// ============================================================
-// 6. SAVE WEBHOOK SETTINGS
-// ============================================================
-function saveWebhookSettings() {
-    const url = document.getElementById('sellerWebhookUrl')?.value;
-    if (!url) {
-        showPopup('error', '⚠️ Error', 'Please enter a valid Webhook URL endpoint.');
-        return;
-    }
-    showPopup('success', '✅ Settings Saved!', 'Your GBPay webhook settings have been updated successfully.');
-}
-
-// ============================================================
-// 7. POPUP SYSTEM MANAGEMENT
-// ============================================================
-function showPopup(type, title, message) {
-    const popup = document.getElementById('dynamicPopup');
-    const icon = document.getElementById('popupIconEmoji');
-    const titleEl = document.getElementById('popupTitleText');
-    const msgEl = document.getElementById('popupMessageText');
-    const webhookDiv = document.getElementById('popupWebhookStatusDiv');
-    const statusText = document.getElementById('webhookStatusText');
-    const retryBtn = document.getElementById('popupRetryBtn');
-
-    if (!popup) return;
-
-    if (type === 'success') {
-        if (icon) icon.textContent = '✅';
-        if (titleEl) titleEl.style.color = '#16a34a';
-        if (retryBtn) retryBtn.style.display = 'none';
-        if (webhookDiv) webhookDiv.style.display = 'block';
-        if (statusText) statusText.textContent = '✅ Success (GBPay Webhook Sent)';
-    } else if (type === 'error') {
-        if (icon) icon.textContent = '❌';
-        if (titleEl) titleEl.style.color = '#dc2626';
-        if (retryBtn) retryBtn.style.display = 'inline-block';
-        if (webhookDiv) webhookDiv.style.display = 'block';
-        if (statusText) statusText.textContent = '❌ Failed';
-    } else if (type === 'processing') {
-        if (icon) icon.textContent = '⏳';
-        if (titleEl) titleEl.style.color = '#f59e0b';
-        if (retryBtn) retryBtn.style.display = 'none';
-        if (webhookDiv) webhookDiv.style.display = 'none';
-    }
-
-    if (titleEl) titleEl.textContent = title;
-    if (msgEl) msgEl.textContent = message;
-    popup.style.display = 'flex';
-}
-
-function closePopup() {
-    const popup = document.getElementById('dynamicPopup');
-    if (popup) popup.style.display = 'none';
-}
-
-// ============================================================
-// 8. CHECK LOCK STATUS ON PAGE LOAD
-// ============================================================
+// Check status safely without blocking page
 function checkPayoutStatus() {
     try {
         const locked = localStorage.getItem('globalbazaar_payout_locked');
@@ -4663,53 +4504,32 @@ function checkPayoutStatus() {
             const data = JSON.parse(localStorage.getItem('globalbazaar_payout_data'));
             if (data) {
                 savedPayoutData = data;
-                if (data.type === 'bank') {
+                if (data.type === 'bank' && document.getElementById('sellerBankAccountNo')) {
                     const bankRadio = document.querySelector('input[name="sellerPayoutMethod"][value="bank"]');
                     if (bankRadio) bankRadio.checked = true;
-                    
-                    if (document.getElementById('sellerBankHolderName')) document.getElementById('sellerBankHolderName').value = data.holder || '';
-                    if (document.getElementById('sellerBankAccountNo')) document.getElementById('sellerBankAccountNo').value = data.account || '';
-                    if (document.getElementById('sellerBankIfsc')) document.getElementById('sellerBankIfsc').value = data.ifsc || '';
-                    if (document.getElementById('sellerBankName')) document.getElementById('sellerBankName').value = data.bankName || '';
+                    document.getElementById('sellerBankHolderName').value = data.holder || '';
+                    document.getElementById('sellerBankAccountNo').value = data.account || '';
+                    document.getElementById('sellerBankIfsc').value = data.ifsc || '';
+                    document.getElementById('sellerBankName').value = data.bankName || '';
                     togglePayoutFields('bank');
-                } else {
+                } else if (document.getElementById('withdrawCryptoAddress')) {
                     const cryptoRadio = document.querySelector('input[name="sellerPayoutMethod"][value="crypto"]');
                     if (cryptoRadio) cryptoRadio.checked = true;
-                    
-                    if (document.getElementById('sellerCryptoCoinType')) document.getElementById('sellerCryptoCoinType').value = data.coinType || 'usdt';
-                    if (document.getElementById('withdrawCryptoAddress')) document.getElementById('withdrawCryptoAddress').value = data.wallet || '';
+                    document.getElementById('sellerCryptoCoinType').value = data.coinType || 'usdt';
+                    document.getElementById('withdrawCryptoAddress').value = data.wallet || '';
                     togglePayoutFields('crypto');
                 }
-
-                // Disable section inputs
-                const section = document.getElementById('payoutSection');
-                if (section) {
-                    section.querySelectorAll('input, select, textarea').forEach(el => el.disabled = true);
-                    section.querySelectorAll('input[type="radio"]').forEach(el => el.disabled = true);
-                }
-
-                const lockStatusEl = document.getElementById('payoutLockStatus');
-                const lockBtnEl = document.getElementById('lockPayoutBtn');
-                if (lockStatusEl) lockStatusEl.style.display = 'block';
-                if (lockBtnEl) lockBtnEl.style.display = 'none';
             }
         }
     } catch(e) {}
 }
 
-// ============================================================
-// 9. INITIALIZE ON DOM LOAD
-// ============================================================
-document.addEventListener('DOMContentLoaded', function() {
+// Run check safely on load
+window.addEventListener('load', function() {
     checkPayoutStatus();
-    console.log('✅ GlobalBazaar Bank & GBPay Payout System Initialized Successfully');
 });
 
-// Expose functions globally for HTML event handlers
+// Expose to window
 window.togglePayoutFields = togglePayoutFields;
 window.permanentLockPayout = permanentLockPayout;
 window.processWithdrawalRequest = processWithdrawalRequest;
-window.retryWithdrawal = retryWithdrawal;
-window.saveWebhookSettings = saveWebhookSettings;
-window.showPopup = showPopup;
-window.closePopup = closePopup;
