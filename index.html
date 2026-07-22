@@ -154,22 +154,6 @@
 
         <!-- SELLER DASHBOARD -->
         <div id="sellerDashboard" style="display:none;">
-            
-            <!-- 📊 Revenue & Earnings Overview Card -->
-            <div class="premium-card" style="margin-bottom: 15px; background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);">
-                <h3>📊 Revenue & Earnings</h3>
-                <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
-                    <div style="flex: 1; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
-                        <span style="font-size: 13px; color: #64748b;">Total Sales</span>
-                        <h4 id="sellerTotalSales" style="margin: 5px 0 0; color: #0f172a;">$0.00</h4>
-                    </div>
-                    <div style="flex: 1; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
-                        <span style="font-size: 13px; color: #64748b;">Available Balance</span>
-                        <h4 id="sellerAvailBalance" style="margin: 5px 0 0; color: #16a34a;">$0.00</h4>
-                    </div>
-                </div>
-            </div>
-
             <!-- 🔄 SECURE PAYOUT METHOD SYSTEM (Bank Integration + Crypto / Gold Coin) -->
             <div class="premium-card" style="margin-bottom: 15px; border: 2px solid #007bff; background: #fbfdff;">
                 <h3 style="color: #007bff; margin-bottom: 10px;">🌐 Secure Payout Method & Bank Gateway</h3>
@@ -199,6 +183,21 @@
                         <option value="gold_coin">🪙 Digital Gold Coin</option>
                     </select>
                     <input type="text" id="withdrawCryptoAddress" placeholder="Enter Destination Wallet Address" class="input">
+                </div>
+            </div>
+            
+            <!-- 📊 Revenue & Earnings Overview Card -->
+            <div class="premium-card" style="margin-bottom: 15px; background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);">
+                <h3>📊 Revenue & Earnings</h3>
+                <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                    <div style="flex: 1; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
+                        <span style="font-size: 13px; color: #64748b;">Total Sales</span>
+                        <h4 id="sellerTotalSales" style="margin: 5px 0 0; color: #0f172a;">$0.00</h4>
+                    </div>
+                    <div style="flex: 1; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
+                        <span style="font-size: 13px; color: #64748b;">Available Balance</span>
+                        <h4 id="sellerAvailBalance" style="margin: 5px 0 0; color: #16a34a;">$0.00</h4>
+                    </div>
                 </div>
             </div>
 
