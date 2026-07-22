@@ -88,7 +88,7 @@
         <div class="product-grid" id="productsGrid"></div>
     </div>
 
-            <!-- ========== SELLER SECTION ========== -->
+    <!-- ========== SELLER SECTION ========== -->
     <div id="sellerSection" class="section">
         <div id="sellerRegisterBox" class="premium-card">
             <h2>🏪 Open Your Shop</h2>
@@ -154,14 +154,35 @@
 
         <!-- SELLER DASHBOARD -->
         <div id="sellerDashboard" style="display:none;">
-            <!-- 🔄 SECURE PAYOUT METHOD SYSTEM (Bank Integration + Crypto / Gold Coin) -->
-            <div class="premium-card" style="margin-bottom: 15px; border: 2px solid #007bff; background: #fbfdff;">
+            <!-- 📊 Revenue & Earnings Overview Card -->
+            <div class="premium-card" style="margin-bottom: 15px; background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);">
+                <h3>📊 Revenue & Earnings</h3>
+                <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                    <div style="flex: 1; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
+                        <span style="font-size: 13px; color: #64748b;">Total Sales</span>
+                        <h4 id="sellerTotalSales" style="margin: 5px 0 0; color: #0f172a;">$0.00</h4>
+                    </div>
+                    <div style="flex: 1; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
+                        <span style="font-size: 13px; color: #64748b;">Available Balance</span>
+                        <h4 id="sellerAvailBalance" style="margin: 5px 0 0; color: #16a34a;">$0.00</h4>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🔄 SECURE PAYOUT METHOD SYSTEM - FINAL VERSION -->
+            <div class="premium-card" style="margin-bottom: 15px; border: 2px solid #007bff; background: #fbfdff;" id="payoutSection">
                 <h3 style="color: #007bff; margin-bottom: 10px;">🌐 Secure Payout Method & Bank Gateway</h3>
                 <p style="font-size: 13px; color: #555; margin-bottom: 15px;">Select how you want to receive your funds (Localized Bank Transfer or Secure Crypto/Gold Coin System).</p>
                 
-                <!-- Payout Method Selection Tabs/Radio -->
+                <!-- Lock Status Indicator -->
+                <div id="payoutLockStatus" style="margin-bottom: 15px; padding: 10px; border-radius: 8px; background: #fef3c7; border: 1px solid #f59e0b; display: none;">
+                    <span style="font-weight: 600; color: #92400e;">🔒 Payout Method is PERMANENTLY LOCKED</span>
+                    <span style="display: block; font-size: 13px; color: #78350f; margin-top: 4px;">This cannot be changed. Future withdrawals will use this saved method.</span>
+                </div>
+                
+                <!-- Payout Method Selection -->
                 <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-                    <label style="cursor: pointer; font-weight: 600;"><input type="radio" name="sellerPayoutMethod" value="bank" checked onclick="togglePayoutFields('bank')"> 🏦 Local Bank Transfer (Third-Party)</label>
+                    <label style="cursor: pointer; font-weight: 600;"><input type="radio" name="sellerPayoutMethod" value="bank" checked onclick="togglePayoutFields('bank')"> 🏦 Local Bank Transfer</label>
                     <label style="cursor: pointer; font-weight: 600;"><input type="radio" name="sellerPayoutMethod" value="crypto" onclick="togglePayoutFields('crypto')"> 🪙 Crypto / Gold Coin Gateway</label>
                 </div>
 
@@ -184,21 +205,14 @@
                     </select>
                     <input type="text" id="withdrawCryptoAddress" placeholder="Enter Destination Wallet Address" class="input">
                 </div>
-            </div>
-            
-            <!-- 📊 Revenue & Earnings Overview Card -->
-            <div class="premium-card" style="margin-bottom: 15px; background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);">
-                <h3>📊 Revenue & Earnings</h3>
-                <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
-                    <div style="flex: 1; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
-                        <span style="font-size: 13px; color: #64748b;">Total Sales</span>
-                        <h4 id="sellerTotalSales" style="margin: 5px 0 0; color: #0f172a;">$0.00</h4>
-                    </div>
-                    <div style="flex: 1; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
-                        <span style="font-size: 13px; color: #64748b;">Available Balance</span>
-                        <h4 id="sellerAvailBalance" style="margin: 5px 0 0; color: #16a34a;">$0.00</h4>
-                    </div>
-                </div>
+                
+                <!-- Save & Lock Button -->
+                <button type="button" class="btn-primary" onclick="permanentLockPayoutMethod()" style="margin-top: 15px; background: #dc2626;" id="lockPayoutBtn">
+                    🔒 Permanently Lock Payout Method (One-Time)
+                </button>
+                <p style="font-size: 12px; color: #6b7280; margin-top: 6px;">
+                    ⚠️ This action is permanent. You will not be able to change your payout method after locking.
+                </p>
             </div>
 
             <!-- 📦 Seller Orders -->
@@ -220,7 +234,7 @@
                 <!-- Request Payout Action Area -->
                 <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
                     <input type="number" id="withdrawAmount" placeholder="Enter Amount to Withdraw" class="input" style="margin-bottom: 10px;">
-                    <button type="button" class="btn-primary" onclick="triggerPayoutRequest()" style="width: 100%; background: #16a34a;">🚀 Process & Request Payout</button>
+                    <button type="button" class="btn-primary" onclick="processWithdrawalRequest()" style="width: 100%; background: #16a34a;">🚀 Process & Request Payout</button>
                 </div>
 
                 <div id="pendingWithdrawals" style="display:none; margin-top:10px;"></div>
@@ -271,71 +285,352 @@
         </div>
     </div>
 
-    <!-- 🪟 Custom Popup Modal Overlay (Success / Status Message) -->
-    <div id="customPopupModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
-        <div style="background:#fff; width:90%; max-width:400px; padding:25px; border-radius:16px; text-align:center; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); animation: popupScale 0.3s ease-in-out;">
-            <div id="popupIcon" style="font-size: 48px; margin-bottom: 15px;">🎉</div>
-            <h3 id="popupTitle" style="margin: 0 0 10px; color: #0f172a; font-size: 20px;">Success!</h3>
-            <p id="popupMessage" style="color: #64748b; font-size: 14px; margin-bottom: 20px; line-height: 1.5;">Your Global Bazaar payout request has been successfully processed.</p>
-            <button onclick="closeCustomPopup()" style="background:#0f172a; color:#fff; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:600; width:100%;">Got It</button>
+    <!-- 🪟 DYNAMIC POPUP MODAL (Success / Error / Processing) -->
+    <div id="dynamicPopupModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center; backdrop-filter: blur(4px);">
+        <div style="background:#fff; width:92%; max-width:420px; padding:30px; border-radius:20px; text-align:center; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); animation: popupScale 0.35s ease-in-out; position:relative;">
+            <div id="popupIcon" style="font-size: 56px; margin-bottom: 16px;">🎉</div>
+            <h3 id="popupTitle" style="margin: 0 0 12px; color: #0f172a; font-size: 22px; font-weight: 800;">Success!</h3>
+            <p id="popupMessage" style="color: #475569; font-size: 15px; margin-bottom: 12px; line-height: 1.6;">Your transaction has been processed successfully.</p>
+            <div id="popupWebhookStatus" style="font-size: 13px; color: #6b7280; background: #f3f4f6; padding: 8px 12px; border-radius: 8px; margin-bottom: 20px; display: none;">
+                <span style="font-weight: 600;">Webhook Status:</span> <span id="webhookStatusText">Pending</span>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                <button onclick="closeDynamicPopup()" style="background:#0f172a; color:#fff; border:none; padding:12px 28px; border-radius:12px; cursor:pointer; font-weight:600; min-width:120px;">Got It</button>
+                <button id="popupRetryBtn" onclick="retryTransaction()" style="background:#0284c7; color:#fff; border:none; padding:12px 28px; border-radius:12px; cursor:pointer; font-weight:600; display:none;">🔄 Retry</button>
+            </div>
         </div>
     </div>
 
     <style>
     @keyframes popupScale {
-        from { transform: scale(0.8); opacity: 0; }
-        to { transform: scale(1); opacity: 1; }
+        from { transform: scale(0.85) translateY(-20px); opacity: 0; }
+        to { transform: scale(1) translateY(0); opacity: 1; }
     }
+    .popup-success { border-left: 6px solid #22c55e; }
+    .popup-error { border-left: 6px solid #ef4444; }
+    .popup-processing { border-left: 6px solid #f59e0b; }
     </style>
 
-    <!-- JavaScript फंक्शन्स -->
+    <!-- JavaScript: Final Payout System -->
     <script>
-        // बैंक और क्रिप्टो फील्ड को टॉगल करने के लिए
-        function togglePayoutFields(type) {
-            const bankFields = document.getElementById('sellerBankFields');
-            const cryptoFields = document.getElementById('sellerCryptoFields');
-            if (type === 'bank') {
-                bankFields.style.display = 'block';
-                cryptoFields.style.display = 'none';
-            } else {
-                bankFields.style.display = 'none';
-                cryptoFields.style.display = 'block';
-            }
+    // ============================================================
+    // GLOBAL STATE
+    // ============================================================
+    let isPayoutPermanentlyLocked = false;
+    let savedPayoutDetails = null;
+    let transactionInProgress = false;
+
+    // ============================================================
+    // 1. TOGGLE PAYOUT FIELDS (Bank <-> Crypto)
+    // ============================================================
+    function togglePayoutFields(type) {
+        if (isPayoutPermanentlyLocked) {
+            showDynamicPopup('error', '🔒 Permanently Locked', 'Your payout method has been permanently locked and cannot be changed.');
+            return;
+        }
+        const bankFields = document.getElementById('sellerBankFields');
+        const cryptoFields = document.getElementById('sellerCryptoFields');
+        if (type === 'bank') {
+            bankFields.style.display = 'block';
+            cryptoFields.style.display = 'none';
+        } else {
+            bankFields.style.display = 'none';
+            cryptoFields.style.display = 'block';
+        }
+    }
+
+    // ============================================================
+    // 2. PERMANENT LOCK (One-Time - Irreversible)
+    // ============================================================
+    async function permanentLockPayoutMethod() {
+        if (isPayoutPermanentlyLocked) {
+            showDynamicPopup('error', '🔒 Already Locked', 'Your payout method has already been permanently locked.');
+            return;
         }
 
-        // पेआउट रिक्वेस्ट ट्रिगर होने पर पॉपअप दिखाने के लिए
-        function triggerPayoutRequest() {
-            const amount = document.getElementById('withdrawAmount').value;
-            if(!amount || amount <= 0) {
-                showPopup("Invalid Amount", "Please enter a valid payout amount to proceed.", "⚠️");
+        const method = document.querySelector('input[name="sellerPayoutMethod"]:checked');
+        if (!method) {
+            showDynamicPopup('error', '⚠️ Selection Required', 'Please select a payout method first.');
+            return;
+        }
+
+        let details = {};
+        if (method.value === 'bank') {
+            const bankHolder = document.getElementById('sellerBankHolderName').value.trim();
+            const bankAccount = document.getElementById('sellerBankAccountNo').value.trim();
+            const bankIfsc = document.getElementById('sellerBankIfsc').value.trim();
+            const bankName = document.getElementById('sellerBankName').value.trim();
+
+            if (!bankHolder || !bankAccount || !bankIfsc || !bankName) {
+                showDynamicPopup('error', '⚠️ Incomplete Details', 'Please fill in all bank details before locking.');
                 return;
             }
+            details = { type: 'bank', bankHolder, bankAccount, bankIfsc, bankName };
+        } else {
+            const coinType = document.getElementById('sellerCryptoCoinType').value;
+            const walletAddress = document.getElementById('withdrawCryptoAddress').value.trim();
+            if (!walletAddress) {
+                showDynamicPopup('error', '⚠️ Missing Wallet', 'Please enter your wallet address.');
+                return;
+            }
+            details = { type: 'crypto', coinType, walletAddress };
+        }
+
+        // Show processing popup
+        showDynamicPopup('processing', '⏳ Processing...', 'Saving your payout details securely...');
+
+        try {
+            // 🔌 Mock API Call (Future: Replace with real API)
+            const response = await mockAPI_SavePayoutDetails(details);
             
-            // यहाँ आप अपना एपीआई या बैकएंड कॉल लिख सकते हैं
-            showPopup("Payout Requested! 🚀", `Your Global Bazaar payout request of $${amount} has been submitted securely via your selected gateway.`);
-        }
+            if (response.success) {
+                // PERMANENT LOCK - Irreversible
+                isPayoutPermanentlyLocked = true;
+                savedPayoutDetails = details;
 
-        // पॉपअप मॉडल को ओपन/क्लोज करने के फंक्शन्स
-        function showPopup(title, message, icon = "🎉") {
-            document.getElementById('popupTitle').innerText = title;
-            document.getElementById('popupMessage').innerText = message;
-            document.getElementById('popupIcon').innerText = icon;
-            document.getElementById('customPopupModal').style.display = 'flex';
-        }
+                // Lock all fields
+                lockPayoutFields();
 
-        function closeCustomPopup() {
-            document.getElementById('customPopupModal').style.display = 'none';
-        }
-
-        // वेबहुक सेव करने का फंक्शन
-        function saveWebhookSettings() {
-            const url = document.getElementById('sellerWebhookUrl').value;
-            if(!url) {
-                showPopup("Missing URL", "Please enter a valid Webhook URL endpoint.", "⚠️");
-                return;
+                // Show success
+                showDynamicPopup('success', '🔒 Payout Permanently Locked!', 
+                    'Your payout method has been permanently saved and locked. Future withdrawals will use this method.');
+                
+                // Send webhook notification
+                await mockAPI_SendWebhook('payout_locked', details);
+            } else {
+                showDynamicPopup('error', '❌ Lock Failed', response.message || 'Something went wrong. Please try again.');
             }
-            showPopup("Settings Saved", "Your Webhook URL and API keys have been synchronized successfully.");
+        } catch (error) {
+            showDynamicPopup('error', '❌ System Error', 'Unable to lock payout method. Please contact support.');
+            console.error('Payout Lock Error:', error);
         }
+    }
+
+    // ============================================================
+    // 3. PROCESS WITHDRAWAL REQUEST
+    // ============================================================
+    async function processWithdrawalRequest() {
+        if (transactionInProgress) {
+            showDynamicPopup('processing', '⏳ Please Wait', 'A transaction is already in progress.');
+            return;
+        }
+
+        const amount = document.getElementById('withdrawAmount').value;
+        if (!amount || parseFloat(amount) <= 0) {
+            showDynamicPopup('error', '⚠️ Invalid Amount', 'Please enter a valid withdrawal amount.');
+            return;
+        }
+
+        // Check if payout is permanently locked
+        if (!isPayoutPermanentlyLocked) {
+            showDynamicPopup('error', '⚠️ Payout Not Setup', 
+                'Please lock your payout method first. This is a one-time setup requirement.');
+            return;
+        }
+
+        // Start transaction
+        transactionInProgress = true;
+        showDynamicPopup('processing', '⏳ Processing Withdrawal...', 'Please wait while we process your request.');
+
+        try {
+            // 🔌 Mock API Call for withdrawal
+            const response = await mockAPI_ProcessWithdrawal(amount, savedPayoutDetails);
+            
+            if (response.success) {
+                // Send webhook notification
+                await mockAPI_SendWebhook('withdrawal_success', { amount, details: savedPayoutDetails });
+                
+                showDynamicPopup('success', '✅ Withdrawal Successful!', 
+                    `Your withdrawal of $${amount} has been processed successfully. Funds will be sent to your ${savedPayoutDetails.type === 'bank' ? 'bank account' : 'crypto wallet'}.`);
+            } else {
+                await mockAPI_SendWebhook('withdrawal_failed', { amount, error: response.message });
+                showDynamicPopup('error', '❌ Withdrawal Failed', response.message || 'Unable to process withdrawal. Please try again.');
+            }
+        } catch (error) {
+            showDynamicPopup('error', '❌ System Error', 'Unable to process withdrawal. Please contact support.');
+            console.error('Withdrawal Error:', error);
+        } finally {
+            transactionInProgress = false;
+        }
+    }
+
+    // ============================================================
+    // 4. LOCK PAYOUT FIELDS (UI)
+    // ============================================================
+    function lockPayoutFields() {
+        // Show lock status
+        const lockStatus = document.getElementById('payoutLockStatus');
+        lockStatus.style.display = 'block';
+        
+        // Disable all inputs in payout section
+        const payoutSection = document.getElementById('payoutSection');
+        const inputs = payoutSection.querySelectorAll('input, select, textarea');
+        inputs.forEach(el => el.disabled = true);
+        
+        // Disable radio buttons
+        const radios = payoutSection.querySelectorAll('input[type="radio"]');
+        radios.forEach(el => el.disabled = true);
+        
+        // Hide lock button and show locked state
+        const lockBtn = document.getElementById('lockPayoutBtn');
+        lockBtn.style.display = 'none';
+    }
+
+    // ============================================================
+    // 5. DYNAMIC POPUP SYSTEM (Success / Error / Processing)
+    // ============================================================
+    function showDynamicPopup(type, title, message) {
+        const modal = document.getElementById('dynamicPopupModal');
+        const icon = document.getElementById('popupIcon');
+        const titleEl = document.getElementById('popupTitle');
+        const msgEl = document.getElementById('popupMessage');
+        const retryBtn = document.getElementById('popupRetryBtn');
+        const webhookStatus = document.getElementById('popupWebhookStatus');
+
+        // Set content based on type
+        if (type === 'success') {
+            icon.textContent = '✅';
+            titleEl.style.color = '#16a34a';
+            retryBtn.style.display = 'none';
+            webhookStatus.style.display = 'block';
+            document.getElementById('webhookStatusText').textContent = '✅ Success (Webhook Sent)';
+        } else if (type === 'error') {
+            icon.textContent = '❌';
+            titleEl.style.color = '#dc2626';
+            retryBtn.style.display = 'inline-block';
+            webhookStatus.style.display = 'block';
+            document.getElementById('webhookStatusText').textContent = '❌ Failed';
+        } else if (type === 'processing') {
+            icon.textContent = '⏳';
+            titleEl.style.color = '#f59e0b';
+            retryBtn.style.display = 'none';
+            webhookStatus.style.display = 'none';
+        }
+
+        titleEl.textContent = title;
+        msgEl.textContent = message;
+        modal.style.display = 'flex';
+    }
+
+    function closeDynamicPopup() {
+        document.getElementById('dynamicPopupModal').style.display = 'none';
+    }
+
+    function retryTransaction() {
+        closeDynamicPopup();
+        processWithdrawalRequest();
+    }
+
+    // ============================================================
+    // 6. MOCK API FUNCTIONS (Future: Replace with Real APIs)
+    // ============================================================
+    async function mockAPI_SavePayoutDetails(details) {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve({
+                    success: true,
+                    message: 'Payout details saved successfully.',
+                    data: details
+                });
+            }, 1500);
+        });
+    }
+
+    async function mockAPI_ProcessWithdrawal(amount, details) {
+        return new Promise((resolve) => {
+            const isSuccess = Math.random() > 0.1; // 90% success rate
+            setTimeout(() => {
+                if (isSuccess) {
+                    resolve({
+                        success: true,
+                        message: 'Withdrawal processed successfully.',
+                        transactionId: 'TXN-' + Date.now(),
+                        amount: amount,
+                        method: details.type                    });
+                } else {
+                    resolve({
+                        success: false,
+                        message: 'Transaction failed due to gateway error. Please try again.'
+                    });
+                }
+            }, 2000);
+        });
+    }
+
+    async function mockAPI_SendWebhook(event, data) {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                console.log(`🔔 Webhook Triggered: ${event}`, data);
+                resolve({ success: true, event, data });
+            }, 500);
+        });
+    }
+
+    // ============================================================
+    // 7. SAVE WEBHOOK SETTINGS
+    // ============================================================
+    function saveWebhookSettings() {
+        const url = document.getElementById('sellerWebhookUrl').value;
+        if (!url) {
+            showDynamicPopup('error', '⚠️ Missing URL', 'Please enter a valid Webhook URL endpoint.');
+            return;
+        }
+        showDynamicPopup('success', '✅ Settings Saved', 'Your Webhook URL and API keys have been synchronized successfully.');
+    }
+
+    // ============================================================
+    // 8. CHECK LOCK STATUS ON PAGE LOAD
+    // ============================================================
+    function checkPayoutLockStatus() {
+        // For demo: Check if we have saved state (in real scenario, this would come from server)
+        const lockedState = localStorage.getItem('globalbazaar_payout_permanent_lock');
+        if (lockedState === 'true') {
+            isPayoutPermanentlyLocked = true;
+            // Try to restore details
+            try {
+                const details = JSON.parse(localStorage.getItem('globalbazaar_payout_details'));
+                if (details) {
+                    savedPayoutDetails = details;
+                    // Pre-fill fields
+                    if (details.type === 'bank') {
+                        document.querySelector('input[name="sellerPayoutMethod"][value="bank"]').checked = true;
+                        document.getElementById('sellerBankHolderName').value = details.bankHolder || '';
+                        document.getElementById('sellerBankAccountNo').value = details.bankAccount || '';
+                        document.getElementById('sellerBankIfsc').value = details.bankIfsc || '';
+                        document.getElementById('sellerBankName').value = details.bankName || '';
+                        togglePayoutFields('bank');
+                    } else {
+                        document.querySelector('input[name="sellerPayoutMethod"][value="crypto"]').checked = true;
+                        document.getElementById('sellerCryptoCoinType').value = details.coinType || 'usdt';
+                        document.getElementById('withdrawCryptoAddress').value = details.walletAddress || '';
+                        togglePayoutFields('crypto');
+                    }
+                    lockPayoutFields();
+                }
+            } catch(e) {}
+        }
+    }
+
+    // ============================================================
+    // 9. INITIALIZE ON PAGE LOAD
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        checkPayoutLockStatus();
+        console.log('✅ GlobalBazaar Payout System initialized.');
+        console.log('🔌 Mock API endpoints ready for future integration.');
+        console.log('📡 Webhook hooks prepared for BTCPay Server & Bank Gateways.');
+    });
+
+    // ============================================================
+    // 10. EXPOSE FUNCTIONS GLOBALLY
+    // ============================================================
+    window.togglePayoutFields = togglePayoutFields;
+    window.permanentLockPayoutMethod = permanentLockPayoutMethod;
+    window.processWithdrawalRequest = processWithdrawalRequest;
+    window.saveWebhookSettings = saveWebhookSettings;
+    window.showDynamicPopup = showDynamicPopup;
+    window.closeDynamicPopup = closeDynamicPopup;
+    window.retryTransaction = retryTransaction;
     </script>
 
     <!-- ========== ADMIN SECTION ========== -->
@@ -353,8 +648,6 @@
                     <button id="adminMenuBtn" style="background:none; border:none; font-size:24px; cursor:pointer;">⋮</button>
                     <div id="adminDropdownMenu" style="display:none; position:absolute; right:0; top:30px; background:white; border-radius:12px; box-shadow:0 8px 25px rgba(0,0,0,0.2); z-index:100; min-width:220px; padding:8px 0; border:1px solid #e2e8f0;">
                         <div style="padding:10px 16px; border-bottom:1px solid #eef2f8; font-weight:600; font-size:13px; color:#475569;">📋 Admin Menu</div>
-                        
-                        <!-- ========== FIXED: No prompt, direct function calls ========== -->
                         <div class="admin-menu-item" onclick="loadPendingSellers()" style="padding:10px 16px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9;">
                             <span>⏳ Pending Verification</span>
                             <span id="pendingCountBadge" style="background:#fbbf24; color:#1e293b; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:bold;">0</span>
@@ -364,10 +657,9 @@
                             <span id="verifiedCountBadge" style="background:#10b981; color:white; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:bold;">0</span>
                         </div>
                         <button class="admin-menu-item" onclick="loadWithdrawalsList()" style="width:100%; border:none; background:none; cursor:pointer; text-align:left; padding:10px 16px; font-size: inherit; font-family: inherit;">
-    <span>Withdrawal Requests</span>
-    <span id="withdrawalCountBadge" style="background:#ef4444; color:white; padding:2px 6px; border-radius:10px; font-size:12px;"></span>
-</button>
-
+                            <span>Withdrawal Requests</span>
+                            <span id="withdrawalCountBadge" style="background:#ef4444; color:white; padding:2px 6px; border-radius:10px; font-size:12px;"></span>
+                        </button>
                         <div class="admin-menu-item" onclick="loadAllBuyers()" style="padding:10px 16px; cursor:pointer; display:flex; align-items:center; gap:10px; border-bottom:1px solid #f1f5f9;">
                             <span>👥 All Buyers</span>
                         </div>
@@ -380,8 +672,6 @@
                         <div class="admin-menu-item" onclick="loadPayoutHistory()" style="padding:10px 16px; cursor:pointer; display:flex; align-items:center; gap:10px;">
                             <span>📊 Payout History</span>
                         </div>
-                        <!-- ========== END FIXED ADMIN MENU ========== -->
-                        
                     </div>
                 </div>
                 <div style="clear:both;"></div>
