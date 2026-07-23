@@ -1783,6 +1783,43 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
             btn.textContent = '✅ Register Shop';
             return;
         }
+
+        // --- Payout Preference Validation ---
+        const payoutMethod = document.querySelector('input[name="payoutMethod"]:checked')?.value || 'bank';
+        let payoutData = {};
+
+        if (payoutMethod === 'bank') {
+            const accName = document.getElementById('bankAccName')?.value.trim();
+            const accNum = document.getElementById('bankAccNum')?.value.trim();
+            const ifsc = document.getElementById('bankIfsc')?.value.trim();
+            const bankName = document.getElementById('bankName')?.value.trim();
+
+            if (!accName || !accNum || !ifsc || !bankName) {
+                showToast("Please fill all bank details", true);
+                btn.disabled = false;
+                btn.textContent = '✅ Register Shop';
+                return;
+            }
+            payoutData = {
+                method: 'bank',
+                accountHolderName: accName,
+                accountNumber: accNum,
+                ifscOrSwift: ifsc,
+                bankName: bankName
+            };
+        } else {
+            const cryptoWallet = document.getElementById('withdrawCryptoAddress')?.value.trim();
+            if (!cryptoWallet) {
+                showToast("Please enter dynamic crypto/wallet address", true);
+                btn.disabled = false;
+                btn.textContent = '✅ Register Shop';
+                return;
+            }
+            payoutData = {
+                method: 'crypto',
+                cryptoAddress: cryptoWallet
+            };
+        }
         
         let avatarFile = document.getElementById('sellerAvatar').files[0];
         const email = document.getElementById('sellerEmail').value;
@@ -1820,6 +1857,7 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
             docType: docType,
             docNumber: docNum,
             docImage: docImageUrl,
+            payoutPreference: payoutData, // 👈 यहाँ बैंक या क्रिप्टो का डेटा सुरक्षित रूप से सेव हो रहा है
             earnings: 0,
             kycStatus: "pending",
             totalSales: 0,
