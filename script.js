@@ -1789,10 +1789,10 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
         let payoutData = {};
 
         if (payoutMethod === 'bank') {
-            const accName = document.getElementById('sellerBankHolderName')?.value.trim();
-            const accNum = document.getElementById('sellerBankAccNo')?.value.trim();
-            const ifsc = document.getElementById('sellerBankIfsc')?.value.trim();
-            const bankName = document.getElementById('sellerBankName')?.value.trim();
+            const accName = document.getElementById('sellerBankHolderName')?.value ? document.getElementById('sellerBankHolderName').value.trim() : '';
+            const accNum = document.getElementById('sellerBankAccNo')?.value ? document.getElementById('sellerBankAccNo').value.trim() : '';
+            const ifsc = document.getElementById('sellerBankIfsc')?.value ? document.getElementById('sellerBankIfsc').value.trim() : '';
+            const bankName = document.getElementById('sellerBankName')?.value ? document.getElementById('sellerBankName').value.trim() : '';
 
             if (!accName || !accNum || !ifsc || !bankName) {
                 showToast("Please fill all bank details", true);
@@ -1808,7 +1808,7 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
                 bankName: bankName
             };
         } else {
-            const cryptoWallet = document.getElementById('withdrawCryptoAddress')?.value.trim();
+            const cryptoWallet = document.getElementById('withdrawCryptoAddress')?.value ? document.getElementById('withdrawCryptoAddress').value.trim() : '';
             if (!cryptoWallet) {
                 showToast("Please enter dynamic crypto/wallet address", true);
                 btn.disabled = false;
