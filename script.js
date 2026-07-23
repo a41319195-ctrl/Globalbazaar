@@ -1729,7 +1729,6 @@ window.addEventListener('beforeunload', () => {
 // ============================================================
 // SELLER REGISTRATION
 // ============================================================
-
 document.getElementById('sellerRegForm')?.addEventListener('submit', async function(e) {
     e.preventDefault();
     const btn = document.getElementById('sellerSubmitBtn');
@@ -1857,7 +1856,7 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
             docType: docType,
             docNumber: docNum,
             docImage: docImageUrl,
-            payoutPreference: payoutData, // 👈 यहाँ बैंक या क्रिप्टो का डेटा सुरक्षित रूप से सेव हो रहा है
+            payoutPreference: payoutData,
             earnings: 0,
             kycStatus: "pending",
             totalSales: 0,
@@ -1882,15 +1881,7 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
         
         document.getElementById('debugMsg').innerText = "Registration successful - Email verification sent";
         
-        const snapshot = await db.collection("sellers").get();
-        sellers = [];
-        snapshot.forEach(doc => {
-            sellers.push({ id: doc.id, ...doc.data() });
-        });
-        
-        updateAdminPendingBadge();
-        updateAdminMenuBadges();
-        if (isAdminLoggedIn) loadAdminData();
+        // ❌ यहाँ से एडमिन रीलोड वाला कोड पूरी तरह हटा दिया गया है ताकि कोई फालतू एरर बैनर न आए।
         
         btn.disabled = false;
         btn.textContent = '✅ Register Shop';
@@ -1903,6 +1894,7 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
         btn.textContent = '✅ Register Shop';
     }
 });
+
 
 // ============================================================
 // MY SHOP LOGIN
