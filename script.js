@@ -4070,12 +4070,21 @@ document.addEventListener('click', function(e) {
 document.querySelectorAll('.admin-menu-item[data-section]').forEach(item => {
     item.addEventListener('click', function() {
         const section = this.dataset.section;
+        
+        // सभी सेक्शन्स को छिपाएं
         document.getElementById('pendingKycList').style.display = 'none';
         document.getElementById('verifiedSellersList').style.display = 'none';
         document.getElementById('pendingWithdrawals').style.display = 'none';
-        document.getElementById('adminOrdersList').style.display = 'none';
-        const targetId = section === 'pending' ? 'pendingKycList' : 
-                         section === 'verified' ? 'verifiedSellersList' : 'pendingWithdrawals';
+        const adminOrdersList = document.getElementById('adminOrdersList');
+        if (adminOrdersList) adminOrdersList.style.display = 'none';
+
+        // क्लिक किए गए सेक्शन के अनुसार सही टारगेट तय करें और खोलें
+        let targetId = '';
+        if (section === 'pending') targetId = 'pendingKycList';
+        else if (section === 'verified') targetId = 'verifiedSellersList';
+        else if (section === 'withdrawals') targetId = 'pendingWithdrawals';
+        else if (section === 'orders') targetId = 'adminOrdersList';
+
         const target = document.getElementById(targetId);
         if (target) {
             target.style.display = 'block';
@@ -4083,19 +4092,38 @@ document.querySelectorAll('.admin-menu-item[data-section]').forEach(item => {
             else if (section === 'verified') loadVerifiedSellers();
             else if (section === 'withdrawals') loadWithdrawalsList();
         }
-        document.getElementById('adminDropdownMenu').style.display = 'none';
+        
+        const dropdownMenu = document.getElementById('adminDropdownMenu');
+        if (dropdownMenu) dropdownMenu.style.display = 'none';
     });
 });
 
 function loadPendingSellers() {
     const pending = sellers.filter(s => s.kycStatus === 'pending');
     const container = document.getElementById('pendingKycList');
+    if (!container) return;
+
     if (pending.length === 0) {
         container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">✅ No pending KYC requests</div>';
         return;
     }
+    
     let html = `<div style="margin-bottom:15px;"><strong>Total Pending: ${pending.length}</strong></div><div style="display:flex; flex-direction:column; gap:12px;">`;
     pending.forEach((seller, idx) => {
+        // पेआउट प्रेफरेंस की जानकारी तैयार करना (बैंक या क्रिप्टो)
+        let payoutInfo = '❌ Not set';
+        if (seller.payoutPreference) {
+            if (seller.payoutPreference.method === 'bank') {
+                const accNum = seller.payoutPreference.accountNumber || '';
+                const last4 = accNum.slice(-4);
+                payoutInfo = `🏦 Bank: ${seller.payoutPreference.bankName} (A/C: *${last4})`;
+            } else if (seller.payoutPreference.method === 'crypto') {
+                const cryptoAddr = seller.payoutPreference.cryptoAddress || '';
+                const shortAddr = cryptoAddr.length > 10 ? cryptoAddr.substring(0, 6) + '...' + cryptoAddr.slice(-4) : cryptoAddr;
+                payoutInfo = `🪙 Crypto Wallet: ${shortAddr}`;
+            }
+        }
+
         html += `
             <div style="background:#f8fafc; border-radius:16px; padding:12px; border-left:4px solid #fbbf24;">
                 <div style="font-weight:bold;">${idx+1}. ${seller.shopName}</div>
@@ -4103,10 +4131,11 @@ function loadPendingSellers() {
                 <div>📧 ${seller.email}</div>
                 <div>📞 ${seller.phone}</div>
                 <div>📄 ${seller.docType} - ${seller.docNumber}</div>
+                <div style="color:#0284c7; font-weight:500; margin-top:4px;">💳 ${payoutInfo}</div>
                 <div style="margin-top:8px;">
-                    <button class="btn-approve" data-id="${seller.id}" style="background:#10b981; color:white; border:none; padding:6px 12px; border-radius:20px; margin-right:8px;">✅ Approve</button>
-                    <button class="btn-reject" data-id="${seller.id}" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:20px;">❌ Reject</button>
-                    <button class="btn-view-doc" onclick='viewSellerDocument("${seller.docImage}","${seller.docType}","${seller.shopName}")' style="background:#3b82f6; color:white; border:none; padding:4px 10px; border-radius:15px; margin-left:8px;">📄 View</button>
+                    <button class="btn-approve" data-id="${seller.id}" style="background:#10b981; color:white; border:none; padding:6px 12px; border-radius:20px; margin-right:8px; cursor:pointer;">✅ Approve</button>
+                    <button class="btn-reject" data-id="${seller.id}" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:20px; cursor:pointer;">❌ Reject</button>
+                    <button class="btn-view-doc" onclick='viewSellerDocument("${seller.docImage}","${seller.docType}","${seller.shopName}")' style="background:#3b82f6; color:white; border:none; padding:4px 10px; border-radius:15px; margin-left:8px; cursor:pointer;">📄 View</button>
                 </div>
             </div>
         `;
@@ -4144,7 +4173,9 @@ function loadPendingSellers() {
                 updateAdminPendingBadge();
                 updateAdminMenuBadges();
                 loadPendingSellers();
-                document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
+                
+                const earningsEl = document.getElementById('platformEarnings');
+                if(earningsEl) earningsEl.innerHTML = `<h2>${window.getCurrencySymbol ? getCurrencySymbol() : '$'}${window.convertPrice ? convertPrice(platformEarnings) : platformEarnings}</h2>`;
                 
             } catch (error) {
                 console.error("Approve error:", error);
@@ -4187,7 +4218,9 @@ function loadPendingSellers() {
                 updateAdminPendingBadge();
                 updateAdminMenuBadges();
                 loadPendingSellers();
-                document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
+                
+                const earningsEl = document.getElementById('platformEarnings');
+                if(earningsEl) earningsEl.innerHTML = `<h2>${window.getCurrencySymbol ? getCurrencySymbol() : '$'}${window.convertPrice ? convertPrice(platformEarnings) : platformEarnings}</h2>`;
             } catch (error) {
                 console.error("Reject error:", error);
                 showToast("Error rejecting seller: " + error.message, true);
@@ -4199,6 +4232,8 @@ function loadPendingSellers() {
 function loadVerifiedSellers() {
     const verified = sellers.filter(s => s.kycStatus === 'verified');
     const container = document.getElementById('verifiedSellersList');
+    if (!container) return;
+    
     if (verified.length === 0) {
         container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">No verified sellers yet</div>';
         return;
@@ -4220,22 +4255,26 @@ function loadVerifiedSellers() {
 
 function loadWithdrawalsList() {
     const container = document.getElementById('pendingWithdrawals');
-    if (pendingWithdrawals.length === 0) {
+    if (!container) return;
+    
+    if (typeof pendingWithdrawals === 'undefined' || pendingWithdrawals.length === 0) {
         container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">No pending withdrawals</div>';
         return;
     }
-    let html = pendingWithdrawals.map(w => `<div class="order-card"><span>💰 ${getCurrencySymbol()}${convertPrice(w.amount)} - ${w.sellerName}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981; color:white; border:none; padding:4px 12px; border-radius:20px;">Approve</button></div>`).join('');
+    let html = pendingWithdrawals.map(w => `<div class="order-card"><span>💰 ${window.getCurrencySymbol ? getCurrencySymbol() : '$'}${window.convertPrice ? convertPrice(w.amount) : w.amount} - ${w.sellerName}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981; color:white; border:none; padding:4px 12px; border-radius:20px; cursor:pointer;">Approve</button></div>`).join('');
     container.innerHTML = html;
     container.querySelectorAll('.approveBtn').forEach(btn => {
         btn.addEventListener('click', async () => {
             let w = pendingWithdrawals.find(w => w.id === parseInt(btn.dataset.id));
             if(w){
                 w.status = 'Approved';
-                withdrawalHistory.push({ ...w, approvedAt: new Date().toISOString() });
+                if(typeof withdrawalHistory !== 'undefined') {
+                    withdrawalHistory.push({ ...w, approvedAt: new Date().toISOString() });
+                }
                 pendingWithdrawals = pendingWithdrawals.filter(pw => pw.id !== w.id);
-                saveAllLocal();
-                showToast(`✅ Approved ${getCurrencySymbol()}${convertPrice(w.amount)} - Moved to History`, false);
-                await sendTelegramMessage(`💰 Withdrawal Approved: ${w.sellerName} - ${getCurrencySymbol()}${convertPrice(w.amount)}`);
+                if(typeof saveAllLocal === 'function') saveAllLocal();
+                showToast(`✅ Approved - Moved to History`, false);
+                await sendTelegramMessage(`💰 Withdrawal Approved: ${w.sellerName} - ${w.amount}`);
                 addNotification(`Withdrawal approved for ${w.sellerName}`, 'payment');
                 loadWithdrawalsList();
                 updateAdminMenuBadges();
@@ -4262,7 +4301,8 @@ document.getElementById('adminBackBtn')?.addEventListener('click', function() {
     document.getElementById('pendingKycList').style.display = 'none';
     document.getElementById('verifiedSellersList').style.display = 'none';
     document.getElementById('pendingWithdrawals').style.display = 'none';
-    document.getElementById('adminOrdersList').style.display = 'none';
+    const adminOrdersList = document.getElementById('adminOrdersList');
+    if (adminOrdersList) adminOrdersList.style.display = 'none';
     showToast("Back to dashboard", false);
 });
 
@@ -4272,13 +4312,18 @@ function loadAdminData() {
         document.getElementById('adminContent').style.display = 'none';
         return;
     }
-    document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
+    const earningsEl = document.getElementById('platformEarnings');
+    if(earningsEl && typeof platformEarnings !== 'undefined') {
+        earningsEl.innerHTML = `<h2>${window.getCurrencySymbol ? getCurrencySymbol() : '$'}${window.convertPrice ? convertPrice(platformEarnings) : platformEarnings}</h2>`;
+    }
     updateAdminMenuBadges();
     updateAdminPendingBadge();
+    
     document.getElementById('pendingKycList').style.display = 'none';
     document.getElementById('verifiedSellersList').style.display = 'none';
     document.getElementById('pendingWithdrawals').style.display = 'none';
-    document.getElementById('adminOrdersList').style.display = 'none';
+    const adminOrdersList = document.getElementById('adminOrdersList');
+    if (adminOrdersList) adminOrdersList.style.display = 'none';
 }
 
 function updateAdminPendingBadge() {
@@ -4298,10 +4343,12 @@ function updateAdminPendingBadge() {
 function updateAdminMenuBadges() {
     const pending = sellers.filter(s => s.kycStatus === 'pending').length;
     const verified = sellers.filter(s => s.kycStatus === 'verified').length;
-    const withdrawals = pendingWithdrawals.filter(w => w.status === 'Pending').length;
+    const withdrawals = (typeof pendingWithdrawals !== 'undefined') ? pendingWithdrawals.filter(w => w.status === 'Pending').length : 0;
+    
     const pendingBadge = document.getElementById('pendingCountBadge');
     const verifiedBadge = document.getElementById('verifiedCountBadge');
     const withdrawalBadge = document.getElementById('withdrawalCountBadge');
+    
     if (pendingBadge) pendingBadge.textContent = pending;
     if (verifiedBadge) verifiedBadge.textContent = verified;
     if (withdrawalBadge) withdrawalBadge.textContent = withdrawals;
