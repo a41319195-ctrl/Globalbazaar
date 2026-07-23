@@ -1787,10 +1787,10 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
         // --- Payout Preference Validation ---
         const payoutMethod = document.querySelector('input[name="sellerPayoutMethod"]:checked')?.value || 'bank';
         let payoutData = {};
-
-        if (payoutMethod === 'bank') {
+        
+                if (payoutMethod === 'bank') {
             const accName = document.getElementById('sellerBankHolderName')?.value ? document.getElementById('sellerBankHolderName').value.trim() : '';
-            const accNum = document.getElementById('sellerBankAccNo')?.value ? document.getElementById('sellerBankAccNo').value.trim() : '';
+            const accNum = document.getElementById('sellerBankAccountNo')?.value ? document.getElementById('sellerBankAccountNo').value.trim() : ''; // यहाँ 'sellerBankAccountNo' कर दिया गया है
             const ifsc = document.getElementById('sellerBankIfsc')?.value ? document.getElementById('sellerBankIfsc').value.trim() : '';
             const bankName = document.getElementById('sellerBankName')?.value ? document.getElementById('sellerBankName').value.trim() : '';
 
@@ -1820,7 +1820,7 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
                 cryptoAddress: cryptoWallet
             };
         }
-        
+
         let avatarFile = document.getElementById('sellerAvatar').files[0];
         const email = document.getElementById('sellerEmail').value;
         const password = document.getElementById('sellerPassword').value;
