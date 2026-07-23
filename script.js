@@ -1729,6 +1729,7 @@ window.addEventListener('beforeunload', () => {
 // ============================================================
 // SELLER REGISTRATION
 // ============================================================
+
 document.getElementById('sellerRegForm')?.addEventListener('submit', async function(e) {
     e.preventDefault();
     const btn = document.getElementById('sellerSubmitBtn');
@@ -1784,14 +1785,14 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
         }
 
         // --- Payout Preference Validation ---
-        const payoutMethod = document.querySelector('input[name="payoutMethod"]:checked')?.value || 'bank';
+        const payoutMethod = document.querySelector('input[name="sellerPayoutMethod"]:checked')?.value || 'bank';
         let payoutData = {};
 
         if (payoutMethod === 'bank') {
-            const accName = document.getElementById('bankAccName')?.value.trim();
-            const accNum = document.getElementById('bankAccNum')?.value.trim();
-            const ifsc = document.getElementById('bankIfsc')?.value.trim();
-            const bankName = document.getElementById('bankName')?.value.trim();
+            const accName = document.getElementById('sellerBankHolderName')?.value.trim();
+            const accNum = document.getElementById('sellerBankAccNo')?.value.trim();
+            const ifsc = document.getElementById('sellerBankIfsc')?.value.trim();
+            const bankName = document.getElementById('sellerBankName')?.value.trim();
 
             if (!accName || !accNum || !ifsc || !bankName) {
                 showToast("Please fill all bank details", true);
@@ -1880,8 +1881,6 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
         }
         
         document.getElementById('debugMsg').innerText = "Registration successful - Email verification sent";
-        
-        // ❌ यहाँ से एडमिन रीलोड वाला कोड पूरी तरह हटा दिया गया है ताकि कोई फालतू एरर बैनर न आए।
         
         btn.disabled = false;
         btn.textContent = '✅ Register Shop';
