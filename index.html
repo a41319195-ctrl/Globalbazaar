@@ -140,17 +140,54 @@
                         <img id="kycPreviewImg" style="display:none;">
                     </div>
                 </div>
+
+                <!-- ============================================================ -->
+                <!-- 🔥 SECURE PAYOUT METHOD & GBPay GATEWAY (MOVED TO REGISTRATION) -->
+                <!-- ============================================================ -->
+                <div class="premium-card" style="margin-top: 20px; border: 2px solid #007bff; background: #fbfdff;" id="payoutSection">
+                    <h4 style="color: #007bff; margin-bottom: 8px;">🌐 Payout Destination Preference (One-Time Setup)</h4>
+                    <p style="font-size: 12px; color: #555; margin-bottom: 12px;">Configure your secure payout method. This will be permanently locked to your account after registration.</p>
+                    
+                    <!-- Method Selection -->
+                    <div style="display: flex; gap: 15px; margin-bottom: 12px; flex-wrap: wrap;">
+                        <label style="cursor: pointer; font-weight: 600; font-size: 14px; padding: 6px 12px; background: #eef6ff; border-radius: 6px;">
+                            <input type="radio" name="sellerPayoutMethod" value="bank" checked onclick="togglePayoutFields('bank')"> 🏦 Local Bank Transfer
+                        </label>
+                        <label style="cursor: pointer; font-weight: 600; font-size: 14px; padding: 6px 12px; background: #eef6ff; border-radius: 6px;">
+                            <input type="radio" name="sellerPayoutMethod" value="crypto" onclick="togglePayoutFields('crypto')"> 🪙 GBPay Crypto / Gold Coin
+                        </label>
+                    </div>
+
+                    <!-- Bank Details -->
+                    <div id="sellerBankFields" style="display: block; background: #fff; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <input type="text" id="sellerBankHolderName" placeholder="Account Holder Name *" class="input" style="margin-bottom: 8px;">
+                        <input type="text" id="sellerBankAccountNo" placeholder="Account Number / IBAN *" class="input" style="margin-bottom: 8px;">
+                        <input type="text" id="sellerBankIfsc" placeholder="IFSC / SWIFT Code *" class="input" style="margin-bottom: 8px;">
+                        <input type="text" id="sellerBankName" placeholder="Bank Name *" class="input">
+                    </div>
+
+                    <!-- Crypto Details -->
+                    <div id="sellerCryptoFields" style="display: none; background: #fff; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <select id="sellerCryptoCoinType" class="input" style="margin-bottom: 8px;">
+                            <option value="usdt">USDT (Tether - ERC20/TRC20)</option>
+                            <option value="btc">Bitcoin (BTC / Lightning Network)</option>
+                            <option value="eth">Ethereum (ETH)</option>
+                            <option value="gold_coin">🪙 Digital Gold Coin</option>
+                        </select>
+                        <input type="text" id="withdrawCryptoAddress" placeholder="Enter Wallet Address *" class="input">
+                    </div>
+                </div>
                 
-                <div class="checkbox-group">
+                <div class="checkbox-group" style="margin-top: 15px;">
                     <input type="checkbox" id="sellerAgreement" required>
                     <label>I agree to <span class="legal-link" onclick="showSellerAgreement()">Seller Agreement</span></label>
                 </div>
                 
-                <button type="submit" class="btn-primary" id="sellerSubmitBtn">✅ Register Shop</button>
+                <button type="submit" class="btn-primary" id="sellerSubmitBtn" style="margin-top: 15px;">✅ Register Shop</button>
             </form>
         </div>
 
-        <!-- SELLER DASHBOARD -->
+        <!-- SELLER DASHBOARD (CLEANED UP - ONLY WITHDRAWALS & EARNINGS) -->
         <div id="sellerDashboard" style="display:none;">
             <!-- 📊 Revenue & Earnings -->
             <div class="premium-card" style="margin-bottom: 15px; background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);">
@@ -167,59 +204,6 @@
                 </div>
             </div>
 
-            <!-- ============================================================ -->
-            <!-- 🔥 SECURE PAYOUT METHOD & GBPay GATEWAY -->
-            <!-- ============================================================ -->
-            <div class="premium-card" style="margin-bottom: 15px; border: 3px solid #007bff; background: #fbfdff;" id="payoutSection">
-                <h3 style="color: #007bff; margin-bottom: 10px;">🌐 Global Bazaar Payout & GBPay Gateway</h3>
-                <p style="font-size: 13px; color: #555; margin-bottom: 15px;">Configure your secure payout method. All disbursements are processed securely via GBPay and are permanently locked after initial setup.</p>
-                
-                <!-- Lock Status -->
-                <div id="payoutLockStatus" style="margin-bottom: 15px; padding: 12px; border-radius: 8px; background: #fef3c7; border: 2px solid #f59e0b; display: none;">
-                    <span style="font-weight: 700; color: #92400e; font-size: 15px;">🔒 Payout Method is PERMANENTLY LOCKED</span>
-                    <span style="display: block; font-size: 13px; color: #78350f; margin-top: 4px;">This cannot be changed. All future withdrawals will use this verified Global Bazaar payout route.</span>
-                </div>
-                
-                <!-- Method Selection -->
-                <div style="display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap;">
-                    <label style="cursor: pointer; font-weight: 600; font-size: 15px; padding: 8px 16px; background: #eef6ff; border-radius: 8px;">
-                        <input type="radio" name="sellerPayoutMethod" value="bank" checked onclick="togglePayoutFields('bank')"> 🏦 Local Bank Transfer
-                    </label>
-                    <label style="cursor: pointer; font-weight: 600; font-size: 15px; padding: 8px 16px; background: #eef6ff; border-radius: 8px;">
-                        <input type="radio" name="sellerPayoutMethod" value="crypto" onclick="togglePayoutFields('crypto')"> 🪙 GBPay Crypto / Gold Coin Gateway
-                    </label>
-                </div>
-
-                <!-- Bank Details -->
-                <div id="sellerBankFields" style="display: block; background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0;">
-                    <h4 style="font-size: 15px; margin-bottom: 12px; color: #1e293b;">🏦 Bank Account Details</h4>
-                    <input type="text" id="sellerBankHolderName" placeholder="Account Holder Name *" class="input" style="margin-bottom: 10px;">
-                    <input type="text" id="sellerBankAccountNo" placeholder="Account Number / IBAN *" class="input" style="margin-bottom: 10px;">
-                    <input type="text" id="sellerBankIfsc" placeholder="IFSC / SWIFT Code *" class="input" style="margin-bottom: 10px;">
-                    <input type="text" id="sellerBankName" placeholder="Bank Name *" class="input">
-                </div>
-
-                <!-- Crypto Details -->
-                <div id="sellerCryptoFields" style="display: none; background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0;">
-                    <h4 style="font-size: 15px; margin-bottom: 12px; color: #1e293b;">🪙 GBPay Crypto & Gold Coin System</h4>
-                    <select id="sellerCryptoCoinType" class="input" style="margin-bottom: 10px;">
-                        <option value="usdt">USDT (Tether - ERC20/TRC20)</option>
-                        <option value="btc">Bitcoin (BTC / Lightning Network)</option>
-                        <option value="eth">Ethereum (ETH)</option>
-                        <option value="gold_coin">🪙 Digital Gold Coin</option>
-                    </select>
-                    <input type="text" id="withdrawCryptoAddress" placeholder="Enter Wallet Address *" class="input">
-                </div>
-                
-                <!-- Lock Button -->
-                <button type="button" class="btn-primary" onclick="permanentLockPayout()" style="margin-top: 15px; background: #dc2626; font-weight: 700; padding: 12px 24px;" id="lockPayoutBtn">
-                    🔒 Permanently Lock Payout Method (One-Time)
-                </button>
-                <p style="font-size: 12px; color: #6b7280; margin-top: 6px; font-weight: 500;">
-                    ⚠️ WARNING: This action is IRREVERSIBLE. You will not be able to change your payout method after locking.
-                </p>
-            </div>
-
             <!-- 📦 Seller Orders -->
             <div class="premium-card">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -232,14 +216,14 @@
             <!-- 💰 Payout & Withdrawals -->
             <div class="premium-card" style="margin-top: 15px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="margin: 0;">💰 Global Bazaar Payout & Withdrawals History</h3>
-                    <button onclick="toggleSection('payoutHistoryList')" style="background:#f0fdf4; color:#166534; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; font-weight:bold;">View</button>
+                    <h3 style="margin: 0;">💰 Global Bazaar Payout & Withdrawals</h3>
                 </div>
                 
                 <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
+                    <p style="font-size: 13px; color: #64748b; margin-bottom: 10px;">Your payout destination is securely locked from registration. Enter amount to withdraw directly to your registered destination.</p>
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <input type="number" id="withdrawAmount" placeholder="Enter Amount to Withdraw" class="input" style="flex: 1; min-width: 150px;">
-                        <button type="button" class="btn-primary" onclick="processWithdrawal()" style="background: #16a34a; font-weight: 700; padding: 12px 24px;">🚀 Request Global Bazaar Payout</button>
+                        <button type="button" class="btn-primary" onclick="processWithdrawal()" style="background: #16a34a; font-weight: 700; padding: 12px 24px;">🚀 Request Withdrawal</button>
                     </div>
                 </div>
                 <div id="pendingWithdrawals" style="display:none; margin-top:10px;"></div>
@@ -272,7 +256,7 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- 🪟 DYNAMIC POPUP MODAL - FULLY WORKING -->
+    <!-- 🪟 DYNAMIC POPUP MODAL -->
     <!-- ============================================================ -->
     <div id="dynamicPopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:99999; justify-content:center; align-items:center; backdrop-filter: blur(6px);">
         <div style="background:#ffffff; width:92%; max-width:440px; padding:35px 30px; border-radius:24px; text-align:center; box-shadow:0 30px 60px rgba(0,0,0,0.3); animation: popupScale 0.35s ease-in-out; position:relative; border: 1px solid #e2e8f0;">
@@ -710,18 +694,10 @@
 </div>
 
 <!-- ============================================================ -->
-<!-- JAVASCRIPT (CLEANED & FOCUSED) -->
+<!-- JAVASCRIPT LOGIC -->
 <!-- ============================================================ -->
 <script>
-let isPayoutLocked = false;
-let savedPayoutData = null;
-let isProcessing = false;
-
 function togglePayoutFields(type) {
-    if (isPayoutLocked) {
-        showPopup('error', '🔒 Locked!', 'Payout method is permanently locked. Cannot change.');
-        return;
-    }
     var bankFields = document.getElementById('sellerBankFields');
     var cryptoFields = document.getElementById('sellerCryptoFields');
     if (type === 'bank') {
@@ -731,174 +707,6 @@ function togglePayoutFields(type) {
         bankFields.style.display = 'none';
         cryptoFields.style.display = 'block';
     }
-}
-
-function permanentLockPayout() {
-    if (isPayoutLocked) {
-        showPopup('error', '🔒 Already Locked!', 'Your payout method has already been permanently locked.');
-        return;
-    }
-
-    var method = document.querySelector('input[name="sellerPayoutMethod"]:checked');
-    if (!method) {
-        showPopup('error', '⚠️ Error', 'Please select a payout method first.');
-        return;
-    }
-
-    var data = {};
-    if (method.value === 'bank') {
-        var holder = document.getElementById('sellerBankHolderName').value.trim();
-        var account = document.getElementById('sellerBankAccountNo').value.trim();
-        var ifsc = document.getElementById('sellerBankIfsc').value.trim();
-        var bankName = document.getElementById('sellerBankName').value.trim();
-
-        if (!holder || !account || !ifsc || !bankName) {
-            showPopup('error', '⚠️ Incomplete', 'Please fill all bank details before locking.');
-            return;
-        }
-        data = { type: 'bank', holder: holder, account: account, ifsc: ifsc, bankName: bankName };
-    } else {
-        var coinType = document.getElementById('sellerCryptoCoinType').value;
-        var wallet = document.getElementById('withdrawCryptoAddress').value.trim();
-        if (!wallet) {
-            showPopup('error', '⚠️ Error', 'Please enter your wallet address.');
-            return;
-        }
-        data = { type: 'crypto', coinType: coinType, wallet: wallet };
-    }
-
-    showPopup('processing', '⏳ Processing...', 'Saving your payout details securely via GBPay...');
-
-    setTimeout(function() {
-        isPayoutLocked = true;
-        savedPayoutData = data;
-
-        try {
-            localStorage.setItem('globalbazaar_payout_locked', 'true');
-            localStorage.setItem('globalbazaar_payout_data', JSON.stringify(data));
-        } catch(e) {}
-
-        var section = document.getElementById('payoutSection');
-        var inputs = section.querySelectorAll('input, select, textarea');
-        for (var i = 0; i < inputs.length; i++) {
-            inputs[i].disabled = true;
-        }
-        var radios = section.querySelectorAll('input[type="radio"]');
-        for (var i = 0; i < radios.length; i++) {
-            radios[i].disabled = true;
-        }
-
-        document.getElementById('payoutLockStatus').style.display = 'block';
-        document.getElementById('lockPayoutBtn').style.display = 'none';
-
-        showPopup('success', '🔒 Permanently Locked!', 'Your Global Bazaar payout method has been saved and permanently locked.');
-    }, 1500);
-}
-
-function processWithdrawal() {
-    if (isProcessing) {
-        showPopup('processing', '⏳ Wait...', 'A transaction is already in progress.');
-        return;
-    }
-
-    var amount = document.getElementById('withdrawAmount').value;
-    if (!amount || parseFloat(amount) <= 0) {
-        showPopup('error', '⚠️ Error', 'Please enter a valid withdrawal amount.');
-        return;
-    }
-
-    if (!isPayoutLocked) {
-        showPopup('error', '⚠️ Not Setup', 'Please lock your payout method first.');
-        return;
-    }
-
-    isProcessing = true;
-    showPopup('processing', '⏳ Processing...', 'Please wait while GBPay processes your withdrawal...');
-
-    setTimeout(function() {
-        var success = Math.random() < 0.9;
-        isProcessing = false;
-
-        if (success) {
-            showPopup('success', '✅ Global Bazaar Payout Successful!', 'Your withdrawal of $' + amount + ' has been processed.');
-        } else {
-            showPopup('error', '❌ Withdrawal Failed!', 'Transaction failed due to gateway error.');
-            document.getElementById('popupRetryBtn').style.display = 'inline-block';
-        }
-    }, 2000);
-}
-
-function retryWithdrawal() {
-    document.getElementById('popupRetryBtn').style.display = 'none';
-    closePopup();
-    processWithdrawal();
-}
-
-function showPopup(type, title, message) {
-    var popup = document.getElementById('dynamicPopup');
-    var icon = document.getElementById('popupIconEmoji');
-    var titleEl = document.getElementById('popupTitleText');
-    var msgEl = document.getElementById('popupMessageText');
-    var retryBtn = document.getElementById('popupRetryBtn');
-
-    if (type === 'success') {
-        icon.textContent = '✅';
-        titleEl.style.color = '#16a34a';
-        retryBtn.style.display = 'none';
-    } else if (type === 'error') {
-        icon.textContent = '❌';
-        titleEl.style.color = '#dc2626';
-        retryBtn.style.display = 'inline-block';
-    } else if (type === 'processing') {
-        icon.textContent = '⏳';
-        titleEl.style.color = '#f59e0b';
-        retryBtn.style.display = 'none';
-    }
-
-    titleEl.textContent = title;
-    msgEl.textContent = message;
-    popup.style.display = 'flex';
-}
-
-function closePopup() {
-    document.getElementById('dynamicPopup').style.display = 'none';
-}
-
-function checkPayoutStatus() {
-    try {
-        var locked = localStorage.getItem('globalbazaar_payout_locked');
-        if (locked === 'true') {
-            isPayoutLocked = true;
-            var data = JSON.parse(localStorage.getItem('globalbazaar_payout_data'));
-            if (data) {
-                savedPayoutData = data;
-                if (data.type === 'bank') {
-                    document.querySelector('input[name="sellerPayoutMethod"][value="bank"]').checked = true;
-                    document.getElementById('sellerBankHolderName').value = data.holder || '';
-                    document.getElementById('sellerBankAccountNo').value = data.account || '';
-                    document.getElementById('sellerBankIfsc').value = data.ifsc || '';
-                    document.getElementById('sellerBankName').value = data.bankName || '';
-                    togglePayoutFields('bank');
-                } else {
-                    document.querySelector('input[name="sellerPayoutMethod"][value="crypto"]').checked = true;
-                    document.getElementById('sellerCryptoCoinType').value = data.coinType || 'usdt';
-                    document.getElementById('withdrawCryptoAddress').value = data.wallet || '';
-                    togglePayoutFields('crypto');
-                }
-                var section = document.getElementById('payoutSection');
-                var inputs = section.querySelectorAll('input, select, textarea');
-                for (var i = 0; i < inputs.length; i++) {
-                    inputs[i].disabled = true;
-                }
-                var radios = section.querySelectorAll('input[type="radio"]');
-                for (var i = 0; i < radios.length; i++) {
-                    radios[i].disabled = true;
-                }
-                document.getElementById('payoutLockStatus').style.display = 'block';
-                document.getElementById('lockPayoutBtn').style.display = 'none';
-            }
-        }
-    } catch(e) {}
 }
 
 function switchPaymentMode(mode) {
@@ -912,19 +720,15 @@ function switchPaymentMode(mode) {
         cryptoContainer.style.display = 'none';
         tabCardBtn.style.background = '#2563eb';
         tabCardBtn.style.color = 'white';
-        tabCardBtn.style.border = 'none';
         tabCryptoBtn.style.background = '#f3f4f6';
         tabCryptoBtn.style.color = '#374151';
-        tabCryptoBtn.style.border = '1px solid #d1d5db';
     } else {
         cardContainer.style.display = 'none';
         cryptoContainer.style.display = 'block';
         tabCryptoBtn.style.background = '#0f172a';
         tabCryptoBtn.style.color = 'white';
-        tabCryptoBtn.style.border = 'none';
         tabCardBtn.style.background = '#f3f4f6';
         tabCardBtn.style.color = '#374151';
-        tabCardBtn.style.border = '1px solid #d1d5db';
     }
 }
 
@@ -941,16 +745,10 @@ function closeOrderDetailsModal() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    checkPayoutStatus();
-    console.log('✅ GlobalBazaar Seller Dashboard Initialized');
+    console.log('✅ GlobalBazaar Registration & Dashboard Initialized');
 });
 
 window.togglePayoutFields = togglePayoutFields;
-window.permanentLockPayout = permanentLockPayout;
-window.processWithdrawal = processWithdrawal;
-window.retryWithdrawal = retryWithdrawal;
-window.showPopup = showPopup;
-window.closePopup = closePopup;
 window.switchPaymentMode = switchPaymentMode;
 window.openCryptoPopup = openCryptoPopup;
 window.closeCryptoPopup = closeCryptoPopup;
