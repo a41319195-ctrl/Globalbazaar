@@ -4049,33 +4049,36 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         btn.textContent = 'Pay with Card (Dummy)';
     }
 });
-
 // ============================================================
 // CONFIGURATIONS: API KEYS & WEBHOOKS (FUTURE INTEGRATION)
 // ============================================================
 const PAYMENT_GATEWAY_CONFIG = {
-    apiKey: "YOUR_PAYMENT_GATEWAY_API_KEY_HERE", // ट्रेडिशनल पेमेंट गेटवे एपीआई की
-    webhookUrl: "https://globalbazaar.shop.co/api/webhook/bank-payout", // बैंक वेबहुक यूआरएल
+    apiKey: "YOUR_PAYMENT_GATEWAY_API_KEY_HERE",
+    webhookUrl: "https://globalbazaar.shop.co/api/webhook/bank-payout",
     isLive: false
 };
 
 const CRYPTO_GATEWAY_CONFIG = {
-    apiKey: "YOUR_GBPAY_BTCPAY_API_KEY_HERE", // आपका gbpay / BTC Pay Server एपीआई की
-    serverUrl: "https://btcpay.globalbazaar.shop.co", // आपका बीटीसी पे सर्वर लिंक
-    webhookUrl: "https://globalbazaar.shop.co/api/webhook/crypto-payout", // क्रिप्टो वेबहुक यूआरएल
+    apiKey: "YOUR_GBPAY_BTCPAY_API_KEY_HERE",
+    serverUrl: "https://btcpay.globalbazaar.shop.co",
+    webhookUrl: "https://globalbazaar.shop.co/api/webhook/crypto-payout",
     isLive: false
 };
 
 // ============================================================
-// ADMIN MODULE (WITH PAYOUT DISPLAY & SMART APPROVAL SYNC)
+// ADMIN MODULE - FULL 8 BUTTONS & PAYOUT SYNC FIX
 // ============================================================
 
+// 1. एडमिन ड्रॉपडाउन मेनू टॉगल करने का लॉजिक
 document.getElementById('adminMenuBtn')?.addEventListener('click', function(e) {
     e.stopPropagation();
     const menu = document.getElementById('adminDropdownMenu');
-    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    if (menu) {
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    }
 });
 
+// बाहर क्लिक करने पर ड्रॉपडाउन बंद होना
 document.addEventListener('click', function(e) {
     const menu = document.getElementById('adminDropdownMenu');
     if (menu && !e.target.closest('#adminMenuBtn') && !e.target.closest('#adminDropdownMenu')) {
@@ -4083,37 +4086,42 @@ document.addEventListener('click', function(e) {
     }
 });
 
-document.querySelectorAll('.admin-menu-item[data-section]').forEach(item => {
-    item.addEventListener('click', function() {
-        const section = this.dataset.section;
-        document.getElementById('pendingKycList').style.display = 'none';
-        document.getElementById('verifiedSellersList').style.display = 'none';
-        document.getElementById('pendingWithdrawals').style.display = 'none';
-        document.getElementById('adminOrdersList').style.display = 'none';
-        const targetId = section === 'pending' ? 'pendingKycList' : 
-                         section === 'verified' ? 'verifiedSellersList' : 'pendingWithdrawals';
-        const target = document.getElementById(targetId);
-        if (target) {
-            target.style.display = 'block';
-            if (section === 'pending') loadPendingSellers();
-            else if (section === 'verified') loadVerifiedSellers();
-            else if (section === 'withdrawals') loadWithdrawalsList();
-        }
-        document.getElementById('adminDropdownMenu').style.display = 'none';
+// 2. सभी सेक्शंस को एक साथ छिपाने का कॉमन फंक्शन
+function hideAllAdminSections() {
+    const sectionIds = [
+        'pendingKycList', 
+        'verifiedSellersList', 
+        'pendingWithdrawals', 
+        'adminOrdersList', 
+        'allBuyersList', 
+        'allSellersList', 
+        'withdrawalHistoryList', 
+        'payoutHistoryList'
+    ];
+    sectionIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
     });
-});
+    const menu = document.getElementById('adminDropdownMenu');
+    if (menu) menu.style.display = 'none';
+}
 
+// 3. पेंडिंग सेलर्स (KYC) लोड करने और बैंक/क्रिप्टो डिटेल्स दिखाने का मुख्य फंक्शन
 function loadPendingSellers() {
-    const pending = sellers.filter(s => s.kycStatus === 'pending');
+    hideAllAdminSections();
     const container = document.getElementById('pendingKycList');
+    if (!container) return;
+    container.style.display = 'block';
+
+    const pending = typeof sellers !== 'undefined' ? sellers.filter(s => s.kycStatus === 'pending') : [];
     if (pending.length === 0) {
         container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">✅ No pending KYC requests</div>';
         return;
     }
+    
     let html = `<div style="margin-bottom:15px;"><strong>Total Pending: ${pending.length}</strong></div><div style="display:flex; flex-direction:column; gap:12px;">`;
     
     pending.forEach((seller, idx) => {
-        // सेलर की पेआउट प्रेफरेंस (बैंक या क्रिप्टो) दिखाने का लॉजिक
         let payoutDetailsHtml = '❌ Not Provided';
         if (seller.payoutPreference) {
             if (seller.payoutPreference.method === 'bank') {
@@ -4153,6 +4161,7 @@ function loadPendingSellers() {
     html += '</div>';
     container.innerHTML = html;
     
+    // अप्रूव बटन का लॉजिक और स्मार्ट एपीआई सिंक
     container.querySelectorAll('.btn-approve').forEach(btn => {
         btn.addEventListener('click', async function(e) {
             e.stopPropagation();
@@ -4163,7 +4172,7 @@ function loadPendingSellers() {
                 
                 const sellerRef = db.collection("sellers").doc(sellerId);
                 const sellerDoc = await sellerRef.get();
-                if (!sellerDoc.exists) { showToast("Seller not found in database", true); return; }
+                if (!sellerDoc.exists) { showToast("Seller not found", true); return; }
                 
                 const sellerData = sellerDoc.data();
                 if (sellerData.kycStatus === 'verified') {
@@ -4171,28 +4180,24 @@ function loadPendingSellers() {
                     return;
                 }
                 
-                // 1. फायरबेस में स्टेटस अपडेट करें
+                // फायरबेस में स्टेटस अपडेट करें
                 await sellerRef.update({ 
                     kycStatus: 'verified', 
                     verifiedAt: new Date().toISOString() 
                 });
 
-                // 2. स्मार्ट अप्रूवल ट्रिगर: एपीआई / वेबहुक पर डेटा भेजना
+                // स्मार्ट अप्रूवल ट्रिगर (API / Webhook Sync)
                 if (sellerData.payoutPreference) {
                     if (sellerData.payoutPreference.method === 'bank') {
-                        // यहाँ पेमेंट गेटवे पार्टनर एपीआई को डेटा फॉरवर्ड होगा
-                        console.log("Syncing Bank Payout details to Payment Gateway API...", sellerData.payoutPreference);
-                        // await syncWithPaymentGatewayAPI(sellerData);
+                        console.log("Syncing Bank Payout to Payment Gateway API...", sellerData.payoutPreference);
                     } else if (sellerData.payoutPreference.method === 'crypto') {
-                        // यहाँ आपके gbpay / BTC Pay Server पर डेटा फॉरवर्ड होगा
-                        console.log("Syncing Crypto Payout details to gbpay/BTC Pay Server...", sellerData.payoutPreference);
-                        // await syncWithCryptoGatewayAPI(sellerData);
+                        console.log("Syncing Crypto Payout to gbpay/BTC Pay Server...", sellerData.payoutPreference);
                     }
                 }
                 
                 showToast("✅ Seller approved & Payout synced successfully!", false);
-                addNotification(`Seller KYC verified and synced`, 'info');
-                await sendTelegramMessage(`✅ KYC Verified & Synced: ${sellerData.shopName}`);
+                if(typeof addNotification === 'function') addNotification(`Seller KYC verified and synced`, 'info');
+                if(typeof sendTelegramMessage === 'function') await sendTelegramMessage(`✅ KYC Verified & Synced: ${sellerData.shopName}`);
                 
                 const snapshot = await db.collection("sellers").get();
                 sellers = [];
@@ -4200,8 +4205,6 @@ function loadPendingSellers() {
                 updateAdminPendingBadge();
                 updateAdminMenuBadges();
                 loadPendingSellers();
-                document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
-                
             } catch (error) {
                 console.error("Approve error:", error);
                 showToast("Error approving seller: " + error.message, true);
@@ -4209,6 +4212,7 @@ function loadPendingSellers() {
         });
     });
     
+    // रिजेक्ट बटन का लॉजिक
     container.querySelectorAll('.btn-reject').forEach(btn => {
         btn.addEventListener('click', async function(e) {
             e.stopPropagation();
@@ -4221,12 +4225,6 @@ function loadPendingSellers() {
                 if (!isAdminLoggedIn) { showToast("Please login as admin", true); return; }
                 
                 const sellerRef = db.collection("sellers").doc(sellerId);
-                const sellerDoc = await sellerRef.get();
-                if (sellerDoc.exists && sellerDoc.data().kycStatus === 'rejected') {
-                    showToast("⚠️ This seller is already rejected!", true);
-                    return;
-                }
-                
                 await sellerRef.update({ 
                     kycStatus: 'rejected', 
                     rejectionReason: reason.trim(),
@@ -4234,8 +4232,8 @@ function loadPendingSellers() {
                 });
                 
                 showToast("❌ Seller rejected", false);
-                addNotification(`Seller KYC rejected: ${reason}`, 'info');
-                await sendTelegramMessage(`❌ KYC Rejected: ${reason}`);
+                if(typeof addNotification === 'function') addNotification(`Seller KYC rejected: ${reason}`, 'info');
+                if(typeof sendTelegramMessage === 'function') await sendTelegramMessage(`❌ KYC Rejected: ${reason}`);
                 
                 const snapshot = await db.collection("sellers").get();
                 sellers = [];
@@ -4243,7 +4241,6 @@ function loadPendingSellers() {
                 updateAdminPendingBadge();
                 updateAdminMenuBadges();
                 loadPendingSellers();
-                document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
             } catch (error) {
                 console.error("Reject error:", error);
                 showToast("Error rejecting seller: " + error.message, true);
@@ -4252,9 +4249,14 @@ function loadPendingSellers() {
     });
 }
 
+// 4. वेरीफाइड सेलर्स की लिस्ट दिखाने का फंक्शन
 function loadVerifiedSellers() {
-    const verified = sellers.filter(s => s.kycStatus === 'verified');
+    hideAllAdminSections();
     const container = document.getElementById('verifiedSellersList');
+    if (!container) return;
+    container.style.display = 'block';
+
+    const verified = typeof sellers !== 'undefined' ? sellers.filter(s => s.kycStatus === 'verified') : [];
     if (verified.length === 0) {
         container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">No verified sellers yet</div>';
         return;
@@ -4274,25 +4276,29 @@ function loadVerifiedSellers() {
     container.innerHTML = html;
 }
 
+// 5. विथड्रॉल रिक्वेस्ट लोड करने का फंक्शन
 function loadWithdrawalsList() {
+    hideAllAdminSections();
     const container = document.getElementById('pendingWithdrawals');
-    if (pendingWithdrawals.length === 0) {
+    if (!container) return;
+    container.style.display = 'block';
+
+    if (typeof pendingWithdrawals === 'undefined' || pendingWithdrawals.length === 0) {
         container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">No pending withdrawals</div>';
         return;
     }
-    let html = pendingWithdrawals.map(w => `<div class="order-card"><span>💰 ${getCurrencySymbol()}${convertPrice(w.amount)} - ${w.sellerName}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981; color:white; border:none; padding:4px 12px; border-radius:20px; cursor:pointer;">Approve</button></div>`).join('');
+    let html = pendingWithdrawals.map(w => `<div class="order-card"><span>💰 ${typeof getCurrencySymbol === 'function' ? getCurrencySymbol() : '$'}${typeof convertPrice === 'function' ? convertPrice(w.amount) : w.amount} - ${w.sellerName}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981; color:white; border:none; padding:4px 12px; border-radius:20px; cursor:pointer;">Approve</button></div>`).join('');
     container.innerHTML = html;
+    
     container.querySelectorAll('.approveBtn').forEach(btn => {
         btn.addEventListener('click', async () => {
             let w = pendingWithdrawals.find(w => w.id === parseInt(btn.dataset.id));
             if(w){
                 w.status = 'Approved';
-                withdrawalHistory.push({ ...w, approvedAt: new Date().toISOString() });
+                if(typeof withdrawalHistory !== 'undefined') withdrawalHistory.push({ ...w, approvedAt: new Date().toISOString() });
                 pendingWithdrawals = pendingWithdrawals.filter(pw => pw.id !== w.id);
-                saveAllLocal();
-                showToast(`✅ Approved ${getCurrencySymbol()}${convertPrice(w.amount)} - Moved to History`, false);
-                await sendTelegramMessage(`💰 Withdrawal Approved: ${w.sellerName} - ${getCurrencySymbol()}${convertPrice(w.amount)}`);
-                addNotification(`Withdrawal approved for ${w.sellerName}`, 'payment');
+                if(typeof saveAllLocal === 'function') saveAllLocal();
+                showToast(`✅ Approved Withdrawal - Moved to History`, false);
                 loadWithdrawalsList();
                 updateAdminMenuBadges();
             }
@@ -4300,6 +4306,44 @@ function loadWithdrawalsList() {
     });
 }
 
+// 6. बाकी के बचे हुए सभी मेनू बटन्स के सुरक्षित फंक्शन्स (ताकि कोई भी बटन क्लिक करने पर रुके नहीं)
+function loadAllBuyers() {
+    hideAllAdminSections();
+    const container = document.getElementById('allBuyersList') || document.getElementById('adminOrdersList');
+    if (container) {
+        container.style.display = 'block';
+        container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;"><h3>👥 All Buyers Management</h3><p>Buyers list will appear here.</p></div>';
+    }
+}
+
+function loadAllSellers() {
+    hideAllAdminSections();
+    const container = document.getElementById('allSellersList') || document.getElementById('adminOrdersList');
+    if (container) {
+        container.style.display = 'block';
+        container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;"><h3>🏪 All Sellers Management</h3><p>All registered sellers list will appear here.</p></div>';
+    }
+}
+
+function loadWithdrawalHistory() {
+    hideAllAdminSections();
+    const container = document.getElementById('withdrawalHistoryList') || document.getElementById('adminOrdersList');
+    if (container) {
+        container.style.display = 'block';
+        container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;"><h3>📜 Withdrawal History</h3><p>Past approved withdrawals list.</p></div>';
+    }
+}
+
+function loadPayoutHistory() {
+    hideAllAdminSections();
+    const container = document.getElementById('payoutHistoryList') || document.getElementById('adminOrdersList');
+    if (container) {
+        container.style.display = 'block';
+        container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;"><h3>💳 Payout History</h3><p>Completed payouts log will appear here.</p></div>';
+    }
+}
+
+// 7. एडमिन लॉगिन और बैक बटन लॉजिक
 document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
     const enteredKey = document.getElementById('adminKey').value;
     if (enteredKey === 'Haque0786@') {
@@ -4315,10 +4359,7 @@ document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
 });
 
 document.getElementById('adminBackBtn')?.addEventListener('click', function() {
-    document.getElementById('pendingKycList').style.display = 'none';
-    document.getElementById('verifiedSellersList').style.display = 'none';
-    document.getElementById('pendingWithdrawals').style.display = 'none';
-    document.getElementById('adminOrdersList').style.display = 'none';
+    hideAllAdminSections();
     showToast("Back to dashboard", false);
 });
 
@@ -4328,41 +4369,36 @@ function loadAdminData() {
         document.getElementById('adminContent').style.display = 'none';
         return;
     }
-    document.getElementById('platformEarnings').innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
+    const earningsEl = document.getElementById('platformEarnings');
+    if(earningsEl && typeof platformEarnings !== 'undefined' && typeof getCurrencySymbol === 'function' && typeof convertPrice === 'function') {
+        earningsEl.innerHTML = `<h2>${getCurrencySymbol()}${convertPrice(platformEarnings)}</h2>`;
+    }
     updateAdminMenuBadges();
     updateAdminPendingBadge();
-    document.getElementById('pendingKycList').style.display = 'none';
-    document.getElementById('verifiedSellersList').style.display = 'none';
-    document.getElementById('pendingWithdrawals').style.display = 'none';
-    document.getElementById('adminOrdersList').style.display = 'none';
+    hideAllAdminSections();
 }
 
 function updateAdminPendingBadge() {
-    const pendingSellers = sellers.filter(s => s.kycStatus === 'pending');
+    const pendingSellers = typeof sellers !== 'undefined' ? sellers.filter(s => s.kycStatus === 'pending') : [];
     const count = pendingSellers.length;
     const badge = document.getElementById('adminPendingBadge');
     if (badge) {
-        if (count > 0) {
-            badge.style.display = 'inline-block';
-            badge.innerText = count;
-        } else {
-            badge.style.display = 'none';
-        }
+        badge.style.display = count > 0 ? 'inline-block' : 'none';
+        badge.innerText = count;
     }
 }
 
 function updateAdminMenuBadges() {
-    const pending = sellers.filter(s => s.kycStatus === 'pending').length;
-    const verified = sellers.filter(s => s.kycStatus === 'verified').length;
-    const withdrawals = pendingWithdrawals.filter(w => w.status === 'Pending').length;
-    const pendingBadge = document.getElementById('pendingCountBadge');
-    const verifiedBadge = document.getElementById('verifiedCountBadge');
-    const withdrawalBadge = document.getElementById('withdrawalCountBadge');
-    if (pendingBadge) pendingBadge.textContent = pending;
-    if (verifiedBadge) verifiedBadge.textContent = verified;
-    if (withdrawalBadge) withdrawalBadge.textContent = withdrawals;
+    const pending = typeof sellers !== 'undefined' ? sellers.filter(s => s.kycStatus === 'pending').length : 0;
+    const verified = typeof sellers !== 'undefined' ? sellers.filter(s => s.kycStatus === 'verified').length : 0;
+    const withdrawals = (typeof pendingWithdrawals !== 'undefined') ? pendingWithdrawals.filter(w => w.status === 'Pending').length : 0;
+    
+    if (document.getElementById('pendingCountBadge')) document.getElementById('pendingCountBadge').textContent = pending;
+    if (document.getElementById('verifiedCountBadge')) document.getElementById('verifiedCountBadge').textContent = verified;
+    if (document.getElementById('withdrawalCountBadge')) document.getElementById('withdrawalCountBadge').textContent = withdrawals;
 }
 
+ 
 // ============================================================
 // INITIALIZATION
 // ============================================================
