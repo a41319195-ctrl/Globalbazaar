@@ -244,24 +244,6 @@
                 </div>
                 <div id="pendingWithdrawals" style="display:none; margin-top:10px;"></div>
             </div>
-
-            <!-- 🔌 Webhook Settings -->
-            <div class="premium-card" style="margin-top: 15px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="margin: 0;">🔌 GBPay Gateway & Webhook Settings</h3>
-                </div>
-                <p style="font-size: 13px; color: #64748b; margin-top: 5px;">Configure your GBPay webhooks for instant transaction synchronization.</p>
-                
-                <div style="margin-top: 15px;">
-                    <label style="font-weight:600; font-size: 14px;">Webhook URL Endpoint</label>
-                    <input type="text" id="sellerWebhookUrl" placeholder="https://yourstore.com/api/v1/webhook" class="input" style="margin-top: 5px; margin-bottom: 10px;">
-                    
-                    <label style="font-weight:600; font-size: 14px;">API Secret Key</label>
-                    <input type="password" id="sellerApiKey" placeholder="sk_live_xxxxxxxxxxxxxxxx" class="input" style="margin-top: 5px; margin-bottom: 15px;">
-                    
-                    <button type="button" class="btn-primary" onclick="saveWebhookSettings()" style="background: #0284c7;">Save GBPay Settings</button>
-                </div>
-            </div>
         </div>
     </div>
     
@@ -297,10 +279,7 @@
             <div id="popupIconEmoji" style="font-size: 60px; margin-bottom: 12px; line-height: 1;">🎉</div>
             <h3 id="popupTitleText" style="margin: 0 0 10px; color: #0f172a; font-size: 22px; font-weight: 800;">Success!</h3>
             <p id="popupMessageText" style="color: #475569; font-size: 15px; margin-bottom: 10px; line-height: 1.7;">Your transaction has been processed successfully.</p>
-            <div id="popupWebhookStatusDiv" style="font-size: 13px; color: #6b7280; background: #f1f5f9; padding: 10px 14px; border-radius: 10px; margin-bottom: 22px; display: none;">
-                <span style="font-weight: 600;">📡 GBPay Webhook Status:</span> <span id="webhookStatusText">Pending</span>
-            </div>
-            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px;">
                 <button onclick="closePopup()" style="background:#0f172a; color:#fff; border:none; padding:12px 32px; border-radius:12px; cursor:pointer; font-weight:700; font-size:15px; min-width:120px;">Got It</button>
                 <button id="popupRetryBtn" onclick="retryWithdrawal()" style="background:#0284c7; color:#fff; border:none; padding:12px 32px; border-radius:12px; cursor:pointer; font-weight:700; font-size:15px; display:none;">🔄 Retry</button>
             </div>
@@ -731,23 +710,13 @@
 </div>
 
 <!-- ============================================================ -->
-<!-- ============================================================ -->
-<!-- 🔥 ALL JAVASCRIPT - FULL WORKING CODE INSIDE HTML -->
-<!-- ============================================================ -->
+<!-- JAVASCRIPT (CLEANED & FOCUSED) -->
 <!-- ============================================================ -->
 <script>
-// ============================================================
-// PAYOUT SYSTEM & GBPay INTEGRATION - COMPLETE WORKING CODE
-// ============================================================
-
-// Global State
 let isPayoutLocked = false;
 let savedPayoutData = null;
 let isProcessing = false;
 
-// ============================================================
-// 1. TOGGLE BANK / CRYPTO FIELDS
-// ============================================================
 function togglePayoutFields(type) {
     if (isPayoutLocked) {
         showPopup('error', '🔒 Locked!', 'Payout method is permanently locked. Cannot change.');
@@ -764,9 +733,6 @@ function togglePayoutFields(type) {
     }
 }
 
-// ============================================================
-// 2. PERMANENT LOCK - ONE TIME IRREVERSIBLE
-// ============================================================
 function permanentLockPayout() {
     if (isPayoutLocked) {
         showPopup('error', '🔒 Already Locked!', 'Your payout method has already been permanently locked.');
@@ -801,22 +767,17 @@ function permanentLockPayout() {
         data = { type: 'crypto', coinType: coinType, wallet: wallet };
     }
 
-    // Show processing
     showPopup('processing', '⏳ Processing...', 'Saving your payout details securely via GBPay...');
 
-    // Simulate API call
     setTimeout(function() {
-        // PERMANENT LOCK
         isPayoutLocked = true;
         savedPayoutData = data;
 
-        // Save to localStorage for persistence
         try {
             localStorage.setItem('globalbazaar_payout_locked', 'true');
             localStorage.setItem('globalbazaar_payout_data', JSON.stringify(data));
         } catch(e) {}
 
-        // Lock all fields
         var section = document.getElementById('payoutSection');
         var inputs = section.querySelectorAll('input, select, textarea');
         for (var i = 0; i < inputs.length; i++) {
@@ -827,20 +788,13 @@ function permanentLockPayout() {
             radios[i].disabled = true;
         }
 
-        // Show lock status
         document.getElementById('payoutLockStatus').style.display = 'block';
         document.getElementById('lockPayoutBtn').style.display = 'none';
 
-        // Send webhook
-        sendWebhook('gbpay_payout_locked', data);
-
-        showPopup('success', '🔒 Permanently Locked!', 'Your Global Bazaar payout method has been saved and permanently locked. Future disbursements will use this route.');
+        showPopup('success', '🔒 Permanently Locked!', 'Your Global Bazaar payout method has been saved and permanently locked.');
     }, 1500);
 }
 
-// ============================================================
-// 3. PROCESS WITHDRAWAL
-// ============================================================
 function processWithdrawal() {
     if (isProcessing) {
         showPopup('processing', '⏳ Wait...', 'A transaction is already in progress.');
@@ -854,86 +808,51 @@ function processWithdrawal() {
     }
 
     if (!isPayoutLocked) {
-        showPopup('error', '⚠️ Not Setup', 'Please lock your payout method first. This is a one-time requirement.');
+        showPopup('error', '⚠️ Not Setup', 'Please lock your payout method first.');
         return;
     }
 
     isProcessing = true;
     showPopup('processing', '⏳ Processing...', 'Please wait while GBPay processes your withdrawal...');
 
-    // Simulate API call with 90% success rate
     setTimeout(function() {
         var success = Math.random() < 0.9;
         isProcessing = false;
 
         if (success) {
-            sendWebhook('gbpay_withdrawal_success', { amount: amount, method: savedPayoutData.type, source: 'Global Bazaar Payout' });
-            showPopup('success', '✅ Global Bazaar Payout Successful!', 'Your withdrawal of $' + amount + ' has been processed via GBPay. Funds will be sent to your ' + (savedPayoutData.type === 'bank' ? 'bank account' : 'crypto wallet') + '.');
+            showPopup('success', '✅ Global Bazaar Payout Successful!', 'Your withdrawal of $' + amount + ' has been processed.');
         } else {
-            sendWebhook('gbpay_withdrawal_failed', { amount: amount, error: 'Gateway error' });
-            showPopup('error', '❌ Withdrawal Failed!', 'Transaction failed due to gateway error. Please try again.');
+            showPopup('error', '❌ Withdrawal Failed!', 'Transaction failed due to gateway error.');
             document.getElementById('popupRetryBtn').style.display = 'inline-block';
         }
     }, 2000);
 }
 
-// ============================================================
-// 4. RETRY WITHDRAWAL
-// ============================================================
 function retryWithdrawal() {
     document.getElementById('popupRetryBtn').style.display = 'none';
     closePopup();
     processWithdrawal();
 }
 
-// ============================================================
-// 5. WEBHOOK SIMULATION
-// ============================================================
-function sendWebhook(eventName, data) {
-    console.log('🔔 GBPay Webhook Triggered:', eventName, data);
-}
-
-// ============================================================
-// 6. SAVE WEBHOOK SETTINGS
-// ============================================================
-function saveWebhookSettings() {
-    var url = document.getElementById('sellerWebhookUrl').value;
-    if (!url) {
-        showPopup('error', '⚠️ Error', 'Please enter a valid Webhook URL.');
-        return;
-    }
-    showPopup('success', '✅ Settings Saved!', 'Your GBPay webhook settings have been saved successfully.');
-}
-
-// ============================================================
-// 7. POPUP SYSTEM - FULLY WORKING
-// ============================================================
 function showPopup(type, title, message) {
     var popup = document.getElementById('dynamicPopup');
     var icon = document.getElementById('popupIconEmoji');
     var titleEl = document.getElementById('popupTitleText');
     var msgEl = document.getElementById('popupMessageText');
-    var webhookDiv = document.getElementById('popupWebhookStatusDiv');
-    var statusText = document.getElementById('webhookStatusText');
     var retryBtn = document.getElementById('popupRetryBtn');
 
     if (type === 'success') {
         icon.textContent = '✅';
         titleEl.style.color = '#16a34a';
         retryBtn.style.display = 'none';
-        webhookDiv.style.display = 'block';
-        statusText.textContent = '✅ Success (GBPay Webhook Sent)';
     } else if (type === 'error') {
         icon.textContent = '❌';
         titleEl.style.color = '#dc2626';
         retryBtn.style.display = 'inline-block';
-        webhookDiv.style.display = 'block';
-        statusText.textContent = '❌ Failed';
     } else if (type === 'processing') {
         icon.textContent = '⏳';
         titleEl.style.color = '#f59e0b';
         retryBtn.style.display = 'none';
-        webhookDiv.style.display = 'none';
     }
 
     titleEl.textContent = title;
@@ -945,9 +864,6 @@ function closePopup() {
     document.getElementById('dynamicPopup').style.display = 'none';
 }
 
-// ============================================================
-// 8. CHECK LOCK STATUS ON PAGE LOAD
-// ============================================================
 function checkPayoutStatus() {
     try {
         var locked = localStorage.getItem('globalbazaar_payout_locked');
@@ -956,7 +872,6 @@ function checkPayoutStatus() {
             var data = JSON.parse(localStorage.getItem('globalbazaar_payout_data'));
             if (data) {
                 savedPayoutData = data;
-                // Restore UI
                 if (data.type === 'bank') {
                     document.querySelector('input[name="sellerPayoutMethod"][value="bank"]').checked = true;
                     document.getElementById('sellerBankHolderName').value = data.holder || '';
@@ -970,7 +885,6 @@ function checkPayoutStatus() {
                     document.getElementById('withdrawCryptoAddress').value = data.wallet || '';
                     togglePayoutFields('crypto');
                 }
-                // Lock fields
                 var section = document.getElementById('payoutSection');
                 var inputs = section.querySelectorAll('input, select, textarea');
                 for (var i = 0; i < inputs.length; i++) {
@@ -987,9 +901,6 @@ function checkPayoutStatus() {
     } catch(e) {}
 }
 
-// ============================================================
-// 9. SWITCH PAYMENT MODE (Card / Crypto)
-// ============================================================
 function switchPaymentMode(mode) {
     var cardContainer = document.getElementById('cardPaymentContainer');
     var cryptoContainer = document.getElementById('cryptoPaymentContainer');
@@ -1029,20 +940,15 @@ function closeOrderDetailsModal() {
     document.getElementById('orderDetailsModal').style.display = 'none';
 }
 
-// ============================================================
-// 10. INITIALIZE ON LOAD
-// ============================================================
 document.addEventListener('DOMContentLoaded', function() {
     checkPayoutStatus();
-    console.log('✅ GlobalBazaar & GBPay System Initialized');
+    console.log('✅ GlobalBazaar Seller Dashboard Initialized');
 });
 
-// Expose functions globally
 window.togglePayoutFields = togglePayoutFields;
 window.permanentLockPayout = permanentLockPayout;
 window.processWithdrawal = processWithdrawal;
 window.retryWithdrawal = retryWithdrawal;
-window.saveWebhookSettings = saveWebhookSettings;
 window.showPopup = showPopup;
 window.closePopup = closePopup;
 window.switchPaymentMode = switchPaymentMode;
