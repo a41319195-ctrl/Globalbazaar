@@ -1629,33 +1629,30 @@ function requestWithdrawal(sellerId) {
     
     renderSellerDashboard();
     updateAdminMenuBadges();
-        try {
-        // बैंक या क्रिप्टो के हिसाब से डिटेल्स निकालने का सेफ लॉजिक
-        let payoutDetails = "";
-        if (seller.payoutType === 'crypto') {
-            let net = seller.cryptoNetwork || "Crypto";
-            let addr = seller.cryptoAddress || "";
-            let maskedAddr = addr.length > 10 ? addr.slice(0, 6) + "..." + addr.slice(-4) : addr;
-            payoutDetails = `🪙 Crypto (${net}): ${maskedAddr}`;
-        } else {
-            let bankName = seller.bankName || "Bank Account";
-            let bankAcc = seller.bankAccountNumber || "XXXX";
-            let last4 = bankAcc.slice(-4);
-            payoutDetails = `💳 Bank: ${bankName} (A/C ending in ${last4})`;
-        }
-
-        // अगर यूनिवर्सल पॉप-अप फंक्शन मौजूद है तो यह कॉल होगा
-        if (typeof showUniversalPopup === 'function') {
-            showUniversalPopup(
-                "Withdrawal Successful!",
-                `Your payout request of $${withdrawalAmount} has been processed successfully.`,
-                payoutDetails
-            );
-        }
-    } catch (err) {
-        // अगर कोई एरर आ भी जाए तो वेबसाइट क्रैश नहीं होगी, कंसोल में दिखेगी और सेफली काम चलता रहेगा
-        console.error("Popup rendering error:", err);
+       try {
+    let payoutDetails = "";
+    if (seller.payoutType === 'crypto') {
+        let net = seller.cryptoNetwork || "Crypto";
+        let addr = seller.cryptoAddress || "";
+        let maskedAddr = addr.length > 10 ? addr.slice(0, 6) + "..." + addr.slice(-4) : addr;
+        payoutDetails = `🪙 Crypto (${net}): ${maskedAddr}`;
+    } else {
+        let bankName = seller.bankName || "Bank Account";
+        let bankAcc = seller.bankAccountNumber || "XXXX";
+        let last4 = bankAcc.slice(-4);
+        payoutDetails = `🏦 Bank: ${bankName} (A/C ending in ${last4})`;
     }
+
+    // सीधा पॉप-अप कॉल करें बिना किसी typeof चेक के
+    showUniversalPopup(
+        "Withdrawal Successful!",
+        `Your payout request of $${withdrawAmount} has been processed successfully.`,
+        payoutDetails
+    );
+} catch (err) {
+    console.error("Popup rendering error:", err);
+}
+    
 }
 
 // ============================================================
