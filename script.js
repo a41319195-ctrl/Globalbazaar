@@ -1629,18 +1629,18 @@ function requestWithdrawal(sellerId) {
     
     renderSellerDashboard();
     updateAdminMenuBadges();
-       try {
+     try {
     let payoutDetails = "";
     if (seller.payoutType === 'crypto') {
         let net = seller.cryptoNetwork || "Crypto";
         let addr = seller.cryptoAddress || "";
-        let maskedAddr = addr.length > 10 ? addr.slice(0, 6) + "..." + addr.slice(-4) : addr;
-        payoutDetails = `🪙 Crypto (${net}): ${maskedAddr}`;
+        let last4 = addr.length > 4 ? addr.slice(-4) : addr;
+        payoutDetails = `🪙 Crypto (${net}): AAAAAAA...${last4}`;
     } else {
         let bankName = seller.bankName || "Bank Account";
-        let bankAcc = seller.bankAccountNumber || "XXXX";
-        let last4 = bankAcc.slice(-4);
-        payoutDetails = `🏦 Bank: ${bankName} (A/C ending in ${last4})`;
+        let bankAcc = seller.bankAccountNumber || "";
+        let last4 = bankAcc.length > 4 ? bankAcc.slice(-4) : bankAcc;
+        payoutDetails = `🏦 Bank: ${bankName} (A/C: GGGGGG...${last4})`;
     }
 
     // सीधा पॉप-अप कॉल करें बिना किसी typeof चेक के
