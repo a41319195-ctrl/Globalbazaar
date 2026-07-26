@@ -4545,3 +4545,27 @@ document.addEventListener('input', function(e) {
         target.style.borderColor = (val === "") ? "#ccc" : (isValid ? "green" : "red");
     }
 });
+function showUniversalPopup(title, message, detailsText) {
+    try {
+        let titleEl = document.getElementById('popupTitleText');
+        let msgEl = document.getElementById('popupMessageText');
+        let detailsEl = document.getElementById('popupDetailsBox');
+        let popupEl = document.getElementById('dynamicPopup');
+
+        if (titleEl) titleEl.innerText = title || "";
+        if (msgEl) msgEl.innerText = message || "";
+        if (detailsEl) detailsEl.innerText = detailsText || "";
+        if (popupEl) popupEl.style.display = 'flex';
+    } catch (err) {
+        console.error("Error opening popup:", err);
+    }
+}
+
+function closePopup() {
+    try {
+        let popupEl = document.getElementById('dynamicPopup');
+        if (popupEl) popupEl.style.display = 'none';
+    } catch (err) {
+        console.error("Error closing popup:", err);
+    }
+}
