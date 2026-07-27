@@ -1629,7 +1629,7 @@ function requestWithdrawal(sellerId) {
     
     renderSellerDashboard();
     updateAdminMenuBadges();
-           try {
+            try {
         let payoutDetails = "";
         let pref = (seller && seller.payoutPreference) ? seller.payoutPreference : {};
         let method = pref.method || (seller && seller.payoutType) || 'bank';
@@ -1638,18 +1638,15 @@ function requestWithdrawal(sellerId) {
             let addr = pref.cryptoAddress || seller.cryptoAddress || "";
             let last4 = addr.length > 4 ? addr.slice(-4) : (addr || "0000");
             
-            payoutDetails = `🪙 Crypto Wallet (TRC20/BEP20)<br><small style="color:#6b7280;">Address: AAAAAAA...${last4}</small>`;
+            payoutDetails = `🪙 Crypto Wallet: AAAAAAA...${last4}`;
         } else {
-            // रजिस्ट्रेशन डेटाबेस (payoutPreference) से असली बैंक डिटेल्स उठाना
             let bankName = pref.bankName || seller.bankName || "Bank Account";
             let bankAcc = String(pref.accountNumber || seller.bankAccountNumber || "").trim();
             let last4 = bankAcc.length >= 4 ? bankAcc.slice(-4) : (bankAcc || "N/A");
             
-            // दो सुंदर लाइनों में बैंक का नाम और मास्क्ड अकाउंट नंबर
-            payoutDetails = `🏦 <strong>${bankName}</strong><br><small style="color:#6b7280;">A/C: GGGGGGGGG...${last4}</small>`;
+            payoutDetails = `🏦 Bank: ${bankName} (A/C: GGGGGGGGG...${last4})`;
         }
 
-        // सुरक्षात्मक चेक के साथ पॉप-अप कॉल
         if (typeof showUniversalPopup === 'function') {
             showUniversalPopup(
                 "Withdrawal Successful!",
@@ -1665,7 +1662,6 @@ function requestWithdrawal(sellerId) {
         console.error("Popup rendering error caught safely:", err);
         alert(`Withdrawal Successful! Your payout request of $${withdrawAmount} has been processed.`);
     }
-  
 
 }
 
