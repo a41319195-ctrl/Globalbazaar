@@ -1630,39 +1630,59 @@ function requestWithdrawal(sellerId) {
     renderSellerDashboard();
     updateAdminMenuBadges();
             try {
-        let payoutDetails = "";
         let pref = (seller && seller.payoutPreference) ? seller.payoutPreference : {};
         let method = pref.method || (seller && seller.payoutType) || 'bank';
+        let withdrawDate = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
+        let methodDetails = "";
         if (method === 'crypto') {
-            let addr = pref.cryptoAddress || seller.cryptoAddress || "";
-            let last4 = addr.length > 4 ? addr.slice(-4) : (addr || "0000");
-            
-            payoutDetails = `🪙 Crypto Wallet: AAAAAAA...${last4}`;
+            let addr = pref.cryptoAddress || (seller && seller.cryptoAddress) || "";
+            let last4 = addr.length >= 4 ? addr.slice(-4) : (addr ? addr : "0000");
+            methodDetails = `🪙 <strong>Crypto Wallet:</strong> ••••${last4}`;
         } else {
-            let bankName = pref.bankName || seller.bankName || "Bank Account";
-            let bankAcc = String(pref.accountNumber || seller.bankAccountNumber || "").trim();
-            let last4 = bankAcc.length >= 4 ? bankAcc.slice(-4) : (bankAcc || "N/A");
-            
-            payoutDetails = `🏦 Bank: ${bankName} (A/C: GGGGGGGGG...${last4})`;
+            let bankName = pref.bankName || (seller && seller.bankName) || "Bank Account";
+            let bankAcc = String(pref.accountNumber || (seller && seller.bankAccountNumber) || "").trim();
+            let last4 = bankAcc.length >= 4 ? bankAcc.slice(-4) : (bankAcc ? bankAcc : "N/A");
+            methodDetails = `🏦 <strong>${bankName}</strong> (A/C: ••••${last4})`;
         }
+
+        // बायर स्टाइल लेआउट
+        let sellerFormattedHTML = `
+            <div style="font-family: inherit; margin-top: 5px;">
+                <!-- Card 1: Date & Status -->
+                <div style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 8px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 10px; display: flex; justify-content: space-between; color: #374151;">
+                    <span>📅 <strong>Date:</strong> ${withdrawDate}</span>
+                    <span style="color: #059669; font-weight: 600;">🟢 Submitted</span>
+                </div>
+
+                <!-- Card 2: Amount Box -->
+                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 10px 12px; border-radius: 8px; margin-bottom: 10px; text-align: center;">
+                    <span style="font-size: 13px; color: #166534; display: block;">Withdrawal Amount</span>
+                    <span style="font-size: 20px; font-weight: 700; color: #15803d;">$${withdrawAmount}</span>
+                </div>
+
+                <!-- Card 3: Payout Method -->
+                <div style="background: #eef2ff; border: 1px solid #c7d2fe; color: #3730a3; padding: 8px 12px; border-radius: 8px; font-size: 13px; text-align: center;">
+                    ${methodDetails}
+                </div>
+            </div>
+        `;
 
         if (typeof showUniversalPopup === 'function') {
             showUniversalPopup(
                 "Withdrawal Successful!",
-                `Your payout request of $${withdrawAmount} has been processed successfully.`,
-                payoutDetails
+                "Your payout request has been received and is pending admin approval.",
+                sellerFormattedHTML
             );
         } else {
-            console.warn("showUniversalPopup function missing, fallback to alert");
-            alert(`Withdrawal Successful!\nYour payout request of $${withdrawAmount} has been processed successfully.`);
+            alert(`Withdrawal Successful!\nAmount: $${withdrawAmount}\nDate: ${withdrawDate}`);
         }
 
     } catch (err) {
         console.error("Popup rendering error caught safely:", err);
         alert(`Withdrawal Successful! Your payout request of $${withdrawAmount} has been processed.`);
     }
-
+   
 }
 
 // ============================================================
