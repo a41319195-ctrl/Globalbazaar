@@ -4572,6 +4572,7 @@ document.addEventListener('input', function(e) {
         target.style.borderColor = (val === "") ? "#ccc" : (isValid ? "green" : "red");
     }
 });
+
 function showUniversalPopup(title, message, detailsText) {
     try {
         let titleEl = document.getElementById('popupTitleText');
@@ -4581,26 +4582,31 @@ function showUniversalPopup(title, message, detailsText) {
 
         if (titleEl) titleEl.innerText = title || "";
         if (msgEl) msgEl.innerText = message || "";
-        
-        // innerHTML करने से कार्ड्स और स्टाइलिंग सही से दिखेगी
         if (detailsEl) detailsEl.innerHTML = detailsText || "";
         
-        if (popupEl) popupEl.style.display = 'flex';
+        if (popupEl) {
+            popupEl.style.display = 'flex';
+        }
     } catch (err) {
         console.error("Error opening popup:", err);
     }
 }
 
 function closePopup() {
-    try {
-        let popupEl = document.getElementById('dynamicPopup');
-        if (popupEl) {
-            popupEl.style.display = 'none';
-        }
-        if (typeof renderSellerDashboard === 'function') {
-            renderSellerDashboard();
-        }
-    } catch (err) {
-        console.error("Error closing popup:", err);
+    // 1️⃣ सबसे पहले पॉप-अप को तुरंत बंद करो (बिना किसी रुकावट के)
+    let popupEl = document.getElementById('dynamicPopup');
+    if (popupEl) {
+        popupEl.style.display = 'none';
     }
+
+    // 2️⃣ डैशबोर्ड को अलग से सुरक्षित तरीके (Try-Catch) से अपडेट करो
+    setTimeout(function() {
+        try {
+            if (typeof renderSellerDashboard === 'function') {
+                renderSellerDashboard();
+            }
+        } catch (err) {
+            console.error("Dashboard refresh error silently caught:", err);
+        }
+    }, 50);
 }
