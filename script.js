@@ -3308,24 +3308,41 @@ function renderProducts() {
             </div>`;
             return;
         }
-        
-        let html = filtered.map(p => {
-            try {
-                return renderProductCard(p);
-            } catch (cardError) {
-                console.error('Error rendering product card:', p.id, cardError);
-                return '';
+                // यूनिवर्सल पेजिनेशन के साथ प्रोडक्ट्स रेंडर करें
+        renderWithPagination(
+            filtered,
+            20,
+            'productsGrid',
+            'productsPagination',
+            (p, index) => {
+                try {
+                    return renderProductCard(p);
+                } catch (cardError) {
+                    console.error('Error rendering product card:', p.id, cardError);
+                    return '';
+                }
             }
-        }).join('');
-        
-        grid.innerHTML = html;
-        
-        document.querySelectorAll('.addCartBtn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                addToCart(btn.dataset.id);
+        );
+
+        // चूंकि पेजिनेशन से कार्ड्स बार-बार रेंडर होंगे, इसलिए इवेंट्स ऐसे बाइंड करें:
+        setTimeout(() => {
+            document.querySelectorAll('.addCartBtn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    addToCart(btn.dataset.id);
+                });
             });
-        });
+
+            document.querySelectorAll('.product-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    openProduct(card.dataset.id);
+                });
+            });
+        }, 50);
+
+        renderBuyerOrders();
+        renderBuyerWishlist();
+
         
         document.querySelectorAll('.product-card').forEach(card => {
             card.addEventListener('click', () => openProduct(card.dataset.id));
@@ -4609,4 +4626,107 @@ function closePopup() {
             console.error("Dashboard refresh error silently caught:", err);
         }
     }, 50);
+}
+
+// ==========================================
+// UNIVERSAL SAFE PAGINATION HELPER (20 Items/Page)
+// ==========================================
+
+function renderWithPagination(allData, itemsPerPage, containerId, paginationContainerId, renderItemCallback) {
+    try {
+        // सेफ्टी चेक: यदि डेटा एरे नहीं है या खाली है
+        const container = document.getElementById(containerId);
+        if (!container) {
+            console.warn(`Pagination Warning: Container element with ID '${containerId}' not found.`);
+            return;
+        }
+
+        const pagContainer = document.getElementById(paginationContainerId);
+        
+        // यदि डेटा उपलब्ध नहीं है
+        if (!Array.isArray(allData) || allData.length === 0) {
+            container.innerHTML = `<div style="text-align:center; padding:20px; color:#64748b;">No items available</div>`;
+            if (pagContainer) pagContainer.innerHTML = '';
+            return;
+        }
+
+        // लोकल स्टेट या ग्लोबल ट्रैक करने के लिए (प्रत्येक कंटेनर के लिए अलग पेज ट्रैक करने हेतु)
+        if (!window._paginationStates) window._paginationStates = {};
+        if (!window._paginationStates[containerId]) {
+            window._paginationStates[containerId] = 1;
+        }
+
+        let currentPage = window._paginationStates[containerId];
+        const totalPages = Math.ceil(allData.length / itemsPerPage) || 1;
+
+        // यदि करंट पेज टोटल पेज से ज्यादा हो गया हो
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
+            window._paginationStates[containerId] = currentPage;
+        }
+
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const currentItems = allData.slice(start, end);
+
+        // आइटम्स को रेंडर करना (एरर हैंडलिंग के साथ)
+        try {
+            let html = currentItems.map((item, index) => renderItemCallback(item, start + index)).join('');
+            container.innerHTML = html;
+        } catch (renderErr) {
+            console.error(`Error rendering items for ${containerId}:`, renderErr);
+            container.innerHTML = `<div style="text-align:center; padding:20px; color:#dc2626;">Error rendering items</div>`;
+            return;
+        }
+
+        // अगर पेजिनेशन कंटेनर आईडी दी गई है तो बटन रेंडर करें
+        if (pagContainer) {
+            if (totalPages <= 1) {
+                pagContainer.innerHTML = '';
+                return;
+            }
+
+            let paginationHtml = `
+                <div style="display: flex; justify-content: center; align-items: center; gap: 12px; margin: 20px 0; width: 100%;">
+                    <button class="btn-secondary prev-pagination-btn" style="padding: 6px 14px; cursor: pointer;" ${currentPage === 1 ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>Previous</button>
+                    <span style="font-size: 13px; font-weight: 600; color: #cbd5e1;">Page ${currentPage} of ${totalPages} (${allData.length} items)</span>
+                    <button class="btn-secondary next-pagination-btn" style="padding: 6px 14px; cursor: pointer;" ${currentPage === totalPages ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>View More / Next</button>
+                </div>
+            `;
+            pagContainer.innerHTML = paginationHtml;
+
+            // पुराने इवेंट लिसनर हटाने के बाद नए जोड़ना ताकि डुप्लीकेट क्लिक न हों
+            const prevBtn = pagContainer.querySelector('.prev-pagination-btn');
+            const nextBtn = pagContainer.querySelector('.next-pagination-btn');
+
+            if (prevBtn) {
+                prevBtn.onclick = () => {
+                    try {
+                        if (window._paginationStates[containerId] > 1) {
+                            window._paginationStates[containerId]--;
+                            renderWithPagination(allData, itemsPerPage, containerId, paginationContainerId, renderItemCallback);
+                        }
+                    } catch (e) {
+                        console.error("Pagination prev click error:", e);
+                    }
+                };
+            }
+
+            if (nextBtn) {
+                nextBtn.onclick = () => {
+                    try {
+                        if (window._paginationStates[containerId] < totalPages) {
+                            window._paginationStates[containerId]++;
+                            renderWithPagination(allData, itemsPerPage, containerId, paginationContainerId, renderItemCallback);
+                        }
+                    } catch (e) {
+                        console.error("Pagination next click error:", e);
+                    }
+                };
+            }
+        }
+
+    } catch (err) {
+        console.error(`Critical error in renderWithPagination for ${containerId}:`, err);
+    }
 }
