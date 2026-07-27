@@ -4590,3 +4590,17 @@ function showUniversalPopup(title, message, detailsText) {
         console.error("Error opening popup:", err);
     }
 }
+
+function closePopup() {
+    try {
+        let popupEl = document.getElementById('dynamicPopup');
+        if (popupEl) {
+            popupEl.style.display = 'none';
+        }
+        if (typeof renderSellerDashboard === 'function') {
+            renderSellerDashboard();
+        }
+    } catch (err) {
+        console.error("Error closing popup:", err);
+    }
+}
