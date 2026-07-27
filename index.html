@@ -254,16 +254,26 @@
         </div>
     </div>
 
-    <!-- ============================================================ -->
-    <!-- 🪟 DYNAMIC POPUP MODAL -->
-    <!-- ============================================================ -->
-<div id="dynamicPopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
-    <div style="background:#ffffff; width:90%; max-width:400px; padding:30px 25px; border-radius:20px; text-align:center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
-        <div id="popupIconEmoji" style="font-size: 45px; margin-bottom: 12px;">🎉</div>
-        <h3 id="popupTitleText" style="margin:0 0 8px; color:#1e293b; font-size:20px; font-weight:700;"></h3>
-        <p id="popupMessageText" style="color:#64748b; font-size:14px; margin-bottom:15px; line-height:1.6;"></p>
-        <div id="popupDetailsBox" style="background:#f1f5f9; padding:12px 14px; border-radius:12px; margin:15px 0; font-size:13px; color:#334155; border: 1px solid #e2e8f0; font-weight: 500; text-align: left; word-break: break-all;"></div>
-        <button onclick="closePopup()" style="background:#0f172a; color:#fff; border:none; padding:12px 20px; border-radius:12px; cursor:pointer; font-weight:600; width:100%; font-size:15px;">Got It</button>
+<!-- ============================================================ -->
+<!-- 📢 DYNAMIC POPUP MODAL (ENHANCED FOR READABILITY) -->
+<!-- ============================================================ -->
+<div id="dynamicPopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(5px);">
+    <div style="background:#ffffff; width:90%; max-width:420px; padding:32px 24px; border-radius:24px; text-align:center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+        
+        <!-- बड़ा और साफ़ इमोजी -->
+        <div id="popupIconEmoji" style="font-size: 52px; margin-bottom: 12px; line-height: 1;">🎉</div>
+        
+        <!-- मुख्य हेडिंग (बड़ा फ़ॉन्ट) -->
+        <h3 id="popupTitleText" style="margin:0 0 10px; color:#0f172a; font-size:22px; font-weight:800; letter-spacing:-0.3px;"></h3>
+        
+        <!-- सब-मैसेज (बड़ा और साफ़ फ़ॉन्ट) -->
+        <p id="popupMessageText" style="color:#475569; font-size:15px; margin-bottom:18px; line-height:1.6; font-weight: 500;"></p>
+        
+        <!-- अलग-अलग कार्ड्स दिखाने वाला मेन बॉक्स -->
+        <div id="popupDetailsBox" style="background:#f8fafc; padding:14px; border-radius:16px; margin:18px 0; font-size:15px; color:#1e293b; border: 1px solid #e2e8f0; font-weight: 500; text-align: left; word-break: break-word;"></div>
+        
+        <!-- बड़ा एक्शन बटन -->
+        <button onclick="closePopup()" style="background:#0f172a; color:#fff; border:none; padding:14px 20px; border-radius:14px; cursor:pointer; font-weight:700; width:100%; font-size:16px; transition: background 0.2s;">Got It</button>
     </div>
 </div>
 
