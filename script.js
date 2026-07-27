@@ -1629,23 +1629,24 @@ function requestWithdrawal(sellerId) {
     
     renderSellerDashboard();
     updateAdminMenuBadges();
-         try {
+           try {
         let payoutDetails = "";
+        let pref = (seller && seller.payoutPreference) ? seller.payoutPreference : {};
+        let method = pref.method || (seller && seller.payoutType) || 'bank';
 
-        if (seller && seller.payoutType === 'crypto') {
-            let net = seller.cryptoNetwork || "Crypto";
-            let addr = seller.cryptoAddress || "";
+        if (method === 'crypto') {
+            let addr = pref.cryptoAddress || seller.cryptoAddress || "";
             let last4 = addr.length > 4 ? addr.slice(-4) : (addr || "0000");
             
-            // क्रिप्टो के लिए डायनेमिक पैटर्न
-            payoutDetails = `🪙 Crypto (${net}): AAAAAAA...${last4}`;
+            payoutDetails = `🪙 Crypto Wallet (TRC20/BEP20)<br><small style="color:#6b7280;">Address: AAAAAAA...${last4}</small>`;
         } else {
-            let bankName = (seller && seller.bankName) ? seller.bankName : "Bank Account";
-            let bankAcc = (seller && seller.bankAccountNumber) ? seller.bankAccountNumber : "";
-            let last4 = bankAcc.length > 4 ? bankAcc.slice(-4) : (bankAcc || "0000");
+            // रजिस्ट्रेशन डेटाबेस (payoutPreference) से असली बैंक डिटेल्स उठाना
+            let bankName = pref.bankName || seller.bankName || "Bank Account";
+            let bankAcc = String(pref.accountNumber || seller.bankAccountNumber || "").trim();
+            let last4 = bankAcc.length >= 4 ? bankAcc.slice(-4) : (bankAcc || "N/A");
             
-            // बैंक के लिए डायनेमिक पैटर्न (बैंक नेम + GGGGGGGGG... + last4)
-            payoutDetails = `🏦 Bank: ${bankName} (A/C: GGGGGGGGG...${last4})`;
+            // दो सुंदर लाइनों में बैंक का नाम और मास्क्ड अकाउंट नंबर
+            payoutDetails = `🏦 <strong>${bankName}</strong><br><small style="color:#6b7280;">A/C: GGGGGGGGG...${last4}</small>`;
         }
 
         // सुरक्षात्मक चेक के साथ पॉप-अप कॉल
@@ -1657,16 +1658,15 @@ function requestWithdrawal(sellerId) {
             );
         } else {
             console.warn("showUniversalPopup function missing, fallback to alert");
-            alert(`Withdrawal Successful!\nYour payout request of $${withdrawAmount} has been processed successfully.\n${payoutDetails}`);
+            alert(`Withdrawal Successful!\nYour payout request of $${withdrawAmount} has been processed successfully.`);
         }
 
     } catch (err) {
-        // अगर कोई भी अनपेक्षित एरर आए, तो साइट क्रैश नहीं होगी, कंसोल में दिखेगा
         console.error("Popup rendering error caught safely:", err);
-        // फॉलबैक अलर्ट ताकि यूज़र को कम से कम मैसेज दिख जाए
         alert(`Withdrawal Successful! Your payout request of $${withdrawAmount} has been processed.`);
     }
-    
+  
+
 }
 
 // ============================================================
