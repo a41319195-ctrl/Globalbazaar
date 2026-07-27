@@ -1629,29 +1629,43 @@ function requestWithdrawal(sellerId) {
     
     renderSellerDashboard();
     updateAdminMenuBadges();
-     try {
-    let payoutDetails = "";
-    if (seller.payoutType === 'crypto') {
-        let net = seller.cryptoNetwork || "Crypto";
-        let addr = seller.cryptoAddress || "";
-        let last4 = addr.length > 4 ? addr.slice(-4) : addr;
-        payoutDetails = `🪙 Crypto (${net}): AAAAAAA...${last4}`;
-    } else {
-        let bankName = seller.bankName || "Bank Account";
-        let bankAcc = seller.bankAccountNumber || "";
-        let last4 = bankAcc.length > 4 ? bankAcc.slice(-4) : bankAcc;
-        payoutDetails = `🏦 Bank: ${bankName} (A/C: GGGGGG...${last4})`;
-    }
+         try {
+        let payoutDetails = "";
 
-    // सीधा पॉप-अप कॉल करें बिना किसी typeof चेक के
-    showUniversalPopup(
-        "Withdrawal Successful!",
-        `Your payout request of $${withdrawAmount} has been processed successfully.`,
-        payoutDetails
-    );
-} catch (err) {
-    console.error("Popup rendering error:", err);
-}
+        if (seller && seller.payoutType === 'crypto') {
+            let net = seller.cryptoNetwork || "Crypto";
+            let addr = seller.cryptoAddress || "";
+            let last4 = addr.length > 4 ? addr.slice(-4) : (addr || "0000");
+            
+            // क्रिप्टो के लिए डायनेमिक पैटर्न
+            payoutDetails = `🪙 Crypto (${net}): AAAAAAA...${last4}`;
+        } else {
+            let bankName = (seller && seller.bankName) ? seller.bankName : "Bank Account";
+            let bankAcc = (seller && seller.bankAccountNumber) ? seller.bankAccountNumber : "";
+            let last4 = bankAcc.length > 4 ? bankAcc.slice(-4) : (bankAcc || "0000");
+            
+            // बैंक के लिए डायनेमिक पैटर्न (बैंक नेम + GGGGGGGGG... + last4)
+            payoutDetails = `🏦 Bank: ${bankName} (A/C: GGGGGGGGG...${last4})`;
+        }
+
+        // सुरक्षात्मक चेक के साथ पॉप-अप कॉल
+        if (typeof showUniversalPopup === 'function') {
+            showUniversalPopup(
+                "Withdrawal Successful!",
+                `Your payout request of $${withdrawAmount} has been processed successfully.`,
+                payoutDetails
+            );
+        } else {
+            console.warn("showUniversalPopup function missing, fallback to alert");
+            alert(`Withdrawal Successful!\nYour payout request of $${withdrawAmount} has been processed successfully.\n${payoutDetails}`);
+        }
+
+    } catch (err) {
+        // अगर कोई भी अनपेक्षित एरर आए, तो साइट क्रैश नहीं होगी, कंसोल में दिखेगा
+        console.error("Popup rendering error caught safely:", err);
+        // फॉलबैक अलर्ट ताकि यूज़र को कम से कम मैसेज दिख जाए
+        alert(`Withdrawal Successful! Your payout request of $${withdrawAmount} has been processed.`);
+    }
     
 }
 
