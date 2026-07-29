@@ -2254,12 +2254,15 @@ function showOrderDetailsModal(order) {
     }
     
     let myProducts = products.filter(p => p.sellerId == seller.id);
-    
     let activeOrders = [];
 let historyOrders = [];
 
 try {
-    let currentSellerKey = String(seller.id || '').trim();
+    let currentSellerKey = String(seller.id || seller.uid || localStorage.getItem('sellerId') || '').trim();
+
+    if (!currentSellerKey) {
+        console.warn("Seller ID not found in current session!");
+    }
 
     activeOrders = orders.filter(o => {
         let orderSellerId = String(o.sellerId || '').trim();
@@ -2277,6 +2280,8 @@ try {
 } catch (error) {
     console.error("Error filtering orders in seller dashboard:", error);
 }
+
+
     
     let pendingAmount = 0;
     let availableAmount = seller.earnings || 0;
