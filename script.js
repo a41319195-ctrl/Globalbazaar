@@ -2251,25 +2251,6 @@ function showOrderDetailsModal(order) {
 let historyOrders = [];
 
 try {
-        // --- DEBUG DISPLAY START ---
-    let debugBox = document.getElementById('orderDebugBox');
-    if (!debugBox) {
-        debugBox = document.createElement('div');
-        debugBox.id = 'orderDebugBox';
-        debugBox.style = "background: #111; color: #0f0; padding: 15px; margin: 10px; border-radius: 8px; font-family: monospace; font-size: 12px; z-index: 99999; position: relative;";
-        let targetArea = document.getElementById('sellerDashboard') || document.body;
-        targetArea.prepend(debugBox);
-    }
-    debugBox.innerHTML = `
-        <strong>🔍 Order Debug Info:</strong><br>
-        - Total Orders in DB: ${orders ? orders.length : 'Orders array missing'}<br>
-        - Seller Key / ID: ${typeof currentSellerKey !== 'undefined' ? currentSellerKey : 'N/A'}<br>
-        - Seller Shop Name: ${typeof currentShopName !== 'undefined' ? currentShopName : 'N/A'}<br>
-        - Seller Email: ${typeof currentEmail !== 'undefined' ? currentEmail : 'N/A'}<br>
-        - Active Orders Matched: ${activeOrders ? activeOrders.length : 0}
-    `;
-    // --- DEBUG DISPLAY END ---
-    
     // यहाँ हमने doc.id, seller.id और seller.uid तीनों को सुरक्षित कर दिया है
     let currentSellerKey = String(seller.id || seller.uid || seller.docId || '').trim();
     let currentShopName = String(seller.shopName || '').trim().toLowerCase();
@@ -4795,3 +4776,30 @@ function renderWithPagination(allData, itemsPerPage, containerId, paginationCont
         console.error(`Critical error in renderWithPagination for ${containerId}:`, err);
     }
 }
+
+// --- UNIVERSAL ON-SCREEN CONSOLE SETUP ---
+(function() {
+    if (document.getElementById('universalDebugConsole')) return;
+    
+    const consoleBox = document.createElement('div');
+    consoleBox.id = 'universalDebugConsole';
+    consoleBox.style = "position: fixed; bottom: 0; left: 0; width: 100%; max-height: 150px; background: rgba(0,0,0,0.85); color: #00ffcc; font-family: monospace; font-size: 11px; padding: 8px; overflow-y: scroll; z-index: 999999; pointer-events: none;";
+    consoleBox.innerHTML = "<b>🖥️ Live Console Initialized...</b><br>";
+    document.body.appendChild(consoleBox);
+
+    // Old console.log capture
+    const oldLog = console.log;
+    console.log = function(...args) {
+        oldLog.apply(console, args);
+        let msg = args.map(arg => (typeof arg === 'object' ? JSON.stringify(arg) : arg)).join(' ');
+        consoleBox.innerHTML += `<div>> ${msg}</div>`;
+        consoleBox.scrollTop = consoleBox.scrollHeight;
+    };
+
+    // Error capture
+    window.onerror = function(msg, url, line) {
+        consoleBox.innerHTML += `<div style="color: #ff4444;">❌ Error: ${msg} (Line: ${line})</div>`;
+        consoleBox.scrollTop = consoleBox.scrollHeight;
+    };
+})();
+// --- END SETUP ---
