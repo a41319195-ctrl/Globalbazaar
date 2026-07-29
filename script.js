@@ -3527,7 +3527,7 @@ function addToCart(id){
             id: p.id, 
             name: p.name, 
             price: p.price, 
-            sellerId: p.sellerId, 
+            sellerId: p.sellerId || p.uid || p.seller_id || '',
             sellerCountry: p.sellerCountry || "SA", 
             qty: 1, 
             image: p.mainImage, 
@@ -4013,9 +4013,10 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                     }
                 }
             };
-            
+    
             orders.push(newOrder);
-            
+
+await db.collection("orders").doc(String(newOrder.id)).set(newOrder);
             platformEarnings += itemSplit.adminTotal;
         }
         
