@@ -2251,6 +2251,25 @@ function showOrderDetailsModal(order) {
 let historyOrders = [];
 
 try {
+        // --- DEBUG DISPLAY START ---
+    let debugBox = document.getElementById('orderDebugBox');
+    if (!debugBox) {
+        debugBox = document.createElement('div');
+        debugBox.id = 'orderDebugBox';
+        debugBox.style = "background: #111; color: #0f0; padding: 15px; margin: 10px; border-radius: 8px; font-family: monospace; font-size: 12px; z-index: 99999; position: relative;";
+        let targetArea = document.getElementById('sellerDashboard') || document.body;
+        targetArea.prepend(debugBox);
+    }
+    debugBox.innerHTML = `
+        <strong>🔍 Order Debug Info:</strong><br>
+        - Total Orders in DB: ${orders ? orders.length : 'Orders array missing'}<br>
+        - Seller Key / ID: ${typeof currentSellerKey !== 'undefined' ? currentSellerKey : 'N/A'}<br>
+        - Seller Shop Name: ${typeof currentShopName !== 'undefined' ? currentShopName : 'N/A'}<br>
+        - Seller Email: ${typeof currentEmail !== 'undefined' ? currentEmail : 'N/A'}<br>
+        - Active Orders Matched: ${activeOrders ? activeOrders.length : 0}
+    `;
+    // --- DEBUG DISPLAY END ---
+    
     // यहाँ हमने doc.id, seller.id और seller.uid तीनों को सुरक्षित कर दिया है
     let currentSellerKey = String(seller.id || seller.uid || seller.docId || '').trim();
     let currentShopName = String(seller.shopName || '').trim().toLowerCase();
