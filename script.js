@@ -2256,24 +2256,34 @@ try {
     let currentShopName = String(seller.shopName || '').trim().toLowerCase();
     let currentEmail = String(seller.email || '').trim().toLowerCase();
 
-        activeOrders = orders.filter(o => {
-        let matchesSeller = String(o.sellerId || '').trim() === String(seller.id || '').trim();
+            activeOrders = orders.filter(o => {
+        let orderSid = String(o.sellerId || '').trim();
+        let orderSname = String(o.sellerName || '').trim().toLowerCase();
+        let orderEmail = String(o.sellerEmail || '').trim().toLowerCase();
+
+        let matchesSeller = (orderSid && currentSellerKey && orderSid === currentSellerKey) || 
+                            (orderSname && currentShopName && orderSname === currentShopName) ||
+                            (orderEmail && currentEmail && orderEmail === currentEmail);
+
         let matchesStatus = (o.status === "Processing" || o.status === "Shipped" || o.status === "Delivered");
         return matchesSeller && matchesStatus;
     });
 
     historyOrders = orders.filter(o => {
-        let matchesSeller = String(o.sellerId || '').trim() === String(seller.id || '').trim();
+        let orderSid = String(o.sellerId || '').trim();
+        let orderSname = String(o.sellerName || '').trim().toLowerCase();
+        let orderEmail = String(o.sellerEmail || '').trim().toLowerCase();
+
+        let matchesSeller = (orderSid && currentSellerKey && orderSid === currentSellerKey) || 
+                            (orderSname && currentShopName && orderSname === currentShopName) ||
+                            (orderEmail && currentEmail && orderEmail === currentEmail);
+
         let matchesStatus = (o.status === "Completed" || o.status === "Cancelled");
         return matchesSeller && matchesStatus;
     });
 
 } catch (error) {
     console.error("Error filtering orders in seller dashboard:", error);
-}
-    } catch (e) {
-    console.error("Error fetching orders: ", e);
-    showToast("DB Error: " + e.message, true); // यह लाइन एरर को स्क्रीन पर दिखा देगी
 }
     
     let pendingAmount = 0;
