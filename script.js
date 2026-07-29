@@ -2196,17 +2196,25 @@ function showOrderDetailsModal(order) {
 // ============================================================
         async function renderSellerDashboard() {
     try {
-        // डायनेमिक रूप से चेक करें कि कौन सा सेलर लॉग इन है
-        const currentSellerId = currentSeller?.sellerId || seller?.id || '';
-        
-        // अगर सेलर आईडी मिल गई है, तो सिर्फ उसी के ऑर्डर्स को डेटाबेस से फेच करें
-        const querySnapshot = await db.collection("orders")
-            .where("sellerId", "==", currentSellerId)
-            .get();
-            
+        // 1. डेटाबेस से सारे ऑर्डर्स को बिना किसी रुकावट के फेच करें
+        const querySnapshot = await db.collection("orders").get();
         orders = [];
+        
+        // 2. लॉगिन सेलर की सही आईडी और यूआईडी निकालें
+        const currentSellerId = currentSeller?.sellerId || seller?.id || '';
+        const currentSellerUid = seller?.uid || currentSeller?.uid || '';
+
         querySnapshot.forEach((doc) => {
-            orders.push({ id: doc.id, ...doc.data() });
+            const orderData = doc.data();
+            const orderSellerId = String(orderData.sellerId || '').trim();
+
+            // 3. आईडी या यूआईडी से सटीक मिलान करें
+            if (
+                (currentSellerId && orderSellerId === String(currentSellerId).trim()) ||
+                (currentSellerUid && orderSellerId === String(currentSellerUid).trim())
+            ) {
+                orders.push({ id: doc.id, ...orderData });
+            }
         });
     } catch (e) {
         console.error("Error fetching orders: ", e);
