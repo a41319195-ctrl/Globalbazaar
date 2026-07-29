@@ -2254,33 +2254,36 @@ function showOrderDetailsModal(order) {
     }
     
     let myProducts = products.filter(p => p.sellerId == seller.id);
-    let activeOrders = [];
+        let activeOrders = [];
 let historyOrders = [];
 
 try {
-    let currentSellerKey = String(seller.id || seller.uid || localStorage.getItem('sellerId') || '').trim();
-
-    if (!currentSellerKey) {
-        console.warn("Seller ID not found in current session!");
-    }
+    let currentSellerKey = String(seller.id || seller.uid || '').trim();
 
     activeOrders = orders.filter(o => {
         let orderSellerId = String(o.sellerId || '').trim();
-        let matchesSeller = (orderSellerId === currentSellerKey);
+        
+        let matchesSeller = (orderSellerId === currentSellerKey) || 
+                            (currentSellerKey && orderSellerId.includes(currentSellerKey)) || 
+                            (orderSellerId && currentSellerKey.includes(orderSellerId));
+                            
         let matchesStatus = (o.status === "Processing" || o.status === "Shipped" || o.status === "Delivered");
         return matchesSeller && matchesStatus;
     });
 
     historyOrders = orders.filter(o => {
         let orderSellerId = String(o.sellerId || '').trim();
-        let matchesSeller = (orderSellerId === currentSellerKey);
+        
+        let matchesSeller = (orderSellerId === currentSellerKey) || 
+                            (currentSellerKey && orderSellerId.includes(currentSellerKey)) || 
+                            (orderSellerId && currentSellerKey.includes(orderSellerId));
+                            
         let matchesStatus = (o.status === "Completed" || o.status === "Cancelled");
         return matchesSeller && matchesStatus;
     });
 } catch (error) {
     console.error("Error filtering orders in seller dashboard:", error);
 }
-
 
     
     let pendingAmount = 0;
