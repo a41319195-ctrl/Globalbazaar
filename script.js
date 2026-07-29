@@ -4777,6 +4777,11 @@ function renderWithPagination(allData, itemsPerPage, containerId, paginationCont
     }
 }
 
+console.log("🛠️ Checking Orders Before Filter. Total Orders in memory:", typeof orders !== 'undefined' ? orders.length : "Orders undefined");
+if (typeof orders !== 'undefined' && orders.length > 0) {
+    console.log("🔍 First Order Sample:", orders[0]);
+    console.log("🔑 Current Seller Key being matched:", currentSellerKey);
+}
 // --- UNIVERSAL ON-SCREEN CONSOLE SETUP ---
 (function() {
     if (document.getElementById('universalDebugConsole')) return;
