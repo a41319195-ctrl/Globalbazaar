@@ -2205,17 +2205,10 @@ function showOrderDetailsModal(order) {
         const currentSellerUid = seller?.uid || currentSeller?.uid || '';
 
         querySnapshot.forEach((doc) => {
-            const orderData = doc.data();
-            const orderSellerId = String(orderData.sellerId || '').trim();
-
-            // 3. आईडी या यूआईडी से सटीक मिलान करें
-            if (
-                (currentSellerId && orderSellerId === String(currentSellerId).trim()) ||
-                (currentSellerUid && orderSellerId === String(currentSellerUid).trim())
-            ) {
-                orders.push({ id: doc.id, ...orderData });
-            }
-        });
+    const orderData = doc.data();
+    // यहाँ हमने शर्त हटा दी है ताकि सारे ऑर्डर्स मेमोरी में आ जाएं और नीचे सही से फिल्टर हो सकें
+    orders.push({ id: doc.id, ...orderData });
+});
     } catch (e) {
         console.error("Error fetching orders: ", e);
     }
