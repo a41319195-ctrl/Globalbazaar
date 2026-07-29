@@ -2271,7 +2271,10 @@ try {
 } catch (error) {
     console.error("Error filtering orders in seller dashboard:", error);
 }
-    showToast("Total orders fetched from DB: " + orders.length, false);
+    } catch (e) {
+    console.error("Error fetching orders: ", e);
+    showToast("DB Error: " + e.message, true); //
+}
     
     let pendingAmount = 0;
     let availableAmount = seller.earnings || 0;
