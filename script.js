@@ -2256,31 +2256,18 @@ try {
     let currentShopName = String(seller.shopName || '').trim().toLowerCase();
     let currentEmail = String(seller.email || '').trim().toLowerCase();
 
-    activeOrders = orders.filter(o => {
-        let orderSellerId = String(o.sellerId || '').trim();
-        let orderSellerName = String(o.sellerName || '').trim().toLowerCase();
-        
-        let matchesSeller = (orderSellerId && currentSellerKey && orderSellerId === currentSellerKey) || 
-                            (currentSellerKey && orderSellerId.includes(currentSellerKey)) || 
-                            (orderSellerId && currentSellerKey.includes(orderSellerId)) ||
-                            (currentShopName && orderSellerName === currentShopName);
-                            
+        activeOrders = orders.filter(o => {
+        let matchesSeller = String(o.sellerId || '').trim() === String(seller.id || '').trim();
         let matchesStatus = (o.status === "Processing" || o.status === "Shipped" || o.status === "Delivered");
         return matchesSeller && matchesStatus;
     });
 
     historyOrders = orders.filter(o => {
-        let orderSellerId = String(o.sellerId || '').trim();
-        let orderSellerName = String(o.sellerName || '').trim().toLowerCase();
-        
-        let matchesSeller = (orderSellerId && currentSellerKey && orderSellerId === currentSellerKey) || 
-                            (currentSellerKey && orderSellerId.includes(currentSellerKey)) || 
-                            (orderSellerId && currentSellerKey.includes(orderSellerId)) ||
-                            (currentShopName && orderSellerName === currentShopName);
-                            
+        let matchesSeller = String(o.sellerId || '').trim() === String(seller.id || '').trim();
         let matchesStatus = (o.status === "Completed" || o.status === "Cancelled");
         return matchesSeller && matchesStatus;
     });
+
 } catch (error) {
     console.error("Error filtering orders in seller dashboard:", error);
 }
