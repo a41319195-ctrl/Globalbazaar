@@ -1629,60 +1629,6 @@ function requestWithdrawal(sellerId) {
     
     renderSellerDashboard();
     updateAdminMenuBadges();
-            try {
-        let pref = (seller && seller.payoutPreference) ? seller.payoutPreference : {};
-        let method = pref.method || (seller && seller.payoutType) || 'bank';
-        let withdrawDate = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-        let methodDetails = "";
-        if (method === 'crypto') {
-            let addr = pref.cryptoAddress || (seller && seller.cryptoAddress) || "";
-            let last4 = addr.length >= 4 ? addr.slice(-4) : (addr ? addr : "0000");
-            methodDetails = `🪙 <strong>Crypto Wallet:</strong> ••••${last4}`;
-        } else {
-            let bankName = pref.bankName || (seller && seller.bankName) || "Bank Account";
-            let bankAcc = String(pref.accountNumber || (seller && seller.bankAccountNumber) || "").trim();
-            let last4 = bankAcc.length >= 4 ? bankAcc.slice(-4) : (bankAcc ? bankAcc : "N/A");
-            methodDetails = `🏦 <strong>${bankName}</strong> (A/C: ••••${last4})`;
-        }
-
-        // बायर स्टाइल लेआउट
-        let sellerFormattedHTML = `
-            <div style="font-family: inherit; margin-top: 5px;">
-                <!-- Card 1: Date & Status -->
-                <div style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 8px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 10px; display: flex; justify-content: space-between; color: #374151;">
-                    <span>📅 <strong>Date:</strong> ${withdrawDate}</span>
-                    <span style="color: #059669; font-weight: 600;">🟢 Submitted</span>
-                </div>
-
-                <!-- Card 2: Amount Box -->
-                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 10px 12px; border-radius: 8px; margin-bottom: 10px; text-align: center;">
-                    <span style="font-size: 13px; color: #166534; display: block;">Withdrawal Amount</span>
-                    <span style="font-size: 20px; font-weight: 700; color: #15803d;">$${withdrawAmount}</span>
-                </div>
-
-                <!-- Card 3: Payout Method -->
-                <div style="background: #eef2ff; border: 1px solid #c7d2fe; color: #3730a3; padding: 8px 12px; border-radius: 8px; font-size: 13px; text-align: center;">
-                    ${methodDetails}
-                </div>
-            </div>
-        `;
-
-        if (typeof showUniversalPopup === 'function') {
-            showUniversalPopup(
-                "Withdrawal Successful!",
-                "Your payout request has been received and is pending admin approval.",
-                sellerFormattedHTML
-            );
-        } else {
-            alert(`Withdrawal Successful!\nAmount: $${withdrawAmount}\nDate: ${withdrawDate}`);
-        }
-
-    } catch (err) {
-        console.error("Popup rendering error caught safely:", err);
-        alert(`Withdrawal Successful! Your payout request of $${withdrawAmount} has been processed.`);
-    }
-   
 }
 
 // ============================================================
@@ -2194,25 +2140,8 @@ function showOrderDetailsModal(order) {
 // ============================================================
 // SELLER DASHBOARD - COMPLETE FIXED VERSION
 // ============================================================
-        async function renderSellerDashboard() {
-    try {
-        // 1. डेटाबेस से सारे ऑर्डर्स को बिना किसी रुकावट के फेच करें
-        const querySnapshot = await db.collection("orders").get();
-        orders = [];
-        
-        // 2. लॉगिन सेलर की सही आईडी और यूआईडी निकालें
-        const currentSellerId = currentSeller?.sellerId || seller?.id || '';
-        const currentSellerUid = seller?.uid || currentSeller?.uid || '';
 
-        querySnapshot.forEach((doc) => {
-    const orderData = doc.data();
-    // यहाँ हमने शर्त हटा दी है ताकि सारे ऑर्डर्स मेमोरी में आ जाएं और नीचे सही से फिल्टर हो सकें
-    orders.push({ id: doc.id, ...orderData });
-});
-    } catch (e) {
-        console.error("Error fetching orders: ", e);
-    }
-
+function renderSellerDashboard() {
     if (!currentSeller?.sellerId) return;
     let seller = sellers.find(s => s.id === currentSeller.sellerId);
     if (!seller) {
@@ -2226,7 +2155,7 @@ function showOrderDetailsModal(order) {
                 <div class="kyc-blocked-message">
                     <h2>⚠️ Account Not Found</h2>
                     <p>Please login again or contact support.</p>
-                    <button onclick="showMyShopLogin()" class="btn-primary">Login Again</button>
+                    <button onclick="showMyShopLogin()" class="btn-primary">🔄 Login Again</button>
                 </div>
             `;
             return;
@@ -2247,44 +2176,16 @@ function showOrderDetailsModal(order) {
     }
     
     let myProducts = products.filter(p => p.sellerId == seller.id);
-        let activeOrders = [];
-let historyOrders = [];
-
-try {
-    // यहाँ हमने doc.id, seller.id और seller.uid तीनों को सुरक्षित कर दिया है
-    let currentSellerKey = String(seller.id || seller.uid || seller.docId || '').trim();
-    let currentShopName = String(seller.shopName || '').trim().toLowerCase();
-    let currentEmail = String(seller.email || '').trim().toLowerCase();
-
-            activeOrders = orders.filter(o => {
-        let orderSid = String(o.sellerId || '').trim();
-        let orderSname = String(o.sellerName || '').trim().toLowerCase();
-        let orderEmail = String(o.sellerEmail || '').trim().toLowerCase();
-
-        let matchesSeller = (orderSid && currentSellerKey && orderSid === currentSellerKey) || 
-                            (orderSname && currentShopName && orderSname === currentShopName) ||
-                            (orderEmail && currentEmail && orderEmail === currentEmail);
-
-        let matchesStatus = (o.status === "Processing" || o.status === "Shipped" || o.status === "Delivered");
-        return matchesSeller && matchesStatus;
-    });
-
-    historyOrders = orders.filter(o => {
-        let orderSid = String(o.sellerId || '').trim();
-        let orderSname = String(o.sellerName || '').trim().toLowerCase();
-        let orderEmail = String(o.sellerEmail || '').trim().toLowerCase();
-
-        let matchesSeller = (orderSid && currentSellerKey && orderSid === currentSellerKey) || 
-                            (orderSname && currentShopName && orderSname === currentShopName) ||
-                            (orderEmail && currentEmail && orderEmail === currentEmail);
-
-        let matchesStatus = (o.status === "Completed" || o.status === "Cancelled");
-        return matchesSeller && matchesStatus;
-    });
-
-} catch (error) {
-    console.error("Error filtering orders in seller dashboard:", error);
-}
+    
+    let activeOrders = orders.filter(o => 
+        o.sellerId == seller.id && 
+        (o.status === "Processing" || o.status === "Shipped" || o.status === "Delivered")
+    );
+    
+    let historyOrders = orders.filter(o => 
+        o.sellerId == seller.id && 
+        (o.status === "Completed" || o.status === "Cancelled")
+    );
     
     let pendingAmount = 0;
     let availableAmount = seller.earnings || 0;
@@ -3353,41 +3254,24 @@ function renderProducts() {
             </div>`;
             return;
         }
-                // यूनिवर्सल पेजिनेशन के साथ प्रोडक्ट्स रेंडर करें
-        renderWithPagination(
-            filtered,
-            20,
-            'productsGrid',
-            'productsPagination',
-            (p, index) => {
-                try {
-                    return renderProductCard(p);
-                } catch (cardError) {
-                    console.error('Error rendering product card:', p.id, cardError);
-                    return '';
-                }
+        
+        let html = filtered.map(p => {
+            try {
+                return renderProductCard(p);
+            } catch (cardError) {
+                console.error('Error rendering product card:', p.id, cardError);
+                return '';
             }
-        );
-
-        // चूंकि पेजिनेशन से कार्ड्स बार-बार रेंडर होंगे, इसलिए इवेंट्स ऐसे बाइंड करें:
-        setTimeout(() => {
-            document.querySelectorAll('.addCartBtn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    addToCart(btn.dataset.id);
-                });
+        }).join('');
+        
+        grid.innerHTML = html;
+        
+        document.querySelectorAll('.addCartBtn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                addToCart(btn.dataset.id);
             });
-
-            document.querySelectorAll('.product-card').forEach(card => {
-                card.addEventListener('click', () => {
-                    openProduct(card.dataset.id);
-                });
-            });
-        }, 50);
-
-        renderBuyerOrders();
-        renderBuyerWishlist();
-
+        });
         
         document.querySelectorAll('.product-card').forEach(card => {
             card.addEventListener('click', () => openProduct(card.dataset.id));
@@ -3572,7 +3456,7 @@ function addToCart(id){
             id: p.id, 
             name: p.name, 
             price: p.price, 
-            sellerId: p.sellerId || p.uid || p.seller_id || '',
+            sellerId: p.sellerId, 
             sellerCountry: p.sellerCountry || "SA", 
             qty: 1, 
             image: p.mainImage, 
@@ -4058,10 +3942,9 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                     }
                 }
             };
-    
+            
             orders.push(newOrder);
-
-await db.collection("orders").doc(String(newOrder.id)).set(newOrder);
+            
             platformEarnings += itemSplit.adminTotal;
         }
         
@@ -4635,191 +4518,3 @@ document.addEventListener('input', function(e) {
         target.style.borderColor = (val === "") ? "#ccc" : (isValid ? "green" : "red");
     }
 });
-
-function showUniversalPopup(title, message, detailsText) {
-    try {
-        let titleEl = document.getElementById('popupTitleText');
-        let msgEl = document.getElementById('popupMessageText');
-        let detailsEl = document.getElementById('popupDetailsBox');
-        let popupEl = document.getElementById('dynamicPopup');
-
-        if (titleEl) titleEl.innerText = title || "";
-        if (msgEl) msgEl.innerText = message || "";
-        if (detailsEl) detailsEl.innerHTML = detailsText || "";
-        
-        if (popupEl) {
-            popupEl.style.display = 'flex';
-        }
-    } catch (err) {
-        console.error("Error opening popup:", err);
-    }
-}
-
-function closePopup() {
-    // 1️⃣ सबसे पहले पॉप-अप को तुरंत बंद करो (बिना किसी रुकावट के)
-    let popupEl = document.getElementById('dynamicPopup');
-    if (popupEl) {
-        popupEl.style.display = 'none';
-    }
-
-    // 2️⃣ डैशबोर्ड को अलग से सुरक्षित तरीके (Try-Catch) से अपडेट करो
-    setTimeout(function() {
-        try {
-            if (typeof renderSellerDashboard === 'function') {
-                renderSellerDashboard();
-            }
-        } catch (err) {
-            console.error("Dashboard refresh error silently caught:", err);
-        }
-    }, 50);
-}
-
-// ==========================================
-// UNIVERSAL SAFE PAGINATION HELPER (20 Items/Page)
-// ==========================================
-
-function renderWithPagination(allData, itemsPerPage, containerId, paginationContainerId, renderItemCallback) {
-    try {
-        // सेफ्टी चेक: यदि डेटा एरे नहीं है या खाली है
-        const container = document.getElementById(containerId);
-        if (!container) {
-            console.warn(`Pagination Warning: Container element with ID '${containerId}' not found.`);
-            return;
-        }
-
-        const pagContainer = document.getElementById(paginationContainerId);
-        
-        // यदि डेटा उपलब्ध नहीं है
-        if (!Array.isArray(allData) || allData.length === 0) {
-            container.innerHTML = `<div style="text-align:center; padding:20px; color:#64748b;">No items available</div>`;
-            if (pagContainer) pagContainer.innerHTML = '';
-            return;
-        }
-
-        // लोकल स्टेट या ग्लोबल ट्रैक करने के लिए (प्रत्येक कंटेनर के लिए अलग पेज ट्रैक करने हेतु)
-        if (!window._paginationStates) window._paginationStates = {};
-        if (!window._paginationStates[containerId]) {
-            window._paginationStates[containerId] = 1;
-        }
-
-        let currentPage = window._paginationStates[containerId];
-        const totalPages = Math.ceil(allData.length / itemsPerPage) || 1;
-
-        // यदि करंट पेज टोटल पेज से ज्यादा हो गया हो
-        if (currentPage > totalPages) {
-            currentPage = totalPages;
-            window._paginationStates[containerId] = currentPage;
-        }
-
-        const start = (currentPage - 1) * itemsPerPage;
-        const end = start + itemsPerPage;
-        const currentItems = allData.slice(start, end);
-
-        // आइटम्स को रेंडर करना (एरर हैंडलिंग के साथ)
-        try {
-            let html = currentItems.map((item, index) => renderItemCallback(item, start + index)).join('');
-            container.innerHTML = html;
-        } catch (renderErr) {
-            console.error(`Error rendering items for ${containerId}:`, renderErr);
-            container.innerHTML = `<div style="text-align:center; padding:20px; color:#dc2626;">Error rendering items</div>`;
-            return;
-        }
-
-        // अगर पेजिनेशन कंटेनर आईडी दी गई है तो बटन रेंडर करें
-        if (pagContainer) {
-            if (totalPages <= 1) {
-                pagContainer.innerHTML = '';
-                return;
-            }
-
-            let paginationHtml = `
-                <div style="display: flex; justify-content: center; align-items: center; gap: 12px; margin: 20px 0; width: 100%;">
-                    <button class="btn-secondary prev-pagination-btn" style="padding: 6px 14px; cursor: pointer;" ${currentPage === 1 ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>Previous</button>
-                    <span style="font-size: 13px; font-weight: 600; color: #cbd5e1;">Page ${currentPage} of ${totalPages} (${allData.length} items)</span>
-                    <button class="btn-secondary next-pagination-btn" style="padding: 6px 14px; cursor: pointer;" ${currentPage === totalPages ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>View More / Next</button>
-                </div>
-            `;
-            pagContainer.innerHTML = paginationHtml;
-
-            // पुराने इवेंट लिसनर हटाने के बाद नए जोड़ना ताकि डुप्लीकेट क्लिक न हों
-            const prevBtn = pagContainer.querySelector('.prev-pagination-btn');
-            const nextBtn = pagContainer.querySelector('.next-pagination-btn');
-
-            if (prevBtn) {
-                prevBtn.onclick = () => {
-                    try {
-                        if (window._paginationStates[containerId] > 1) {
-                            window._paginationStates[containerId]--;
-                            renderWithPagination(allData, itemsPerPage, containerId, paginationContainerId, renderItemCallback);
-                        }
-                    } catch (e) {
-                        console.error("Pagination prev click error:", e);
-                    }
-                };
-            }
-
-            if (nextBtn) {
-                nextBtn.onclick = () => {
-                    try {
-                        if (window._paginationStates[containerId] < totalPages) {
-                            window._paginationStates[containerId]++;
-                            renderWithPagination(allData, itemsPerPage, containerId, paginationContainerId, renderItemCallback);
-                        }
-                    } catch (e) {
-                        console.error("Pagination next click error:", e);
-                    }
-                };
-            }
-        }
-
-    } catch (err) {
-        console.error(`Critical error in renderWithPagination for ${containerId}:`, err);
-    }
-}
-
-try {
-    // यह चेक करेगा कि ऑर्डर्स का डेटा असल में आ भी रहा है या नहीं
-    let allOrders = typeof orders !== 'undefined' ? orders : (typeof allOrders !== 'undefined' ? allOrders : []);
-    console.log("📦 Total Orders Found:", allOrders.length);
-
-    if (allOrders.length > 0) {
-        console.log("🔍 Checking First Order Fields ->", {
-            orderSid: allOrders[0].sellerId,
-            orderSName: allOrders[0].sellerName,
-            orderSEmail: allOrders[0].sellerEmail
-        });
-        console.log("🔑 Current Logged Seller ->", {
-            currentKey: typeof currentSellerKey !== 'undefined' ? currentSellerKey : 'N/A',
-            currentShop: typeof currentShopName !== 'undefined' ? currentShopName : 'N/A',
-            currentMail: typeof currentEmail !== 'undefined' ? currentEmail : 'N/A'
-        });
-    }
-} catch(err) {
-    console.log("⚠️ Match Debug Error:", err.message);
-}
-// --- UNIVERSAL ON-SCREEN CONSOLE SETUP ---
-(function() {
-    if (document.getElementById('universalDebugConsole')) return;
-    
-    const consoleBox = document.createElement('div');
-    consoleBox.id = 'universalDebugConsole';
-    consoleBox.style = "position: fixed; bottom: 0; left: 0; width: 100%; max-height: 150px; background: rgba(0,0,0,0.85); color: #00ffcc; font-family: monospace; font-size: 11px; padding: 8px; overflow-y: scroll; z-index: 999999; pointer-events: none;";
-    consoleBox.innerHTML = "<b>🖥️ Live Console Initialized...</b><br>";
-    document.body.appendChild(consoleBox);
-
-    // Old console.log capture
-    const oldLog = console.log;
-    console.log = function(...args) {
-        oldLog.apply(console, args);
-        let msg = args.map(arg => (typeof arg === 'object' ? JSON.stringify(arg) : arg)).join(' ');
-        consoleBox.innerHTML += `<div>> ${msg}</div>`;
-        consoleBox.scrollTop = consoleBox.scrollHeight;
-    };
-
-    // Error capture
-    window.onerror = function(msg, url, line) {
-        consoleBox.innerHTML += `<div style="color: #ff4444;">❌ Error: ${msg} (Line: ${line})</div>`;
-        consoleBox.scrollTop = consoleBox.scrollHeight;
-    };
-})();
-// --- END SETUP ---
