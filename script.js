@@ -2255,15 +2255,28 @@ function showOrderDetailsModal(order) {
     
     let myProducts = products.filter(p => p.sellerId == seller.id);
     
-    let activeOrders = orders.filter(o => 
-        o.sellerId == seller.id && 
-        (o.status === "Processing" || o.status === "Shipped" || o.status === "Delivered")
-    );
-    
-    let historyOrders = orders.filter(o => 
-        o.sellerId == seller.id && 
-        (o.status === "Completed" || o.status === "Cancelled")
-    );
+    let activeOrders = [];
+let historyOrders = [];
+
+try {
+    let currentSellerKey = String(seller.id || '').trim();
+
+    activeOrders = orders.filter(o => {
+        let orderSellerId = String(o.sellerId || '').trim();
+        let matchesSeller = (orderSellerId === currentSellerKey);
+        let matchesStatus = (o.status === "Processing" || o.status === "Shipped" || o.status === "Delivered");
+        return matchesSeller && matchesStatus;
+    });
+
+    historyOrders = orders.filter(o => {
+        let orderSellerId = String(o.sellerId || '').trim();
+        let matchesSeller = (orderSellerId === currentSellerKey);
+        let matchesStatus = (o.status === "Completed" || o.status === "Cancelled");
+        return matchesSeller && matchesStatus;
+    });
+} catch (error) {
+    console.error("Error filtering orders in seller dashboard:", error);
+}
     
     let pendingAmount = 0;
     let availableAmount = seller.earnings || 0;
