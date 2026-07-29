@@ -4777,10 +4777,25 @@ function renderWithPagination(allData, itemsPerPage, containerId, paginationCont
     }
 }
 
-console.log("🛠️ Checking Orders Before Filter. Total Orders in memory:", typeof orders !== 'undefined' ? orders.length : "Orders undefined");
-if (typeof orders !== 'undefined' && orders.length > 0) {
-    console.log("🔍 First Order Sample:", orders[0]);
-    console.log("🔑 Current Seller Key being matched:", currentSellerKey);
+try {
+    // यह चेक करेगा कि ऑर्डर्स का डेटा असल में आ भी रहा है या नहीं
+    let allOrders = typeof orders !== 'undefined' ? orders : (typeof allOrders !== 'undefined' ? allOrders : []);
+    console.log("📦 Total Orders Found:", allOrders.length);
+
+    if (allOrders.length > 0) {
+        console.log("🔍 Checking First Order Fields ->", {
+            orderSid: allOrders[0].sellerId,
+            orderSName: allOrders[0].sellerName,
+            orderSEmail: allOrders[0].sellerEmail
+        });
+        console.log("🔑 Current Logged Seller ->", {
+            currentKey: typeof currentSellerKey !== 'undefined' ? currentSellerKey : 'N/A',
+            currentShop: typeof currentShopName !== 'undefined' ? currentShopName : 'N/A',
+            currentMail: typeof currentEmail !== 'undefined' ? currentEmail : 'N/A'
+        });
+    }
+} catch(err) {
+    console.log("⚠️ Match Debug Error:", err.message);
 }
 // --- UNIVERSAL ON-SCREEN CONSOLE SETUP ---
 (function() {
