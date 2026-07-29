@@ -2273,7 +2273,7 @@ try {
 }
     } catch (e) {
     console.error("Error fetching orders: ", e);
-    showToast("DB Error: " + e.message, true); //
+    showToast("DB Error: " + e.message, true); // यह लाइन एरर को स्क्रीन पर दिखा देगी
 }
     
     let pendingAmount = 0;
