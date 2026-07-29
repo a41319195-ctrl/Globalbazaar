@@ -2194,13 +2194,19 @@ function showOrderDetailsModal(order) {
 // ============================================================
 // SELLER DASHBOARD - COMPLETE FIXED VERSION
 // ============================================================
-
-async function renderSellerDashboard() {
-        try {
-        const querySnapshot = await db.collection("orders").get();
+        async function renderSellerDashboard() {
+    try {
+        // डायनेमिक रूप से चेक करें कि कौन सा सेलर लॉग इन है
+        const currentSellerId = currentSeller?.sellerId || seller?.id || '';
+        
+        // अगर सेलर आईडी मिल गई है, तो सिर्फ उसी के ऑर्डर्स को डेटाबेस से फेच करें
+        const querySnapshot = await db.collection("orders")
+            .where("sellerId", "==", currentSellerId)
+            .get();
+            
         orders = [];
         querySnapshot.forEach((doc) => {
-            orders.push(doc.data());
+            orders.push({ id: doc.id, ...doc.data() });
         });
     } catch (e) {
         console.error("Error fetching orders: ", e);
@@ -2219,7 +2225,7 @@ async function renderSellerDashboard() {
                 <div class="kyc-blocked-message">
                     <h2>⚠️ Account Not Found</h2>
                     <p>Please login again or contact support.</p>
-                    <button onclick="showMyShopLogin()" class="btn-primary">🔄 Login Again</button>
+                    <button onclick="showMyShopLogin()" class="btn-primary">Login Again</button>
                 </div>
             `;
             return;
