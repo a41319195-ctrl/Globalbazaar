@@ -2195,7 +2195,17 @@ function showOrderDetailsModal(order) {
 // SELLER DASHBOARD - COMPLETE FIXED VERSION
 // ============================================================
 
-function renderSellerDashboard() {
+async function renderSellerDashboard() {
+        try {
+        const querySnapshot = await db.collection("orders").get();
+        orders = [];
+        querySnapshot.forEach((doc) => {
+            orders.push(doc.data());
+        });
+    } catch (e) {
+        console.error("Error fetching orders: ", e);
+    }
+
     if (!currentSeller?.sellerId) return;
     let seller = sellers.find(s => s.id === currentSeller.sellerId);
     if (!seller) {
