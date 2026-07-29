@@ -2258,14 +2258,19 @@ function showOrderDetailsModal(order) {
 let historyOrders = [];
 
 try {
-    let currentSellerKey = String(seller.id || seller.uid || '').trim();
+    // यहाँ हमने doc.id, seller.id और seller.uid तीनों को सुरक्षित कर दिया है
+    let currentSellerKey = String(seller.id || seller.uid || seller.docId || '').trim();
+    let currentShopName = String(seller.shopName || '').trim().toLowerCase();
+    let currentEmail = String(seller.email || '').trim().toLowerCase();
 
     activeOrders = orders.filter(o => {
         let orderSellerId = String(o.sellerId || '').trim();
+        let orderSellerName = String(o.sellerName || '').trim().toLowerCase();
         
-        let matchesSeller = (orderSellerId === currentSellerKey) || 
+        let matchesSeller = (orderSellerId && currentSellerKey && orderSellerId === currentSellerKey) || 
                             (currentSellerKey && orderSellerId.includes(currentSellerKey)) || 
-                            (orderSellerId && currentSellerKey.includes(orderSellerId));
+                            (orderSellerId && currentSellerKey.includes(orderSellerId)) ||
+                            (currentShopName && orderSellerName === currentShopName);
                             
         let matchesStatus = (o.status === "Processing" || o.status === "Shipped" || o.status === "Delivered");
         return matchesSeller && matchesStatus;
@@ -2273,10 +2278,12 @@ try {
 
     historyOrders = orders.filter(o => {
         let orderSellerId = String(o.sellerId || '').trim();
+        let orderSellerName = String(o.sellerName || '').trim().toLowerCase();
         
-        let matchesSeller = (orderSellerId === currentSellerKey) || 
+        let matchesSeller = (orderSellerId && currentSellerKey && orderSellerId === currentSellerKey) || 
                             (currentSellerKey && orderSellerId.includes(currentSellerKey)) || 
-                            (orderSellerId && currentSellerKey.includes(orderSellerId));
+                            (orderSellerId && currentSellerKey.includes(orderSellerId)) ||
+                            (currentShopName && orderSellerName === currentShopName);
                             
         let matchesStatus = (o.status === "Completed" || o.status === "Cancelled");
         return matchesSeller && matchesStatus;
