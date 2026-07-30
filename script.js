@@ -2142,7 +2142,9 @@ function showOrderDetailsModal(order) {
 // ============================================================
 
 function renderSellerDashboard() {
+
     if (!currentSeller?.sellerId) return;
+
     let seller = sellers.find(s => s.id === currentSeller.sellerId);
     if (!seller) {
         const stored = localStorage.getItem('gb_current_seller');
@@ -2150,7 +2152,36 @@ function renderSellerDashboard() {
             currentSeller = JSON.parse(stored);
             seller = sellers.find(s => s.id === currentSeller.sellerId);
         }
-        if (!seller) {
+    }
+
+    if (!seller) {
+        document.getElementById('sellerDashboard').innerHTML = `
+            <div class="kyc-blocked-message">
+                <h2>⚠️ Account Not Found</h2>
+                <p>Please login again or contact support.</p>
+                <button onclick="showMyShopLogin()" class="btn-primary">Login Again</button>
+            </div>
+        `;
+        return;
+    }
+
+    // 🔥 फायरबेस से सारे ऑर्डर्स खींचकर सेलर की आईडी, शॉप नेम या ईमेल से मैच करें
+    try {
+        const snapshot = await db.collection("orders").get();
+        snapshot.forEach(doc => {
+            const firestoreOrder = doc.data();
+            
+            const matchesId = firestoreOrder.sellerId === seller.id;
+            const matchesShop = firestoreOrder.sellerName && seller.shopName && (firestoreOrder.sellerName === seller.shopName);
+            const matchesEmail = firestoreOrder.sellerEmail && seller.email && (firestoreOrder.sellerEmail === seller.email);
+
+            if ((matchesId || matchesShop || matchesEmail) && !orders.some(o => o.id === firestoreOrder.id)) {
+                orders.push(firestoreOrder);
+            }
+        });
+    } catch (err) {
+        console.log("Error fetching orders from Firebase:", err);
+    }
             document.getElementById('sellerDashboard').innerHTML = `
                 <div class="kyc-blocked-message">
                     <h2>⚠️ Account Not Found</h2>
@@ -3944,7 +3975,8 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             };
             
             orders.push(newOrder);
-            
+            // चुपचाप फायरबेस में भेजें (UI पर इसका कोई असर नहीं दिखेगा)
+db.collection("orders").add(newOrder).catch(err => console.log("Firebase sync error:", err));
             platformEarnings += itemSplit.adminTotal;
         }
         
