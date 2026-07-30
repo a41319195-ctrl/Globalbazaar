@@ -439,6 +439,86 @@ let verificationCheckInterval = null;
 let currentCategory = "All";
 let productsUnsubscribe = null;
 let sellersUnsubscribe = null;
+let ordersUnsubscribe = null;
+
+// ============================================================
+// PAGINATION SYSTEM - GLOBAL
+// ============================================================
+
+const PAGINATION_CONFIG = {
+    productsPerPage: 20,
+    ordersPerPage: 10,
+    sellersPerPage: 10,
+    buyersPerPage: 10,
+    withdrawalsPerPage: 10,
+    historyPerPage: 10
+};
+
+let paginationState = {
+    products: { currentPage: 1, totalPages: 1 },
+    orders: { currentPage: 1, totalPages: 1 },
+    sellers: { currentPage: 1, totalPages: 1 },
+    buyers: { currentPage: 1, totalPages: 1 },
+    withdrawals: { currentPage: 1, totalPages: 1 },
+    history: { currentPage: 1, totalPages: 1 }
+};
+
+function createPaginationControls(containerId, stateKey, totalItems, itemsPerPage, renderFunction) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+    const currentPage = paginationState[stateKey]?.currentPage || 1;
+    
+    if (totalPages <= 1) {
+        const existingControls = container.querySelector('.pagination-controls');
+        if (existingControls) existingControls.remove();
+        return;
+    }
+    
+    let controlsHtml = `
+        <div class="pagination-controls" style="display:flex; justify-content:center; align-items:center; gap:8px; padding:15px 0; margin-top:15px; flex-wrap:wrap; border-top:1px solid #e2e8f0;">
+            <button class="pagination-btn" data-action="first" style="background:#e2e8f0; border:none; padding:8px 14px; border-radius:6px; cursor:pointer; font-weight:500; ${currentPage === 1 ? 'opacity:0.5; cursor:not-allowed;' : ''}">⟪ First</button>
+            <button class="pagination-btn" data-action="prev" style="background:#e2e8f0; border:none; padding:8px 14px; border-radius:6px; cursor:pointer; font-weight:500; ${currentPage === 1 ? 'opacity:0.5; cursor:not-allowed;' : ''}">◀ Prev</button>
+            <span style="font-weight:500; padding:0 12px;">Page ${currentPage} of ${totalPages}</span>
+            <button class="pagination-btn" data-action="next" style="background:#e2e8f0; border:none; padding:8px 14px; border-radius:6px; cursor:pointer; font-weight:500; ${currentPage === totalPages ? 'opacity:0.5; cursor:not-allowed;' : ''}">Next ▶</button>
+            <button class="pagination-btn" data-action="last" style="background:#e2e8f0; border:none; padding:8px 14px; border-radius:6px; cursor:pointer; font-weight:500; ${currentPage === totalPages ? 'opacity:0.5; cursor:not-allowed;' : ''}">Last ⟫</button>
+        </div>
+    `;
+    
+    const existingControls = container.querySelector('.pagination-controls');
+    if (existingControls) {
+        existingControls.outerHTML = controlsHtml;
+    } else {
+        container.insertAdjacentHTML('beforeend', controlsHtml);
+    }
+    
+    container.querySelectorAll('.pagination-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const action = this.dataset.action;
+            let newPage = currentPage;
+            
+            if (action === 'first') newPage = 1;
+            else if (action === 'prev') newPage = Math.max(1, currentPage - 1);
+            else if (action === 'next') newPage = Math.min(totalPages, currentPage + 1);
+            else if (action === 'last') newPage = totalPages;
+            
+            if (newPage !== currentPage) {
+                paginationState[stateKey].currentPage = newPage;
+                paginationState[stateKey].totalPages = totalPages;
+                renderFunction();
+            }
+        });
+    });
+}
+
+function getPaginatedItems(items, stateKey, itemsPerPage) {
+    const page = paginationState[stateKey]?.currentPage || 1;
+    const start = (page - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return items.slice(start, end);
+}
 
 // ============================================================
 // TELEGRAM NOTIFICATIONS
@@ -788,7 +868,9 @@ function renderOrderHistory() {
     }
     
     historyList.innerHTML = '';
-    historyOrders.forEach(order => {
+    const paginatedHistory = getPaginatedItems(historyOrders, 'history', PAGINATION_CONFIG.historyPerPage);
+    
+    paginatedHistory.forEach(order => {
         const historyCard = document.createElement('div');
         historyCard.className = 'order-card';
         historyCard.style.borderLeftColor = order.status === 'Cancelled' ? '#ef4444' : '#10b981';
@@ -814,6 +896,8 @@ function renderOrderHistory() {
     });
     
     historyContainer.classList.add('show');
+    
+    createPaginationControls('orderHistoryContainer', 'history', historyOrders.length, PAGINATION_CONFIG.historyPerPage, renderOrderHistory);
 }
 
 // ============================================================
@@ -867,19 +951,27 @@ function loadAllBuyers() {
     container.innerHTML = '<p style="padding:20px; text-align:center;">Loading buyers...</p>';
     
     db.collection("users").get().then(snapshot => {
-        let html = `<div style="margin-bottom:15px;"><strong>👥 All Buyers (${snapshot.size})</strong></div><div style="display:flex; flex-direction:column; gap:10px;">`;
+        const buyers = [];
         snapshot.forEach(doc => {
-            const data = doc.data();
+            buyers.push({ id: doc.id, ...doc.data() });
+        });
+        
+        const paginatedBuyers = getPaginatedItems(buyers, 'buyers', PAGINATION_CONFIG.buyersPerPage);
+        
+        let html = `<div style="margin-bottom:15px;"><strong>👥 All Buyers (${buyers.length})</strong></div><div style="display:flex; flex-direction:column; gap:10px;">`;
+        paginatedBuyers.forEach(buyer => {
             html += `
-                <div style="background:#f8fafc; border-radius:12px; padding:12px; border-left:4px solid #3b82f6; cursor:pointer;" onclick='showBuyerOrders("${doc.id}")'>
-                    <div style="font-weight:600;">${data.name || 'Unknown'}</div>
-                    <div style="font-size:13px; color:#64748b;">📧 ${data.email || 'N/A'}</div>
-                    <div style="font-size:12px; color:#94a3b8;">📅 Joined: ${data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'N/A'}</div>
+                <div style="background:#f8fafc; border-radius:12px; padding:12px; border-left:4px solid #3b82f6; cursor:pointer;" onclick='showBuyerOrders("${buyer.id}")'>
+                    <div style="font-weight:600;">${buyer.name || 'Unknown'}</div>
+                    <div style="font-size:13px; color:#64748b;">📧 ${buyer.email || 'N/A'}</div>
+                    <div style="font-size:12px; color:#94a3b8;">📅 Joined: ${buyer.createdAt ? new Date(buyer.createdAt).toLocaleDateString() : 'N/A'}</div>
                 </div>
             `;
         });
         html += '</div>';
         container.innerHTML = html;
+        
+        createPaginationControls('pendingKycList', 'buyers', buyers.length, PAGINATION_CONFIG.buyersPerPage, loadAllBuyers);
     }).catch(error => {
         container.innerHTML = '<p style="color:#dc2626;">Error loading buyers: ' + error.message + '</p>';
     });
@@ -891,21 +983,29 @@ function loadAllSellers() {
     container.innerHTML = '<p style="padding:20px; text-align:center;">Loading sellers...</p>';
     
     db.collection("sellers").get().then(snapshot => {
-        let html = `<div style="margin-bottom:15px;"><strong>🏪 All Sellers (${snapshot.size})</strong></div><div style="display:flex; flex-direction:column; gap:10px;">`;
+        const allSellers = [];
         snapshot.forEach(doc => {
-            const data = doc.data();
-            const statusColor = data.kycStatus === 'verified' ? '#10b981' : data.kycStatus === 'pending' ? '#f59e0b' : '#ef4444';
+            allSellers.push({ id: doc.id, ...doc.data() });
+        });
+        
+        const paginatedSellers = getPaginatedItems(allSellers, 'sellers', PAGINATION_CONFIG.sellersPerPage);
+        
+        let html = `<div style="margin-bottom:15px;"><strong>🏪 All Sellers (${allSellers.length})</strong></div><div style="display:flex; flex-direction:column; gap:10px;">`;
+        paginatedSellers.forEach(seller => {
+            const statusColor = seller.kycStatus === 'verified' ? '#10b981' : seller.kycStatus === 'pending' ? '#f59e0b' : '#ef4444';
             html += `
-                <div style="background:#f8fafc; border-radius:12px; padding:12px; border-left:4px solid ${statusColor}; cursor:pointer;" onclick='showSellerDetails("${doc.id}")'>
-                    <div style="font-weight:600;">🏪 ${data.shopName || 'Unknown'}</div>
-                    <div style="font-size:13px; color:#64748b;">👤 ${data.fullName || 'N/A'}</div>
-                    <div style="font-size:13px; color:#64748b;">📧 ${data.email || 'N/A'}</div>
-                    <div style="font-size:12px; color:#94a3b8;">💰 Earnings: ${getCurrencySymbol()}${convertPrice(data.earnings || 0)} | KYC: <span style="color:${statusColor};">${data.kycStatus || 'pending'}</span></div>
+                <div style="background:#f8fafc; border-radius:12px; padding:12px; border-left:4px solid ${statusColor}; cursor:pointer;" onclick='showSellerDetails("${seller.id}")'>
+                    <div style="font-weight:600;">🏪 ${seller.shopName || 'Unknown'}</div>
+                    <div style="font-size:13px; color:#64748b;">👤 ${seller.fullName || 'N/A'}</div>
+                    <div style="font-size:13px; color:#64748b;">📧 ${seller.email || 'N/A'}</div>
+                    <div style="font-size:12px; color:#94a3b8;">💰 Earnings: ${getCurrencySymbol()}${convertPrice(seller.earnings || 0)} | KYC: <span style="color:${statusColor};">${seller.kycStatus || 'pending'}</span></div>
                 </div>
             `;
         });
         html += '</div>';
         container.innerHTML = html;
+        
+        createPaginationControls('pendingKycList', 'sellers', allSellers.length, PAGINATION_CONFIG.sellersPerPage, loadAllSellers);
     }).catch(error => {
         container.innerHTML = '<p style="color:#dc2626;">Error loading sellers: ' + error.message + '</p>';
     });
@@ -921,8 +1021,10 @@ function loadWithdrawalHistory() {
         return;
     }
     
-    let html = `<div style="margin-bottom:15px;"><strong>📜 Withdrawal History</strong></div><div style="display:flex; flex-direction:column; gap:10px;">`;
-    history.forEach(w => {
+    const paginatedHistory = getPaginatedItems(history, 'withdrawals', PAGINATION_CONFIG.withdrawalsPerPage);
+    
+    let html = `<div style="margin-bottom:15px;"><strong>📜 Withdrawal History (${history.length})</strong></div><div style="display:flex; flex-direction:column; gap:10px;">`;
+    paginatedHistory.forEach(w => {
         const statusColor = w.status === 'Approved' ? '#10b981' : w.status === 'Pending' ? '#f59e0b' : '#ef4444';
         html += `
             <div style="background:#f8fafc; border-radius:12px; padding:12px; border-left:4px solid ${statusColor};">
@@ -934,6 +1036,8 @@ function loadWithdrawalHistory() {
     });
     html += '</div>';
     container.innerHTML = html;
+    
+    createPaginationControls('pendingWithdrawals', 'withdrawals', history.length, PAGINATION_CONFIG.withdrawalsPerPage, loadWithdrawalHistory);
 }
 
 function showBuyerOrders(userId) {
@@ -945,9 +1049,11 @@ function showBuyerOrders(userId) {
         return;
     }
     
+    const paginatedOrders = getPaginatedItems(userOrders, 'orders', PAGINATION_CONFIG.ordersPerPage);
+    
     let html = `<div style="margin-top:20px; background:white; border-radius:12px; padding:15px; border:2px solid #3b82f6;">
         <h4 style="margin:0 0 15px 0;">📦 Orders (${userOrders.length})</h4>`;
-    userOrders.forEach(o => {
+    paginatedOrders.forEach(o => {
         html += `
             <div style="border:1px solid #e2e8f0; padding:12px; border-radius:8px; margin-bottom:10px;">
                 <div style="display:flex; justify-content:space-between;">
@@ -968,6 +1074,8 @@ function showBuyerOrders(userId) {
     });
     html += '</div>';
     container.innerHTML += html;
+    
+    createPaginationControls('pendingKycList', 'orders', userOrders.length, PAGINATION_CONFIG.ordersPerPage, () => showBuyerOrders(userId));
 }
 
 function showSellerDetails(sellerId) {
@@ -979,6 +1087,7 @@ function showSellerDetails(sellerId) {
     }
     
     const sellerOrders = orders.filter(o => o.sellerId === sellerId);
+    const paginatedOrders = getPaginatedItems(sellerOrders, 'orders', PAGINATION_CONFIG.ordersPerPage);
     
     let html = `
         <div style="margin-top:20px; background:white; border-radius:12px; padding:15px; border:2px solid #8b5cf6;">
@@ -996,7 +1105,7 @@ function showSellerDetails(sellerId) {
     if (sellerOrders.length === 0) {
         html += '<p style="color:#94a3b8;">No orders yet</p>';
     } else {
-        sellerOrders.forEach(o => {
+        paginatedOrders.forEach(o => {
             html += `
                 <div style="border:1px solid #e2e8f0; padding:10px; border-radius:6px; margin-bottom:8px;">
                     <div style="display:flex; justify-content:space-between;">
@@ -1016,6 +1125,8 @@ function showSellerDetails(sellerId) {
     }
     html += '</div>';
     container.innerHTML += html;
+    
+    createPaginationControls('pendingKycList', 'orders', sellerOrders.length, PAGINATION_CONFIG.ordersPerPage, () => showSellerDetails(sellerId));
 }
 
 // ============================================================
@@ -1368,8 +1479,10 @@ function renderBuyerOrders() {
         return;
     }
     
+    const paginatedOrders = getPaginatedItems(activeOrders, 'orders', PAGINATION_CONFIG.ordersPerPage);
+    
     let ordersHtml = '';
-    activeOrders.forEach(o => {
+    paginatedOrders.forEach(o => {
         ordersHtml += `
             <div class="order-card" data-order-id="${o.id}">
                 <div class="order-header">
@@ -1412,6 +1525,8 @@ function renderBuyerOrders() {
     document.querySelectorAll('.cancelOrderBtn').forEach(btn => {
         btn.addEventListener('click', () => cancelOrder(parseFloat(btn.dataset.id)));
     });
+    
+    createPaginationControls('buyerOrdersList', 'orders', activeOrders.length, PAGINATION_CONFIG.ordersPerPage, renderBuyerOrders);
 }
 
 // ============================================================
@@ -1660,6 +1775,7 @@ function markOrderShipped(orderId, trackingNum) {
 function setupFirestoreListeners() {
     if (productsUnsubscribe) productsUnsubscribe();
     if (sellersUnsubscribe) sellersUnsubscribe();
+    if (ordersUnsubscribe) ordersUnsubscribe();
     
     productsUnsubscribe = db.collection("products").onSnapshot(snapshot => {
         try {
@@ -1718,11 +1834,46 @@ function setupFirestoreListeners() {
     }, error => {
         console.error('Sellers listener error:', error);
     });
+
+    ordersUnsubscribe = db.collection("orders").onSnapshot(snapshot => {
+        try {
+            const firestoreOrders = [];
+            snapshot.forEach(doc => {
+                firestoreOrders.push({ id: doc.id, ...doc.data() });
+            });
+            
+            // Merge Firestore orders with local orders
+            firestoreOrders.forEach(firestoreOrder => {
+                const existingIndex = orders.findIndex(o => o.id === firestoreOrder.id);
+                if (existingIndex === -1) {
+                    orders.push(firestoreOrder);
+                } else {
+                    // Update existing order with Firestore data
+                    orders[existingIndex] = { ...orders[existingIndex], ...firestoreOrder };
+                }
+            });
+            
+            console.log('📋 Orders synced from Firestore:', firestoreOrders.length);
+            
+            // Update UI
+            renderBuyerOrders();
+            if (currentSeller) {
+                renderSellerDashboard();
+            }
+            
+            saveAllLocal();
+        } catch(e) {
+            console.error('Orders sync error:', e);
+        }
+    }, error => {
+        console.error('Orders listener error:', error);
+    });
 }
 
 window.addEventListener('beforeunload', () => {
     if (productsUnsubscribe) productsUnsubscribe();
     if (sellersUnsubscribe) sellersUnsubscribe();
+    if (ordersUnsubscribe) ordersUnsubscribe();
     if (verificationCheckInterval) clearInterval(verificationCheckInterval);
 });
 
@@ -1790,7 +1941,7 @@ document.getElementById('sellerRegForm')?.addEventListener('submit', async funct
         
                 if (payoutMethod === 'bank') {
             const accName = document.getElementById('sellerBankHolderName')?.value ? document.getElementById('sellerBankHolderName').value.trim() : '';
-            const accNum = document.getElementById('sellerBankAccountNo')?.value ? document.getElementById('sellerBankAccountNo').value.trim() : ''; // यहाँ 'sellerBankAccountNo' कर दिया गया है
+            const accNum = document.getElementById('sellerBankAccountNo')?.value ? document.getElementById('sellerBankAccountNo').value.trim() : '';
             const ifsc = document.getElementById('sellerBankIfsc')?.value ? document.getElementById('sellerBankIfsc').value.trim() : '';
             const bankName = document.getElementById('sellerBankName')?.value ? document.getElementById('sellerBankName').value.trim() : '';
 
@@ -2165,7 +2316,7 @@ function renderSellerDashboard() {
         return;
     }
 
-        // 🔥 फायरबेस से बिना डैशबोर्ड रोके चुपचाप ऑर्डर्स फेच करें
+    // Fetch orders from Firestore for this seller
     db.collection("orders").get().then(snapshot => {
         snapshot.forEach(doc => {
             const firestoreOrder = doc.data();
@@ -2174,19 +2325,17 @@ function renderSellerDashboard() {
             const matchesEmail = firestoreOrder.sellerEmail && seller.email && (firestoreOrder.sellerEmail === seller.email);
 
             if ((matchesId || matchesShop || matchesEmail) && !orders.some(o => o.id === firestoreOrder.id)) {
-                orders.push(firestoreOrder);
+                orders.push({ id: doc.id, ...firestoreOrder });
             }
         });
         
-        // डेटा आने के बाद यदि डैशबोर्ड को तुरंत रिफ्रेश करना हो
+        saveAllLocal();
         if (typeof renderSellerDashboard === 'function' && document.getElementById('sellerDashboard')) {
-            // यह ऑप्शनल है, पर डेटा लोड होने के बाद UI अपडेट करने में मदद करेगा
+            // Continue rendering
         }
     }).catch(err => {
         console.log("Error fetching orders from Firebase:", err);
     });
-    
-    }
     
     if (seller.kycStatus !== 'verified') {
         document.getElementById('sellerDashboard').innerHTML = `
@@ -2307,7 +2456,9 @@ function renderSellerDashboard() {
         `;
     }).join('');
     
-    let activeOrdersHtml = activeOrders.map(o => `
+    const paginatedActiveOrders = getPaginatedItems(activeOrders, 'orders', PAGINATION_CONFIG.ordersPerPage);
+    
+    let activeOrdersHtml = paginatedActiveOrders.map(o => `
         <div style="border:1px solid #e2e8f0; padding:16px; border-radius:12px; margin-bottom:12px; background:white;">
             <div style="display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:10px;">
                 <div>
@@ -2379,7 +2530,9 @@ function renderSellerDashboard() {
         activeOrdersHtml = '<p style="text-align:center; padding:20px; color:#64748b;">No active orders</p>';
     }
     
-    let historyOrdersHtml = historyOrders.map(o => `
+    const paginatedHistoryOrders = getPaginatedItems(historyOrders, 'history', PAGINATION_CONFIG.historyPerPage);
+    
+    let historyOrdersHtml = paginatedHistoryOrders.map(o => `
         <div style="border:1px solid #e2e8f0; padding:16px; border-radius:12px; margin-bottom:12px; background:#f8fafc; opacity:0.8;">
             <div style="display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:10px;">
                 <div>
@@ -2579,16 +2732,19 @@ function renderSellerDashboard() {
         <div class="premium-card">
             <h3>📋 My Products (${myProducts.length})</h3>
             <div id="myProductsList">${prodListHtml}</div>
+            ${myProducts.length > PAGINATION_CONFIG.productsPerPage ? createPaginationControlsHtml('myProductsList', 'products', myProducts.length, PAGINATION_CONFIG.productsPerPage, renderSellerDashboard) : ''}
         </div>
         
         <div class="premium-card">
             <h3>📦 Active Orders (${activeOrders.length})</h3>
             <div id="activeOrdersList">${activeOrdersHtml}</div>
+            ${createPaginationControlsHtml('activeOrdersList', 'orders', activeOrders.length, PAGINATION_CONFIG.ordersPerPage, renderSellerDashboard)}
         </div>
         
         <div class="premium-card" style="border-left:4px solid #8b5cf6;">
             <h3>📜 Order History (${historyOrders.length}) <span style="font-size:12px; color:#64748b;">(Completed/Cancelled)</span></h3>
             <div id="historyOrdersList">${historyOrdersHtml}</div>
+            ${createPaginationControlsHtml('historyOrdersList', 'history', historyOrders.length, PAGINATION_CONFIG.historyPerPage, renderSellerDashboard)}
         </div>
     `;
     
@@ -2816,6 +2972,23 @@ function renderSellerDashboard() {
         
         requestWithdrawal(seller.id);
     });
+}
+
+function createPaginationControlsHtml(containerId, stateKey, totalItems, itemsPerPage, renderFunction) {
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+    const currentPage = paginationState[stateKey]?.currentPage || 1;
+    
+    if (totalPages <= 1) return '';
+    
+    return `
+        <div class="pagination-controls" style="display:flex; justify-content:center; align-items:center; gap:8px; padding:15px 0; margin-top:15px; flex-wrap:wrap; border-top:1px solid #e2e8f0;">
+            <button class="pagination-btn" data-action="first" data-state="${stateKey}" style="background:#e2e8f0; border:none; padding:8px 14px; border-radius:6px; cursor:pointer; font-weight:500; ${currentPage === 1 ? 'opacity:0.5; cursor:not-allowed;' : ''}">⟪ First</button>
+            <button class="pagination-btn" data-action="prev" data-state="${stateKey}" style="background:#e2e8f0; border:none; padding:8px 14px; border-radius:6px; cursor:pointer; font-weight:500; ${currentPage === 1 ? 'opacity:0.5; cursor:not-allowed;' : ''}">◀ Prev</button>
+            <span style="font-weight:500; padding:0 12px;">Page ${currentPage} of ${totalPages}</span>
+            <button class="pagination-btn" data-action="next" data-state="${stateKey}" style="background:#e2e8f0; border:none; padding:8px 14px; border-radius:6px; cursor:pointer; font-weight:500; ${currentPage === totalPages ? 'opacity:0.5; cursor:not-allowed;' : ''}">Next ▶</button>
+            <button class="pagination-btn" data-action="last" data-state="${stateKey}" style="background:#e2e8f0; border:none; padding:8px 14px; border-radius:6px; cursor:pointer; font-weight:500; ${currentPage === totalPages ? 'opacity:0.5; cursor:not-allowed;' : ''}">Last ⟫</button>
+        </div>
+    `;
 }
 
 // ============================================================
@@ -3281,7 +3454,9 @@ function renderProducts() {
             return;
         }
         
-        let html = filtered.map(p => {
+        const paginatedProducts = getPaginatedItems(filtered, 'products', PAGINATION_CONFIG.productsPerPage);
+        
+        let html = paginatedProducts.map(p => {
             try {
                 return renderProductCard(p);
             } catch (cardError) {
@@ -3305,6 +3480,8 @@ function renderProducts() {
         
         renderBuyerOrders();
         renderBuyerWishlist();
+        
+        createPaginationControls('productsGrid', 'products', filtered.length, PAGINATION_CONFIG.productsPerPage, renderProducts);
         
     } catch (error) {
         console.error('Render products error:', error);
@@ -3381,6 +3558,7 @@ function renderCats(){
         document.querySelectorAll('.cat-pill').forEach(el => {
             el.addEventListener('click', (e) => {
                 currentCategory = e.target.dataset.cat;
+                paginationState.products.currentPage = 1;
                 renderCats();
                 renderProducts();
             });
@@ -3970,8 +4148,8 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
             };
             
             orders.push(newOrder);
-            // चुपचाप फायरबेस में भेजें (UI पर इसका कोई असर नहीं दिखेगा)
-db.collection("orders").add(newOrder).catch(err => console.log("Firebase sync error:", err));
+            // Save to Firestore
+            db.collection("orders").add(newOrder).catch(err => console.log("Firebase sync error:", err));
             platformEarnings += itemSplit.adminTotal;
         }
         
@@ -4145,9 +4323,11 @@ function loadPendingSellers() {
         return;
     }
     
+    const paginatedPending = getPaginatedItems(pending, 'sellers', PAGINATION_CONFIG.sellersPerPage);
+    
     let html = `<div style="margin-bottom:15px;"><strong>Total Pending: ${pending.length}</strong></div><div style="display:flex; flex-direction:column; gap:12px;">`;
     
-    pending.forEach((seller, idx) => {
+    paginatedPending.forEach((seller, idx) => {
         let payoutDetailsHtml = '❌ Not Provided';
         if (seller.payoutPreference) {
             if (seller.payoutPreference.method === 'bank') {
@@ -4186,6 +4366,8 @@ function loadPendingSellers() {
     });
     html += '</div>';
     container.innerHTML = html;
+    
+    createPaginationControls('pendingKycList', 'sellers', pending.length, PAGINATION_CONFIG.sellersPerPage, loadPendingSellers);
     
     // अप्रूव बटन का लॉजिक और स्मार्ट एपीआई सिंक
     container.querySelectorAll('.btn-approve').forEach(btn => {
@@ -4287,8 +4469,11 @@ function loadVerifiedSellers() {
         container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">No verified sellers yet</div>';
         return;
     }
+    
+    const paginatedVerified = getPaginatedItems(verified, 'sellers', PAGINATION_CONFIG.sellersPerPage);
+    
     let html = `<table class="kyc-table"><thead><tr><th>Shop</th><th>Owner</th><th>Email</th><th>Shipping Zones</th><th>Joined</th></tr></thead><tbody>`;
-    verified.forEach(s => {
+    paginatedVerified.forEach(s => {
         let zones = '❌ Not set';
         if (s.shippingZones) {
             const local = s.shippingZones.local?.countries?.length || 0;
@@ -4300,6 +4485,8 @@ function loadVerifiedSellers() {
     });
     html += '</tbody></table>';
     container.innerHTML = html;
+    
+    createPaginationControls('verifiedSellersList', 'sellers', verified.length, PAGINATION_CONFIG.sellersPerPage, loadVerifiedSellers);
 }
 
 // 5. विथड्रॉल रिक्वेस्ट लोड करने का फंक्शन
@@ -4313,8 +4500,13 @@ function loadWithdrawalsList() {
         container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;">No pending withdrawals</div>';
         return;
     }
-    let html = pendingWithdrawals.map(w => `<div class="order-card"><span>💰 ${typeof getCurrencySymbol === 'function' ? getCurrencySymbol() : '$'}${typeof convertPrice === 'function' ? convertPrice(w.amount) : w.amount} - ${w.sellerName}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981; color:white; border:none; padding:4px 12px; border-radius:20px; cursor:pointer;">Approve</button></div>`).join('');
+    
+    const paginatedWithdrawals = getPaginatedItems(pendingWithdrawals, 'withdrawals', PAGINATION_CONFIG.withdrawalsPerPage);
+    
+    let html = paginatedWithdrawals.map(w => `<div class="order-card"><span>💰 ${typeof getCurrencySymbol === 'function' ? getCurrencySymbol() : '$'}${typeof convertPrice === 'function' ? convertPrice(w.amount) : w.amount} - ${w.sellerName}</span><button class="approveBtn" data-id="${w.id}" style="background:#10b981; color:white; border:none; padding:4px 12px; border-radius:20px; cursor:pointer;">Approve</button></div>`).join('');
     container.innerHTML = html;
+    
+    createPaginationControls('pendingWithdrawals', 'withdrawals', pendingWithdrawals.length, PAGINATION_CONFIG.withdrawalsPerPage, loadWithdrawalsList);
     
     container.querySelectorAll('.approveBtn').forEach(btn => {
         btn.addEventListener('click', async () => {
