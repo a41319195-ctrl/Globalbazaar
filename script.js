@@ -1579,28 +1579,27 @@ function renderBuyerOrders() {
 // ============================================================
 // CONFIRM ORDER RECEIVED - INSTANT PAYMENT RELEASE (0 DELAY)
 // ============================================================
-
 function confirmOrderReceived(orderId) {
-    console.log('🔍 confirmOrderReceived called for order:', orderId);
-    
-    let order = orders.find(o => String(o.id) === String(orderId));
-
-    if (!order) {
-        showToast("⚠️ Order not found", true);
-        return;
-    }
-
-    if (order.status !== "Shipped" && order.status !== "Delivered") {
-        showToast("⚠️ Only 'Shipped' or 'Delivered' orders can be confirmed", true);
-        return;
-    }
-
-    if (order.splitBreakdown?.isReleased) {
-        showToast("⚠️ Payment already released for this order", true);
-        return;
-    }
-
     try {
+        console.log('🔍 confirmOrderReceived called for order:', orderId);
+        
+        let order = orders.find(o => String(o.id) === String(orderId));
+
+        if (!order) {
+            showToast("⚠️ Order not found", true);
+            return;
+        }
+
+        if (order.status !== "Shipped" && order.status !== "Delivered") {
+            showToast("⚠️ Only 'Shipped' or 'Delivered' orders can be confirmed", true);
+            return;
+        }
+
+        if (order.splitBreakdown?.isReleased) {
+            showToast("⚠️ Payment already released for this order", true);
+            return;
+        }
+
         // INSTANT STATUS UPDATE - UI FIRST
         order.status = "Completed";
         order.isBuyerConfirmed = true;
@@ -1619,7 +1618,6 @@ function confirmOrderReceived(orderId) {
             seller = sellers.find(s => s.email === order.sellerEmail);
         }
         if (!seller) {
-            // Try to find by any matching field
             seller = sellers.find(s => 
                 String(s.id) === String(order.sellerId) || 
                 s.shopName === order.sellerName || 
@@ -1663,7 +1661,7 @@ function confirmOrderReceived(orderId) {
         order.splitBreakdown.releasedAt = new Date().toISOString();
         order.splitBreakdown.finalSellerPayout = sellerPayout;
         
-        // Update Firestore order status - FIX: Use proper document reference with String ID
+        // Update Firestore order status
         if (order.id) {
             db.collection("orders").doc(String(order.id)).update({
                 status: "Completed",
