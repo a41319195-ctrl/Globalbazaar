@@ -10,6 +10,318 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* ============================================================
+           SECTION HEADER WITH BACK BUTTON
+           ============================================================ */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e2e8f0;
+            flex-wrap: wrap;
+        }
+
+        body.dark-mode .section-header {
+            border-bottom-color: #334155;
+        }
+
+        .back-btn {
+            background: #f1f5f9;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #0f172a;
+            border: 1px solid #e2e8f0;
+        }
+
+        body.dark-mode .back-btn {
+            background: #334155;
+            color: #f1f5f9;
+            border-color: #475569;
+        }
+
+        .back-btn:hover {
+            background: #e2e8f0;
+            transform: translateX(-4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode .back-btn:hover {
+            background: #475569;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .back-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* ============================================================
+           LOAD MORE / READ MORE BUTTON
+           ============================================================ */
+        .load-more-container {
+            text-align: center;
+            padding: 20px 0;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 20px;
+        }
+
+        body.dark-mode .load-more-container {
+            border-top-color: #334155;
+        }
+
+        .read-more-btn {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 12px 36px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .read-more-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
+        }
+
+        .read-more-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .read-more-btn .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ============================================================
+           WITHDRAWAL HISTORY SECTION
+           ============================================================ */
+        .withdrawal-history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            background: #f8fafc;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border-left: 4px solid #10b981;
+            transition: all 0.2s ease;
+        }
+
+        body.dark-mode .withdrawal-history-item {
+            background: #1e293b;
+        }
+
+        .withdrawal-history-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .withdrawal-history-item.pending {
+            border-left-color: #f59e0b;
+        }
+
+        .withdrawal-history-item.approved {
+            border-left-color: #10b981;
+        }
+
+        .withdrawal-history-item.rejected {
+            border-left-color: #ef4444;
+        }
+
+        .withdrawal-history-item .amount {
+            font-weight: 700;
+            font-size: 16px;
+            color: #0f172a;
+        }
+
+        body.dark-mode .withdrawal-history-item .amount {
+            color: #f1f5f9;
+        }
+
+        .withdrawal-history-item .status-badge {
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.approved {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-badge.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-badge.rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        body.dark-mode .status-badge.approved {
+            background: #065f46;
+            color: #d1fae5;
+        }
+
+        body.dark-mode .status-badge.pending {
+            background: #78350f;
+            color: #fef3c7;
+        }
+
+        body.dark-mode .status-badge.rejected {
+            background: #7f1d1d;
+            color: #fee2e2;
+        }
+
+        .withdrawal-history-item .meta {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .toggle-btn {
+            background: #eef6ff;
+            color: #007bff;
+            border: none;
+            padding: 6px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn:hover {
+            background: #dbeafe;
+            transform: scale(1.05);
+        }
+
+        body.dark-mode .toggle-btn {
+            background: #1e293b;
+            color: #60a5fa;
+        }
+
+        body.dark-mode .toggle-btn:hover {
+            background: #334155;
+        }
+
+        .history-stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 12px 16px;
+            background: #f1f5f9;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        body.dark-mode .history-stats {
+            background: #1e293b;
+        }
+
+        .history-stats .stat-item {
+            font-size: 14px;
+        }
+
+        .history-stats .stat-item strong {
+            font-weight: 700;
+        }
+
+        .history-stats .stat-item .total-amount {
+            color: #3b82f6;
+            font-weight: 700;
+        }
+
+        body.dark-mode .history-stats .stat-item .total-amount {
+            color: #60a5fa;
+        }
+
+        /* ============================================================
+           TOGGLE SECTION CONTAINER
+           ============================================================ */
+        .toggle-section-container {
+            margin-top: 10px;
+        }
+
+        .toggle-section-container .content {
+            display: none;
+            padding-top: 15px;
+        }
+
+        .toggle-section-container .content.show {
+            display: block;
+        }
+
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
+        @media (max-width: 640px) {
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .back-btn {
+                padding: 6px 16px;
+                font-size: 13px;
+            }
+
+            .history-stats {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .read-more-btn {
+                padding: 10px 24px;
+                font-size: 14px;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .withdrawal-history-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+        }
+    </style>
 </head>
 <body>
 <div class="debug-status" id="debugMsg">Initializing...</div>
@@ -81,6 +393,13 @@
 <div class="container">
     <!-- ========== BUYER SECTION ========== -->
     <div id="buyerSection" class="section active">
+        <div class="section-header">
+            <button class="back-btn" onclick="goBack()">
+                <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+                Back
+            </button>
+            <h2 style="margin:0;">🛍️ Shop Products</h2>
+        </div>
         <div class="cat-scroll" id="catList"></div>
         <div class="search-container">
             <input type="text" id="searchInput" placeholder="🔍 Search products...">
@@ -90,6 +409,14 @@
 
     <!-- ========== SELLER SECTION ========== -->
     <div id="sellerSection" class="section">
+        <div class="section-header">
+            <button class="back-btn" onclick="goBack()">
+                <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+                Back
+            </button>
+            <h2 style="margin:0;">🏪 Seller Dashboard</h2>
+        </div>
+
         <div id="sellerRegisterBox" class="premium-card">
             <h2>🏪 Open Your Shop</h2>
             <form id="sellerRegForm">
@@ -207,13 +534,15 @@
             <div class="premium-card">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3>📦 Seller Orders</h3>
-                    <button onclick="toggleSection('sellerOrdersList')" style="background:#eef6ff; color:#007bff; border:none; padding:8px 15px; border-radius:6px; cursor:pointer;">View</button>
+                    <button onclick="toggleSection('sellerOrdersList')" class="toggle-btn">View</button>
                 </div>
                 <div id="pendingKycList" style="display:none; margin-top:15px;"></div>
+                <div id="sellerOrdersList" class="toggle-section-container">
+                    <div class="content" id="sellerOrdersContent">
+                        <p style="color: #64748b; font-size: 14px;">No active orders found.</p>
+                    </div>
+                </div>
             </div>
-            <div id="sellerOrdersList" style="margin-top: 15px;">
-    <p style="color: #64748b; font-size: 14px;">No active orders found.</p>
-</div>
 
             <!-- 💰 Payout & Withdrawals -->
             <div class="premium-card" style="margin-top: 15px;">
@@ -230,15 +559,34 @@
                 </div>
                 <div id="pendingWithdrawals" style="display:none; margin-top:10px;"></div>
             </div>
+
+            <!-- 📜 Withdrawal History -->
+            <div class="premium-card" style="margin-top: 15px; border-left: 4px solid #8b5cf6;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin: 0;">📜 Withdrawal History</h3>
+                    <button onclick="toggleSection('withdrawalHistoryList')" class="toggle-btn">View</button>
+                </div>
+                <div id="withdrawalHistoryList" class="toggle-section-container">
+                    <div class="content" id="withdrawalHistoryContent">
+                        <p style="color: #64748b; font-size: 14px; text-align:center; padding:20px;">No withdrawal history yet</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
     <!-- ========== PROFILE SECTION ========== -->
     <div id="profileSection" class="section">
+        <div class="section-header">
+            <button class="back-btn" onclick="goBack()">
+                <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+                Back
+            </button>
+            <h2 style="margin:0;">👋 My Account</h2>
+        </div>
         <div id="buyerProfilePanel" style="display:block;">
             <div class="premium-card">
                 <div class="flex-between">
-                    <h2>👋 My Account</h2>
                     <span class="role-badge" id="userRoleBadge">Buyer</span>
                 </div>
             </div>
@@ -280,18 +628,16 @@
     </div>
 </div>
 
-
-    <style>
-    @keyframes popupScale {
-        from { transform: scale(0.85) translateY(-30px); opacity: 0; }
-        to { transform: scale(1) translateY(0); opacity: 1; }
-    }
-    </style>
-
     <!-- ========== ADMIN SECTION ========== -->
     <div id="adminSection" class="section">
+        <div class="section-header">
+            <button class="back-btn" onclick="goBack()">
+                <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+                Back
+            </button>
+            <h2 style="margin:0;">⚙️ Admin Dashboard</h2>
+        </div>
         <div id="adminPanel" class="premium-card">
-            <h2>⚙️ Admin Dashboard</h2>
             <div id="adminLoginBox">
                 <input type="password" id="adminKey" class="input" placeholder="Enter Admin Key">
                 <button class="btn-primary" id="adminLoginBtn">Login</button>
@@ -353,8 +699,14 @@
     
     <!-- ========== CART PAGE ========== -->
     <div id="cartPageSection" class="section">
+        <div class="section-header">
+            <button class="back-btn" onclick="goBack()">
+                <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+                Back
+            </button>
+            <h2 style="margin:0;">🛍️ My Cart</h2>
+        </div>
         <div class="premium-card">
-            <h2>🛍️ My Cart</h2>
             <div id="cartItemsList"></div>
             <div id="cartTotal" style="margin-top:20px; padding-top:20px; border-top:2px solid #e2e8f0;">
                 <div class="flex-between"><span>📦 Subtotal:</span><span id="cartSubtotal">SAR 0.00</span></div>
@@ -370,8 +722,14 @@
     
     <!-- ========== CHECKOUT PAGE ========== -->
     <div id="checkoutSection" class="section">
+        <div class="section-header">
+            <button class="back-btn" onclick="goBack()">
+                <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+                Back
+            </button>
+            <h2 style="margin:0;">📦 Checkout</h2>
+        </div>
         <div class="premium-card">
-            <h2>📦 Delivery Details</h2>
             <div id="deliveryForm">
                 <input type="text" id="deliveryFullName" placeholder="Receiver Full Name *" class="input">
                 <div class="phone-group">
@@ -403,9 +761,14 @@
     
     <!-- ========== PAYMENT PAGE ========== -->
     <div id="paymentSection" class="section">
+        <div class="section-header">
+            <button class="back-btn" onclick="goBack()">
+                <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+                Back
+            </button>
+            <h2 style="margin:0;">💳 Payment</h2>
+        </div>
         <div class="premium-card">
-            <h2>💳 Payment Options</h2>
-            
             <div style="display: flex; gap: 10px; margin-bottom: 20px;">
                 <button type="button" id="tabCardBtn" onclick="switchPaymentMode('card')" class="btn-primary" style="flex: 1; background: #2563eb; color: white;">💳 Pay with Card</button>
                 <button type="button" id="tabCryptoBtn" onclick="switchPaymentMode('crypto')" style="flex: 1; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
@@ -755,15 +1118,284 @@ function closeOrderDetailsModal() {
     document.getElementById('orderDetailsModal').style.display = 'none';
 }
 
+// ============================================================
+// BACK BUTTON FUNCTION
+// ============================================================
+function goBack() {
+    const sections = ['buyerSection', 'sellerSection', 'profileSection', 'adminSection', 'cartPageSection', 'checkoutSection', 'paymentSection'];
+    let currentSection = null;
+    let prevSection = null;
+    
+    for (let i = 0; i < sections.length; i++) {
+        const el = document.getElementById(sections[i]);
+        if (el && el.classList.contains('active')) {
+            currentSection = sections[i];
+            prevSection = i > 0 ? sections[i - 1] : 'buyerSection';
+            break;
+        }
+    }
+    
+    if (currentSection === 'buyerSection') {
+        showSection('buyer');
+    } else if (currentSection) {
+        // Convert section name to section identifier
+        const sectionMap = {
+            'sellerSection': 'seller',
+            'profileSection': 'profile',
+            'adminSection': 'admin',
+            'cartPageSection': 'cartPage',
+            'checkoutSection': 'checkout',
+            'paymentSection': 'payment'
+        };
+        const target = sectionMap[prevSection] || 'buyer';
+        showSection(target);
+        
+        // If going back from seller section, show registration form
+        if (currentSection === 'sellerSection') {
+            document.getElementById('sellerRegisterBox').style.display = 'block';
+            document.getElementById('sellerDashboard').style.display = 'none';
+        }
+    } else {
+        showSection('buyer');
+    }
+}
+
+// ============================================================
+// TOGGLE SECTION FUNCTION
+// ============================================================
+function toggleSection(sectionId) {
+    const container = document.getElementById(sectionId);
+    if (!container) return;
+    
+    const content = container.querySelector('.content');
+    if (!content) return;
+    
+    if (content.classList.contains('show')) {
+        content.classList.remove('show');
+        // Find the toggle button and update text
+        const parentCard = container.closest('.premium-card');
+        if (parentCard) {
+            const toggleBtn = parentCard.querySelector('.toggle-btn');
+            if (toggleBtn) toggleBtn.textContent = 'View';
+        }
+    } else {
+        content.classList.add('show');
+        // Find the toggle button and update text
+        const parentCard = container.closest('.premium-card');
+        if (parentCard) {
+            const toggleBtn = parentCard.querySelector('.toggle-btn');
+            if (toggleBtn) toggleBtn.textContent = 'Hide';
+        }
+        // If it's withdrawal history, render it
+        if (sectionId === 'withdrawalHistoryList') {
+            renderWithdrawalHistory();
+        }
+        if (sectionId === 'sellerOrdersList') {
+            renderSellerOrders();
+        }
+    }
+}
+
+// ============================================================
+// RENDER WITHDRAWAL HISTORY
+// ============================================================
+function renderWithdrawalHistory() {
+    const container = document.getElementById('withdrawalHistoryContent');
+    if (!container) return;
+    
+    const history = JSON.parse(localStorage.getItem('gb_withdrawal_history')) || [];
+    
+    if (history.length === 0) {
+        container.innerHTML = `
+            <div style="padding:30px; text-align:center; color:#64748b;">
+                <div style="font-size:40px; margin-bottom:10px;">📭</div>
+                <p style="font-size:15px;">No withdrawal history yet</p>
+                <p style="font-size:12px;">Your withdrawal requests will appear here once approved</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const totalAmount = history.reduce((sum, w) => sum + (w.amount || 0), 0);
+    const approvedCount = history.filter(w => w.status === 'Approved').length;
+    const pendingCount = history.filter(w => w.status === 'Pending').length;
+    
+    let html = `
+        <div class="history-stats">
+            <div class="stat-item">📊 Total Withdrawals: <strong>${history.length}</strong></div>
+            <div class="stat-item">✅ Approved: <strong>${approvedCount}</strong></div>
+            <div class="stat-item">⏳ Pending: <strong>${pendingCount}</strong></div>
+            <div class="stat-item">💰 Total Amount: <strong class="total-amount">${getCurrencySymbol()}${convertPrice(totalAmount)}</strong></div>
+        </div>
+        <div style="max-height:400px; overflow-y:auto; padding-right:5px;">
+    `;
+    
+    // Sort by date (newest first)
+    const sortedHistory = [...history].sort((a, b) => {
+        const dateA = new Date(a.requestedAt || a.date || 0);
+        const dateB = new Date(b.requestedAt || b.date || 0);
+        return dateB - dateA;
+    });
+    
+    // Pagination for withdrawal history
+    const itemsPerPage = PAGINATION_CONFIG?.historyPerPage || 10;
+    const currentPage = paginationState?.history?.currentPage || 1;
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const paginatedHistory = sortedHistory.slice(start, end);
+    
+    paginatedHistory.forEach(w => {
+        const statusClass = w.status?.toLowerCase() || 'pending';
+        const statusIcon = w.status === 'Approved' ? '✅' : w.status === 'Pending' ? '⏳' : '❌';
+        const dateDisplay = w.date || (w.requestedAt ? new Date(w.requestedAt).toLocaleString() : 'N/A');
+        
+        html += `
+            <div class="withdrawal-history-item ${statusClass}">
+                <div>
+                    <div class="amount">${getCurrencySymbol()}${convertPrice(w.amount)}</div>
+                    <div class="meta">📅 ${dateDisplay}</div>
+                    <div class="meta">🏪 ${w.sellerName || 'Unknown'}</div>
+                    ${w.approvedAt ? `<div class="meta" style="color:#10b981;">✅ Approved: ${new Date(w.approvedAt).toLocaleString()}</div>` : ''}
+                </div>
+                <div style="text-align:right;">
+                    <span class="status-badge ${statusClass}">${statusIcon} ${w.status || 'Pending'}</span>
+                    ${w.txHash ? `<div class="meta" style="font-size:10px;">🔗 ${w.txHash.slice(0,10)}...</div>` : ''}
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+    
+    // Add Load More button for withdrawal history
+    if (sortedHistory.length > itemsPerPage) {
+        const loadMoreContainer = document.createElement('div');
+        loadMoreContainer.className = 'load-more-container';
+        loadMoreContainer.innerHTML = `
+            <button class="read-more-btn" onclick="loadMoreHistory('withdrawalHistoryList', ${sortedHistory.length}, ${itemsPerPage})">
+                📖 Load More (${currentPage}/${Math.ceil(sortedHistory.length / itemsPerPage)})
+            </button>
+        `;
+        container.appendChild(loadMoreContainer);
+    }
+}
+
+// ============================================================
+// LOAD MORE HISTORY FUNCTION
+// ============================================================
+function loadMoreHistory(containerId, totalItems, itemsPerPage) {
+    const currentPage = paginationState?.history?.currentPage || 1;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    
+    if (currentPage < totalPages) {
+        if (!paginationState) {
+            window.paginationState = { history: { currentPage: 1 } };
+        }
+        if (!paginationState.history) {
+            paginationState.history = { currentPage: 1 };
+        }
+        paginationState.history.currentPage = currentPage + 1;
+        renderWithdrawalHistory();
+    }
+}
+
+// ============================================================
+// RENDER SELLER ORDERS
+// ============================================================
+function renderSellerOrders() {
+    const container = document.getElementById('sellerOrdersContent');
+    if (!container) return;
+    
+    // This function will be called from the main script.js
+    // We'll just show a message if it's not loaded yet
+    if (typeof window.renderSellerDashboard !== 'function') {
+        container.innerHTML = '<p style="color: #64748b; font-size: 14px;">Loading orders...</p>';
+        return;
+    }
+    
+    // The actual rendering will be done by the main script
+    // This is just a placeholder to ensure the section exists
+}
+
+// ============================================================
+// GET CURRENCY SYMBOL & CONVERT PRICE (fallback)
+// ============================================================
+function getCurrencySymbol() {
+    if (typeof window.getCurrencySymbol === 'function') {
+        return window.getCurrencySymbol();
+    }
+    return 'SAR ';
+}
+
+function convertPrice(amount) {
+    if (typeof window.convertPrice === 'function') {
+        return window.convertPrice(amount);
+    }
+    return (amount || 0).toFixed(2);
+}
+
+// ============================================================
+// SHOW SECTION FUNCTION
+// ============================================================
+function showSection(section) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    const sectionMap = {
+        'buyer': 'buyerSection',
+        'seller': 'sellerSection',
+        'profile': 'profileSection',
+        'admin': 'adminSection',
+        'cartPage': 'cartPageSection',
+        'checkout': 'checkoutSection',
+        'payment': 'paymentSection'
+    };
+    const targetId = sectionMap[section] || 'buyerSection';
+    const target = document.getElementById(targetId);
+    if (target) target.classList.add('active');
+}
+
+// ============================================================
+// DOM CONTENT LOADED
+// ============================================================
 document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ GlobalBazaar Registration & Dynamic Mock Gateway Initialized');
+    
+    // Initialize pagination state if not exists
+    if (typeof window.paginationState === 'undefined') {
+        window.paginationState = {
+            products: { currentPage: 1, totalPages: 1 },
+            orders: { currentPage: 1, totalPages: 1 },
+            sellers: { currentPage: 1, totalPages: 1 },
+            buyers: { currentPage: 1, totalPages: 1 },
+            withdrawals: { currentPage: 1, totalPages: 1 },
+            history: { currentPage: 1, totalPages: 1 }
+        };
+    }
+    
+    // Set up click handlers for back button if needed
+    const backBtns = document.querySelectorAll('.back-btn');
+    backBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            // The onclick attribute already handles it, but we prevent default just in case
+            e.preventDefault();
+        });
+    });
 });
 
+// Make functions globally available
 window.togglePayoutFields = togglePayoutFields;
 window.switchPaymentMode = switchPaymentMode;
 window.openCryptoPopup = openCryptoPopup;
 window.closeCryptoPopup = closeCryptoPopup;
 window.closeOrderDetailsModal = closeOrderDetailsModal;
+window.goBack = goBack;
+window.toggleSection = toggleSection;
+window.renderWithdrawalHistory = renderWithdrawalHistory;
+window.loadMoreHistory = loadMoreHistory;
+window.renderSellerOrders = renderSellerOrders;
+window.getCurrencySymbol = getCurrencySymbol;
+window.convertPrice = convertPrice;
+window.showSection = showSection;
 </script>
 
 <script src="script.js"></script>
