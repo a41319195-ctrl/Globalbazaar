@@ -1661,17 +1661,27 @@ function confirmOrderReceived(orderId) {
         order.splitBreakdown.releasedAt = new Date().toISOString();
         order.splitBreakdown.finalSellerPayout = sellerPayout;
         
-        // Update Firestore order status
+        // 🔥 [यहाँ से पुराना कोड हटाकर यह नया वाला सही तरीका लगाना है] 🔥
         if (order.id) {
-            db.collection("orders").doc(String(order.id)).update({
-                status: "Completed",
-                isBuyerConfirmed: true,
-                confirmedAt: new Date().toISOString(),
-                paymentReleasedAt: new Date().toISOString(),
-                sellerEarning: sellerPayout,
-                "splitBreakdown.isReleased": true,
-                "splitBreakdown.releasedAt": new Date().toISOString()
-            }).catch(err => console.error('Firestore update error:', err));
+            db.collection("orders").where("id", "==", order.id).get().then((querySnapshot) => {
+                if (!querySnapshot.empty) {
+                    querySnapshot.forEach((docSnap) => {
+                        db.collection("orders").doc(docSnap.id).update({
+                            status: "Completed",
+                            isBuyerConfirmed: true,
+                            confirmedAt: new Date().toISOString(),
+                            paymentReleasedAt: new Date().toISOString(),
+                            sellerEarning: sellerPayout,
+                            "splitBreakdown.isReleased": true,
+                            "splitBreakdown.releasedAt": new Date().toISOString()
+                        }).then(() => {
+                            console.log('✅ Firestore order status updated using doc ID:', docSnap.id);
+                        }).catch(err => console.error('Firestore order update error:', err));
+                    });
+                } else {
+                    console.error("⚠️ No matching order document found in Firestore for id:", order.id);
+                }
+            }).catch(err => console.error('Query error:', err));
         }
         
         if (currentSeller && String(currentSeller.sellerId) === String(seller.id)) {
@@ -1703,7 +1713,6 @@ function confirmOrderReceived(orderId) {
         showToast("⚠️ Payment failed. Contact support.", true);
     }
 }
-
 // ============================================================
 // CALCULATE SELLER PAYOUT
 // ============================================================
