@@ -1559,18 +1559,18 @@ function renderBuyerOrders() {
     container.innerHTML = ordersHtml;
     
     document.querySelectorAll('.order-card').forEach((card) => {
-        const orderId = parseFloat(card.dataset.orderId);
-        const order = activeOrders.find(o => o.id === orderId);
+        const orderId = card.dataset.orderId;
+        const order = activeOrders.find(o => String(o.id) === String(orderId));
         if (order) {
             setupOrderThreeDotMenu(card, order);
         }
     });
     
     document.querySelectorAll('.confirmReceivedBtn').forEach(btn => {
-        btn.addEventListener('click', () => confirmOrderReceived(parseFloat(btn.dataset.id)));
+        btn.addEventListener('click', () => confirmOrderReceived(btn.dataset.id));
     });
     document.querySelectorAll('.cancelOrderBtn').forEach(btn => {
-        btn.addEventListener('click', () => cancelOrder(parseFloat(btn.dataset.id)));
+        btn.addEventListener('click', () => cancelOrder(btn.dataset.id));
     });
     
     createPaginationControls('buyerOrdersList', 'orders', activeOrders.length, PAGINATION_CONFIG.ordersPerPage, renderBuyerOrders);
@@ -1583,7 +1583,7 @@ function renderBuyerOrders() {
 function confirmOrderReceived(orderId) {
     console.log('🔍 confirmOrderReceived called for order:', orderId);
     
-    let order = orders.find(o => o.id === orderId);
+    let order = orders.find(o => String(o.id) === String(orderId));
 
     if (!order) {
         showToast("⚠️ Order not found", true);
@@ -1610,7 +1610,7 @@ function confirmOrderReceived(orderId) {
         // Find seller using multi-identifier matching
         let seller = null;
         if (order.sellerId) {
-            seller = sellers.find(s => s.id === order.sellerId);
+            seller = sellers.find(s => String(s.id) === String(order.sellerId));
         }
         if (!seller && order.sellerName) {
             seller = sellers.find(s => s.shopName === order.sellerName);
@@ -1621,7 +1621,7 @@ function confirmOrderReceived(orderId) {
         if (!seller) {
             // Try to find by any matching field
             seller = sellers.find(s => 
-                s.id === order.sellerId || 
+                String(s.id) === String(order.sellerId) || 
                 s.shopName === order.sellerName || 
                 s.email === order.sellerEmail
             );
@@ -1663,9 +1663,9 @@ function confirmOrderReceived(orderId) {
         order.splitBreakdown.releasedAt = new Date().toISOString();
         order.splitBreakdown.finalSellerPayout = sellerPayout;
         
-        // Update Firestore order status - FIX: Use proper document reference
+        // Update Firestore order status - FIX: Use proper document reference with String ID
         if (order.id) {
-            db.collection("orders").doc(order.id).update({
+            db.collection("orders").doc(String(order.id)).update({
                 status: "Completed",
                 isBuyerConfirmed: true,
                 confirmedAt: new Date().toISOString(),
@@ -1676,7 +1676,7 @@ function confirmOrderReceived(orderId) {
             }).catch(err => console.error('Firestore update error:', err));
         }
         
-        if (currentSeller && currentSeller.sellerId === seller.id) {
+        if (currentSeller && String(currentSeller.sellerId) === String(seller.id)) {
             currentSeller.earnings = seller.earnings;
             localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
         }
@@ -1734,31 +1734,42 @@ function calculateSellerPayout(order) {
 }
 
 // ============================================================
-// CANCEL ORDER - FIXED
+// CANCEL ORDER - FIXED WITH PROPER ID MATCHING
 // ============================================================
 
 function cancelOrder(orderId) {
-    let order = orders.find(o => o.id === orderId);
-    if (order && order.status === "Processing") {
-        let prod = products.find(p => p.name === order.productName && p.sellerId === order.sellerId);
+    // Convert both to string for proper comparison
+    let order = orders.find(o => String(o.id) === String(orderId));
+    
+    if (!order) {
+        showToast("⚠️ Order not found", true);
+        return;
+    }
+    
+    if (order.status === "Processing") {
+        let prod = products.find(p => p.name === order.productName && String(p.sellerId) === String(order.sellerId));
         if (prod) {
             prod.stock += order.qty;
             // Update product stock in Firestore
             db.collection("products").doc(prod.id).update({
                 stock: prod.stock
             }).catch(err => console.error('Firestore update error:', err));
-            saveAllLocal();
         }
         
         // Update order status
         order.status = "Cancelled";
         
-        // Update Firestore order status - FIX: Use proper document reference
+        // Update Firestore order status - FIX: Use proper document reference with String ID
         if (order.id) {
-            db.collection("orders").doc(order.id).update({
+            db.collection("orders").doc(String(order.id)).update({
                 status: "Cancelled",
                 cancelledAt: new Date().toISOString()
-            }).catch(err => console.error('Firestore update error:', err));
+            }).then(() => {
+                console.log('✅ Order cancelled in Firestore');
+            }).catch(err => {
+                console.error('Firestore update error:', err);
+                // Still update local even if Firestore fails
+            });
         }
         
         saveAllLocal();
@@ -1782,7 +1793,7 @@ function cancelOrder(orderId) {
 // ============================================================
 
 function requestWithdrawal(sellerId) {
-    let seller = sellers.find(s => s.id == sellerId);
+    let seller = sellers.find(s => String(s.id) === String(sellerId));
     if (!seller) {
         showToast("⚠️ Seller not found", true);
         return;
@@ -1826,7 +1837,7 @@ function requestWithdrawal(sellerId) {
         console.error('Error updating balance:', err);
     });
 
-    if (currentSeller && currentSeller.sellerId === seller.id) {
+    if (currentSeller && String(currentSeller.sellerId) === String(seller.id)) {
         currentSeller.earnings = seller.earnings;
         localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
     }
@@ -1848,11 +1859,13 @@ function requestWithdrawal(sellerId) {
 }
 
 // ============================================================
-// MARK ORDER SHIPPED - FIXED
+// MARK ORDER SHIPPED - FIXED WITH PROPER ID MATCHING
 // ============================================================
 
 function markOrderShipped(orderId, trackingNum) {
-    let order = orders.find(o => o.id === orderId);
+    // Convert both to string for proper comparison
+    let order = orders.find(o => String(o.id) === String(orderId));
+    
     if (!order) {
         showToast("⚠️ Order not found", true);
         return;
@@ -1865,13 +1878,18 @@ function markOrderShipped(orderId, trackingNum) {
         order.shippedAt = new Date().toISOString();
         saveAllLocal();
         
-        // Update Firestore - FIX: Use proper document reference
+        // Update Firestore - FIX: Use proper document reference with String ID
         if (order.id) {
-            db.collection("orders").doc(order.id).update({
+            db.collection("orders").doc(String(order.id)).update({
                 status: "Shipped",
                 trackingInfo: { trackingNumber: trackingNum },
                 shippedAt: new Date().toISOString()
-            }).catch(err => console.error('Firestore update error:', err));
+            }).then(() => {
+                console.log('✅ Order marked as shipped in Firestore');
+            }).catch(err => {
+                console.error('Firestore update error:', err);
+                // Still update local even if Firestore fails
+            });
         }
         
         // INSTANT UI REFRESH
@@ -1925,7 +1943,7 @@ function setupFirestoreListeners() {
             console.log('👤 Sellers loaded:', sellers.length);
             
             if (currentSeller) {
-                const freshSeller = sellers.find(s => s.id === currentSeller.sellerId);
+                const freshSeller = sellers.find(s => String(s.id) === String(currentSeller.sellerId));
                 if (freshSeller) {
                     const oldStatus = currentSeller.kycStatus;
                     currentSeller = { 
@@ -1964,7 +1982,7 @@ function setupFirestoreListeners() {
             
             // Merge Firestore orders with local orders using multi-identifier matching
             firestoreOrders.forEach(firestoreOrder => {
-                const existingIndex = orders.findIndex(o => o.id === firestoreOrder.id);
+                const existingIndex = orders.findIndex(o => String(o.id) === String(firestoreOrder.id));
                 if (existingIndex === -1) {
                     orders.push(firestoreOrder);
                 } else {
@@ -2416,8 +2434,8 @@ function getSellerOrders(seller) {
     if (!seller) return [];
     
     return orders.filter(o => {
-        // Match by Seller ID
-        if (o.sellerId === seller.id) return true;
+        // Match by Seller ID (converted to string for safety)
+        if (o.sellerId && String(o.sellerId) === String(seller.id)) return true;
         // Match by Shop Name
         if (o.sellerName && seller.shopName && o.sellerName === seller.shopName) return true;
         // Match by Email
@@ -2434,12 +2452,12 @@ function renderSellerDashboard() {
 
     if (!currentSeller?.sellerId) return;
 
-    let seller = sellers.find(s => s.id === currentSeller.sellerId);
+    let seller = sellers.find(s => String(s.id) === String(currentSeller.sellerId));
     if (!seller) {
         const stored = localStorage.getItem('gb_current_seller');
         if (stored) {
             currentSeller = JSON.parse(stored);
-            seller = sellers.find(s => s.id === currentSeller.sellerId);
+            seller = sellers.find(s => String(s.id) === String(currentSeller.sellerId));
         }
     }
 
@@ -2470,7 +2488,7 @@ function renderSellerDashboard() {
     // Get seller orders using multi-identifier matching
     let sellerOrders = getSellerOrders(seller);
     let myProducts = products.filter(p => 
-        p.sellerId == seller.id || 
+        String(p.sellerId) === String(seller.id) || 
         (p.sellerName && seller.shopName && p.sellerName === seller.shopName)
     );
     
@@ -2964,7 +2982,7 @@ function renderSellerDashboard() {
                 return;
             }
             
-            const seller = sellers.find(s => s.id === currentSeller.sellerId);
+            const seller = sellers.find(s => String(s.id) === String(currentSeller.sellerId));
             if (!seller || seller.kycStatus !== 'verified') {
                 showToast("Your KYC is not verified.", true);
                 btn.disabled = false;
@@ -3077,7 +3095,7 @@ function renderSellerDashboard() {
     });
     
     document.getElementById('withdrawBtn')?.addEventListener('click', function() {
-        let seller = sellers.find(s => s.id === currentSeller.sellerId);
+        let seller = sellers.find(s => String(s.id) === String(currentSeller.sellerId));
         if (!seller) {
             showToast("⚠️ Seller not found", true);
             return;
