@@ -1663,16 +1663,18 @@ function confirmOrderReceived(orderId) {
         order.splitBreakdown.releasedAt = new Date().toISOString();
         order.splitBreakdown.finalSellerPayout = sellerPayout;
         
-        // Update Firestore order status
-        db.collection("orders").doc(order.id).update({
-            status: "Completed",
-            isBuyerConfirmed: true,
-            confirmedAt: new Date().toISOString(),
-            paymentReleasedAt: new Date().toISOString(),
-            sellerEarning: sellerPayout,
-            "splitBreakdown.isReleased": true,
-            "splitBreakdown.releasedAt": new Date().toISOString()
-        }).catch(err => console.error('Firestore update error:', err));
+        // Update Firestore order status - FIX: Use proper document reference
+        if (order.id) {
+            db.collection("orders").doc(order.id).update({
+                status: "Completed",
+                isBuyerConfirmed: true,
+                confirmedAt: new Date().toISOString(),
+                paymentReleasedAt: new Date().toISOString(),
+                sellerEarning: sellerPayout,
+                "splitBreakdown.isReleased": true,
+                "splitBreakdown.releasedAt": new Date().toISOString()
+            }).catch(err => console.error('Firestore update error:', err));
+        }
         
         if (currentSeller && currentSeller.sellerId === seller.id) {
             currentSeller.earnings = seller.earnings;
@@ -1732,7 +1734,7 @@ function calculateSellerPayout(order) {
 }
 
 // ============================================================
-// CANCEL ORDER
+// CANCEL ORDER - FIXED
 // ============================================================
 
 function cancelOrder(orderId) {
@@ -1741,18 +1743,37 @@ function cancelOrder(orderId) {
         let prod = products.find(p => p.name === order.productName && p.sellerId === order.sellerId);
         if (prod) {
             prod.stock += order.qty;
+            // Update product stock in Firestore
+            db.collection("products").doc(prod.id).update({
+                stock: prod.stock
+            }).catch(err => console.error('Firestore update error:', err));
             saveAllLocal();
         }
+        
+        // Update order status
         order.status = "Cancelled";
+        
+        // Update Firestore order status - FIX: Use proper document reference
+        if (order.id) {
+            db.collection("orders").doc(order.id).update({
+                status: "Cancelled",
+                cancelledAt: new Date().toISOString()
+            }).catch(err => console.error('Firestore update error:', err));
+        }
+        
         saveAllLocal();
-        showToast("Order cancelled successfully", false);
+        
+        // INSTANT UI UPDATE
+        showToast("✅ Order cancelled successfully", false);
+        addNotification(`Order ${order.trackingNumber} cancelled`, 'order');
+        
+        // RENDER UPDATED UI
         renderBuyerOrders();
         renderProducts();
-        renderSellerDashboard();
-        addNotification(`Order ${order.trackingNumber} cancelled`, 'order');
         if (currentSeller) renderSellerDashboard();
+        
     } else {
-        showToast("Only orders in 'Processing' status can be cancelled", true);
+        showToast("⚠️ Only orders in 'Processing' status can be cancelled", true);
     }
 }
 
@@ -1827,33 +1848,43 @@ function requestWithdrawal(sellerId) {
 }
 
 // ============================================================
-// MARK ORDER SHIPPED
+// MARK ORDER SHIPPED - FIXED
 // ============================================================
 
 function markOrderShipped(orderId, trackingNum) {
     let order = orders.find(o => o.id === orderId);
-    if (order && order.status === "Processing") {
+    if (!order) {
+        showToast("⚠️ Order not found", true);
+        return;
+    }
+    
+    if (order.status === "Processing") {
         // INSTANT UI UPDATE - Change status immediately
         order.status = "Shipped";
         order.trackingInfo = { trackingNumber: trackingNum };
+        order.shippedAt = new Date().toISOString();
         saveAllLocal();
         
-        // Update Firestore
-        db.collection("orders").doc(order.id).update({
-            status: "Shipped",
-            trackingInfo: { trackingNumber: trackingNum },
-            shippedAt: new Date().toISOString()
-        }).catch(err => console.error('Firestore update error:', err));
+        // Update Firestore - FIX: Use proper document reference
+        if (order.id) {
+            db.collection("orders").doc(order.id).update({
+                status: "Shipped",
+                trackingInfo: { trackingNumber: trackingNum },
+                shippedAt: new Date().toISOString()
+            }).catch(err => console.error('Firestore update error:', err));
+        }
         
         // INSTANT UI REFRESH
         addNotification(`📦 Your order ${order.trackingNumber} has been shipped! Tracking: ${trackingNum}`, 'order');
         sendTelegramMessage(`📦 Order Shipped: ${order.trackingNumber}\nProduct: ${order.productName}\nBuyer: ${order.buyerName}\nTracking: ${trackingNum}`);
         
         showToast(`✅ Order Shipped! Tracking: ${trackingNum}`, false);
+        
+        // RENDER UPDATED UI
         renderSellerDashboard();
         renderBuyerOrders();
     } else {
-        showToast("Order not found or already shipped", true);
+        showToast("⚠️ Order is not in 'Processing' status", true);
     }
 }
 
@@ -2353,7 +2384,7 @@ function showOrderDetailsModal(order) {
                 
                 <div style="display:flex; gap:10px; margin-top:20px; flex-wrap:wrap;">
                     ${order.status === "Processing" ? `
-                        <button onclick="markOrderShipped(${order.id}, prompt('Enter tracking number:'))" style="background:#3b82f6; color:white; border:none; padding:10px 20px; border-radius:25px; cursor:pointer; font-weight:500; flex:1;">
+                        <button onclick="markOrderShipped('${order.id}', prompt('Enter tracking number:'))" style="background:#3b82f6; color:white; border:none; padding:10px 20px; border-radius:25px; cursor:pointer; font-weight:500; flex:1;">
                             📦 Mark Shipped
                         </button>
                     ` : ''}
@@ -3034,9 +3065,14 @@ function renderSellerDashboard() {
     }));
     
     document.querySelectorAll('.shipBtn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            let track = prompt("Enter tracking number:");
-            if (track) markOrderShipped(parseFloat(btn.dataset.id), track);
+        btn.addEventListener('click', function() {
+            const orderId = this.dataset.id;
+            const track = prompt("Enter tracking number:");
+            if (track !== null && track.trim() !== '') {
+                markOrderShipped(orderId, track.trim());
+            } else if (track !== null) {
+                showToast("⚠️ Tracking number is required", true);
+            }
         });
     });
     
