@@ -520,6 +520,53 @@ function getPaginatedItems(items, stateKey, itemsPerPage) {
     return items.slice(start, end);
 }
 
+function createLoadMoreButton(containerId, stateKey, totalItems, itemsPerPage, renderFunction) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+    const currentPage = paginationState[stateKey]?.currentPage || 1;
+    
+    if (currentPage >= totalPages) {
+        const existingBtn = container.querySelector('.load-more-container');
+        if (existingBtn) existingBtn.remove();
+        return;
+    }
+    
+    let btnHtml = `
+        <div class="load-more-container">
+            <button class="read-more-btn" onclick="loadMore('${stateKey}', ${totalItems}, ${itemsPerPage}, '${renderFunction}')">
+                📖 Load More (${currentPage}/${totalPages})
+            </button>
+        </div>
+    `;
+    
+    const existingBtn = container.querySelector('.load-more-container');
+    if (existingBtn) {
+        existingBtn.outerHTML = btnHtml;
+    } else {
+        container.insertAdjacentHTML('beforeend', btnHtml);
+    }
+}
+
+function loadMore(stateKey, totalItems, itemsPerPage, renderFunction) {
+    const currentPage = paginationState[stateKey]?.currentPage || 1;
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+    
+    if (currentPage < totalPages) {
+        paginationState[stateKey].currentPage = currentPage + 1;
+        if (typeof window[renderFunction] === 'function') {
+            window[renderFunction]();
+        } else if (renderFunction === 'renderProducts') {
+            renderProducts();
+        } else if (renderFunction === 'renderBuyerOrders') {
+            renderBuyerOrders();
+        } else if (renderFunction === 'renderSellerDashboard') {
+            renderSellerDashboard();
+        }
+    }
+}
+
 // ============================================================
 // TELEGRAM NOTIFICATIONS
 // ============================================================
@@ -1554,12 +1601,32 @@ function confirmOrderReceived(orderId) {
     }
 
     try {
+        // INSTANT STATUS UPDATE - UI FIRST
         order.status = "Completed";
         order.isBuyerConfirmed = true;
         order.confirmedAt = new Date().toISOString();
         order.paymentReleasedAt = new Date().toISOString();
         
-        let seller = sellers.find(s => s.id === order.sellerId);
+        // Find seller using multi-identifier matching
+        let seller = null;
+        if (order.sellerId) {
+            seller = sellers.find(s => s.id === order.sellerId);
+        }
+        if (!seller && order.sellerName) {
+            seller = sellers.find(s => s.shopName === order.sellerName);
+        }
+        if (!seller && order.sellerEmail) {
+            seller = sellers.find(s => s.email === order.sellerEmail);
+        }
+        if (!seller) {
+            // Try to find by any matching field
+            seller = sellers.find(s => 
+                s.id === order.sellerId || 
+                s.shopName === order.sellerName || 
+                s.email === order.sellerEmail
+            );
+        }
+        
         if (!seller) {
             showToast("⚠️ Seller not found", true);
             return;
@@ -1596,6 +1663,17 @@ function confirmOrderReceived(orderId) {
         order.splitBreakdown.releasedAt = new Date().toISOString();
         order.splitBreakdown.finalSellerPayout = sellerPayout;
         
+        // Update Firestore order status
+        db.collection("orders").doc(order.id).update({
+            status: "Completed",
+            isBuyerConfirmed: true,
+            confirmedAt: new Date().toISOString(),
+            paymentReleasedAt: new Date().toISOString(),
+            sellerEarning: sellerPayout,
+            "splitBreakdown.isReleased": true,
+            "splitBreakdown.releasedAt": new Date().toISOString()
+        }).catch(err => console.error('Firestore update error:', err));
+        
         if (currentSeller && currentSeller.sellerId === seller.id) {
             currentSeller.earnings = seller.earnings;
             localStorage.setItem('gb_current_seller', JSON.stringify(currentSeller));
@@ -1603,6 +1681,7 @@ function confirmOrderReceived(orderId) {
         
         saveAllLocal();
         
+        // INSTANT UI UPDATE
         showToast('💰 ' + getCurrencySymbol() + convertPrice(sellerPayout) + ' PAYMENT RELEASED INSTANTLY!', false);
         
         sendTelegramMessage(`💰 PAYMENT RELEASED INSTANTLY!\n` +
@@ -1613,6 +1692,7 @@ function confirmOrderReceived(orderId) {
         
         addNotification(`💰 ${getCurrencySymbol()}${convertPrice(sellerPayout)} INSTANTLY released to ${seller.shopName}`, 'payment');
         
+        // RENDER UPDATED UI
         renderBuyerOrders();
         renderSellerDashboard();
         
@@ -1753,10 +1833,19 @@ function requestWithdrawal(sellerId) {
 function markOrderShipped(orderId, trackingNum) {
     let order = orders.find(o => o.id === orderId);
     if (order && order.status === "Processing") {
+        // INSTANT UI UPDATE - Change status immediately
         order.status = "Shipped";
         order.trackingInfo = { trackingNumber: trackingNum };
         saveAllLocal();
         
+        // Update Firestore
+        db.collection("orders").doc(order.id).update({
+            status: "Shipped",
+            trackingInfo: { trackingNumber: trackingNum },
+            shippedAt: new Date().toISOString()
+        }).catch(err => console.error('Firestore update error:', err));
+        
+        // INSTANT UI REFRESH
         addNotification(`📦 Your order ${order.trackingNumber} has been shipped! Tracking: ${trackingNum}`, 'order');
         sendTelegramMessage(`📦 Order Shipped: ${order.trackingNumber}\nProduct: ${order.productName}\nBuyer: ${order.buyerName}\nTracking: ${trackingNum}`);
         
@@ -1842,7 +1931,7 @@ function setupFirestoreListeners() {
                 firestoreOrders.push({ id: doc.id, ...doc.data() });
             });
             
-            // Merge Firestore orders with local orders
+            // Merge Firestore orders with local orders using multi-identifier matching
             firestoreOrders.forEach(firestoreOrder => {
                 const existingIndex = orders.findIndex(o => o.id === firestoreOrder.id);
                 if (existingIndex === -1) {
@@ -2289,6 +2378,24 @@ function showOrderDetailsModal(order) {
 }
 
 // ============================================================
+// MULTI-IDENTIFIER ORDER MATCHING FOR SELLER DASHBOARD
+// ============================================================
+
+function getSellerOrders(seller) {
+    if (!seller) return [];
+    
+    return orders.filter(o => {
+        // Match by Seller ID
+        if (o.sellerId === seller.id) return true;
+        // Match by Shop Name
+        if (o.sellerName && seller.shopName && o.sellerName === seller.shopName) return true;
+        // Match by Email
+        if (o.sellerEmail && seller.email && o.sellerEmail === seller.email) return true;
+        return false;
+    });
+}
+
+// ============================================================
 // SELLER DASHBOARD - COMPLETE FIXED VERSION
 // ============================================================
 
@@ -2316,27 +2423,6 @@ function renderSellerDashboard() {
         return;
     }
 
-    // Fetch orders from Firestore for this seller
-    db.collection("orders").get().then(snapshot => {
-        snapshot.forEach(doc => {
-            const firestoreOrder = doc.data();
-            const matchesId = firestoreOrder.sellerId === seller.id;
-            const matchesShop = firestoreOrder.sellerName && seller.shopName && (firestoreOrder.sellerName === seller.shopName);
-            const matchesEmail = firestoreOrder.sellerEmail && seller.email && (firestoreOrder.sellerEmail === seller.email);
-
-            if ((matchesId || matchesShop || matchesEmail) && !orders.some(o => o.id === firestoreOrder.id)) {
-                orders.push({ id: doc.id, ...firestoreOrder });
-            }
-        });
-        
-        saveAllLocal();
-        if (typeof renderSellerDashboard === 'function' && document.getElementById('sellerDashboard')) {
-            // Continue rendering
-        }
-    }).catch(err => {
-        console.log("Error fetching orders from Firebase:", err);
-    });
-    
     if (seller.kycStatus !== 'verified') {
         document.getElementById('sellerDashboard').innerHTML = `
             <div class="kyc-blocked-message">
@@ -2350,15 +2436,18 @@ function renderSellerDashboard() {
         return;
     }
     
-    let myProducts = products.filter(p => p.sellerId == seller.id);
+    // Get seller orders using multi-identifier matching
+    let sellerOrders = getSellerOrders(seller);
+    let myProducts = products.filter(p => 
+        p.sellerId == seller.id || 
+        (p.sellerName && seller.shopName && p.sellerName === seller.shopName)
+    );
     
-    let activeOrders = orders.filter(o => 
-        o.sellerId == seller.id && 
+    let activeOrders = sellerOrders.filter(o => 
         (o.status === "Processing" || o.status === "Shipped" || o.status === "Delivered")
     );
     
-    let historyOrders = orders.filter(o => 
-        o.sellerId == seller.id && 
+    let historyOrders = sellerOrders.filter(o => 
         (o.status === "Completed" || o.status === "Cancelled")
     );
     
@@ -2412,7 +2501,7 @@ function renderSellerDashboard() {
                   (seller.kycStatus === "verified" ? "✅ KYC Verified" : "❌ KYC Rejected");
     
     let topProducts = {};
-    orders.filter(o => o.sellerId == seller.id).forEach(o => {
+    sellerOrders.forEach(o => {
         topProducts[o.productName] = (topProducts[o.productName] || 0) + o.qty;
     });
     let topList = Object.entries(topProducts).sort((a, b) => b[1] - a[1]).slice(0, 5);
@@ -3482,6 +3571,7 @@ function renderProducts() {
         renderBuyerWishlist();
         
         createPaginationControls('productsGrid', 'products', filtered.length, PAGINATION_CONFIG.productsPerPage, renderProducts);
+        createLoadMoreButton('productsGrid', 'products', filtered.length, PAGINATION_CONFIG.productsPerPage, 'renderProducts');
         
     } catch (error) {
         console.error('Render products error:', error);
@@ -4107,6 +4197,7 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
                 trackingNumber: tracking,
                 sellerId: item.sellerId,
                 sellerName: seller?.shopName || "GlobalBazaar",
+                sellerEmail: seller?.email || '',
                 buyerEmail: currentDelivery.email,
                 buyerName: currentDelivery.fullName,
                 buyerPhone: currentDelivery.phone || 'N/A',
@@ -4368,6 +4459,7 @@ function loadPendingSellers() {
     container.innerHTML = html;
     
     createPaginationControls('pendingKycList', 'sellers', pending.length, PAGINATION_CONFIG.sellersPerPage, loadPendingSellers);
+    createLoadMoreButton('pendingKycList', 'sellers', pending.length, PAGINATION_CONFIG.sellersPerPage, 'loadPendingSellers');
     
     // अप्रूव बटन का लॉजिक और स्मार्ट एपीआई सिंक
     container.querySelectorAll('.btn-approve').forEach(btn => {
@@ -4487,6 +4579,7 @@ function loadVerifiedSellers() {
     container.innerHTML = html;
     
     createPaginationControls('verifiedSellersList', 'sellers', verified.length, PAGINATION_CONFIG.sellersPerPage, loadVerifiedSellers);
+    createLoadMoreButton('verifiedSellersList', 'sellers', verified.length, PAGINATION_CONFIG.sellersPerPage, 'loadVerifiedSellers');
 }
 
 // 5. विथड्रॉल रिक्वेस्ट लोड करने का फंक्शन
@@ -4507,6 +4600,7 @@ function loadWithdrawalsList() {
     container.innerHTML = html;
     
     createPaginationControls('pendingWithdrawals', 'withdrawals', pendingWithdrawals.length, PAGINATION_CONFIG.withdrawalsPerPage, loadWithdrawalsList);
+    createLoadMoreButton('pendingWithdrawals', 'withdrawals', pendingWithdrawals.length, PAGINATION_CONFIG.withdrawalsPerPage, 'loadWithdrawalsList');
     
     container.querySelectorAll('.approveBtn').forEach(btn => {
         btn.addEventListener('click', async () => {
