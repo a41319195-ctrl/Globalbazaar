@@ -2165,12 +2165,10 @@ function renderSellerDashboard() {
         return;
     }
 
-    // 🔥 फायरबेस से सारे ऑर्डर्स खींचकर सेलर की आईडी, शॉप नेम या ईमेल से मैच करें
-    try {
-        const snapshot = await db.collection("orders").get();
+        // 🔥 फायरबेस से बिना डैशबोर्ड रोके चुपचाप ऑर्डर्स फेच करें
+    db.collection("orders").get().then(snapshot => {
         snapshot.forEach(doc => {
             const firestoreOrder = doc.data();
-            
             const matchesId = firestoreOrder.sellerId === seller.id;
             const matchesShop = firestoreOrder.sellerName && seller.shopName && (firestoreOrder.sellerName === seller.shopName);
             const matchesEmail = firestoreOrder.sellerEmail && seller.email && (firestoreOrder.sellerEmail === seller.email);
@@ -2179,18 +2177,15 @@ function renderSellerDashboard() {
                 orders.push(firestoreOrder);
             }
         });
-    } catch (err) {
-        console.log("Error fetching orders from Firebase:", err);
-    }
-            document.getElementById('sellerDashboard').innerHTML = `
-                <div class="kyc-blocked-message">
-                    <h2>⚠️ Account Not Found</h2>
-                    <p>Please login again or contact support.</p>
-                    <button onclick="showMyShopLogin()" class="btn-primary">🔄 Login Again</button>
-                </div>
-            `;
-            return;
+        
+        // डेटा आने के बाद यदि डैशबोर्ड को तुरंत रिफ्रेश करना हो
+        if (typeof renderSellerDashboard === 'function' && document.getElementById('sellerDashboard')) {
+            // यह ऑप्शनल है, पर डेटा लोड होने के बाद UI अपडेट करने में मदद करेगा
         }
+    }).catch(err => {
+        console.log("Error fetching orders from Firebase:", err);
+    });
+    
     }
     
     if (seller.kycStatus !== 'verified') {
