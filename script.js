@@ -4236,82 +4236,88 @@ document.getElementById('payNowBtn')?.addEventListener('click', async function()
         let cartCopy = [...cart];
         
         for (let item of cart) {
-            const seller = sellers.find(s => s.id === item.sellerId);
-            const commissionRate = getCategoryCommission(item.category || 'Electronics');
-            let gatewayFee = item.price * GATEWAY_FEE_PERCENT;
-            let handlingFee = item.price * HANDLING_FEE_PERCENT;
-            let itemTotal = item.price + gatewayFee + handlingFee;
-            
-            let product = products.find(p => p.id === item.id);
-            
-            if (product) {
-                const newStock = product.stock - item.qty;
-                await db.collection("products").doc(product.id).update({
-                    stock: newStock
-                });
-                product.stock = newStock;
-                
-                if (newStock === 0) {
-                    addNotification(`Product ${product.name} is now SOLD OUT!`, 'info');
-                    sendTelegramMessage(`⚠️ Product ${product.name} out of stock.`);
-                }
-            }
-            
-            const itemShipping = shippingBreakdown.find(s => s.product === item.name)?.shippingTotal || 0;
-            
-            const itemSplit = calculatePaymentSplit(itemTotal, itemShipping, item.price, item.qty);
-            
-            let newOrder = {
-                id: Date.now() + Math.random(),
-                trackingNumber: tracking,
-                sellerId: item.sellerId,
-                sellerName: seller?.shopName || "GlobalBazaar",
-                sellerEmail: seller?.email || '',
-                buyerEmail: currentDelivery.email,
-                buyerName: currentDelivery.fullName,
-                buyerPhone: currentDelivery.phone || 'N/A',
-                productName: item.name,
-                category: item.category || 'Electronics',
-                amount: itemTotal,
-                basePrice: item.price,
-                address: currentDelivery.fullAddress,
-                date: new Date().toLocaleString(),
-                status: "Processing",
-                qty: item.qty,
-                shippingCost: itemShipping,
-                shippingCharge: itemShipping,
-                commission: commissionRate * item.price,
-                commissionRate: commissionRate,
-                gatewayFee: gatewayFee,
-                handlingFee: handlingFee,
-                trackingInfo: null,
-                buyerCountry: buyerCountry,
-                sellerEarning: 0,
-                pendingSellerPayout: itemSplit.sellerPayout,
-                totalShipping: totalShipping,
-                itemsTotal: itemsTotalUSD,
-                totalOrderAmount: totalUSD,
-                splitBreakdown: {
-                    totalAmount: itemSplit.totalAmount,
-                    gatewayFeeDeducted: itemSplit.gatewayFee,
-                    maintenanceFeeDeducted: itemSplit.maintenanceFee,
-                    platformCommissionDeducted: itemSplit.platformCommission,
-                    adminCommissionDeducted: itemSplit.adminTotal,
-                    finalSellerPayout: itemSplit.sellerPayout,
-                    isReleased: false,
-                    settings: {
-                        gatewayFeePercent: settings.gatewayFeePercent,
-                        platformCommissionPercent: settings.platformCommissionPercent,
-                        maintenanceFeePercent: settings.maintenanceFeePercent
-                    }
-                }
-            };
-            
-            orders.push(newOrder);
-            // Save to Firestore
-            db.collection("orders").add(newOrder).catch(err => console.log("Firebase sync error:", err));
-            platformEarnings += itemSplit.adminTotal;
+    const seller = sellers.find(s => 
+        String(s.id) === String(item.sellerId) || 
+        (item.shopName && item.sellerName && String(s.shopName).toLowerCase() === String(item.sellerName).toLowerCase()) ||
+        (s.email && item.sellerEmail && String(s.email).toLowerCase() === String(item.sellerEmail).toLowerCase())
+    ) || {};
+    
+    const commissionRate = getCategoryCommission(item.category || 'Electronics');
+    let gatewayFee = item.price * GATEWAY_FEE_PERCENT;
+    let handlingFee = item.price * HANDLING_FEE_PERCENT;
+    let itemTotal = item.price + gatewayFee + handlingFee;
+    
+    let product = products.find(p => String(p.id) === String(item.id));
+    
+    if (product) {
+        const newStock = product.stock - item.qty;
+        await db.collection("products").doc(product.id).update({
+            stock: newStock
+        });
+        product.stock = newStock;
+        
+        if (newStock === 0) {
+            addNotification(`Product ${product.name} is now SOLD OUT!`, 'info');
+            sendTelegramMessage(`⚠️ Product ${product.name} out of stock.`);
         }
+    }
+    
+    const itemShipping = shippingBreakdown.find(s => s.product === item.name)?.shippingTotal || 0;
+    
+    const itemSplit = calculatePaymentSplit(itemTotal, itemShipping, item.price, item.qty);
+    
+    let newOrder = {
+        id: Date.now() + Math.random(),
+        trackingNumber: tracking,
+        sellerId: item.sellerId || seller.id || '',
+        sellerName: seller.shopName || item.sellerName || "GlobalBazaar",
+        sellerEmail: seller.email || item.sellerEmail || '',
+        buyerEmail: currentDelivery.email,
+        buyerName: currentDelivery.fullName,
+        buyerPhone: currentDelivery.phone || 'N/A',
+        productName: item.name,
+        category: item.category || 'Electronics',
+        amount: itemTotal,
+        basePrice: item.price,
+        address: currentDelivery.fullAddress,
+        date: new Date().toLocaleString(),
+        status: "Processing",
+        qty: item.qty,
+        shippingCost: itemShipping,
+        shippingCharge: itemShipping,
+        commission: commissionRate * item.price,
+        commissionRate: commissionRate,
+        gatewayFee: gatewayFee,
+        handlingFee: handlingFee,
+        trackingInfo: null,
+        buyerCountry: buyerCountry,
+        sellerEarning: 0,
+        pendingSellerPayout: itemSplit.sellerPayout,
+        totalShipping: totalShipping,
+        itemsTotal: itemsTotalUSD,
+        totalOrderAmount: totalUSD,
+        splitBreakdown: {
+            totalAmount: itemSplit.totalAmount,
+            gatewayFeeDeducted: itemSplit.gatewayFee,
+            maintenanceFeeDeducted: itemSplit.maintenanceFee,
+            platformCommissionDeducted: itemSplit.platformCommission,
+            adminCommissionDeducted: itemSplit.adminTotal,
+            finalSellerPayout: itemSplit.sellerPayout,
+            isReleased: false,
+            settings: {
+                gatewayFeePercent: settings.gatewayFeePercent,
+                platformCommissionPercent: settings.platformCommissionPercent,
+                maintenanceFeePercent: settings.maintenanceFeePercent
+            }
+        }
+    };
+    
+    orders.push(newOrder);
+    // Save to Firestore
+    db.collection("orders").add(newOrder).catch(err => console.log("Firebase sync error:", err));
+    platformEarnings += itemSplit.adminTotal;
+}
+
         
         saveAllLocal();
         
