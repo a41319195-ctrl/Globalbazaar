@@ -1988,16 +1988,24 @@ function setupFirestoreListeners() {
             });
             
             // Merge Firestore orders with local orders using multi-identifier matching
-            firestoreOrders.forEach(firestoreOrder => {
-                const existingIndex = orders.findIndex(o => String(o.id) === String(firestoreOrder.id));
-                if (existingIndex === -1) {
-                    orders.push(firestoreOrder);
-                } else {
-                    // Update existing order with Firestore data
-                    orders[existingIndex] = { ...orders[existingIndex], ...firestoreOrder };
-                }
-            });
-            
+firestoreOrders.forEach(firestoreOrder => {
+    const existingIndex = orders.findIndex(o => String(o.id) === String(firestoreOrder.id));
+    if (existingIndex === -1) {
+        orders.push(firestoreOrder);
+    } else {
+        // Update existing order with Firestore data, but protect Completed/Cancelled status from being overwritten
+        const localOrder = orders[existingIndex];
+        if (localOrder.status === "Completed" || localOrder.status === "Cancelled") {
+            orders[existingIndex] = { 
+                ...firestoreOrder, 
+                status: localOrder.status, 
+                isBuyerConfirmed: localOrder.isBuyerConfirmed 
+            };
+        } else {
+            orders[existingIndex] = { ...localOrder, ...firestoreOrder };
+        }
+    }
+});      
             console.log('📋 Orders synced from Firestore:', firestoreOrders.length);
             
             // Update UI
