@@ -1885,23 +1885,32 @@ function markOrderShipped(orderId, trackingNum) {
         order.shippedAt = new Date().toISOString();
         saveAllLocal();
         
-        // Update Firestore - FIX: Use proper document reference with String ID
+        // Update Firestore - FIXED: Use .where() to find correct Firestore Document ID
         if (order.id) {
-            db.collection("orders").doc(String(order.id)).update({
-                status: "Shipped",
-                trackingInfo: { trackingNumber: trackingNum },
-                shippedAt: new Date().toISOString()
-            }).then(() => {
-                console.log('✅ Order marked as shipped in Firestore');
+            db.collection("orders").where("id", "==", order.id).get().then((querySnapshot) => {
+                if (!querySnapshot.empty) {
+                    querySnapshot.forEach((docSnap) => {
+                        db.collection("orders").doc(docSnap.id).update({
+                            status: "Shipped",
+                            trackingInfo: { trackingNumber: trackingNum },
+                            shippedAt: new Date().toISOString()
+                        }).then(() => {
+                            console.log('✅ Order marked as shipped in Firestore using doc ID:', docSnap.id);
+                        }).catch(err => {
+                            console.error('❌ Firestore update error:', err);
+                        });
+                    });
+                } else {
+                    console.error("⚠️ No matching order document found in Firestore for id:", order.id);
+                }
             }).catch(err => {
-                console.error('Firestore update error:', err);
-                // Still update local even if Firestore fails
+                console.error('❌ Query error:', err);
             });
         }
         
-        // INSTANT UI REFRESH
-        addNotification(`📦 Your order ${order.trackingNumber} has been shipped! Tracking: ${trackingNum}`, 'order');
-        sendTelegramMessage(`📦 Order Shipped: ${order.trackingNumber}\nProduct: ${order.productName}\nBuyer: ${order.buyerName}\nTracking: ${trackingNum}`);
+        // INSTANT UI REFRESH & NOTIFICATIONS
+        addNotification(`📦 Your order ${order.trackingNumber || trackingNum} has been shipped! Tracking: ${trackingNum}`, 'order');
+        sendTelegramMessage(`📦 Order Shipped: ${order.trackingNumber || trackingNum}\nProduct: ${order.productName}\nBuyer: ${order.buyerName}\nTracking: ${trackingNum}`);
         
         showToast(`✅ Order Shipped! Tracking: ${trackingNum}`, false);
         
