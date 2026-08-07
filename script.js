@@ -4724,7 +4724,7 @@ function loadAllBuyers(page = 1) {
                 return;
             }
 
-            // पेजिनेशन के ज़रिए सिर्फ इस पेज का डेटा कट किया
+            const totalPages = Math.ceil(ordersList.length / PAGINATION_CONFIG.ordersPerPage) || 1;
             const paginatedOrders = getPaginatedItems(ordersList, 'orders', PAGINATION_CONFIG.ordersPerPage);
 
             let html = '<div style="margin-bottom:15px;"><strong>📦 All Orders & Buyers Management (' + ordersList.length + ')</strong></div>';
@@ -4742,10 +4742,37 @@ function loadAllBuyers(page = 1) {
                     </div>
                 `;
             });
-            
-            // कंटेनर में HTML सेट करने के बाद नीचे पेजिनेशन बटन जोड़े
+
+            // पेजिनेशन बटन्स का HTML सीधा यहाँ जोड़ दिया ताकि गायब न हों
+            if (totalPages > 1) {
+                html += `
+                    <div class="pagination-controls" style="display:flex; justify-content:center; align-items:center; gap:8px; padding:15px 0;">
+                        <button class="pagination-btn" data-action="first" style="background:#e2e8f0; border:none; padding:8px 14px; border-radius:6px; cursor:pointer;" ${page === 1 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>First</button>
+                        <button class="pagination-btn" data-action="prev" style="background:#e2e8f0; border:none; padding:8px 14px; border-radius:6px; cursor:pointer;" ${page === 1 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>Prev</button>
+                        <span style="font-weight:500; padding:0 12px;">Page ${page} of ${totalPages}</span>
+                        <button class="pagination-btn" data-action="next" style="background:#e2e8f0; border:none; padding:8px 14px; border-radius:6px; cursor:pointer;" ${page === totalPages ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>Next</button>
+                        <button class="pagination-btn" data-action="last" style="background:#e2e8f0; border:none; padding:8px 14px; border-radius:6px; cursor:pointer;" ${page === totalPages ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>Last</button>
+                    </div>
+                `;
+            }
+
             container.innerHTML = html;
-            createPaginationControls(container.id, 'orders', ordersList.length, PAGINATION_CONFIG.ordersPerPage, loadAllBuyers);
+
+            // पेजिनेशन बटन के क्लिक इवेंट्स
+            container.querySelectorAll('.pagination-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    let action = btn.dataset.action;
+                    let newPage = page;
+                    if (action === 'first') newPage = 1;
+                    else if (action === 'prev') newPage = Math.max(1, page - 1);
+                    else if (action === 'next') newPage = Math.min(totalPages, page + 1);
+                    else if (action === 'last') newPage = totalPages;
+                    
+                    if (newPage !== page) {
+                        loadAllBuyers(newPage);
+                    }
+                });
+            });
 
             container.querySelectorAll('.btn-force-approve').forEach((btn) => {
                 btn.addEventListener('click', async function () {
@@ -4761,7 +4788,7 @@ function loadAllBuyers(page = 1) {
                             "splitBreakdown.releasedAt": new Date().toISOString()
                         });
                         showToast('✅ Order force approved successfully!', false);
-                        loadAllBuyers(paginationState.orders.currentPage);
+                        loadAllBuyers(page);
                     } catch (err) {
                         console.error('Force approve error:', err);
                         showToast('❌ Error force approving order', true);
@@ -4804,13 +4831,13 @@ function loadAllSellers(page = 1) {
                     return;
                 }
 
-                // पेजिनेशन के ज़रिए सिर्फ इस पेज के सेलर्स कट किए
+                const totalPages = Math.ceil(allSellers.length / PAGINATION_CONFIG.sellersPerPage) || 1;
                 const paginatedSellers = getPaginatedItems(allSellers, 'sellers', PAGINATION_CONFIG.sellersPerPage);
 
                 let html = '<div style="margin-bottom:15px;"><strong>🏪 All Registered Sellers & Shipping Records (' + allSellers.length + ')</strong></div>';
                 
                 paginatedSellers.forEach((seller, idx) => {
-                    let absoluteIdx = (paginationState.sellers.currentPage - 1) * PAGINATION_CONFIG.sellersPerPage + idx + 1;
+                    let absoluteIdx = (page - 1) * PAGINATION_CONFIG.sellersPerPage + idx + 1;
                     let sellerOrders = allOrders.filter(o => String(o.sellerId) === String(seller.id) || String(o.sellerEmail) === String(seller.email));
                     let statusColor = seller.kycStatus === 'verified' ? '#10b981' : '#f59e0b';
                     
@@ -4833,9 +4860,36 @@ function loadAllSellers(page = 1) {
                     html += `</div>`;
                 });
 
-                // कंटेनर में HTML सेट करने के बाद नीचे पेजिनेशन बटन जोड़े
+                // पेजिनेशन बटन्स का HTML सीधा यहाँ जोड़ दिया
+                if (totalPages > 1) {
+                    html += `
+                        <div class="pagination-controls" style="display:flex; justify-content:center; align-items:center; gap:8px; padding:15px 0;">
+                            <button class="pagination-btn" data-action="first" style="background:#e2e8f0; border:none; padding:8px 14px; border-radius:6px; cursor:pointer;" ${page === 1 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>First</button>
+                            <button class="pagination-btn" data-action="prev" style="background:#e2e8f0; border:none; padding:8px 14px; border-radius:6px; cursor:pointer;" ${page === 1 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>Prev</button>
+                            <span style="font-weight:500; padding:0 12px;">Page ${page} of ${totalPages}</span>
+                            <button class="pagination-btn" data-action="next" style="background:#e2e8f0; border:none; padding:8px 14px; border-radius:6px; cursor:pointer;" ${page === totalPages ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>Next</button>
+                            <button class="pagination-btn" data-action="last" style="background:#e2e8f0; border:none; padding:8px 14px; border-radius:6px; cursor:pointer;" ${page === totalPages ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>Last</button>
+                        </div>
+                    `;
+                }
+
                 container.innerHTML = html;
-                createPaginationControls(container.id, 'sellers', allSellers.length, PAGINATION_CONFIG.sellersPerPage, loadAllSellers);
+
+                // पेजिनेशन बटन के क्लिक इवेंट्स
+                container.querySelectorAll('.pagination-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        let action = btn.dataset.action;
+                        let newPage = page;
+                        if (action === 'first') newPage = 1;
+                        else if (action === 'prev') newPage = Math.max(1, page - 1);
+                        else if (action === 'next') newPage = Math.min(totalPages, page + 1);
+                        else if (action === 'last') newPage = totalPages;
+                        
+                        if (newPage !== page) {
+                            loadAllSellers(newPage);
+                        }
+                    });
+                });
 
             }).catch(err => console.error('Error fetching orders for sellers:', err));
         }).catch(err => {
