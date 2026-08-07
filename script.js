@@ -4703,8 +4703,9 @@ function loadWithdrawalsList() {
 }
 
 // 6. बाकी के बचे हुए सभी मेनू बटन्स के सुरक्षित फंक्शन्स (ताकि कोई भी बटन क्लिक करने पर रुके नहीं)
-function loadAllBuyers() {
+function loadAllBuyers(page = 1) {
     try {
+        paginationState.orders.currentPage = page;
         hideAllAdminSections();
         const container = document.getElementById('pendingKycList') || document.getElementById('allBuyersList') || document.getElementById('adminOrdersList');
         if (!container) return;
@@ -4723,8 +4724,12 @@ function loadAllBuyers() {
                 return;
             }
 
+            // पेजिनेशन के ज़रिए सिर्फ इस पेज का डेटा कट किया
+            const paginatedOrders = getPaginatedItems(ordersList, 'orders', PAGINATION_CONFIG.ordersPerPage);
+
             let html = '<div style="margin-bottom:15px;"><strong>📦 All Orders & Buyers Management (' + ordersList.length + ')</strong></div>';
-            ordersList.forEach((o) => {
+            
+            paginatedOrders.forEach((o) => {
                 let statusColor = o.status === 'Completed' ? '#10b981' : o.status === 'Shipped' ? '#3b82f6' : '#f59e0b';
                 html += `
                     <div style="background:#f8fafc; border-radius:12px; padding:12px; margin-bottom:10px; border-left:4px solid ${statusColor};">
@@ -4737,7 +4742,10 @@ function loadAllBuyers() {
                     </div>
                 `;
             });
+            
+            // कंटेनर में HTML सेट करने के बाद नीचे पेजिनेशन बटन जोड़े
             container.innerHTML = html;
+            createPaginationControls(container.id, 'orders', ordersList.length, PAGINATION_CONFIG.ordersPerPage, loadAllBuyers);
 
             container.querySelectorAll('.btn-force-approve').forEach((btn) => {
                 btn.addEventListener('click', async function () {
@@ -4753,7 +4761,7 @@ function loadAllBuyers() {
                             "splitBreakdown.releasedAt": new Date().toISOString()
                         });
                         showToast('✅ Order force approved successfully!', false);
-                        loadAllBuyers();
+                        loadAllBuyers(paginationState.orders.currentPage);
                     } catch (err) {
                         console.error('Force approve error:', err);
                         showToast('❌ Error force approving order', true);
@@ -4769,8 +4777,9 @@ function loadAllBuyers() {
     }
 }
 
-function loadAllSellers() {
+function loadAllSellers(page = 1) {
     try {
+        paginationState.sellers.currentPage = page;
         hideAllAdminSections();
         const container = document.getElementById('pendingKycList') || document.getElementById('allSellersList') || document.getElementById('adminOrdersList');
         if (!container) return;
@@ -4795,14 +4804,19 @@ function loadAllSellers() {
                     return;
                 }
 
+                // पेजिनेशन के ज़रिए सिर्फ इस पेज के सेलर्स कट किए
+                const paginatedSellers = getPaginatedItems(allSellers, 'sellers', PAGINATION_CONFIG.sellersPerPage);
+
                 let html = '<div style="margin-bottom:15px;"><strong>🏪 All Registered Sellers & Shipping Records (' + allSellers.length + ')</strong></div>';
-                allSellers.forEach((seller, idx) => {
+                
+                paginatedSellers.forEach((seller, idx) => {
+                    let absoluteIdx = (paginationState.sellers.currentPage - 1) * PAGINATION_CONFIG.sellersPerPage + idx + 1;
                     let sellerOrders = allOrders.filter(o => String(o.sellerId) === String(seller.id) || String(o.sellerEmail) === String(seller.email));
                     let statusColor = seller.kycStatus === 'verified' ? '#10b981' : '#f59e0b';
                     
                     html += `
                         <div style="background:#f8fafc; border-radius:12px; padding:12px; margin-bottom:12px; border-left:4px solid ${statusColor};">
-                            <div style="font-weight:600; font-size:14px;">#${idx + 1} ${seller.shopName || 'Unknown Shop'}</div>
+                            <div style="font-weight:600; font-size:14px;">#${absoluteIdx} ${seller.shopName || 'Unknown Shop'}</div>
                             <div style="font-size:13px; color:#64748b;">👤 Owner: ${seller.fullName || 'N/A'} | 📧 Email: ${seller.email || 'N/A'}</div>
                             <div style="font-size:13px; color:#64748b;">📞 Phone: ${seller.phone || 'N/A'} | 🌍 Country: ${seller.country || 'N/A'}</div>
                             <div style="font-size:12px; font-weight:600; color:${statusColor}; margin-top:4px;">KYC Status: ${seller.kycStatus || 'Pending'}</div>
@@ -4819,7 +4833,10 @@ function loadAllSellers() {
                     html += `</div>`;
                 });
 
+                // कंटेनर में HTML सेट करने के बाद नीचे पेजिनेशन बटन जोड़े
                 container.innerHTML = html;
+                createPaginationControls(container.id, 'sellers', allSellers.length, PAGINATION_CONFIG.sellersPerPage, loadAllSellers);
+
             }).catch(err => console.error('Error fetching orders for sellers:', err));
         }).catch(err => {
             console.error('Error loading sellers:', err);
