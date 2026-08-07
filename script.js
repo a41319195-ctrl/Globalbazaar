@@ -4704,20 +4704,129 @@ function loadWithdrawalsList() {
 
 // 6. बाकी के बचे हुए सभी मेनू बटन्स के सुरक्षित फंक्शन्स (ताकि कोई भी बटन क्लिक करने पर रुके नहीं)
 function loadAllBuyers() {
-    hideAllAdminSections();
-    const container = document.getElementById('allBuyersList') || document.getElementById('adminOrdersList');
-    if (container) {
+    try {
+        hideAllAdminSections();
+        const container = document.getElementById('pendingKycList') || document.getElementById('allBuyersList') || document.getElementById('adminOrdersList');
+        if (!container) return;
+        
         container.style.display = 'block';
-        container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;"><h3>👥 All Buyers Management</h3><p>Buyers list will appear here.</p></div>';
+        container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;"><h3>👥 All Buyers Management</h3><p>Loading buyers and orders...</p></div>';
+
+        db.collection("orders").get().then((snapshot) => {
+            let ordersList = [];
+            snapshot.forEach((doc) => {
+                ordersList.push({ id: doc.id, ...doc.data() });
+            });
+
+            if (ordersList.length === 0) {
+                container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;"><h3>👥 All Buyers Management</h3><p>No orders found.</p></div>';
+                return;
+            }
+
+            let html = '<div style="margin-bottom:15px;"><strong>📦 All Orders & Buyers Management (' + ordersList.length + ')</strong></div>';
+            ordersList.forEach((o) => {
+                let statusColor = o.status === 'Completed' ? '#10b981' : o.status === 'Shipped' ? '#3b82f6' : '#f59e0b';
+                html += `
+                    <div style="background:#f8fafc; border-radius:12px; padding:12px; margin-bottom:10px; border-left:4px solid ${statusColor};">
+                        <div style="font-weight:600; font-size:14px;">🛍️ Order ID: ${o.trackingNumber || o.id}</div>
+                        <div style="font-size:13px; color:#64748b;">👤 Buyer: ${o.buyerName || 'Unknown'} (${o.buyerEmail || 'N/A'})</div>
+                        <div style="font-size:13px; color:#64748b;">📦 Product: ${o.productName || 'N/A'} (Qty: ${o.qty || 1})</div>
+                        <div style="font-size:12px; color:#94a3b8;">📅 Ordered At: ${o.date || 'N/A'}</div>
+                        <div style="font-size:12px; font-weight:600; color:${statusColor}; margin-top:4px;">Status: ${o.status}</div>
+                        ${o.status !== 'Completed' ? `<button class="btn-force-approve" data-order-id="${o.id}" style="margin-top:8px; padding:6px 12px; background:#10b981; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:12px;">⚡ Force Approve & Complete</button>` : ''}
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+
+            container.querySelectorAll('.btn-force-approve').forEach((btn) => {
+                btn.addEventListener('click', async function () {
+                    const orderDocId = this.dataset.orderId;
+                    if (!confirm('Are you sure you want to force approve this order?')) return;
+                    try {
+                        await db.collection("orders").doc(orderDocId).update({
+                            status: "Completed",
+                            isBuyerConfirmed: true,
+                            confirmedAt: new Date().toISOString(),
+                            paymentReleasedAt: new Date().toISOString(),
+                            "splitBreakdown.isReleased": true,
+                            "splitBreakdown.releasedAt": new Date().toISOString()
+                        });
+                        showToast('✅ Order force approved successfully!', false);
+                        loadAllBuyers();
+                    } catch (err) {
+                        console.error('Force approve error:', err);
+                        showToast('❌ Error force approving order', true);
+                    }
+                });
+            });
+        }).catch(err => {
+            console.error('Error loading buyers orders:', err);
+            container.innerHTML = '<div style="padding:20px; text-align:center; color:#dc2626;">Error loading buyers data.</div>';
+        });
+    } catch (error) {
+        console.error('loadAllBuyers error:', error);
     }
 }
 
 function loadAllSellers() {
-    hideAllAdminSections();
-    const container = document.getElementById('allSellersList') || document.getElementById('adminOrdersList');
-    if (container) {
+    try {
+        hideAllAdminSections();
+        const container = document.getElementById('pendingKycList') || document.getElementById('allSellersList') || document.getElementById('adminOrdersList');
+        if (!container) return;
+        
         container.style.display = 'block';
-        container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;"><h3>🏪 All Sellers Management</h3><p>All registered sellers list will appear here.</p></div>';
+        container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;"><h3>🏪 All Sellers Management</h3><p>Loading sellers and order shipping records...</p></div>';
+
+        db.collection("sellers").get().then((snapshot) => {
+            let allSellers = [];
+            snapshot.forEach((doc) => {
+                allSellers.push({ id: doc.id, ...doc.data() });
+            });
+
+            db.collection("orders").get().then((orderSnap) => {
+                let allOrders = [];
+                orderSnap.forEach((doc) => {
+                    allOrders.push({ id: doc.id, ...doc.data() });
+                });
+
+                if (allSellers.length === 0) {
+                    container.innerHTML = '<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:12px;"><h3>🏪 All Sellers Management</h3><p>No sellers found.</p></div>';
+                    return;
+                }
+
+                let html = '<div style="margin-bottom:15px;"><strong>🏪 All Registered Sellers & Shipping Records (' + allSellers.length + ')</strong></div>';
+                allSellers.forEach((seller, idx) => {
+                    let sellerOrders = allOrders.filter(o => String(o.sellerId) === String(seller.id) || String(o.sellerEmail) === String(seller.email));
+                    let statusColor = seller.kycStatus === 'verified' ? '#10b981' : '#f59e0b';
+                    
+                    html += `
+                        <div style="background:#f8fafc; border-radius:12px; padding:12px; margin-bottom:12px; border-left:4px solid ${statusColor};">
+                            <div style="font-weight:600; font-size:14px;">#${idx + 1} ${seller.shopName || 'Unknown Shop'}</div>
+                            <div style="font-size:13px; color:#64748b;">👤 Owner: ${seller.fullName || 'N/A'} | 📧 Email: ${seller.email || 'N/A'}</div>
+                            <div style="font-size:13px; color:#64748b;">📞 Phone: ${seller.phone || 'N/A'} | 🌍 Country: ${seller.country || 'N/A'}</div>
+                            <div style="font-size:12px; font-weight:600; color:${statusColor}; margin-top:4px;">KYC Status: ${seller.kycStatus || 'Pending'}</div>
+                            <div style="font-size:12px; color:#3b82f6; margin-top:6px;">📦 Total Orders Handled: ${sellerOrders.length}</div>
+                    `;
+
+                    if (sellerOrders.length > 0) {
+                        html += `<div style="margin-top:6px; font-size:11px; background:#fff; padding:6px; border-radius:6px; border:1px solid #e2e8f0;">`;
+                        sellerOrders.forEach(so => {
+                            html += `<div>• Order: <b>${so.trackingNumber || so.id}</b> | Status: <b>${so.status}</b> | Shipped/Processed Date: ${so.shippedAt || so.date || 'N/A'}</div>`;
+                        });
+                        html += `</div>`;
+                    }
+                    html += `</div>`;
+                });
+
+                container.innerHTML = html;
+            }).catch(err => console.error('Error fetching orders for sellers:', err));
+        }).catch(err => {
+            console.error('Error loading sellers:', err);
+            container.innerHTML = '<div style="padding:20px; text-align:center; color:#dc2626;">Error loading sellers data.</div>';
+        });
+    } catch (error) {
+        console.error('loadAllSellers error:', error);
     }
 }
 
